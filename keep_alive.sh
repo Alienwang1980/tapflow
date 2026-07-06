@@ -1,6 +1,5 @@
 #!/bin/bash
-# Smart Touch Panel — keep-alive daemon
-# Restarts the server if it dies. Check every 10s.
+# Smart Touch Panel — keep-alive daemon (headless, for cron @reboot)
 DIR="$(cd "$(dirname "$0")" && pwd)"
 LOG="$DIR/logs/keep_alive.log"
 PIDFILE="$DIR/logs/stp.pid"
