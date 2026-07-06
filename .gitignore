@@ -1,0 +1,8 @@
+.venv/
+*.pyc
+__pycache__/
+.DS_Store
+*.egg-info/
+dist/
+build/
+server/profiles/*.json
