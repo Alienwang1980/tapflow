@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Smart Touch Panel</title>
+<style>
+:root {
+  --bg: #1a1a2e;
+  --panel-bg: #16213e;
+  --key-default: #0f3460;
+  --key-active: #e94560;
+  --key-hover: #1a4a8a;
+  --text: #eee;
+  --text-dim: #888;
+  --border: #2a2a4a;
+  --accent: #e94560;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Top bar ── */
+.top-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--panel-bg);
+  border-bottom: 1px solid var(--border);
+  height: 48px;
+}
+.top-bar h1 { font-size: 16px; font-weight: 600; }
+.top-bar h1 span { color: var(--accent); }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.status-dot.connect { background: #4caf50; }
+.status-dot.disconnect { background: #f44336; }
+.status-dot.connecting { background: #ff9800; animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.status-text { font-size: 12px; color: var(--text-dim); margin-left: 6px; }
+
+/* ── Page tabs ── */
+.tabs {
+  display: flex; gap: 2px;
+  padding: 6px 8px;
+  background: var(--bg);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.tab-btn {
+  padding: 8px 18px; border-radius: 8px 8px 0 0;
+  background: var(--panel-bg); color: var(--text-dim);
+  border: none; font-size: 14px; font-weight: 500;
+  cursor: pointer; white-space: nowrap;
+  touch-action: manipulation;
+}
+.tab-btn.active { background: var(--key-default); color: var(--text); }
+
+/* ── Key grid ── */
+.grid-wrap {
+  flex: 1; overflow-y: auto;
+  padding: 8px;
+  -webkit-overflow-scrolling: touch;
+}
+.key-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 4px;
+}
+
+/* ── Key button ── */
+.key-btn {
+  position: relative;
+  background: var(--key-default);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 18px; font-weight: 600;
+  min-height: 64px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  touch-action: none;
+  transition: transform 0.05s, background 0.05s;
+  -webkit-tap-highlight-color: transparent;
+}
+.key-btn:active, .key-btn.active {
+  background: var(--key-active);
+  transform: scale(0.93);
+  border-color: var(--accent);
+}
+.key-btn .key-label {
+  pointer-events: none;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* ── Notch safe area ── */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  body { padding-bottom: env(safe-area-inset-bottom); }
+}
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <h1>🎮 Smart <span>Touch</span></h1>
+  <div>
+    <span class="status-dot connecting" id="statusDot"></span>
+    <span class="status-text" id="statusText">connecting...</span>
+  </div>
+</div>
+
+<div class="tabs" id="tabs"></div>
+
+<div class="grid-wrap">
+  <div class="key-grid" id="keyGrid"></div>
+</div>
+
+<script>
+"use strict";
+
+// ── State ──
+let ws = null;
+let profile = null;
+let activePageId = "main";
+let reconnectTimer = null;
+let reconnectDelay = 1000;
+
+// ── WebSocket ──
+function connect() {
+  const proto = location.protocol === "https:" ? "wss:" : "ws:";
+  const url = `${proto}//${location.hostname}:8082/ws`;
+  ws = new WebSocket(url);
+
+  ws.onopen = () => {
+    setStatus("connect", "connected");
+    reconnectDelay = 1000;
+  };
+
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    if (msg.type === "profile") {
+      profile = msg.profile;
+      renderAll();
+    } else if (msg.type === "ack") {
+      // feedback handled by visual press already
+    }
+  };
+
+  ws.onclose = () => {
+    setStatus("disconnect", "disconnected");
+    scheduleReconnect();
+  };
+
+  ws.onerror = () => {
+    setStatus("disconnect", "error");
+  };
+}
+
+function scheduleReconnect() {
+  clearTimeout(reconnectTimer);
+  setStatus("connecting", "reconnect in " + Math.round(reconnectDelay/1000) + "s");
+  reconnectTimer = setTimeout(() => {
+    reconnectDelay = Math.min(reconnectDelay * 1.5, 15000);
+    connect();
+  }, reconnectDelay);
+}
+
+function setStatus(cls, text) {
+  const dot = document.getElementById("statusDot");
+  const label = document.getElementById("statusText");
+  dot.className = "status-dot " + cls;
+  label.textContent = text;
+}
+
+// ── Send key event ──
+function sendKey(keyDef) {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  ws.send(JSON.stringify({
+    type: "key",
+    key: keyDef.value,
+    action: keyDef.action === "text" ? "text" : "press",
+  }));
+}
+
+// ── Multi-touch support ──
+const activeTouches = new Set();
+
+document.addEventListener("touchstart", function(e) {
+  e.preventDefault();
+  for (let i = 0; i < e.changedTouches.length; i++) {
+    const t = e.changedTouches[i];
+    const el = document.elementFromPoint(t.clientX, t.clientY);
+    if (el && el.classList.contains("key-btn")) {
+      const keyId = el.dataset.keyId;
+      if (keyId && !activeTouches.has(keyId)) {
+        activeTouches.add(keyId);
+        el.classList.add("active");
+        const page = profile && profile.pages.find(function(p) { return p.id === activePageId; });
+        const keyDef = page && page.keys.find(function(k) { return k.id === keyId; });
+        if (keyDef) sendKey(keyDef);
+      }
+    }
+  }
+}, { passive: false });
+
+document.addEventListener("touchend", function(e) {
+  e.preventDefault();
+  // Deactivate all active keys
+  activeTouches.forEach(function(keyId) {
+    const btn = document.querySelector('[data-key-id="' + keyId + '"]');
+    if (btn) btn.classList.remove("active");
+  });
+  activeTouches.clear();
+}, { passive: false });
+
+document.addEventListener("touchmove", function(e) {
+  e.preventDefault();
+}, { passive: false });
+
+// ── Render ──
+function renderAll() {
+  renderTabs();
+  renderGrid();
+}
+
+function renderTabs() {
+  const tabsEl = document.getElementById("tabs");
+  tabsEl.innerHTML = profile.pages.map(function(p) {
+    return '<button class="tab-btn' + (p.id === activePageId ? ' active' : '') +
+           '" data-page-id="' + p.id + '" onclick="switchPage(\'' + p.id + '\')">' +
+           p.label + '</button>';
+  }).join("");
+}
+
+function renderGrid() {
+  const grid = document.getElementById("keyGrid");
+  const page = profile.pages.find(function(p) { return p.id === activePageId; });
+  if (!page) { grid.innerHTML = ""; return; }
+
+  grid.innerHTML = page.keys.map(function(k) {
+    return '<button class="key-btn" data-key-id="' + k.id +
+           '" style="background:' + (k.color || 'var(--key-default)') + '">' +
+           '<span class="key-label">' + k.label + '</span></button>';
+  }).join("");
+}
+
+function switchPage(pageId) {
+  activePageId = pageId;
+  renderAll();
+}
+
+// ── Init ──
+connect();
+setTimeout(function() {
+  if (!profile) { ws.close(); }
+}, 5000);
+</script>
+</body>
+</html>
