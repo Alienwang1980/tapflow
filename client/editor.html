@@ -17,38 +17,31 @@ body{display:flex;flex-direction:column}
 .side{width:200px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);overflow-y:auto}
 .side h3{font-size:10px;text-transform:uppercase;color:var(--dim);padding:8px 8px 2px;letter-spacing:1px}
 .side .it{padding:4px 8px;cursor:pointer;font-size:11px;border-left:3px solid transparent;display:flex;justify-content:space-between}
-.side .it:hover{background:#ffffff08}
-.side .it.ac{border-left-color:var(--accent);color:var(--accent);background:#ffffff0c}
-.side .it .x{visibility:hidden;color:var(--red);cursor:pointer;font-size:13px}
-.side .it:hover .x{visibility:visible}
+.side .it:hover{background:#ffffff08}.side .it.ac{border-left-color:var(--accent);color:var(--accent);background:#ffffff0c}
+.side .it .x{visibility:hidden;color:var(--red);cursor:pointer;font-size:13px}.side .it:hover .x{visibility:visible}
 .side .ar{display:flex;gap:3px;padding:3px 8px}
 .side .ar input{flex:1;padding:2px 5px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:3px;font-size:10px}
 .side .ar button{padding:2px 5px;font-size:10px;background:#555;color:#fff;border:none;border-radius:3px;cursor:pointer}
 .carea{flex:1;position:relative;overflow:hidden;background:var(--bg)}
-.frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border:2px solid var(--accent);box-shadow:0 0 20px rgba(233,69,96,0.3);pointer-events:none;z-index:10;background:rgba(0,0,0,0.15)}
-.fl{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--accent);background:var(--panel);padding:1px 6px;border-radius:3px;white-space:nowrap}
-.ck{position:absolute;background:var(--card);border:2px solid transparent;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;cursor:grab;transition:border-color 0.1s;user-select:none;z-index:2;overflow:hidden}
-.ck:hover{border-color:rgba(255,255,255,0.4)}
-.ck.sel{border-color:var(--accent);box-shadow:0 0 8px rgba(233,69,96,0.5);cursor:default}
+/* Fixed-size canvas wrapper — same approach as iPad */
+.cwrap{position:absolute;top:50%;left:50%;transform-origin:0 0}
+.canvas{position:relative;border:2px solid var(--accent);box-shadow:0 0 20px rgba(233,69,96,0.3);background:rgba(0,0,0,0.15)}
+.ck{position:absolute;background:var(--card);border:2px solid transparent;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;cursor:grab;transition:border-color 0.1s;user-select:none;overflow:hidden}
+.ck:hover{border-color:rgba(255,255,255,0.4)}.ck.sel{border-color:var(--accent);box-shadow:0 0 8px rgba(233,69,96,0.5);cursor:default}
 .ck .kl{pointer-events:none;text-align:center;line-height:1.2;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .ck .sz{position:absolute;top:1px;right:3px;font-size:8px;color:rgba(255,255,255,0.4);pointer-events:none}
 .ck .rh{position:absolute;bottom:0;right:0;width:12px;height:12px;cursor:se-resize;opacity:0;background:linear-gradient(135deg,transparent 50%,rgba(255,255,255,0.4) 50%);border-radius:0 0 4px 0}
 .ck:hover .rh,.ck.sel .rh{opacity:1}
 .rp{width:260px;flex-shrink:0;background:var(--panel);border-left:1px solid var(--border);overflow-y:auto;padding:10px}
-.rp h3{font-size:12px;margin-bottom:8px}
-.rp label{display:block;font-size:10px;color:var(--dim);margin:6px 0 2px}
+.rp h3{font-size:12px;margin-bottom:8px}.rp label{display:block;font-size:10px;color:var(--dim);margin:6px 0 2px}
 .rp input,.rp select{width:100%;padding:4px 6px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:3px;font-size:11px}
-.rp input[type=color]{height:26px;padding:1px}
-.rp .rw{display:flex;gap:4px}.rp .rw>div{flex:1}
+.rp input[type=color]{height:26px;padding:1px}.rp .rw{display:flex;gap:4px}.rp .rw>div{flex:1}
 .rp .stepper{display:flex;align-items:center;gap:2px}
 .rp .stepper button{width:24px;height:24px;font-size:14px;line-height:1;text-align:center;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:3px;cursor:pointer}
 .rp .stepper span{width:24px;text-align:center;font-size:13px;font-weight:600}
-.rp .hint{font-size:9px;color:var(--dim);margin-top:1px}
-.rp .br{display:flex;gap:4px;margin-top:8px}
-.rp .br button{flex:1;padding:5px;font-size:11px;cursor:pointer;border-radius:3px}
-.rp .btn-del{background:var(--red);color:#fff;border:none}
-.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:6px 16px;border-radius:5px;font-size:12px;z-index:999;opacity:0;transition:opacity 0.3s}
-.toast.show{opacity:1}
+.rp .hint{font-size:9px;color:var(--dim);margin-top:1px}.rp .br{display:flex;gap:4px;margin-top:8px}
+.rp .br button{flex:1;padding:5px;font-size:11px;cursor:pointer;border-radius:3px}.rp .btn-del{background:var(--red);color:#fff;border:none}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:6px 16px;border-radius:5px;font-size:12px;z-index:999;opacity:0;transition:opacity 0.3s}.toast.show{opacity:1}
 .info{position:fixed;bottom:4px;left:4px;color:#fff;font-size:10px;z-index:999;background:rgba(0,0,0,0.85);padding:5px 8px;border-radius:4px;user-select:text;-webkit-user-select:text;max-width:95vw}
 </style></head>
 <body>
@@ -60,8 +53,8 @@ body{display:flex;flex-direction:column}
     <option value="iPad mini">iPad mini</option><option value="Android 16:10">Android 16:10</option>
   </select>
   <select id="gs" onchange="if(profile){profile.defaultSound=this.value;dirty=true}" style="font-size:10px">
-    <option value="none">Sound:None</option><option value="click">Sound:Click</option><option value="soft">Sound:Soft</option>
-    <option value="mechanical">Sound:Mechanical</option><option value="deep">Sound:Deep</option>
+    <option value="none">None</option><option value="click">Click</option><option value="soft">Soft</option>
+    <option value="mechanical">Mechanical</option><option value="deep">Deep</option>
   </select>
   <button class="btn-save" onclick="saveProfile()">Save & Sync</button>
   <button class="btn-new" onclick="cp()">+ New</button>
@@ -75,9 +68,7 @@ body{display:flex;flex-direction:column}
   <h3>Zoom</h3>
   <div class="stepper" style="padding:4px 8px"><button onclick="zoomBy(-5)">−</button><span id="zv">60</span><button onclick="zoomBy(5)">+</button></div>
 </div>
-<div class="carea" id="carea">
-  <div class="frame" id="frame"><div class="fl" id="fl"></div></div>
-</div>
+<div class="carea" id="carea"><div class="cwrap" id="cwrap"><div class="canvas" id="canvas"></div></div></div>
 <div class="rp"><h3>Key Properties</h3><div id="pc"><p style="font-size:11px;color:var(--dim)">Click key to edit</p></div></div>
 </div>
 <div class="toast" id="toast"></div>
@@ -85,18 +76,8 @@ body{display:flex;flex-direction:column}
 <script>
 "use strict";
 let ws=null,profile=null,profiles=[],activePage="",activeProfile="Default.json";
-let selKey=null,dragKey=null,dragging=false,panning=false,dirty=false;
-let panX=0,panY=0,mx=0,my=0,panStartX=0,panStartY=0;
+let selKey=null,dirty=false,panX=0,panY=0,panning=false,panStartX=0,panStartY=0,mx=0,my=0;
 const DEVS={"iPad 4:3":{w:1024,h:1366},"iPad 11\"":{w:834,h:1210},"iPad mini":{w:744,h:1133},"Android 16:10":{w:1280,h:800}};
-
-// ── UNIFIED RENDER FORMULA ──
-function gridToPixel(col,row,w,h,dw,dh,cs,vw,vh,pxOff,pyOff){
-  const scale=Math.min(vw/dw,vh/dh);
-  const ox=(vw-dw*scale)/2,oy=(vh-dh*scale)/2;
-  const px=cs*scale;
-  const padX=dw/(2*cs),padY=dh/(2*cs);
-  return{x:ox+(col+padX)*px+(pxOff||0),y:oy+(row+padY)*px+(pyOff||0),kw:w*px,kh:h*px,scale,ox,oy,px,padX,padY};
-}
 
 // ── WebSocket ──
 function cws(){
@@ -118,66 +99,65 @@ async function saveProfile(){
   lpl();t("Saved & synced");
 }
 async function dp(fn){if(!confirm("Delete "+fn+"?"))return;await fetch("/api/profiles/"+fn,{method:"DELETE"});if(activeProfile===fn){activeProfile="Default.json";await lp("Default.json")}lpl()}
-async function cp(){const nm=document.getElementById("npn").value.trim();if(!nm)return;const p={profileName:nm,version:"1.0",device:"iPad 11\"",deviceWidth:834,deviceHeight:1210,cellSize:60,defaultSound:"click",windowRules:[],pages:[{id:"main",label:"Main",keys:[]}]};const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)});document.getElementById("npn").value="";lpl();lp((await r.json()).filename)}
-
+async function cp(){const nm=document.getElementById("npn").value.trim();if(!nm)return;const p={profileName:nm,version:"1.0",device:"iPad 11\"",deviceWidth:834,deviceHeight:1210,cellSize:60,canvasX:0,canvasY:0,defaultSound:"click",windowRules:[],pages:[{id:"main",label:"Main",keys:[]}]};const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)});document.getElementById("npn").value="";lpl();lp((await r.json()).filename)}
 function apg(){const lb=document.getElementById("npl").value.trim();if(!lb)return;profile.pages.push({id:"p_"+Date.now(),label:lb,keys:[]});activePage=profile.pages[profile.pages.length-1].id;dirty=true;document.getElementById("npl").value="";renderAll()}
 function dpg(pid){if(profile.pages.length<=1)return;profile.pages=profile.pages.filter(p=>p.id!==pid);if(activePage===pid)activePage=profile.pages[0].id;selKey=null;dirty=true;renderAll()}
-
 function cp_(){return profile?.pages.find(p=>p.id===activePage)}
 function renderAll(){rpl();rpgl();rr();rpr()}
 function rpl(){document.getElementById("pl").innerHTML=profiles.map(p=>'<div class="it'+(p.filename===activeProfile?" ac":"")+'" onclick="lp(\''+p.filename+'\')">'+h(p.profileName)+'<span class="x" onclick="event.stopPropagation();dp(\''+p.filename+'\')">×</span></div>').join("")}
 function rpgl(){document.getElementById("pgl").innerHTML=profile?.pages.map(p=>'<div class="it'+(p.id===activePage?" ac":"")+'" onclick="activePage=\''+p.id+'\';selKey=null;renderAll()">'+h(p.label)+'<span class="x" onclick="event.stopPropagation();dpg(\''+p.id+'\')">×</span></div>').join("")||""}
 
+// ── Render using CSS transform scale (SAME as iPad) ──
 function rr(){
   if(!profile)return;
   const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60;
-  const ca=document.getElementById("carea");
-  const cw=ca.clientWidth,ch=ca.clientHeight;
+  const ca=document.getElementById("carea"),cw=ca.clientWidth,ch=ca.clientHeight;
   document.getElementById("devSel").value=profile.device||"iPad 11\"";
   document.getElementById("gs").value=profile.defaultSound||"none";
   document.getElementById("zv").textContent=cs;
 
-  // Frame
-  const pp0=gridToPixel(0,0,1,1,dw,dh,cs,cw,ch,panX,panY);
-  const frame=document.getElementById("frame");
-  frame.style.width=(dw*pp0.scale)+"px";frame.style.height=(dh*pp0.scale)+"px";
-  document.getElementById("fl").textContent=profile.device+" · "+Math.round(dw/cs)+"×"+Math.round(dh/cs);
+  // Scale canvas to fit carea (85% margin)
+  const scale=Math.min(cw*0.85/dw,ch*0.85/dh);
+  const wrap=document.getElementById("cwrap");
+  wrap.style.width=dw+"px";wrap.style.height=dh+"px";
+  wrap.style.transform=`translate(-50%,-50%) scale(${scale})`;
 
-  // Render keys using unified formula
-  const carea=document.getElementById("carea");
-  document.querySelectorAll(".ck").forEach(el=>el.remove());
+  const canvas=document.getElementById("canvas");
+  canvas.style.width=dw+"px";canvas.style.height=dh+"px";
+
+  // Render keys in fixed device coordinates
+  const padX=dw/(2*cs),padY=dh/(2*cs);
+  canvas.innerHTML="";
   const page=cp_();if(!page)return;
-  const pxOffX=panX*cs*scale,pxOffY=panY*cs*scale;  // scale already includes *0.85
   page.keys.forEach(k=>{
     const col=k.col||0,row=k.row||0,w=k.w||1,h_=k.h||1;
-    const p=gridToPixel(col,row,w,h_,dw,dh,cs,cw,ch,pxOffX,pxOffY);
+    const px=cs*1; // 1:1 device coords (scale handles sizing)
+    const x=(col+padX+panX)*px,y=(row+padY+panY)*px;
+    const kw=w*px,kh=h_*px;
     const sel=k.id===selKey?" sel":"";
     const el=document.createElement("div");el.className="ck"+sel;el.dataset.kid=k.id;
-    el.style.cssText=`background:${k.color||'var(--card)'};left:${p.x}px;top:${p.y}px;width:${p.kw-2}px;height:${p.kh-2}px`;
+    el.style.cssText=`left:${x}px;top:${y}px;width:${kw-2}px;height:${kh-2}px;background:${k.color||'var(--card)'}`;
     el.innerHTML='<span class="kl">'+h(k.label)+'</span>'+(w>1||h_>1?'<span class="sz">'+w+'×'+h_+'</span>':'')+'<div class="rh"></div>';
     el.addEventListener("mousedown",e=>onKeyDown(e,k.id));
     el.addEventListener("click",e=>{e.stopPropagation();selKey=k.id;rr();rpr()});
     el.querySelector(".rh").addEventListener("mousedown",e=>onRS(e,k.id));
-    carea.appendChild(el);
+    canvas.appendChild(el);
   });
-
-  // Debug
-  document.getElementById("edinfo").textContent=`EDITOR cw=${cw} ch=${ch} | DEV ${dw}x${dh} | s=${pp0.scale.toFixed(3)} cs=${cs} pan=(${panX.toFixed(1)},${panY.toFixed(1)}) padX=${pp0.padX.toFixed(1)}`;
+  document.getElementById("edinfo").textContent=`cw=${cw}x${ch} dw=${dw}x${dh} cs=${cs} s=${scale.toFixed(3)} pan=(${panX.toFixed(1)},${panY.toFixed(1)})`;
 }
 
-// ── Pan (local, not saved) ──
+// ── Pan (in grid cells, SAME as iPad) ──
 document.getElementById("carea").addEventListener("mousedown",e=>{
   if(e.target.closest(".ck"))return;
   panning=true;panStartX=e.clientX;panStartY=e.clientY;mx=panX;my=panY;e.preventDefault();
 });
 document.addEventListener("mousemove",e=>{
   if(!panning)return;
-  const ca=document.getElementById("carea");
+  const ca=document.getElementById("carea"),cw=ca.clientWidth,ch=ca.clientHeight;
   const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60;
-  const cw=ca.clientWidth,ch=ca.clientHeight;
-  const s_e=Math.min(cw*0.85/dw,ch*0.85/dh); // editor device scale with *0.85
-  // Store pan in GRID CELLS using editor's device scale
-  panX=mx+(e.clientX-panStartX)/(cs*s_e);panY=my+(e.clientY-panStartY)/(cs*s_e);
+  const scale=Math.min(cw*0.85/dw,ch*0.85/dh);
+  panX=mx+(e.clientX-panStartX)/(cs*scale);
+  panY=my+(e.clientY-panStartY)/(cs*scale);
   rr();
 });
 document.addEventListener("mouseup",()=>{panning=false});
@@ -187,64 +167,65 @@ document.getElementById("carea").addEventListener("wheel",e=>{e.preventDefault()
 function zoomBy(d){const nv=Math.max(20,Math.min(200,(profile.cellSize||60)+d));if(nv!==profile.cellSize){profile.cellSize=nv;dirty=true;rr()}}
 function onDev(){const d=DEVS[document.getElementById("devSel").value];if(d&&profile){profile.device=document.getElementById("devSel").value;profile.deviceWidth=d.w;profile.deviceHeight=d.h;dirty=true;rr()}}
 
-// ── Key interactions ──
-function addKey(c,r){const page=cp_();if(!page)return;const id="k_"+Date.now();page.keys.push({id,label:"?",action:"key",value:"A",color:"#0f3460",col:c,row:r,w:1,h:1,sound:""});selKey=id;dirty=true;rr();rpr()}
-document.getElementById("carea").addEventListener("dblclick",e=>{
-  if(e.target.closest(".ck"))return;
-  const ca=document.getElementById("carea"),rect=ca.getBoundingClientRect();
-  const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60;
-  const p=gridToPixel(0,0,1,1,dw,dh,cs,ca.clientWidth,ca.clientHeight,panX,panY);
-  const col=Math.round((e.clientX-rect.left-p.ox)/p.px-p.padX);
-  const row=Math.round((e.clientY-rect.top-p.oy)/p.px-p.padY);
-  addKey(col,row);
-});
-
+// ── Key drag (in grid cells) ──
 function onKeyDown(e,kid){
   if(e.button!==0)return;e.stopPropagation();
-  selKey=kid;rr();rpr();dragging=true;dragKey=kid;
+  selKey=kid;rr();rpr();
   const k=cp_()?.keys.find(x=>x.id===kid);if(!k)return;
-  const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60;
-  const ca=document.getElementById("carea");
-  const p=gridToPixel(0,0,1,1,dw,dh,cs,ca.clientWidth,ca.clientHeight,panX,panY);
-  const startX=e.clientX,startY=e.clientY;
-  const startCol=k.col||0,startRow=k.row||0;
-
-  function onMM(ev){
-    const dx=(ev.clientX-startX)/p.px,dy=(ev.clientY-startY)/p.px;
+  const cs=profile.cellSize||60;
+  const ca=document.getElementById("carea"),cw=ca.clientWidth,ch=ca.clientHeight;
+  const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210;
+  const scale=Math.min(cw*0.85/dw,ch*0.85/dh);
+  const startX=e.clientX,startY=e.clientY,startCol=k.col||0,startRow=k.row||0;
+  function mm(ev){
+    const dx=(ev.clientX-startX)/(cs*scale),dy=(ev.clientY-startY)/(cs*scale);
     const nc=Math.round(startCol+dx),nr=Math.round(startRow+dy);
     if(nc!==k.col||nr!==k.row){k.col=nc;k.row=nr;dirty=true;rr();selKey=kid}
   }
-  function onMU(ev){
-    document.removeEventListener("mousemove",onMM);document.removeEventListener("mouseup",onMU);
-    dragging=false;
-    const el=document.elementFromPoint(ev.clientX,ev.clientY);
-    const tk=el?.closest?.(".ck");if(tk&&tk.dataset.kid!==kid){
+  function mu(ev){
+    document.removeEventListener("mousemove",mm);document.removeEventListener("mouseup",mu);
+    const el=document.elementFromPoint(ev.clientX,ev.clientY),tk=el?.closest?.(".ck");
+    if(tk&&tk.dataset.kid!==kid){
       const a=cp_()?.keys.find(x=>x.id===kid),b=cp_()?.keys.find(x=>x.id===tk.dataset.kid);
       if(a&&b){const ac=a.col,ar=a.row,aw=a.w,ah=a.h;a.col=b.col;a.row=b.row;a.w=b.w;a.h=b.h;b.col=ac;b.row=ar;b.w=aw;b.h=ah;dirty=true;rr();selKey=kid}
     }
-    dragKey=null;
   }
-  document.addEventListener("mousemove",onMM);document.addEventListener("mouseup",onMU);
+  document.addEventListener("mousemove",mm);document.addEventListener("mouseup",mu);
 }
-
 function onRS(e,kid){
   e.preventDefault();e.stopPropagation();selKey=kid;rr();rpr();
   const k=cp_()?.keys.find(x=>x.id===kid);if(!k)return;
-  const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60;
-  const ca=document.getElementById("carea");
-  const p=gridToPixel(0,0,1,1,dw,dh,cs,ca.clientWidth,ca.clientHeight,panX,panY);
+  const cs=profile.cellSize||60;
+  const ca=document.getElementById("carea"),cw=ca.clientWidth,ch=ca.clientHeight;
+  const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210;
+  const scale=Math.min(cw*0.85/dw,ch*0.85/dh);
   const startX=e.clientX,startY=e.clientY,startW=k.w||1,startH=k.h||1;
-  function onMM(ev){const dw_=Math.round((ev.clientX-startX)/p.px),dh_=Math.round((ev.clientY-startY)/p.px);const nw=Math.max(1,startW+dw_),nh=Math.max(1,startH+dh_);if(nw!==k.w||nh!==k.h){k.w=nw;k.h=nh;dirty=true;rr();selKey=kid}}
-  function onMU(){document.removeEventListener("mousemove",onMM);document.removeEventListener("mouseup",onMU)}
-  document.addEventListener("mousemove",onMM);document.addEventListener("mouseup",onMU);
+  function mm(ev){const dw_=Math.round((ev.clientX-startX)/(cs*scale)),dh_=Math.round((ev.clientY-startY)/(cs*scale));const nw=Math.max(1,startW+dw_),nh=Math.max(1,startH+dh_);if(nw!==k.w||nh!==k.h){k.w=nw;k.h=nh;dirty=true;rr();selKey=kid}}
+  function mu(){document.removeEventListener("mousemove",mm);document.removeEventListener("mouseup",mu)}
+  document.addEventListener("mousemove",mm);document.addEventListener("mouseup",mu);
 }
+
+// ── Dblclick to add key ──
+document.getElementById("carea").addEventListener("dblclick",e=>{
+  if(e.target.closest(".ck"))return;
+  const ca=document.getElementById("carea"),rect=ca.getBoundingClientRect(),cw=ca.clientWidth,ch=ca.clientHeight;
+  const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60;
+  const scale=Math.min(cw*0.85/dw,ch*0.85/dh);
+  const padX=dw/(2*cs),padY=dh/(2*cs);
+  const col=Math.round((e.clientX-rect.left-cw/2)/(cs*scale)-panX-padX+dw/(2*cs)/2);
+  const row=Math.round((e.clientY-rect.top-ch/2)/(cs*scale)-panY-padY+dh/(2*cs)/2);
+  const page=cp_();if(!page)return;
+  page.keys.push({id:"k_"+Date.now(),label:"?",action:"key",value:"A",color:"#0f3460",col,row,w:1,h:1,sound:""});
+  selKey=page.keys[page.keys.length-1].id;dirty=true;rr();rpr();
+});
 
 // ── Props ──
 function rpr(){
-  const panel=document.getElementById("pc"),page=cp_(),key=selKey?page?.keys.find(k=>k.id===selKey):null;
-  if(!key){panel.innerHTML='<p style="font-size:11px;color:var(--dim)">Click key to edit<br>Dbl-click carea to add</p>';return}
+  const key=selKey?cp_()?.keys.find(k=>k.id===selKey):null;
+  if(!key){document.getElementById("pc").innerHTML='<p style="font-size:11px;color:var(--dim)">Click key to edit</p>';return}
   const kw=key.w||1,kh=key.h||1;
-  panel.innerHTML='<label>Label</label><input value="'+h(key.label)+'" onchange="upk(\'label\',this.value)">'+
+  document.getElementById("pc").innerHTML=
+    '<label>Label</label><input value="'+h(key.label)+'" onchange="upk(\'label\',this.value)">'+
     '<label>Action</label><select onchange="upk(\'action\',this.value)"><option value="key"'+(key.action==="key"?" selected":"")+'>Key Press</option><option value="text"'+(key.action==="text"?" selected":"")+'>Type Text</option></select>'+
     '<label>Value</label><input value="'+h(key.value||"")+'" onchange="upk(\'value\',this.value)"><div class="hint">A, TAB, COMMAND+T</div>'+
     '<label>Color</label><input type="color" value="'+(key.color||"#0f3460")+'" onchange="upk(\'color\',this.value)">'+
@@ -253,9 +234,9 @@ function rpr(){
     '<div class="br"><button class="btn-del" onclick="dkey()">Delete</button></div>';
 }
 function upk(prop,val){const key=cp_()?.keys.find(k=>k.id===selKey);if(!key)return;if(prop==="w"||prop==="h")val=Math.max(1,parseInt(val)||1);key[prop]=val;dirty=true;rr();rpr()}
-function dkey(){if(!selKey||!confirm("Delete?"))return;const page=cp_();page.keys=page.keys.filter(k=>k.id!==selKey);selKey=null;dirty=true;renderAll()}
+function dkey(){if(!selKey||!confirm("Delete?"))return;const p=cp_();p.keys=p.keys.filter(k=>k.id!==selKey);selKey=null;dirty=true;renderAll()}
 
-// ── Sound test ──
+// ── Sound ──
 const SND={none:null,click:[800,0.06,"square",0.3],soft:[400,0.08,"sine",0.2],mechanical:[1200,0.04,"square",0.4],deep:[200,0.1,"triangle",0.5]};
 let actx=null;
 function testSnd(nm){if(!nm||nm==="none")return;const s=SND[nm];if(!s)return;try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();const o=actx.createOscillator(),g=actx.createGain();o.type=s[2];o.frequency.setValueAtTime(s[0],actx.currentTime);g.gain.setValueAtTime(s[3],actx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+s[1]);o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+s[1])}catch(e){}}
@@ -263,6 +244,6 @@ function testSnd(nm){if(!nm||nm==="none")return;const s=SND[nm];if(!s)return;try
 function h(s){return String(s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
 function t(msg){const el=document.getElementById("toast");el.textContent=msg;el.className="toast";el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2000)}
 
-cws();lpl();lp("Default.json");
 window.addEventListener("resize",()=>rr());
+cws();lpl();lp("Default.json");
 </script></body></html>
