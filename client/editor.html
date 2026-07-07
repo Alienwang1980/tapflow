@@ -103,18 +103,21 @@ function cws(){
   ws=new WebSocket("ws://"+location.hostname+":8082/ws");
   ws.onopen=()=>{document.getElementById("cs").textContent="connected";document.getElementById("cs").className="conn on"};
   ws.onclose=()=>{document.getElementById("cs").textContent="off";document.getElementById("cs").className="conn off";setTimeout(cws,2000)};
-  ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==="profile"||m.type==="profile_update"){profile=m.profile;activeProfile=m.filename||activeProfile;activePage=profile.pages.find(p=>p.id===activePage)?activePage:(profile.pages[0]?.id||"");panX=0;panY=0;renderAll()}};
+  ws.onmessage=e=>{const m=JSON.parse(e.data);if((m.type==="profile"||m.type==="profile_update")&&!_saving){profile=m.profile;activeProfile=m.filename||activeProfile;activePage=profile.pages.find(p=>p.id===activePage)?activePage:(profile.pages[0]?.id||"");renderAll()}};
 }
 
 // ── Profile CRUD ──
 async function lpl(){const r=await fetch("/api/profiles");profiles=(await r.json()).profiles||[];rpl()}
 async function lp(fn){const r=await fetch("/api/profiles/"+fn);profile=await r.json();activeProfile=fn;activePage=profile.pages[0]?.id||"";selKey=null;panX=0;panY=0;renderAll()}
+let _saving=false;
 async function saveProfile(){
   if(!profile)return;
+  _saving=true;
   const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(profile)});
   const d=await r.json();activeProfile=d.filename;dirty=false;
   if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:"profile_saved",filename:d.filename}));
   lpl();t("Saved & synced");
+  setTimeout(()=>{_saving=false},500);
 }
 async function dp(fn){if(!confirm("Delete "+fn+"?"))return;await fetch("/api/profiles/"+fn,{method:"DELETE"});if(activeProfile===fn){activeProfile="Default.json";await lp("Default.json")}lpl()}
 async function cp(){const nm=document.getElementById("npn").value.trim();if(!nm)return;const p={profileName:nm,version:"1.0",device:"iPad 11\"",deviceWidth:834,deviceHeight:1210,cellSize:60,defaultSound:"click",windowRules:[],pages:[{id:"main",label:"Main",keys:[]}]};const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)});document.getElementById("npn").value="";lpl();lp((await r.json()).filename)}
