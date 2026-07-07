@@ -21,7 +21,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#1a1a2e;font-family:
 .canvas-wrap{position:fixed;top:50%;left:50%;transform-origin:0 0;z-index:1}
 /* Fixed-size canvas at device dimensions */
 .canvas{position:relative;overflow:hidden}
-.key-btn{position:absolute;border:none;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;transition:transform 0.04s;overflow:hidden}
+.key-btn{position:absolute;border:none;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:${Math.max(8,cs*0.25)}px;font-weight:500;transition:transform 0.04s;overflow:hidden}
 .key-btn:active,.key-btn.active{transform:scale(0.93)}
 .info{position:fixed;bottom:4px;left:4px;color:#fff;font-size:10px;z-index:99;background:rgba(0,0,0,0.85);padding:5px 8px;border-radius:4px;user-select:text;-webkit-user-select:text}
 </style></head>
@@ -98,7 +98,7 @@ function render(){
     const kw=k.w*px-3,kh=k.h*px-3;
     if(x+kw>0&&y+kh>0&&x<dw&&y<dh)vis++;
     const el=document.createElement("div");el.className="key-btn";el.dataset.keyId=k.id;
-    el.style.cssText=`left:${x}px;top:${y}px;width:${kw}px;height:${kh}px;background:${k.color||'#0f3460'};font-size:14px`;
+    el.style.cssText=`left:${x}px;top:${y}px;width:${kw}px;height:${kh}px;background:${k.color||'#0f3460'};font-size:${Math.max(8,cs*0.25)}px`;
     el.textContent=k.label;canvas.appendChild(el);
   });
   document.getElementById("info").textContent=`${vis}/${pg.keys.length} | ${dw}x${dh} cs=${cs} cx=${cx} s=${scale.toFixed(3)} vw=${vw}x${vh}`;

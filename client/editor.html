@@ -7,7 +7,7 @@
 html,body{height:100%;font-family:-apple-system,sans-serif;background:var(--bg);color:var(--text)}
 body{display:flex;flex-direction:column}
 .tb{display:flex;align-items:center;gap:8px;padding:4px 10px;background:var(--panel);border-bottom:1px solid var(--border);height:38px;flex-shrink:0}
-.tb h1{font-size:14px}.tb h1 span{color:var(--accent)}
+.tb h1{font-size:${Math.max(8,cs*0.25)}px}.tb h1 span{color:var(--accent)}
 .tb .conn{font-size:10px;padding:1px 6px;border-radius:3px}
 .tb .conn.on{background:#4caf5040;color:#4caf50}.tb .conn.off{background:#f4433640;color:#f44336}
 .tb select,.tb button{padding:3px 8px;border-radius:3px;border:1px solid var(--border);cursor:pointer;font-size:11px;background:var(--card);color:var(--text)}
@@ -37,7 +37,7 @@ body{display:flex;flex-direction:column}
 .rp input,.rp select{width:100%;padding:4px 6px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:3px;font-size:11px}
 .rp input[type=color]{height:26px;padding:1px}.rp .rw{display:flex;gap:4px}.rp .rw>div{flex:1}
 .rp .stepper{display:flex;align-items:center;gap:2px}
-.rp .stepper button{width:24px;height:24px;font-size:14px;line-height:1;text-align:center;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:3px;cursor:pointer}
+.rp .stepper button{width:24px;height:24px;font-size:${Math.max(8,cs*0.25)}px;line-height:1;text-align:center;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:3px;cursor:pointer}
 .rp .stepper span{width:24px;text-align:center;font-size:13px;font-weight:600}
 .rp .hint{font-size:9px;color:var(--dim);margin-top:1px}.rp .br{display:flex;gap:4px;margin-top:8px}
 .rp .br button{flex:1;padding:5px;font-size:11px;cursor:pointer;border-radius:3px}.rp .btn-del{background:var(--red);color:#fff;border:none}
