@@ -8,3 +8,4 @@ build/
 server/profiles/*.json
 server/venv/
 logs/
+dist/

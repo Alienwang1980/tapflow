@@ -7,14 +7,13 @@ logger = logging.getLogger("stp.window")
 HAVE_PYOBJC = False
 try:
     from Foundation import NSObject, NSRunLoop, NSDate
-    from AppKit import NSWorkspace, NSApplication
+    from AppKit import NSWorkspace, NSApplication, NSRunningApplication
     import objc
     HAVE_PYOBJC = True
 except ImportError:
     logger.warning("PyObjC not available — window watcher disabled")
 
 if HAVE_PYOBJC:
-    # Protocol for workspace notifications
     NSWorkspaceDidActivateApplicationNotification = "NSWorkspaceDidActivateApplicationNotification"
 
     class AppObserver(NSObject):
@@ -56,11 +55,14 @@ if HAVE_PYOBJC:
             if not self._callback:
                 return
             try:
-                app = notification.userInfo().get("NSWorkspaceApplicationKey")
+                # NSRunningApplication from userInfo
+                user_info = notification.userInfo()
+                app = user_info.get("NSWorkspaceApplicationKey") if user_info else None
                 if app is None:
                     return
-                bundle_id = app.get("NSApplicationBundleIdentifier", "") or ""
-                app_name = app.get("NSApplicationName", "") or ""
+                # NSRunningApplication uses method calls, not dict access
+                bundle_id = app.bundleIdentifier() or ""
+                app_name = app.localizedName() or ""
                 self._callback(bundle_id, app_name)
             except Exception as e:
                 logger.error(f"onAppActivated error: {e}")
@@ -85,13 +87,11 @@ class WindowWatcher:
 
         def _run():
             try:
-                # Create observer on this thread
                 observer = AppObserver.alloc().init()
                 observer.setCallback_(self.callback or (lambda bid, name: None))
                 observer.startObserving()
                 self._observer = observer
 
-                # Run the run loop until stopped
                 loop = NSRunLoop.currentRunLoop()
                 while not self._stop_event.is_set():
                     loop.runUntilDate_(NSDate.dateWithTimeIntervalSinceNow_(0.5))

@@ -228,6 +228,8 @@ class ProfileManager:
             for i, key in enumerate(page.get("keys", [])):
                 if not key.get("id"):
                     key["id"] = f"{page.get('id', 'p')}_{i}"
+        # Migrate to grid positions before saving
+        profile = migrate_key_positions(profile)
         path = self.dir / filename
         path.write_text(json.dumps(profile, indent=2, ensure_ascii=False))
         logger.info(f"Profile saved: {filename}")

@@ -130,6 +130,7 @@ body { display: flex; flex-direction: column; }
   <span class="connected off" id="connStatus">disconnected</span>
   <button class="btn-save" onclick="saveProfile()">💾 Save & Sync</button>
   <button class="btn-new" onclick="newProfile()">+ New</button>
+  <button class="btn-new" onclick="showQR()" style="font-size:11px">QR</button>
   <span class="status" id="statusText"></span>
 </div>
 
@@ -401,5 +402,23 @@ function toast(msg,isErr){
 // ── Init ──
 connectWS();loadProfiles();loadProfile("Default.json");
 </script>
+
+<div class="toast" id="qrToast" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:999;justify-content:center;align-items:center;" onclick="this.style.display='none'">
+  <div style="background:var(--panel);border:2px solid var(--accent);border-radius:12px;padding:24px;text-align:center;max-width:300px;" onclick="event.stopPropagation()">
+    <h3 style="margin-bottom:10px">Scan to Connect iPad</h3>
+    <div id="qrUrlDisplay" style="font-size:14px;color:var(--accent);margin-bottom:10px;word-break:break-all"></div>
+    <img id="qrImg" src="" style="width:200px;height:200px;border-radius:8px">
+    <br><button onclick="document.getElementById('qrToast').style.display='none'" style="margin-top:10px;padding:6px 16px;background:var(--accent);color:#fff;border:none;border-radius:5px;cursor:pointer">Close</button>
+  </div>
+</div>
+<script>
+function showQR(){
+  var url="http://"+location.hostname+":8082";
+  document.getElementById("qrUrlDisplay").textContent=url;
+  document.getElementById("qrImg").src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data="+encodeURIComponent(url);
+  document.getElementById("qrToast").style.display="flex";
+}
+</script>
+
 </body>
 </html>
