@@ -205,7 +205,7 @@ def handle_key_action(action: dict) -> str:
 async def root():
     index_path = os.path.join(CLIENT_DIR, "index.html")
     if os.path.exists(index_path):
-        with open(index_path) as f:
+        with open(index_path, encoding='utf-8') as f:
             return HTMLResponse(content=f.read())
     return HTMLResponse("<h1>Smart Touch Panel</h1><p>Client files missing.</p>")
 
@@ -216,7 +216,7 @@ async def editor():
     """Serve the editor page for the Mac native app."""
     editor_path = os.path.join(CLIENT_DIR, "editor.html")
     if os.path.exists(editor_path):
-        with open(editor_path) as f:
+        with open(editor_path, encoding='utf-8') as f:
             return HTMLResponse(content=f.read())
     return HTMLResponse("<h1>Editor not found</h1>", status_code=404)
 

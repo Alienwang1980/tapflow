@@ -253,7 +253,7 @@ class ProfileManager:
         # Migrate to grid positions before saving
         profile = migrate_key_positions(profile)
         path = self.dir / filename
-        path.write_text(json.dumps(profile, indent=2, ensure_ascii=False))
+        path.write_text(json.dumps(profile, indent=2, ensure_ascii=False), encoding='utf-8')
         logger.info(f"Profile saved: {filename}")
         return filename
 
