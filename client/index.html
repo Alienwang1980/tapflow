@@ -77,7 +77,12 @@ let timer=null,delay=1000;
 function connect(){
   const p=location.protocol==="https:"?"wss:":"ws:";
   ws=new WebSocket(p+"//"+location.hostname+":8082/ws");
+  console.log("STP connecting to",p+"//"+location.hostname+":8082/ws");
   ws.onopen=()=>{ss("on");delay=1000};
+  // Fallback: if no profile after 3s, fetch via REST
+  setTimeout(async()=>{
+    if(!profile){try{const r=await fetch("/api/profiles/Default.json");profile=await r.json();activeProfile="Default.json";activePage=profile.pages[0]?.id||"";renderAll()}catch(e){console.log("REST fallback failed:",e)}}
+  },3000);
   ws.onmessage=e=>{
     const m=JSON.parse(e.data);
     if(m.type==="profile"||m.type==="profile_update"){profile=m.profile;activeProfile=m.filename||activeProfile;activePage=profile.pages.find(p=>p.id===activePage)?activePage:(profile.pages[0]?.id||"");lpls();renderAll()}
