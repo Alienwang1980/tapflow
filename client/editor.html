@@ -147,9 +147,10 @@ function rr(){
   const carea=document.getElementById("carea");
   document.querySelectorAll(".ck").forEach(el=>el.remove());
   const page=cp_();if(!page)return;
+  const pxOffX=panX*cs*(Math.min(cw/dw,ch/dh)),pxOffY=panY*cs*(Math.min(cw/dw,ch/dh));
   page.keys.forEach(k=>{
     const col=k.col||0,row=k.row||0,w=k.w||1,h_=k.h||1;
-    const p=gridToPixel(col,row,w,h_,dw,dh,cs,cw,ch,panX,panY);
+    const p=gridToPixel(col,row,w,h_,dw,dh,cs,cw,ch,pxOffX,pxOffY);
     const sel=k.id===selKey?" sel":"";
     const el=document.createElement("div");el.className="ck"+sel;el.dataset.kid=k.id;
     el.style.cssText=`background:${k.color||'var(--card)'};left:${p.x}px;top:${p.y}px;width:${p.kw-2}px;height:${p.kh-2}px`;
@@ -171,8 +172,12 @@ document.getElementById("carea").addEventListener("mousedown",e=>{
 });
 document.addEventListener("mousemove",e=>{
   if(!panning)return;
-  panX=mx+(e.clientX-panStartX);panY=my+(e.clientY-panStartY);
-  rr(); // re-render with new pan offset
+  const ca=document.getElementById("carea");
+  const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60;
+  const p=gridToPixel(0,0,1,1,dw,dh,cs,ca.clientWidth,ca.clientHeight);
+  // Store pan in GRID CELLS (universal unit)
+  panX=mx+(e.clientX-panStartX)/p.px;panY=my+(e.clientY-panStartY)/p.px;
+  rr();
 });
 document.addEventListener("mouseup",()=>{panning=false});
 

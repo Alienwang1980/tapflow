@@ -84,14 +84,14 @@ function render(){
   document.querySelectorAll(".key-btn").forEach(el=>el.remove());
   let vis=0;
   pg.keys.forEach(k=>{
-    const cx=k.col||0,cy=k.row||0;const p=gridToPixel(k.col||0,k.row||0,k.w||1,k.h||1,dw,dh,cs,vw,vh,(profile.canvasX||0),(profile.canvasY||0));
+    const cx=k.col||0,cy=k.row||0;const cxVal=(profile.canvasX||0),cyVal=(profile.canvasY||0);const pxOffX=cxVal*cs*scale,pxOffY=cyVal*cs*scale;const p=gridToPixel(k.col||0,k.row||0,k.w||1,k.h||1,dw,dh,cs,vw,vh,pxOffX,pxOffY);
     if(p.x+p.kw>0&&p.y+p.kh>0&&p.x<vw&&p.y<vh)vis++;
     const el=document.createElement("div");el.className="key-btn";el.dataset.keyId=k.id;
     el.style.cssText=`left:${p.x}px;top:${p.y}px;width:${p.kw}px;height:${p.kh}px;background:${k.color||'#0f3460'};font-size:${Math.max(9,p.px*0.2)}px`;
     el.textContent=k.label;document.body.appendChild(el);
   });
   // Draw frame border
-  const pp=gridToPixel(0,0,1,1,dw,dh,cs,vw,vh,(profile.canvasX||0),(profile.canvasY||0));
+  const cxV=(profile.canvasX||0),cyV=(profile.canvasY||0);const pp=gridToPixel(0,0,1,1,dw,dh,cs,vw,vh,cxV*cs*scale,cyV*cs*scale);
   let fb=document.getElementById("frame-box");
   if(!fb){fb=document.createElement("div");fb.id="frame-box";fb.style.cssText="position:fixed;pointer-events:none;z-index:60;border:2px dashed rgba(233,69,96,0.5);border-radius:4px";document.body.appendChild(fb);}
   fb.style.left=pp.ox+"px";fb.style.top=pp.oy+"px";fb.style.width=(dw*pp.scale)+"px";fb.style.height=(dh*pp.scale)+"px";
