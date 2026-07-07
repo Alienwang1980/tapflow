@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart Touch Panel — Editor</title>
+<title>Smart Touch Panel — Grid Editor</title>
 <style>
 :root {
   --bg: #1a1a2e; --panel: #16213e; --card: #0f3460;
@@ -14,119 +14,113 @@
 html, body { height: 100%; font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); }
 body { display: flex; flex-direction: column; }
 
-/* Top toolbar */
 .toolbar {
   display: flex; align-items: center; gap: 10px; padding: 6px 12px;
-  background: var(--panel); border-bottom: 1px solid var(--border);
-  height: 44px; flex-shrink: 0;
+  background: var(--panel); border-bottom: 1px solid var(--border); height: 44px; flex-shrink: 0;
 }
-.toolbar h1 { font-size: 16px; font-weight: 600; }
+.toolbar h1 { font-size: 16px; }
 .toolbar h1 span { color: var(--accent); }
 .toolbar .connected { font-size: 11px; padding: 2px 8px; border-radius: 3px; }
 .toolbar .connected.on { background: #4caf5040; color: #4caf50; }
 .toolbar .connected.off { background: #f4433640; color: #f44336; }
-.toolbar button {
-  padding: 4px 12px; border-radius: 4px; border: 1px solid var(--border);
-  cursor: pointer; font-size: 12px;
-}
-.btn-save { background: var(--green); color: #fff; border-color: var(--green); }
-.btn-new { background: #555; color: #fff; }
-.btn-del { background: var(--red); color: #fff; border-color: var(--red); }
+.btn-save { background: var(--green); color: #fff; padding: 4px 12px; border-radius: 4px; border: none; cursor: pointer; font-size: 12px; }
+.btn-new { background: #555; color: #fff; padding: 4px 12px; border-radius: 4px; border: none; cursor: pointer; font-size: 12px; }
+.btn-del { background: var(--red); color: #fff; padding: 4px 12px; border-radius: 4px; border: 1px solid var(--red); cursor: pointer; font-size: 12px; }
 .status { font-size: 11px; color: var(--dim); margin-left: auto; }
 
-/* Main layout */
 .main { display: flex; flex: 1; overflow: hidden; }
 
 /* Left sidebar */
 .sidebar {
-  width: 240px; flex-shrink: 0; background: var(--panel);
-  border-right: 1px solid var(--border); display: flex; flex-direction: column;
-  overflow-y: auto;
+  width: 220px; flex-shrink: 0; background: var(--panel);
+  border-right: 1px solid var(--border); overflow-y: auto;
 }
-.sidebar h3 { font-size: 12px; text-transform: uppercase; color: var(--dim);
-  padding: 10px 12px 4px; letter-spacing: 1px; }
-.sidebar .list-item {
-  padding: 6px 12px; cursor: pointer; font-size: 13px;
-  border-left: 3px solid transparent;
-  display: flex; align-items: center; justify-content: space-between;
+.sidebar h3 { font-size: 11px; text-transform: uppercase; color: var(--dim); padding: 10px 10px 4px; letter-spacing: 1px; }
+.sidebar .item {
+  padding: 5px 10px; cursor: pointer; font-size: 12px;
+  border-left: 3px solid transparent; display: flex; align-items: center; justify-content: space-between;
 }
-.sidebar .list-item:hover { background: #ffffff08; }
-.sidebar .list-item.active { border-left-color: var(--accent); background: #ffffff0c; color: var(--accent); }
-.sidebar .list-item .del-btn {
-  visibility: hidden; font-size: 14px; color: var(--red); cursor: pointer;
-  line-height: 1; padding: 0 4px;
-}
-.sidebar .list-item:hover .del-btn { visibility: visible; }
-.sidebar .add-row {
-  display: flex; gap: 4px; padding: 6px 12px;
-}
-.sidebar .add-row input {
-  flex: 1; padding: 4px 6px; background: var(--bg); color: var(--text);
-  border: 1px solid var(--border); border-radius: 3px; font-size: 12px;
-}
-.sidebar .add-row button { padding: 4px 8px; font-size: 11px; }
+.sidebar .item:hover { background: #ffffff08; }
+.sidebar .item.active { border-left-color: var(--accent); color: var(--accent); background: #ffffff0c; }
+.sidebar .item .x { visibility: hidden; color: var(--red); cursor: pointer; font-size: 14px; }
+.sidebar .item:hover .x { visibility: visible; }
+.sidebar .add { display: flex; gap: 3px; padding: 4px 10px; }
+.sidebar .add input { flex:1; padding:3px 5px; background:var(--bg); color:var(--text); border:1px solid var(--border); border-radius:3px; font-size:11px; }
+.sidebar .add button { padding:3px 6px; font-size:11px; background:#555; color:#fff; border:none; border-radius:3px; cursor:pointer; }
 
-/* Center grid */
-.center {
-  flex: 1; overflow-y: auto; padding: 12px; display: flex;
-  flex-direction: column; gap: 6px;
+/* Center */
+.center { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+.grid-toolbar {
+  display:flex; align-items:center; gap:10px; padding:6px 12px;
+  background:var(--panel); border-bottom:1px solid var(--border);
 }
-.page-tabs { display: flex; gap: 2px; margin-bottom: 4px; }
-.page-tabs .ptab {
-  padding: 5px 14px; border-radius: 5px 5px 0 0;
-  background: var(--panel); color: var(--dim); border: none;
-  font-size: 12px; cursor: pointer;
+.grid-toolbar label { font-size:11px; color:var(--dim); }
+.grid-toolbar input {
+  width:45px; padding:3px; background:var(--bg); color:var(--text);
+  border:1px solid var(--border); border-radius:3px; font-size:12px; text-align:center;
 }
-.page-tabs .ptab.active { background: var(--card); color: var(--text); }
-.grid-controls { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; }
-.grid-controls label { font-size: 11px; color: var(--dim); }
-.grid-controls input {
-  width: 50px; padding: 3px 6px; background: var(--bg); color: var(--text);
-  border: 1px solid var(--border); border-radius: 3px; font-size: 12px; text-align: center;
-}
-.grid-controls button { padding: 3px 10px; font-size: 11px; }
+.grid-toolbar button { padding:3px 10px; font-size:11px; background:#555; color:#fff; border:none; border-radius:3px; cursor:pointer; }
 
-.key-grid {
-  display: grid; gap: 3px; flex: 1; align-content: start;
+.grid-scroll { flex:1; overflow:auto; padding:8px; }
+.editor-grid {
+  display:grid; gap:3px; position:relative;
+  min-height:200px;
 }
-.key-cell {
-  position: relative; background: var(--card); border: 2px solid transparent;
-  border-radius: 5px; min-height: 38px; display: flex;
-  align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 500; cursor: pointer;
-  transition: border-color 0.15s; user-select: none;
+
+/* Grid cells */
+.gcell {
+  background:rgba(255,255,255,0.02); border:1px dashed rgba(255,255,255,0.06);
+  border-radius:4px; min-height:36px; cursor:pointer; position:relative;
 }
-.key-cell:hover { border-color: #ffffff40; }
-.key-cell.selected { border-color: var(--accent); box-shadow: 0 0 8px #e9456080; }
-.key-cell.drag-over { border-color: var(--green); border-style: dashed; }
-.key-cell .key-w-label { font-size: 10px; color: #aaaa; position: absolute; bottom: 2px; right: 5px; }
+.gcell:hover { background:rgba(255,255,255,0.06); border-color:rgba(255,255,255,0.2); }
+.gcell .cell-label { position:absolute; top:1px; left:3px; font-size:8px; color:rgba(255,255,255,0.12); pointer-events:none; }
+
+/* Keys on grid */
+.gkey {
+  background:var(--card); border:2px solid transparent; border-radius:6px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:500; cursor:grab; position:relative;
+  transition:border-color 0.1s; user-select:none; z-index:2; overflow:hidden;
+}
+.gkey:hover { border-color:rgba(255,255,255,0.3); }
+.gkey.selected { border-color:var(--accent); box-shadow:0 0 10px rgba(233,69,96,0.5); cursor:default; }
+.gkey.dragging { opacity:0.4; }
+.gkey.drag-over { border-color:var(--green); border-style:dashed; }
+.gkey .klabel { pointer-events:none; text-align:center; line-height:1.2; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+.gkey .resize-handle {
+  position:absolute; bottom:0; right:0; width:14px; height:14px;
+  cursor:se-resize; opacity:0;
+  background:linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.3) 50%);
+  border-radius:0 0 5px 0;
+}
+.gkey:hover .resize-handle, .gkey.selected .resize-handle { opacity:1; }
 
 /* Right panel */
 .props {
-  width: 300px; flex-shrink: 0; background: var(--panel);
-  border-left: 1px solid var(--border); overflow-y: auto; padding: 14px;
+  width:280px; flex-shrink:0; background:var(--panel);
+  border-left:1px solid var(--border); overflow-y:auto; padding:14px;
 }
-.props h3 { font-size: 13px; margin-bottom: 10px; }
-.props label { display: block; font-size: 11px; color: var(--dim); margin: 8px 0 3px; }
+.props h3 { font-size:13px; margin-bottom:10px; }
+.props label { display:block; font-size:11px; color:var(--dim); margin:8px 0 2px; }
 .props input, .props select {
-  width: 100%; padding: 5px 8px; background: var(--bg); color: var(--text);
-  border: 1px solid var(--border); border-radius: 4px; font-size: 12px;
+  width:100%; padding:5px 8px; background:var(--bg); color:var(--text);
+  border:1px solid var(--border); border-radius:4px; font-size:12px;
 }
-.props input[type="color"] { height: 32px; padding: 2px; }
-.props .row { display: flex; gap: 6px; }
-.props .row > * { flex: 1; }
-.props .hint { font-size: 10px; color: var(--dim); margin-top: 2px; }
-.props .btn-row { display: flex; gap: 6px; margin-top: 10px; }
-.props .btn-row button { flex: 1; padding: 6px; font-size: 12px; }
+.props input[type=color] { height:30px; padding:2px; }
+.props .row2 { display:flex; gap:6px; }
+.props .row2 > div { flex:1; }
+.props .row2 input { width:100%; }
+.props .hint { font-size:10px; color:var(--dim); margin-top:2px; }
+.props .btn-row { display:flex; gap:6px; margin-top:12px; }
+.props .btn-row button { flex:1; padding:6px; font-size:12px; cursor:pointer; }
 
-/* Toast */
 .toast {
-  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-  background: var(--green); color: #fff; padding: 8px 20px;
-  border-radius: 6px; font-size: 13px; z-index: 999;
-  opacity: 0; transition: opacity 0.3s;
+  position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+  background:var(--green); color:#fff; padding:8px 20px;
+  border-radius:6px; font-size:13px; z-index:999; opacity:0; transition:opacity 0.3s;
 }
-.toast.show { opacity: 1; }
+.toast.show { opacity:1; }
+.toast.err { background:var(--red); }
 </style>
 </head>
 <body>
@@ -134,46 +128,36 @@ body { display: flex; flex-direction: column; }
 <div class="toolbar">
   <h1>Smart <span>Touch</span> Editor</h1>
   <span class="connected off" id="connStatus">disconnected</span>
-  <button class="btn-save" onclick="saveProfile()" title="Save & broadcast to iPad">💾 Save & Sync</button>
-  <button class="btn-new" onclick="newProfile()">+ New Profile</button>
+  <button class="btn-save" onclick="saveProfile()">💾 Save & Sync</button>
+  <button class="btn-new" onclick="newProfile()">+ New</button>
   <span class="status" id="statusText"></span>
 </div>
 
 <div class="main">
-  <!-- Left: Profile & Page list -->
-  <div class="sidebar" id="sidebar">
+  <div class="sidebar">
     <h3>Profiles</h3>
     <div id="profileList"></div>
-    <div class="add-row">
-      <input id="newProfileName" placeholder="New profile name">
-      <button onclick="createProfile()">+</button>
-    </div>
+    <div class="add"><input id="newProfileName" placeholder="New name"><button onclick="createProfile()">+</button></div>
     <h3>Pages</h3>
     <div id="pageList"></div>
-    <div class="add-row">
-      <input id="newPageLabel" placeholder="Page label">
-      <button onclick="addPage()">+</button>
+    <div class="add"><input id="newPageLabel" placeholder="Page label"><button onclick="addPage()">+</button></div>
+  </div>
+
+  <div class="center">
+    <div class="grid-toolbar">
+      <label>Cols:</label><input type="number" id="gridCols" min="2" max="30" value="15" onchange="onGridSizeChange()">
+      <label>Rows:</label><input type="number" id="gridRows" min="2" max="30" value="8" onchange="onGridSizeChange()">
+      <button onclick="addKeyAt(1,1)">+ Key</button>
+      <span style="font-size:10px;color:var(--dim)">Click cell to add key. Drag keys to move. Drag corner to resize.</span>
+    </div>
+    <div class="grid-scroll">
+      <div class="editor-grid" id="editorGrid"></div>
     </div>
   </div>
 
-  <!-- Center: Key grid -->
-  <div class="center" id="centerArea">
-    <div class="page-tabs" id="pageTabs"></div>
-    <div class="grid-controls">
-      <label>Columns:</label>
-      <input type="number" id="gridCols" min="1" max="20" value="15" onchange="onGridColsChange()">
-      <button onclick="addKey()">+ Add Key</button>
-      <span style="font-size:11px;color:var(--dim)">Drag keys to reorder</span>
-    </div>
-    <div class="key-grid" id="keyGrid"></div>
-  </div>
-
-  <!-- Right: Key properties -->
   <div class="props" id="propsPanel">
     <h3>Key Properties</h3>
-    <div id="propsContent">
-      <p style="font-size:12px;color:var(--dim)">Select a key to edit</p>
-    </div>
+    <div id="propsContent"><p style="font-size:12px;color:var(--dim)">Select a key to edit</p></div>
   </div>
 </div>
 
@@ -181,245 +165,241 @@ body { display: flex; flex-direction: column; }
 
 <script>
 "use strict";
-// ── State ──
-let ws = null, profile = null, profiles = [], activePageId = "", activeProfile = "Default.json";
-let selectedKeyId = null, dragKeyId = null;
-let dirty = false;
+let ws=null, profile=null, profiles=[], activePageId="", activeProfile="Default.json";
+let selectedKeyId=null, dragKeyId=null, resizing=null, dirty=false;
 
 // ── WebSocket ──
-function connectWS() {
-  ws = new WebSocket("ws://" + location.hostname + ":8082/ws");
-  ws.onopen = () => {
-    document.getElementById("connStatus").textContent = "connected";
-    document.getElementById("connStatus").className = "connected on";
+function connectWS(){
+  ws=new WebSocket("ws://"+location.hostname+":8082/ws");
+  ws.onopen=()=>{document.getElementById("connStatus").textContent="connected";document.getElementById("connStatus").className="connected on";};
+  ws.onclose=()=>{document.getElementById("connStatus").textContent="disconnected";document.getElementById("connStatus").className="connected off";setTimeout(connectWS,2000);};
+  ws.onmessage=(e)=>{
+    const m=JSON.parse(e.data);
+    if(m.type==="profile"){profile=m.profile;activeProfile=m.filename||activeProfile;activePageId=activePageId&&profile.pages.find(p=>p.id===activePageId)?activePageId:(profile.pages[0]?.id||"");renderAll();}
+    else if(m.type==="profile_update"){profile=m.profile;activeProfile=m.filename||activeProfile;activePageId=activePageId&&profile.pages.find(p=>p.id===activePageId)?activePageId:(profile.pages[0]?.id||"");renderAll();}
   };
-  ws.onclose = () => {
-    document.getElementById("connStatus").textContent = "disconnected";
-    document.getElementById("connStatus").className = "connected off";
-    setTimeout(connectWS, 2000);
-  };
-  ws.onmessage = (e) => {
-    const msg = JSON.parse(e.data);
-    if (msg.type === "profile") {
-      profile = msg.profile; activeProfile = msg.filename || activeProfile;
-      if (!activePageId || !profile.pages.find(p=>p.id===activePageId)) {
-        activePageId = profile.pages[0]?.id || "";
+}
+
+// ── Profile CRUD ──
+async function loadProfiles(){const r=await fetch("/api/profiles");profiles=(await r.json()).profiles||[];renderProfileList();}
+async function loadProfile(fn){const r=await fetch("/api/profiles/"+fn);profile=await r.json();activeProfile=fn;activePageId=profile.pages[0]?.id||"";selectedKeyId=null;renderAll();}
+async function saveProfile(){
+  if(!profile)return;
+  profile.profileName=profile.profileName||"Default";
+  const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(profile)});
+  const d=await r.json();activeProfile=d.filename;dirty=false;
+  if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:"profile_saved",filename:d.filename}));
+  loadProfiles();toast("Saved & synced ✓");
+}
+async function deleteProfile(fn){if(!confirm("Delete "+fn+"?"))return;await fetch("/api/profiles/"+fn,{method:"DELETE"});if(activeProfile===fn){activeProfile="Default.json";await loadProfile("Default.json");}loadProfiles();}
+async function createProfile(){
+  const name=document.getElementById("newProfileName").value.trim();if(!name)return;
+  const p={profileName:name,version:"1.0",windowRules:[],pages:[{id:"main",label:"Main",columns:4,rows:4,keys:[]}]};
+  const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)});
+  document.getElementById("newProfileName").value="";loadProfiles();loadProfile((await r.json()).filename);
+}
+function newProfile(){createProfile();}
+
+// ── Pages ──
+function addPage(){
+  const label=document.getElementById("newPageLabel").value.trim();if(!label)return;
+  profile.pages.push({id:"p_"+Date.now(),label,columns:4,rows:4,keys:[]});
+  activePageId=profile.pages[profile.pages.length-1].id;dirty=true;document.getElementById("newPageLabel").value="";renderAll();
+}
+function deletePage(pid){if(profile.pages.length<=1)return;profile.pages=profile.pages.filter(p=>p.id!==pid);if(activePageId===pid)activePageId=profile.pages[0].id;selectedKeyId=null;dirty=true;renderAll();}
+
+// ── Render ──
+function curPage(){return profile?.pages.find(p=>p.id===activePageId);}
+
+function renderAll(){renderProfileList();renderPageList();renderGrid();renderProps();}
+
+function renderProfileList(){
+  document.getElementById("profileList").innerHTML=profiles.map(p=>
+    '<div class="item'+(p.filename===activeProfile?" active":"")+'" onclick="loadProfile(\''+p.filename+'\')">'+h(p.profileName)+'<span class="x" onclick="event.stopPropagation();deleteProfile(\''+p.filename+'\')">×</span></div>'
+  ).join("");
+}
+function renderPageList(){
+  document.getElementById("pageList").innerHTML=profile?.pages.map(p=>
+    '<div class="item'+(p.id===activePageId?" active":"")+'" onclick="activePageId=\''+p.id+'\';selectedKeyId=null;renderAll()">'+h(p.label)+'<span class="x" onclick="event.stopPropagation();deletePage(\''+p.id+'\')">×</span></div>'
+  ).join("")||"";
+}
+
+function renderGrid(){
+  const page=curPage(), grid=document.getElementById("editorGrid");
+  if(!page){grid.innerHTML="";return;}
+  const cols=page.columns||15, rows=page.rows||8;
+  grid.style.gridTemplateColumns="repeat("+cols+", 1fr)";
+  grid.style.gridTemplateRows="repeat("+rows+", 44px)";
+  document.getElementById("gridCols").value=cols;
+  document.getElementById("gridRows").value=rows;
+
+  // Build occupancy map
+  const occ=Array.from({length:rows+1},()=>Array(cols+1).fill(null));
+  (page.keys||[]).forEach(k=>{
+    const c=k.col||1, r=k.row||1, w=k.w||1, h=k.h||1;
+    for(let rr=r;rr<r+h&&rr<=rows;rr++)
+      for(let cc=c;cc<c+w&&cc<=cols;cc++)
+        occ[rr][cc]=k.id;
+  });
+
+  // Render cells + keys
+  let html="";
+  const renderedKeys=new Set();
+  for(let r=1;r<=rows;r++){
+    for(let c=1;c<=cols;c++){
+      const kid=occ[r][c];
+      if(kid&&!renderedKeys.has(kid)){
+        renderedKeys.add(kid);
+        const k=page.keys.find(x=>x.id===kid);
+        if(!k)continue;
+        const kw=k.w||1, kh=k.h||1, kcol=k.col||c, krow=k.row||r;
+        const sel=k.id===selectedKeyId?" selected":"";
+        html+='<div class="gkey'+sel+'" data-kid="'+k.id+'" '+
+          'style="background:'+(k.color||'var(--card)')+';grid-column:'+kcol+'/span '+kw+';grid-row:'+krow+'/span '+kh+'" '+
+          'draggable="true" ondragstart="onDragStart(event,\''+k.id+'\')" ondragend="onDragEnd(event)" '+
+          'ondragover="onDragOver(event)" ondrop="onDrop(event,\''+k.id+'\')" '+
+          'onclick="event.stopPropagation();selectKey(\''+k.id+'\')">'+
+          '<span class="klabel">'+h(k.label)+'</span>'+
+          (kw>1||kh>1?'<span style="position:absolute;top:1px;right:3px;font-size:7px;color:rgba(255,255,255,0.3)">'+kw+'×'+kh+'</span>':'')+
+          '<div class="resize-handle" onmousedown="onResizeStart(event,\''+k.id+'\')"></div>'+
+          '</div>';
       }
-      renderAll();
-    } else if (msg.type === "profile_update") {
-      setStatus("Profile synced from server");
+      // Skip rendering cell if occupied by a key we already rendered
+      // Actually, we need empty cells for click detection
+    }
+  }
+  // Add empty cells for click targets (overlay approach: use a transparent grid)
+  // Since we're using CSS Grid with only key elements, empty cells aren't rendered.
+  // We use click on the grid container as fallback.
+  grid.innerHTML=html;
+
+  // Add grid container click for empty cell → add key
+  grid.onclick=function(e){
+    if(e.target!==grid)return; // only direct clicks on grid background
+    const rect=grid.getBoundingClientRect();
+    const cellW=rect.width/cols, cellH=rect.height/rows;
+    const col=Math.floor((e.clientX-rect.left)/cellW)+1;
+    const row=Math.floor((e.clientY-rect.top)/cellH)+1;
+    if(col>=1&&col<=cols&&row>=1&&row<=rows&&!occ[row][col]){
+      addKeyAt(col,row);
     }
   };
 }
 
-// ── Load profiles ──
-async function loadProfileList() {
-  const r = await fetch("/api/profiles");
-  const data = await r.json();
-  profiles = data.profiles || [];
-  renderProfileList();
-}
-async function loadProfile(filename) {
-  const r = await fetch("/api/profiles/" + filename);
-  profile = await r.json();
-  activeProfile = filename;
-  activePageId = profile.pages[0]?.id || "";
-  selectedKeyId = null;
-  renderAll();
-}
-async function saveProfile() {
-  if (!profile) return;
-  profile.profileName = profile.profileName || "Default";
-  try {
-    const r = await fetch("/api/profiles", {
-      method: "POST", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify(profile)
-    });
-    const data = await r.json();
-    activeProfile = data.filename;
-    dirty = false;
-    // Notify server to broadcast
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({type: "profile_saved", filename: data.filename}));
-    }
-    loadProfileList();
-    toast("Saved & synced to iPad ✓");
-  } catch(e) { toast("Error: " + e, true); }
-}
-async function deleteProfile(filename) {
-  if (!confirm("Delete " + filename + "?")) return;
-  await fetch("/api/profiles/" + filename, {method:"DELETE"});
-  if (activeProfile === filename) {
-    activeProfile = "Default.json";
-    await loadProfile("Default.json");
-  }
-  loadProfileList();
-}
-async function createProfile() {
-  const name = document.getElementById("newProfileName").value.trim();
-  if (!name) return;
-  const p = {profileName: name, version:"1.0", windowRules:[], pages:[
-    {id:"main", label:"Main", columns:4, keys:[{id:"k1",label:"A",action:"key",value:"A",color:"#0f3460",w:1}]}
-  ]};
-  const r = await fetch("/api/profiles", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(p)});
-  const data = await r.json();
-  document.getElementById("newProfileName").value = "";
-  loadProfileList();
-  loadProfile(data.filename);
-}
-function newProfile() { createProfile(); }
-
-// ── Page operations ──
-function addPage() {
-  const label = document.getElementById("newPageLabel").value.trim();
-  if (!label) return;
-  const id = "page_" + Date.now();
-  profile.pages.push({id, label, columns: 4, keys:[]});
-  activePageId = id; dirty = true;
-  document.getElementById("newPageLabel").value = "";
-  renderAll();
-}
-function deletePage(pageId) {
-  if (profile.pages.length <= 1) return;
-  const idx = profile.pages.findIndex(p=>p.id===pageId);
-  profile.pages.splice(idx, 1);
-  if (activePageId === pageId) activePageId = profile.pages[0]?.id;
-  selectedKeyId = null; dirty = true;
-  renderAll();
+function addKeyAt(col,row){
+  const page=curPage();if(!page)return;
+  const id="k_"+Date.now();
+  page.keys.push({id,label:"?",action:"key",value:"A",color:"#0f3460",col,row,w:1,h:1});
+  selectedKeyId=id;dirty=true;renderGrid();renderProps();
 }
 
-// ── Key operations ──
-function addKey() {
-  const page = profile.pages.find(p=>p.id===activePageId);
-  if (!page) return;
-  const id = "k_" + Date.now();
-  page.keys.push({id, label:"?", action:"key", value:"A", color:"#0f3460", w:1});
-  selectedKeyId = id; dirty = true;
-  renderAll();
-}
-function deleteKey(keyId) {
-  const page = profile.pages.find(p=>p.id===activePageId);
-  if (!page) return;
-  page.keys = page.keys.filter(k=>k.id!==keyId);
-  if (selectedKeyId === keyId) selectedKeyId = null;
-  dirty = true; renderAll();
-}
-function updateKeyProp(keyId, prop, value) {
-  const page = profile.pages.find(p=>p.id===activePageId);
-  if (!page) return;
-  const key = page.keys.find(k=>k.id===keyId);
-  if (!key) return;
-  if (prop === "w") value = parseInt(value) || 1;
-  key[prop] = value;
-  dirty = true;
-  renderGrid(); renderProps();
-}
-function onGridColsChange() {
-  const page = profile.pages.find(p=>p.id===activePageId);
-  if (!page) return;
-  page.columns = parseInt(document.getElementById("gridCols").value) || 15;
-  dirty = true; renderGrid();
-}
-
-// ── Drag & drop ──
-function onDragStart(e, keyId) {
-  dragKeyId = keyId; e.dataTransfer.effectAllowed = "move";
-  e.dataTransfer.setData("text/plain", keyId);
-  e.target.style.opacity = "0.4";
-}
-function onDragEnd(e) { dragKeyId = null; e.target.style.opacity = "1"; renderGrid(); }
-function onDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }
-function onDrop(e, targetKeyId) {
+// ── Drag & Drop ──
+function onDragStart(e,kid){dragKeyId=kid;e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain",kid);setTimeout(()=>{const el=document.querySelector('[data-kid="'+kid+'"]');if(el)el.classList.add("dragging");},0);}
+function onDragEnd(e){dragKeyId=null;document.querySelectorAll(".gkey.dragging").forEach(el=>el.classList.remove("dragging"));renderGrid();}
+function onDragOver(e){e.preventDefault();e.dataTransfer.dropEffect="move";}
+function onDrop(e,targetKid){
   e.preventDefault();
-  if (!dragKeyId || dragKeyId === targetKeyId) return;
-  const page = profile.pages.find(p=>p.id===activePageId);
-  if (!page) return;
-  const keys = page.keys;
-  const fromIdx = keys.findIndex(k=>k.id===dragKeyId);
-  const toIdx = keys.findIndex(k=>k.id===targetKeyId);
-  if (fromIdx < 0 || toIdx < 0) return;
-  const [moved] = keys.splice(fromIdx, 1);
-  keys.splice(toIdx, 0, moved);
-  dirty = true; dragKeyId = null;
+  const page=curPage();if(!page||!dragKeyId||dragKeyId===targetKid)return;
+  const grid=document.getElementById("editorGrid");
+  const rect=grid.getBoundingClientRect();
+  const cols=page.columns||15;
+  const cellW=rect.width/cols, cellH=rect.height/(page.rows||8);
+  const col=Math.max(1,Math.floor((e.clientX-rect.left)/cellW)+1);
+  const row=Math.max(1,Math.floor((e.clientY-rect.top)/cellH)+1);
+  const key=page.keys.find(k=>k.id===dragKeyId);
+  if(key){key.col=col;key.row=row;dirty=true;}
+  dragKeyId=null;
   renderGrid();
 }
 
-// ── Render ──
-function renderAll() { renderProfileList(); renderPageList(); renderPageTabs(); renderGrid(); renderProps(); }
-function renderProfileList() {
-  document.getElementById("profileList").innerHTML = profiles.map(p =>
-    '<div class="list-item'+(p.filename===activeProfile?' active':'')+'" onclick="loadProfile(\''+p.filename+'\')">'+
-    p.profileName+'<span class="del-btn" onclick="event.stopPropagation();deleteProfile(\''+p.filename+'\')">×</span></div>'
-  ).join("");
+// ── Resize ──
+function onResizeStart(e,kid){
+  e.preventDefault();e.stopPropagation();
+  selectKey(kid);resizing={kid,startX:e.clientX,startY:e.clientY};
+  document.addEventListener("mousemove",onResizeMove);
+  document.addEventListener("mouseup",onResizeEnd);
 }
-function renderPageList() {
-  document.getElementById("pageList").innerHTML = profile?.pages.map(p =>
-    '<div class="list-item'+(p.id===activePageId?' active':'')+'" onclick="activePageId=\''+p.id+'\';renderAll()">'+
-    p.label+'<span class="del-btn" onclick="event.stopPropagation();deletePage(\''+p.id+'\')">×</span></div>'
-  ).join("") || "";
+function onResizeMove(e){
+  if(!resizing)return;
+  const grid=document.getElementById("editorGrid"), page=curPage();
+  if(!grid||!page)return;
+  const rect=grid.getBoundingClientRect();
+  const cols=page.columns||15, rows=page.rows||8;
+  const cellW=rect.width/cols, cellH=rect.height/rows;
+  const dx=e.clientX-resizing.startX, dy=e.clientY-resizing.startY;
+  const key=page.keys.find(k=>k.id===resizing.kid);if(!key)return;
+  const dw=Math.round(dx/cellW), dh=Math.round(dy/cellH);
+  const newW=Math.max(1,Math.min(cols-(key.col||1)+1,(key.w||1)+dw));
+  const newH=Math.max(1,Math.min(rows-(key.row||1)+1,(key.h||1)+dh));
+  if(newW!==key.w||newH!==key.h){
+    key.w=newW;key.h=newH;dirty=true;renderGrid();
+    // Keep the same key selected
+    selectedKeyId=resizing.kid;
+    const el=document.querySelector('[data-kid="'+resizing.kid+'"]');
+    if(el)el.classList.add("selected");
+  }
 }
-function renderPageTabs() {
-  document.getElementById("pageTabs").innerHTML = profile?.pages.map(p =>
-    '<button class="ptab'+(p.id===activePageId?' active':'')+'" onclick="activePageId=\''+p.id+'\';renderAll()">'+p.label+'</button>'
-  ).join("") || "";
+function onResizeEnd(){
+  document.removeEventListener("mousemove",onResizeMove);
+  document.removeEventListener("mouseup",onResizeEnd);
+  resizing=null;
 }
-function renderGrid() {
-  const page = profile?.pages.find(p=>p.id===activePageId);
-  const grid = document.getElementById("keyGrid");
-  if (!page) { grid.innerHTML = ""; return; }
-  const cols = page.columns || 4;
-  grid.style.gridTemplateColumns = "repeat("+cols+", 1fr)";
-  document.getElementById("gridCols").value = cols;
-  grid.innerHTML = page.keys.map(k =>
-    '<div class="key-cell'+(k.id===selectedKeyId?' selected':'')+'" '+
-    'style="background:'+(k.color||'var(--card)')+';grid-column:span '+(k.w||1)+'" '+
-    'draggable="true" '+
-    'ondragstart="onDragStart(event,\''+k.id+'\')" '+
-    'ondragend="onDragEnd(event)" '+
-    'ondragover="onDragOver(event)" '+
-    'ondrop="onDrop(event,\''+k.id+'\')" '+
-    'onclick="selectedKeyId=\''+k.id+'\';renderGrid();renderProps()">'+
-    '<span>'+k.label+'</span>'+
-    (k.w > 1 ? '<span class="key-w-label">'+k.w+'x</span>' : '')+
-    '</div>'
-  ).join("");
-}
-function renderProps() {
-  const panel = document.getElementById("propsContent");
-  const page = profile?.pages.find(p=>p.id===activePageId);
-  const key = selectedKeyId ? page?.keys.find(k=>k.id===selectedKeyId) : null;
-  if (!key) { panel.innerHTML = '<p style="font-size:12px;color:var(--dim)">Select a key to edit</p>'; return; }
-  panel.innerHTML =
-    '<label>Label</label><input value="'+h(key.label)+'" onchange="updateKeyProp(\''+key.id+'\',\'label\',this.value)">'+
-    '<label>Action</label><select onchange="updateKeyProp(\''+key.id+'\',\'action\',this.value)">'+
-      '<option value="key"'+(key.action==="key"?" selected":"")+'>Key Press</option>'+
-      '<option value="text"'+(key.action==="text"?" selected":"")+'>Type Text</option>'+
-    '</select>'+
-    '<label>Key Combo / Value</label><input value="'+h(key.value)+'" onchange="updateKeyProp(\''+key.id+'\',\'value\',this.value)">'+
-    '<div class="hint">Examples: A, TAB, COMMAND+T, COMMAND+SHIFT+S</div>'+
-    '<label>Color</label><input type="color" value="'+(key.color||'#0f3460')+'" onchange="updateKeyProp(\''+key.id+'\',\'color\',this.value)">'+
-    '<div class="row"><div><label>Width</label><input type="number" min="1" max="10" value="'+(key.w||1)+'" onchange="updateKeyProp(\''+key.id+'\',\'w\',this.value)"></div>'+
-    '<div><label>Key ID</label><input value="'+key.id+'" readonly style="color:var(--dim)"></div></div>'+
-    '<div class="btn-row"><button class="btn-del" onclick="deleteKey(\''+key.id+'\')">Delete Key</button></div>';
-}
-function h(s) { return (s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
-// ── Toast ──
-function toast(msg, isErr) {
-  const t = document.getElementById("toast");
-  t.textContent = msg; t.style.background = isErr ? "var(--red)" : "var(--green)";
-  t.classList.add("show");
-  setTimeout(() => t.classList.remove("show"), 2000);
+// ── Selection ──
+function selectKey(kid){selectedKeyId=kid;renderGrid();renderProps();}
+
+// ── Props ──
+function renderProps(){
+  const panel=document.getElementById("propsContent"), page=curPage();
+  const key=selectedKeyId?page?.keys.find(k=>k.id===selectedKeyId):null;
+  if(!key){panel.innerHTML='<p style="font-size:12px;color:var(--dim)">Select a key<br>or click empty cell to add</p>';return;}
+  panel.innerHTML=
+    '<label>Label</label><input value="'+h(key.label)+'" onchange="upd(\'label\',this.value)">'+
+    '<label>Action</label><select onchange="upd(\'action\',this.value)">'+
+      '<option value="key"'+(key.action==="key"?" selected":"")+'>Key Press</option>'+
+      '<option value="text"'+(key.action==="text"?" selected":"")+'>Type Text</option></select>'+
+    '<label>Value / Combo</label><input value="'+h(key.value)+'" onchange="upd(\'value\',this.value)">'+
+    '<div class="hint">A, TAB, COMMAND+T, COMMAND+SHIFT+S</div>'+
+    '<label>Color</label><input type="color" value="'+(key.color||"#0f3460")+'" onchange="upd(\'color\',this.value)">'+
+    '<div class="row2">'+
+      '<div><label>Col</label><input type="number" min="1" value="'+(key.col||1)+'" onchange="upd(\'col\',parseInt(this.value))"></div>'+
+      '<div><label>Row</label><input type="number" min="1" value="'+(key.row||1)+'" onchange="upd(\'row\',parseInt(this.value))"></div>'+
+    '</div>'+
+    '<div class="row2">'+
+      '<div><label>Width</label><input type="number" min="1" max="30" value="'+(key.w||1)+'" onchange="upd(\'w\',parseInt(this.value))"></div>'+
+      '<div><label>Height</label><input type="number" min="1" max="30" value="'+(key.h||1)+'" onchange="upd(\'h\',parseInt(this.value))"></div>'+
+    '</div>'+
+    '<div class="btn-row"><button class="btn-del" onclick="deleteKey()">Delete Key</button></div>';
 }
-function setStatus(msg) {
-  document.getElementById("statusText").textContent = msg;
-  setTimeout(() => document.getElementById("statusText").textContent = "", 3000);
+
+function upd(prop,val){
+  const page=curPage(), key=selectedKeyId?page?.keys.find(k=>k.id===selectedKeyId):null;
+  if(!key)return;
+  key[prop]=val;dirty=true;renderGrid();renderProps();
+}
+function deleteKey(){
+  if(!selectedKeyId||!confirm("Delete this key?"))return;
+  const page=curPage();page.keys=page.keys.filter(k=>k.id!==selectedKeyId);
+  selectedKeyId=null;dirty=true;renderAll();
+}
+
+// ── Grid size ──
+function onGridSizeChange(){
+  const page=curPage();if(!page)return;
+  page.columns=parseInt(document.getElementById("gridCols").value)||15;
+  page.rows=parseInt(document.getElementById("gridRows").value)||8;
+  dirty=true;renderGrid();
+}
+
+// ── Helpers ──
+function h(s){return(String(s||"")).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function toast(msg,isErr){
+  const t=document.getElementById("toast");t.textContent=msg;t.className="toast"+(isErr?" err":"");
+  t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2000);
 }
 
 // ── Init ──
-connectWS();
-loadProfileList();
-loadProfile("Default.json");
+connectWS();loadProfiles();loadProfile("Default.json");
 </script>
 </body>
 </html>

@@ -155,6 +155,33 @@ DEFAULT_PROFILE = {
 }
 
 
+def migrate_key_positions(profile: dict) -> dict:
+    """Ensure all keys have col/row/h. Auto-calculate for keys without them."""
+    for page in profile.get("pages", []):
+        cols = page.get("columns", 15)
+        page.setdefault("rows", 8)
+        cur_col, cur_row = 1, 1
+        for key in page.get("keys", []):
+            w = key.get("w", 1)
+            h = key.get("h", 1)
+            if "col" not in key or "row" not in key:
+                if cur_col + w - 1 > cols:
+                    cur_col = 1
+                    cur_row += 1
+                key["col"] = cur_col
+                key["row"] = cur_row
+                key.setdefault("h", h)
+                cur_col += w
+            else:
+                # Key has explicit position — advance cursor past it
+                cur_col = key["col"] + key.get("w", 1)
+                cur_row = key["row"]
+        # Ensure rows is at least the max key row
+        max_row = max((k.get("row", 1) + k.get("h", 1) - 1 for k in page.get("keys", [])), default=1)
+        page["rows"] = max(page.get("rows", 8), max_row)
+    return profile
+
+
 class ProfileManager:
     """Profile JSON file storage with auto-switch matching."""
 
@@ -187,7 +214,8 @@ class ProfileManager:
         path = self.dir / filename
         if not path.exists():
             return None
-        return json.loads(path.read_text())
+        profile = json.loads(path.read_text())
+        return migrate_key_positions(profile)
 
     def save_profile(self, profile: dict, filename: Optional[str] = None) -> str:
         if not filename:
