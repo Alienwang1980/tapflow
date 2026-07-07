@@ -147,7 +147,7 @@ function rr(){
   const carea=document.getElementById("carea");
   document.querySelectorAll(".ck").forEach(el=>el.remove());
   const page=cp_();if(!page)return;
-  const pxOffX=panX*cs*(Math.min(cw/dw,ch/dh)),pxOffY=panY*cs*(Math.min(cw/dw,ch/dh));
+  const pxOffX=panX*cs*scale,pxOffY=panY*cs*scale;  // scale already includes *0.85
   page.keys.forEach(k=>{
     const col=k.col||0,row=k.row||0,w=k.w||1,h_=k.h||1;
     const p=gridToPixel(col,row,w,h_,dw,dh,cs,cw,ch,pxOffX,pxOffY);
@@ -174,9 +174,10 @@ document.addEventListener("mousemove",e=>{
   if(!panning)return;
   const ca=document.getElementById("carea");
   const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60;
-  const p=gridToPixel(0,0,1,1,dw,dh,cs,ca.clientWidth,ca.clientHeight);
-  // Store pan in GRID CELLS (universal unit)
-  panX=mx+(e.clientX-panStartX)/p.px;panY=my+(e.clientY-panStartY)/p.px;
+  const cw=ca.clientWidth,ch=ca.clientHeight;
+  const s_e=Math.min(cw*0.85/dw,ch*0.85/dh); // editor device scale with *0.85
+  // Store pan in GRID CELLS using editor's device scale
+  panX=mx+(e.clientX-panStartX)/(cs*s_e);panY=my+(e.clientY-panStartY)/(cs*s_e);
   rr();
 });
 document.addEventListener("mouseup",()=>{panning=false});
