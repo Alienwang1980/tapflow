@@ -116,14 +116,14 @@ body{display:flex;flex-direction:column}
     <option value="soft">Sound:Soft</option><option value="mechanical">Sound:Mechanical</option><option value="deep">Sound:Deep</option>
   </select>
   <button class="btn-save" onclick="saveProfile()">Save & Sync</button>
-  <button class="btn-new" onclick="newProfile()">+ New</button>
+  <button class="btn-new" onclick="cp()">+ New</button>
   <span class="hint">Scroll=zoom · Drag canvas=pan · Drag keys=move · Drag corner=resize</span>
 </div>
 
 <div class="main">
 <div class="side">
   <h3>Profiles</h3><div id="pl"></div>
-  <div class="ar"><input id="npn" placeholder="Name"><button onclick="createProfile()">+</button></div>
+  <div class="ar"><input id="npn" placeholder="Name"><button onclick="cp()">+</button></div>
   <h3>Pages</h3><div id="pgl"></div>
   <div class="ar"><input id="npl" placeholder="Label"><button onclick="addPage()">+</button></div>
   <h3>Zoom</h3>
@@ -187,7 +187,6 @@ async function cp(){
   const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)});
   document.getElementById("npn").value="";lpl();lp((await r.json()).filename)
 }
-function np(){cp()}
 
 // ── Pages ──
 function apg(){const lb=document.getElementById("npl").value.trim();if(!lb)return;profile.pages.push({id:"p_"+Date.now(),label:lb,keys:[]});activePage=profile.pages[profile.pages.length-1].id;dirty=true;document.getElementById("npl").value="";renderAll()}
@@ -218,7 +217,7 @@ function rr(){
   // Frame
   const ca=document.getElementById("carea");
   const cw=ca.clientWidth,ch=ca.clientHeight;
-  const scale=Math.min(cw*0.85/dw,ch*0.85/dh);
+  const scale=Math.min(cw*0.85/dw,ch*0.85/dh);lastScale=scale;
   const fw=dw*scale,fh=dh*scale;
   const frame=document.getElementById("frame");
   frame.style.width=fw+"px";frame.style.height=fh+"px";
@@ -250,7 +249,7 @@ function rr(){
 }
 
 // ── Canvas interaction ──
-let mx=0,my=0;
+let mx=0,my=0,lastScale=1;
 document.getElementById("carea").addEventListener("wheel",e=>{
   e.preventDefault();
   const d=e.deltaY>0?-5:5;
@@ -281,8 +280,9 @@ document.getElementById("carea").addEventListener("dblclick",e=>{
   const rect=ca.getBoundingClientRect();
   const cs=profile.cellSize||60;
   const cx=profile.canvasX||0,cy=profile.canvasY||0;
-  const col=Math.round((e.clientX-rect.left+cx)/cs);
-  const row=Math.round((e.clientY-rect.top+cy)/cs);
+  const factor=cs/60*lastScale;
+  const col=Math.round(((e.clientX-rect.left)/factor+cx)/cs);
+  const row=Math.round(((e.clientY-rect.top)/factor+cy)/cs);
   addKey(col,row);
 });
 
@@ -375,7 +375,7 @@ function rpr(){
     '<div class="hint">A, TAB, COMMAND+T, COMMAND+SHIFT+S</div>'+
     '<label>Color</label><input type="color" value="'+(key.color||"#0f3460")+'" onchange="upk(\'color\',this.value)">'+
     '<label>Sound <button onclick="testSnd(\''+(key.sound||"none")+'\')" style="font-size:9px;padding:1px 5px;cursor:pointer">▶</button></label>'+
-    '<select onchange="upk(\'sound\',this.value)"><option value=""'+(key.sound===""||!key.sound?" selected":"")+'>Inherit</option><option value="none"'+("selected"+(key.sound==="none"?" selected":""))+'>None</option><option value="click"'+(key.sound==="click"?" selected":"")+'>Click</option><option value="soft"'+(key.sound==="soft"?" selected":"")+'>Soft</option><option value="mechanical"'+(key.sound==="mechanical"?" selected":"")+'>Mechanical</option><option value="deep"'+(key.sound==="deep"?" selected":"")+'>Deep</option></select>'+
+    '<select onchange="upk(\'sound\',this.value)"><option value=""'+(key.sound===""||!key.sound?" selected":"")+'>Inherit</option><option value="none"'+((key.sound==="none"?" selected":""))+'>None</option><option value="click"'+(key.sound==="click"?" selected":"")+'>Click</option><option value="soft"'+(key.sound==="soft"?" selected":"")+'>Soft</option><option value="mechanical"'+(key.sound==="mechanical"?" selected":"")+'>Mechanical</option><option value="deep"'+(key.sound==="deep"?" selected":"")+'>Deep</option></select>'+
     '<div class="rw" style="margin-top:8px"><div><label>Width</label><div class="stepper"><button onclick="upk(\'w\','+(kw-1)+')">−</button><span>'+kw+'</span><button onclick="upk(\'w\','+(kw+1)+')">+</button></div></div><div><label>Height</label><div class="stepper"><button onclick="upk(\'h\','+(kh-1)+')">−</button><span>'+kh+'</span><button onclick="upk(\'h\','+(kh+1)+')">+</button></div></div></div>'+
     '<div class="br"><button class="btn-del" onclick="dkey()">Delete Key</button></div>';
 }

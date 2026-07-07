@@ -105,16 +105,39 @@ function sendKey(kd){
 
 // ── Multi-touch ──
 const active=new Set();
+let touchUsed=false;
 document.addEventListener("touchstart",e=>{
-  e.preventDefault();
+  e.preventDefault();touchUsed=true;
   for(let i=0;i<e.changedTouches.length;i++){
     const t=e.changedTouches[i],el=document.elementFromPoint(t.clientX,t.clientY);
     if(el?.classList.contains("key-btn")){const kid=el.dataset.keyId;if(kid&&!active.has(kid)){active.add(kid);el.classList.add("active");const pg=profile?.pages.find(p=>p.id===activePage),kd=pg?.keys.find(k=>k.id===kid);if(kd)sendKey(kd)}}
   }
 },{passive:false});
 document.addEventListener("touchend",e=>{e.preventDefault();active.forEach(kid=>{const b=document.querySelector('[data-key-id="'+kid+'"]');if(b)b.classList.remove("active")});active.clear()},{passive:false});
-document.addEventListener("touchmove",e=>{e.preventDefault()},{passive:false});
-document.addEventListener("click",e=>{const el=e.target.closest(".key-btn");if(!el)return;const pg=profile?.pages.find(p=>p.id===activePage),kd=pg?.keys.find(k=>k.id===el.dataset.keyId);if(kd)sendKey(kd)});
+document.addEventListener("touchmove",e=>{
+  e.preventDefault();
+  // Track finger slide across keys
+  for(let i=0;i<e.changedTouches.length;i++){
+    const t=e.changedTouches[i],el=document.elementFromPoint(t.clientX,t.clientY);
+    if(el?.classList.contains("key-btn")){
+      const kid=el.dataset.keyId;
+      if(kid&&!active.has(kid)){
+        // Deactivate previous, activate new
+        active.forEach(okid=>{const b=document.querySelector('[data-key-id="'+okid+'"]');if(b)b.classList.remove("active")});
+        active.clear();
+        active.add(kid);el.classList.add("active");
+        const pg=profile?.pages.find(p=>p.id===activePage),kd=pg?.keys.find(k=>k.id===kid);
+        if(kd)sendKey(kd);
+      }
+    }
+  }
+},{passive:false});
+document.addEventListener("click",e=>{
+  if(touchUsed){touchUsed=false;return}
+  const el=e.target.closest(".key-btn");if(!el)return;
+  const pg=profile?.pages.find(p=>p.id===activePage),kd=pg?.keys.find(k=>k.id===el.dataset.keyId);
+  if(kd)sendKey(kd);
+});
 
 // ── Render ──
 function renderAll(){rtabs();rpanel()}
