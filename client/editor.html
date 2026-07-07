@@ -173,7 +173,7 @@ function cws(){
 // ── Profile CRUD ──
 async function lpl(){const r=await fetch("/api/profiles");profiles=(await r.json()).profiles||[];rpl()}
 async function lp(fn){const r=await fetch("/api/profiles/"+fn);profile=await r.json();activeProfile=fn;activePage=profile.pages[0]?.id||"";selKey=null;renderAll()}
-async function sp(){
+async function saveProfile(){
   if(!profile)return;
   const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(profile)});
   const d=await r.json();activeProfile=d.filename;dirty=false;
