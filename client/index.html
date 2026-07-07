@@ -7,223 +7,165 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Smart Touch Panel</title>
 <style>
-:root {
-  --bg: #1a1a2e; --panel-bg: #16213e; --key-default: #0f3460;
-  --key-active: #e94560; --text: #eee; --text-dim: #888;
-  --border: #2a2a4a; --accent: #e94560;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body {
-  width: 100%; height: 100%; overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: var(--bg); color: var(--text);
-  touch-action: none; -webkit-user-select: none; user-select: none;
-  -webkit-tap-highlight-color: transparent;
-}
-.top-bar {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 4px 8px; background: var(--panel-bg);
-  border-bottom: 1px solid var(--border); height: 32px; flex-shrink: 0;
-}
-.top-bar h1 { font-size: 13px; font-weight: 600; }
-.top-bar h1 span { color: var(--accent); }
-.top-actions { display: flex; gap: 4px; align-items: center; }
-.top-actions select {
-  background: var(--key-default); color: var(--text); border: 1px solid var(--border);
-  border-radius: 4px; padding: 2px 6px; font-size: 11px; cursor: pointer; max-width: 110px;
-}
-.top-actions button {
-  background: var(--key-default); color: var(--text); border: 1px solid var(--border);
-  border-radius: 4px; padding: 2px 6px; font-size: 11px; cursor: pointer;
-}
-.status-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 2px; }
-.status-dot.connect { background: #4caf50; }
-.status-dot.disconnect { background: #f44336; }
-.status-dot.connecting { background: #ff9800; animation: pulse 1s infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-.status-text { font-size: 10px; color: var(--text-dim); }
-.tabs {
-  display: flex; gap: 1px; padding: 2px 4px; background: var(--bg);
-  overflow-x: auto; flex-shrink: 0;
-}
-.tab-btn {
-  padding: 3px 8px; border-radius: 4px 4px 0 0;
-  background: var(--panel-bg); color: var(--text-dim); border: none;
-  font-size: 10px; cursor: pointer; white-space: nowrap; touch-action: manipulation;
-}
-.tab-btn.active { background: var(--key-default); color: var(--text); }
+:root{--bg:#1a1a2e;--panel-bg:#16213e;--key-default:#0f3460;--key-active:#e94560;--text:#eee;--text-dim:#888;--border:#2a2a4a;--accent:#e94560}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;font-family:-apple-system,sans-serif;background:var(--bg);color:var(--text);touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:3px 8px;background:var(--panel-bg);border-bottom:1px solid var(--border);height:30px;flex-shrink:0}
+.top-bar h1{font-size:13px}.top-bar h1 span{color:var(--accent)}
+.top-actions{display:flex;gap:4px;align-items:center}
+.top-actions select,.top-actions button{background:var(--key-default);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;max-width:110px}
+.sd{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:2px}
+.sd.on{background:#4caf50}.sd.off{background:#f44336}.sd.connecting{background:#ff9800;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.st{font-size:9px;color:var(--text-dim)}
+.tabs{display:flex;gap:1px;padding:2px 4px;background:var(--bg);overflow-x:auto;flex-shrink:0}
+.tb{padding:2px 7px;border-radius:3px 3px 0 0;background:var(--panel-bg);color:var(--text-dim);border:none;font-size:10px;cursor:pointer;white-space:nowrap;touch-action:manipulation}
+.tb.on{background:var(--key-default);color:var(--text)}
 
-/* ── Grid (same as editor) ── */
-.grid-wrap { flex: 1; overflow-y: auto; padding: 4px; -webkit-overflow-scrolling: touch; }
-.key-grid {
-  display: grid; gap: 3px;
-  align-content: start;
-}
-.grid-cell {
-  background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.06);
-  border-radius: 4px; min-height: 36px; position: relative;
-}
-.key-btn {
-  background: var(--key-default); border: 2px solid transparent; border-radius: 6px;
-  aspect-ratio: var(--kw) / var(--kh);
-  color: var(--text); font-size: 12px; font-weight: 500;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; touch-action: none; z-index: 2;
-  transition: transform 0.04s, background 0.04s, border-color 0.04s;
-  -webkit-tap-highlight-color: transparent; overflow: hidden;
-}
-.key-btn:active, .key-btn.active {
-  background: var(--key-active); transform: scale(0.93); border-color: var(--accent);
-}
-.key-label { pointer-events: none; text-align: center; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; }
+/* Touch panel area */
+.panel-area{flex:1;position:relative;overflow:hidden;background:var(--bg)}
+.panel-inner{position:absolute;top:0;left:0;width:100%;height:100%}
 
-/* ── QR modal ── */
-.qr-modal {
-  display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.7); z-index: 100; justify-content: center; align-items: center;
+.key-btn{
+  position:absolute;background:var(--key-default);border:1px solid var(--border);border-radius:5px;
+  color:var(--text);font-size:13px;font-weight:500;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;touch-action:none;
+  transition:transform 0.04s,background 0.04s;
+  -webkit-tap-highlight-color:transparent;overflow:hidden;
 }
-.qr-modal.open { display: flex; }
-.qr-card {
-  background: var(--panel-bg); border: 2px solid var(--accent);
-  border-radius: 12px; padding: 20px; text-align: center; max-width: 280px;
-}
-.qr-card h2 { font-size: 15px; margin-bottom: 8px; }
-.qr-card .url { font-size: 13px; color: var(--accent); word-break: break-all; margin-bottom: 8px; }
-.qr-card img { margin: 6px auto; display: block; }
-.qr-card button { padding: 6px 14px; background: var(--accent); color: #fff; border: none; border-radius: 5px; font-size: 12px; cursor: pointer; }
-@supports (padding-bottom: env(safe-area-inset-bottom)) {
-  body { padding-bottom: env(safe-area-inset-bottom); }
-}
+.key-btn:active,.key-btn.active{background:var(--key-active);transform:scale(0.93);border-color:var(--accent)}
+.key-label{pointer-events:none;text-align:center;line-height:1.1;overflow:hidden;text-overflow:ellipsis;font-size:inherit}
+
+.qr-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:100;justify-content:center;align-items:center}
+.qr-modal.open{display:flex}
+.qr-card{background:var(--panel-bg);border:2px solid var(--accent);border-radius:12px;padding:18px;text-align:center;max-width:260px}
+.qr-card h2{font-size:14px;margin-bottom:6px}
+.qr-card .url{font-size:12px;color:var(--accent);word-break:break-all;margin-bottom:6px}
+.qr-card img{margin:6px auto;display:block}
+.qr-card button{padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer}
+@supports(padding-bottom:env(safe-area-inset-bottom)){body{padding-bottom:env(safe-area-inset-bottom)}}
 </style>
 </head>
 <body>
 <div class="top-bar">
   <h1>Smart <span>Touch</span></h1>
   <div class="top-actions">
-    <select id="profileSelect" onchange="onProfileChange()"></select>
-    <span class="status-dot connecting" id="statusDot"></span>
-    <span class="status-text" id="statusText"></span>
+    <select id="ps" onchange="onProfileChange()"></select>
+    <span class="sd connecting" id="sd"></span>
+    <span class="st" id="stx">···</span>
     <button onclick="showQR()">QR</button>
   </div>
 </div>
 <div class="tabs" id="tabs"></div>
-<div class="grid-wrap"><div class="key-grid" id="keyGrid"></div></div>
+<div class="panel-area"><div class="panel-inner" id="panel"></div></div>
 
 <div class="qr-modal" id="qrModal" onclick="closeQR(event)">
   <div class="qr-card" onclick="event.stopPropagation()">
     <h2>Scan to Connect</h2>
     <div class="url" id="qrUrl"></div>
-    <img id="qrImg" src="" width="180" height="180">
+    <img id="qrImg" src="" width="160" height="160">
     <button onclick="closeQR()">Close</button>
   </div>
 </div>
 
 <script>
 "use strict";
-let ws=null, profile=null, profiles=[], activePageId="", activeProfile="Default.json";
-let reconnectTimer=null, reconnectDelay=1000;
+let ws=null,profile=null,profiles=[],activePage="",activeProfile="Default.json";
+let timer=null,delay=1000;
 
 function connect(){
   const p=location.protocol==="https:"?"wss:":"ws:";
   ws=new WebSocket(p+"//"+location.hostname+":8082/ws");
-  ws.onopen=()=>{setStatus("connect");reconnectDelay=1000;};
+  ws.onopen=()=>{ss("on");delay=1000};
   ws.onmessage=e=>{
     const m=JSON.parse(e.data);
-    if(m.type==="profile"||m.type==="profile_update"){profile=m.profile;activeProfile=m.filename||activeProfile;activePageId=profile.pages.find(p=>p.id===activePageId)?activePageId:(profile.pages[0]?.id||"");loadProfileList();renderAll();}
-    else if(m.type==="profile_switch"){activePageId=m.page||activePageId;renderAll();}
+    if(m.type==="profile"||m.type==="profile_update"){profile=m.profile;activeProfile=m.filename||activeProfile;activePage=profile.pages.find(p=>p.id===activePage)?activePage:(profile.pages[0]?.id||"");lpls();renderAll()}
+    else if(m.type==="profile_switch"){activePage=m.page||activePage;renderAll()}
   };
-  ws.onclose=()=>{setStatus("disconnect");scheduleReconnect();};
-  ws.onerror=()=>{setStatus("disconnect");};
+  ws.onclose=()=>{ss("off");schedule()};
+  ws.onerror=()=>{ss("off")};
 }
-function scheduleReconnect(){clearTimeout(reconnectTimer);reconnectTimer=setTimeout(()=>{reconnectDelay=Math.min(reconnectDelay*1.5,15000);connect();},reconnectDelay);}
-function setStatus(cls){document.getElementById("statusDot").className="status-dot "+cls;document.getElementById("statusText").textContent=cls;}
+function schedule(){clearTimeout(timer);timer=setTimeout(()=>{delay=Math.min(delay*1.5,15000);connect()},delay)}
+function ss(cls){document.getElementById("sd").className="sd "+cls;document.getElementById("stx").textContent=cls}
 
+// ── Sound ──
 const SOUNDS={none:null,click:[800,0.06,"square",0.3],soft:[400,0.08,"sine",0.2],mechanical:[1200,0.04,"square",0.4],deep:[200,0.1,"triangle",0.5]};
-let audioCtx=null;
-function playSound(name){
-  if(!name||name==="none")return;
-  const s=SOUNDS[name];if(!s)return;
-  try{
-    if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
-    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-    o.type=s[2];o.frequency.setValueAtTime(s[0],audioCtx.currentTime);
-    g.gain.setValueAtTime(s[3],audioCtx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+s[1]);
-    o.connect(g);g.connect(audioCtx.destination);
-    o.start();o.stop(audioCtx.currentTime+s[1]);
-  }catch(e){}
+let actx=null;
+function playSnd(name){
+  if(!name||name==="none")return;const s=SOUNDS[name];if(!s)return;
+  try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();const o=actx.createOscillator(),g=actx.createGain();o.type=s[2];o.frequency.setValueAtTime(s[0],actx.currentTime);g.gain.setValueAtTime(s[3],actx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+s[1]);o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+s[1])}catch(e){}
 }
 
 function sendKey(kd){
   if(!ws||ws.readyState!==WebSocket.OPEN)return;
   ws.send(JSON.stringify({type:"key",key:kd.value,action:kd.action==="text"?"text":"press"}));
-  playSound(kd.sound||(profile&&profile.defaultSound)||"none");
+  playSnd(kd.sound||(profile&&profile.defaultSound)||"none");
 }
 
-const activeTouches=new Set();
+// ── Multi-touch ──
+const active=new Set();
 document.addEventListener("touchstart",e=>{
   e.preventDefault();
   for(let i=0;i<e.changedTouches.length;i++){
     const t=e.changedTouches[i],el=document.elementFromPoint(t.clientX,t.clientY);
-    if(el?.classList.contains("key-btn")){const kid=el.dataset.keyId;if(kid&&!activeTouches.has(kid)){activeTouches.add(kid);el.classList.add("active");const pg=profile?.pages.find(p=>p.id===activePageId),kd=pg?.keys.find(k=>k.id===kid);if(kd)sendKey(kd);}}
+    if(el?.classList.contains("key-btn")){const kid=el.dataset.keyId;if(kid&&!active.has(kid)){active.add(kid);el.classList.add("active");const pg=profile?.pages.find(p=>p.id===activePage),kd=pg?.keys.find(k=>k.id===kid);if(kd)sendKey(kd)}}
   }
 },{passive:false});
-document.addEventListener("touchend",e=>{e.preventDefault();activeTouches.forEach(kid=>{const b=document.querySelector('[data-key-id="'+kid+'"]');if(b)b.classList.remove("active");});activeTouches.clear();},{passive:false});
-document.addEventListener("touchmove",e=>{e.preventDefault();},{passive:false});
-document.addEventListener("click",e=>{const el=e.target.closest(".key-btn");if(!el)return;const pg=profile?.pages.find(p=>p.id===activePageId),kd=pg?.keys.find(k=>k.id===el.dataset.keyId);if(kd)sendKey(kd);});
+document.addEventListener("touchend",e=>{e.preventDefault();active.forEach(kid=>{const b=document.querySelector('[data-key-id="'+kid+'"]');if(b)b.classList.remove("active")});active.clear()},{passive:false});
+document.addEventListener("touchmove",e=>{e.preventDefault()},{passive:false});
+document.addEventListener("click",e=>{const el=e.target.closest(".key-btn");if(!el)return;const pg=profile?.pages.find(p=>p.id===activePage),kd=pg?.keys.find(k=>k.id===el.dataset.keyId);if(kd)sendKey(kd)});
 
-function renderAll(){renderTabs();renderGrid();}
-function renderTabs(){
-  document.getElementById("tabs").innerHTML=(profile?.pages||[]).map(p=>'<button class="tab-btn'+(p.id===activePageId?" active":"")+'" onclick="switchPage(\''+p.id+'\')">'+p.label+'</button>').join("");
+// ── Render ──
+function renderAll(){rtabs();rpanel()}
+
+function rtabs(){
+  document.getElementById("tabs").innerHTML=(profile?.pages||[]).map(p=>'<button class="tb'+(p.id===activePage?" on":"")+'" onclick="switchPage(\''+p.id+'\')">'+p.label+'</button>').join("")
 }
-function renderGrid(){
-  const grid=document.getElementById("keyGrid"),page=profile?.pages.find(p=>p.id===activePageId);
-  if(!page){grid.innerHTML="";return;}
-  const cols=page.columns||15, rows=page.rows||8;
-  const hasPos=page.keys.some(k=>k.col!==undefined);
+function rpanel(){
+  const panel=document.getElementById("panel"),page=profile?.pages.find(p=>p.id===activePage);
+  if(!page||!profile){panel.innerHTML="";return}
 
-  // Match editor: show grid cell borders, same row sizing
-  grid.style.gridTemplateColumns="repeat("+cols+", 1fr)";
-  grid.style.gridTemplateRows="repeat("+rows+", auto)";
-    grid.style.aspectRatio=cols+"/"+rows;
+  const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210;
+  const cs=profile.cellSize||60;
+  const cx=profile.canvasX||0,cy=profile.canvasY||0;
 
-  if(hasPos){
-    // Build occupancy map
-    const occ=Array.from({length:rows+1},()=>Array(cols+1).fill(null));
-    page.keys.forEach(k=>{const c=k.col||1,r=k.row||1,w=k.w||1,h=k.h||1;for(let rr=r;rr<r+h&&rr<=rows;rr++)for(let cc=c;cc<c+w&&cc<=cols;cc++)occ[rr][cc]=k.id;});
+  // Scale: map device pixels to viewport pixels
+  const vw=panel.clientWidth,vh=panel.clientHeight;
+  const scale=Math.min(vw/dw,vh/dh);
+  const ox=(vw-dw*scale)/2,oy=(vh-dh*scale)/2; // center
 
-    // Render cells + keys (same logic as editor)
-    const rendered=new Set();
-    let html="";
-    for(let r=1;r<=rows;r++){
-      for(let c=1;c<=cols;c++){
-        const kid=occ[r][c];
-        if(kid&&!rendered.has(kid)){
-          rendered.add(kid);
-          const k=page.keys.find(x=>x.id===kid);
-          if(!k)continue;
-          html+='<button class="key-btn" data-key-id="'+k.id+'" style="--kw:'+(k.w||1)+';--kh:'+(k.h||1)+';background:'+(k.color||'var(--key-default)')+';grid-column:'+(k.col||c)+'/span '+(k.w||1)+';grid-row:'+(k.row||r)+'/span '+(k.h||1)+'"><span class="key-label">'+h(k.label)+'</span></button>';
-        }
-      }
+  let html="";
+  (page.keys||[]).forEach(k=>{
+    const col=k.col||0,row=k.row||0,w=k.w||1,h_=k.h||1;
+    const x=ox+(col*cs-cx)*scale,y=oy+(row*cs-cy)*scale;
+    const kw=w*cs*scale-2,kh=h_*cs*scale-2;
+    // Only render if visible
+    if(x+kw>0&&y+kh>0&&x<vw&&y<vh){
+      html+='<button class="key-btn" data-key-id="'+k.id+'" '+
+        'style="background:'+(k.color||'var(--key-default)')+';left:'+x+'px;top:'+y+'px;width:'+kw+'px;height:'+kh+'px;font-size:'+Math.max(9,cs*scale*0.2)+'px">'+
+        '<span class="key-label">'+h_(k.label)+'</span></button>';
     }
-    grid.innerHTML=html;
-  } else {
-    // Legacy fallback
-    grid.innerHTML=page.keys.map(k=>'<button class="key-btn" data-key-id="'+k.id+'" style="background:'+(k.color||'var(--key-default)')+';grid-column:span '+(k.w||1)+'"><span class="key-label">'+h(k.label)+'</span></button>').join("");
-  }
+  });
+  panel.innerHTML=html;
 }
-function switchPage(pid){activePageId=pid;renderAll();}
 
-async function loadProfileList(){
-  try{const r=await fetch("/api/profiles");profiles=((await r.json()).profiles||[]);document.getElementById("profileSelect").innerHTML=profiles.map(p=>'<option value="'+p.filename+'"'+(p.filename===activeProfile?" selected":"")+'>'+p.profileName+'</option>').join("");}catch(e){}
+function switchPage(pid){activePage=pid;renderAll()}
+
+async function lpls(){
+  try{const r=await fetch("/api/profiles");profiles=((await r.json()).profiles||[]);document.getElementById("ps").innerHTML=profiles.map(p=>'<option value="'+p.filename+'"'+(p.filename===activeProfile?" selected":"")+'>'+p.profileName+'</option>').join("")}catch(e){}
 }
 async function onProfileChange(){
-  const fn=document.getElementById("profileSelect").value;
-  try{const r=await fetch("/api/profiles/"+fn);if(!r.ok)return;profile=await r.json();activeProfile=fn;activePageId=profile.pages[0]?.id||"";renderAll();}catch(e){}
+  const fn=document.getElementById("ps").value;
+  try{const r=await fetch("/api/profiles/"+fn);if(!r.ok)return;profile=await r.json();activeProfile=fn;activePage=profile.pages[0]?.id||"";renderAll()}catch(e){}
 }
-function showQR(){document.getElementById("qrModal").classList.add("open");const url="http://"+location.hostname+":8082";document.getElementById("qrUrl").textContent=url;document.getElementById("qrImg").src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data="+encodeURIComponent(url);}
-function closeQR(e){if(!e||e.target===document.getElementById("qrModal"))document.getElementById("qrModal").classList.remove("open");}
-function h(s){return String(s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");}
+function showQR(){document.getElementById("qrModal").classList.add("open");const url="http://"+location.hostname+":8082";document.getElementById("qrUrl").textContent=url;document.getElementById("qrImg").src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data="+encodeURIComponent(url)}
+function closeQR(e){if(!e||e.target===document.getElementById("qrModal"))document.getElementById("qrModal").classList.remove("open")}
+function h_(s){return String(s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;")}
+
+// Handle resize
+window.addEventListener("resize",()=>rpanel());
+
 connect();
 </script>
 </body>

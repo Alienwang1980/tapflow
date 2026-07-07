@@ -5,11 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Smart Touch Panel — Editor</title>
 <style>
-:root {
-  --bg:#1a1a2e; --panel:#16213e; --card:#0f3460;
-  --accent:#e94560; --text:#eee; --dim:#888; --border:#2a2a4a;
-  --green:#3a7ca5; --red:#8b3a3a;
-}
+:root{--bg:#1a1a2e;--panel:#16213e;--card:#0f3460;--accent:#e94560;--text:#eee;--dim:#888;--border:#2a2a4a;--green:#3a7ca5;--red:#8b3a3a}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;font-family:-apple-system,sans-serif;background:var(--bg);color:var(--text)}
 body{display:flex;flex-direction:column}
@@ -20,11 +16,12 @@ body{display:flex;flex-direction:column}
 .tb .conn{font-size:10px;padding:1px 6px;border-radius:3px}
 .tb .conn.on{background:#4caf5040;color:#4caf50}
 .tb .conn.off{background:#f4433640;color:#f44336}
-.tb button,.tb select{padding:3px 8px;border-radius:3px;border:1px solid var(--border);cursor:pointer;font-size:11px;background:var(--card);color:var(--text)}
+.tb select,.tb button{padding:3px 8px;border-radius:3px;border:1px solid var(--border);cursor:pointer;font-size:11px;background:var(--card);color:var(--text)}
 .tb .btn-save{background:var(--green);color:#fff;border-color:var(--green)}
 .tb .btn-new{background:#555;color:#fff}
+.tb .hint{font-size:9px;color:var(--dim);margin-left:auto}
 
-/* Layout */
+/* Main layout */
 .main{display:flex;flex:1;overflow:hidden}
 .side{width:200px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);overflow-y:auto}
 .side h3{font-size:10px;text-transform:uppercase;color:var(--dim);padding:8px 8px 2px;letter-spacing:1px}
@@ -37,51 +34,52 @@ body{display:flex;flex-direction:column}
 .side .ar input{flex:1;padding:2px 5px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:3px;font-size:10px}
 .side .ar button{padding:2px 5px;font-size:10px;background:#555;color:#fff;border:none;border-radius:3px;cursor:pointer}
 
-/* Center grid */
-.ctr{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.gtb{display:flex;align-items:center;gap:8px;padding:4px 10px;background:var(--panel);border-bottom:1px solid var(--border)}
-.gtb label{font-size:10px;color:var(--dim)}
-.gtb .stepper{display:flex;align-items:center;gap:2px}
-.gtb .stepper button{width:22px;height:22px;font-size:14px;line-height:1;text-align:center;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:3px;cursor:pointer}
-.gtb .stepper span{width:28px;text-align:center;font-size:12px;font-weight:600}
-.gtb .hint{font-size:9px;color:var(--dim);margin-left:auto}
+/* Canvas area */
+.carea{flex:1;position:relative;overflow:hidden;background:var(--bg)}
 
-.gsw{flex:1;overflow:auto;padding:6px}
-.eg{
-  display:grid;gap:2px;position:relative;
-  min-height:400px;
-  background:rgba(0,0,0,0.4);
-  border:1px solid rgba(255,255,255,0.08);
-  border-radius:6px;padding:4px;
+/* Device frame - fixed centered */
+.frame{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  border:2px solid var(--accent);box-shadow:0 0 20px rgba(233,69,96,0.3);
+  pointer-events:none;z-index:10;
+  background:rgba(0,0,0,0.15);
+}
+.frame-label{
+  position:absolute;top:-20px;left:50%;transform:translateX(-50%);
+  font-size:9px;color:var(--accent);background:var(--panel);
+  padding:1px 6px;border-radius:3px;white-space:nowrap;
 }
 
-/* Grid cells */
-.gc{
-  background:rgba(255,255,255,0.04);border:1px dashed rgba(255,255,255,0.3);
-  border-radius:3px;min-height:28px;cursor:pointer;position:relative;
+/* Canvas layer */
+.canvas{
+  position:absolute;top:0;left:0;
+  /* Grid background */
+  background-image:
+    linear-gradient(rgba(255,255,255,0.08) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,0.08) 1px,transparent 1px);
+  background-size:60px 60px;
+  transform-origin:0 0;
 }
-.gc:hover{background:rgba(233,69,96,0.12);border-color:var(--accent);border-style:solid}
-.gc .cl{position:absolute;top:0;left:2px;font-size:7px;color:rgba(255,255,255,0.25);pointer-events:none}
 
-/* Keys */
-.gk{
-  background:var(--card);border:2px solid transparent;border-radius:5px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:11px;font-weight:500;cursor:grab;position:relative;
+/* Keys on canvas */
+.ck{
+  position:absolute;background:var(--card);border:2px solid transparent;
+  border-radius:5px;display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:500;cursor:grab;
   transition:border-color 0.1s;user-select:none;z-index:2;overflow:hidden;
 }
-.gk:hover{border-color:rgba(255,255,255,0.4)}
-.gk.sel{border-color:var(--accent);box-shadow:0 0 8px rgba(233,69,96,0.5);cursor:default}
-.gk.drag{opacity:0.35}
-.gk .kl{pointer-events:none;text-align:center;line-height:1.2;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.gk .rh{
+.ck:hover{border-color:rgba(255,255,255,0.4)}
+.ck.sel{border-color:var(--accent);box-shadow:0 0 8px rgba(233,69,96,0.5);cursor:default}
+.ck.drag{opacity:0.35}
+.ck .kl{pointer-events:none;text-align:center;line-height:1.2;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.ck .sz{position:absolute;top:1px;right:3px;font-size:8px;color:rgba(255,255,255,0.4);pointer-events:none}
+.ck .rh{
   position:absolute;bottom:0;right:0;width:12px;height:12px;
   cursor:se-resize;opacity:0;
   background:linear-gradient(135deg,transparent 50%,rgba(255,255,255,0.4) 50%);
   border-radius:0 0 4px 0;
 }
-.gk:hover .rh,.gk.sel .rh{opacity:1}
-.gk .sz{position:absolute;top:1px;right:3px;font-size:7px;color:rgba(255,255,255,0.35);pointer-events:none}
+.ck:hover .rh,.ck.sel .rh{opacity:1}
 
 /* Right panel */
 .rp{width:260px;flex-shrink:0;background:var(--panel);border-left:1px solid var(--border);overflow-y:auto;padding:10px}
@@ -91,7 +89,6 @@ body{display:flex;flex-direction:column}
 .rp input[type=color]{height:26px;padding:1px}
 .rp .rw{display:flex;gap:4px}
 .rp .rw>div{flex:1}
-.rp .rw input{width:100%}
 .rp .stepper{display:flex;align-items:center;gap:2px}
 .rp .stepper button{width:24px;height:24px;font-size:14px;line-height:1;text-align:center;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:3px;cursor:pointer}
 .rp .stepper span{width:24px;text-align:center;font-size:13px;font-weight:600}
@@ -99,10 +96,8 @@ body{display:flex;flex-direction:column}
 .rp .br{display:flex;gap:4px;margin-top:8px}
 .rp .br button{flex:1;padding:5px;font-size:11px;cursor:pointer;border-radius:3px}
 .rp .btn-del{background:var(--red);color:#fff;border:none}
-
 .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:6px 16px;border-radius:5px;font-size:12px;z-index:999;opacity:0;transition:opacity 0.3s}
 .toast.show{opacity:1}
-.toast.err{background:var(--red)}
 </style>
 </head>
 <body>
@@ -110,13 +105,19 @@ body{display:flex;flex-direction:column}
 <div class="tb">
   <h1>Smart <span>Touch</span> Editor</h1>
   <span class="conn off" id="cs">off</span>
-  <select id="gs" onchange="if(profile){profile.defaultSound=this.value;dirty=true}" style="width:auto;font-size:10px">
+  <select id="devSel" onchange="onDeviceChange()">
+    <option value="iPad 11&quot;">iPad 11"</option>
+    <option value="iPad 4:3">iPad 4:3</option>
+    <option value="iPad mini">iPad mini</option>
+    <option value="Android 16:10">Android 16:10</option>
+  </select>
+  <select id="gs" onchange="if(profile){profile.defaultSound=this.value;dirty=true}" style="font-size:10px">
     <option value="none">Sound:None</option><option value="click">Sound:Click</option>
     <option value="soft">Sound:Soft</option><option value="mechanical">Sound:Mechanical</option><option value="deep">Sound:Deep</option>
   </select>
   <button class="btn-save" onclick="saveProfile()">Save & Sync</button>
   <button class="btn-new" onclick="newProfile()">+ New</button>
-  <span style="font-size:10px;color:var(--dim);margin-left:auto" id="st"></span>
+  <span class="hint">Scroll=zoom · Drag canvas=pan · Drag keys=move · Drag corner=resize</span>
 </div>
 
 <div class="main">
@@ -125,20 +126,21 @@ body{display:flex;flex-direction:column}
   <div class="ar"><input id="npn" placeholder="Name"><button onclick="createProfile()">+</button></div>
   <h3>Pages</h3><div id="pgl"></div>
   <div class="ar"><input id="npl" placeholder="Label"><button onclick="addPage()">+</button></div>
+  <h3>Zoom</h3>
+  <div class="stepper" style="padding:4px 8px">
+    <button onclick="zoomBy(-5)">−</button><span id="zv" style="width:36px;text-align:center;font-size:12px">60</span><button onclick="zoomBy(5)">+</button>
+    <span style="font-size:9px;color:var(--dim);margin-left:4px">px/cell</span>
+  </div>
 </div>
 
-<div class="ctr">
-  <div class="gtb">
-    <div class="stepper"><label>Cols</label><button onclick="chgGrid('columns',-1)">−</button><span id="gcv">15</span><button onclick="chgGrid('columns',1)">+</button></div>
-    <div class="stepper"><label>Rows</label><button onclick="chgGrid('rows',-1)">−</button><span id="grv">15</span><button onclick="chgGrid('rows',1)">+</button></div>
-    <span class="hint">Drag keys to move/swap. Drag corner to resize. Click cell to add.</span>
-  </div>
-  <div class="gsw"><div class="eg" id="eg"></div></div>
+<div class="carea" id="carea">
+  <div class="canvas" id="canvas"></div>
+  <div class="frame" id="frame"><div class="frame-label" id="fl"></div></div>
 </div>
 
 <div class="rp" id="rp">
   <h3>Key Properties</h3>
-  <div id="pc"><p style="font-size:11px;color:var(--dim)">Click a key to edit<br>or click empty cell to add</p></div>
+  <div id="pc"><p style="font-size:11px;color:var(--dim)">Click a key to edit<br>Double-click canvas to add</p></div>
 </div>
 </div>
 
@@ -147,7 +149,15 @@ body{display:flex;flex-direction:column}
 <script>
 "use strict";
 let ws=null,profile=null,profiles=[],activePage="",activeProfile="Default.json";
-let selKey=null,dragKey=null,dragOcc=null,resizing=null,dirty=false;
+let selKey=null,dragKey=null,dragging=false,panning=false;
+let panStartX=0,panStartY=0,dirty=false;
+
+const DEVS={
+  "iPad 4:3":{w:1024,h:1366},
+  "iPad 11\"":{w:834,h:1210},
+  "iPad mini":{w:744,h:1133},
+  "Android 16:10":{w:1280,h:800}
+};
 
 // ── WebSocket ──
 function cws(){
@@ -173,19 +183,19 @@ async function sp(){
 async function dp(fn){if(!confirm("Delete "+fn+"?"))return;await fetch("/api/profiles/"+fn,{method:"DELETE"});if(activeProfile===fn){activeProfile="Default.json";await lp("Default.json")}lpl()}
 async function cp(){
   const nm=document.getElementById("npn").value.trim();if(!nm)return;
-  const p={profileName:nm,version:"1.0",defaultSound:"click",windowRules:[],pages:[{id:"main",label:"Main",columns:15,rows:15,keys:[]}]};
+  const p={profileName:nm,version:"1.0",device:"iPad 11\"",deviceWidth:834,deviceHeight:1210,cellSize:60,canvasX:0,canvasY:0,defaultSound:"click",windowRules:[],pages:[{id:"main",label:"Main",keys:[]}]};
   const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)});
   document.getElementById("npn").value="";lpl();lp((await r.json()).filename)
 }
 function np(){cp()}
 
 // ── Pages ──
-function apg(){const lb=document.getElementById("npl").value.trim();if(!lb)return;profile.pages.push({id:"p_"+Date.now(),label:lb,columns:15,rows:15,keys:[]});activePage=profile.pages[profile.pages.length-1].id;dirty=true;document.getElementById("npl").value="";renderAll()}
+function apg(){const lb=document.getElementById("npl").value.trim();if(!lb)return;profile.pages.push({id:"p_"+Date.now(),label:lb,keys:[]});activePage=profile.pages[profile.pages.length-1].id;dirty=true;document.getElementById("npl").value="";renderAll()}
 function dpg(pid){if(profile.pages.length<=1)return;profile.pages=profile.pages.filter(p=>p.id!==pid);if(activePage===pid)activePage=profile.pages[0].id;selKey=null;dirty=true;renderAll()}
 
 // ── Render ──
 function cp_(){return profile?.pages.find(p=>p.id===activePage)}
-function renderAll(){rpl();rpgl();rg();rpr()}
+function renderAll(){rpl();rpgl();rr();rpr()}
 
 function rpl(){
   document.getElementById("pl").innerHTML=profiles.map(p=>'<div class="it'+(p.filename===activeProfile?" ac":"")+'" onclick="lp(\''+p.filename+'\')">'+h(p.profileName)+'<span class="x" onclick="event.stopPropagation();dp(\''+p.filename+'\')">×</span></div>').join("")
@@ -194,202 +204,197 @@ function rpgl(){
   document.getElementById("pgl").innerHTML=profile?.pages.map(p=>'<div class="it'+(p.id===activePage?" ac":"")+'" onclick="activePage=\''+p.id+'\';selKey=null;renderAll()">'+h(p.label)+'<span class="x" onclick="event.stopPropagation();dpg(\''+p.id+'\')">×</span></div>').join("")||""
 }
 
-function rg(){
-  const page=cp_(),grid=document.getElementById("eg");
-  if(!page){grid.innerHTML="";return}
-  const cols=page.columns||15,rows=page.rows||15;
-  grid.style.gridTemplateColumns="repeat("+cols+", 1fr)";
-  grid.style.gridTemplateRows="repeat("+rows+", minmax(28px,auto))";
+function rr(){
+  if(!profile)return;
+  const cs=profile.cellSize||60;
+  const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210;
+  const cx=profile.canvasX||0,cy=profile.canvasY||0;
 
-  // Stepper displays
-  document.getElementById("gcv").textContent=cols;
-  document.getElementById("grv").textContent=rows;
+  // Device selector + global sound
+  document.getElementById("devSel").value=profile.device||"iPad 11\"";
+  document.getElementById("gs").value=profile.defaultSound||"none";
+  document.getElementById("zv").textContent=cs;
 
-  // Occupancy map
-  const occ=Array.from({length:rows+1},()=>Array(cols+1).fill(null));
-  (page.keys||[]).forEach(k=>{
-    const c=k.col||1,r=k.row||1,w=k.w||1,h_=k.h||1;
-    for(let rr=r;rr<r+h_&&rr<=rows;rr++)
-      for(let cc=c;cc<c+w&&cc<=cols;cc++)
-        occ[rr][cc]=k.id;
-  });
+  // Frame
+  const ca=document.getElementById("carea");
+  const cw=ca.clientWidth,ch=ca.clientHeight;
+  const scale=Math.min(cw*0.85/dw,ch*0.85/dh);
+  const fw=dw*scale,fh=dh*scale;
+  const frame=document.getElementById("frame");
+  frame.style.width=fw+"px";frame.style.height=fh+"px";
+  document.getElementById("fl").textContent=profile.device+" · "+(Math.round(dw/cs))+"×"+(Math.round(dh/cs));
 
-  // Save occ for swap logic
-  dragOcc=occ;
+  // Canvas
+  const canvas=document.getElementById("canvas");
+  canvas.style.backgroundSize=cs+"px "+cs+"px";
+  canvas.style.transform="translate("+(-cx*cs/60*scale)+"px,"+(-cy*cs/60*scale)+"px) scale("+(cs/60*scale)+")";
 
-  // Render cells + keys
+  // Keys
+  const page=cp_();
   let html="";
-  // Empty cells with drop targets
-  for(let r=1;r<=rows;r++){
-    for(let c=1;c<=cols;c++){
-      html+='<div class="gc" style="grid-column:'+c+';grid-row:'+r+'" '+
-        'ondragover="event.preventDefault();event.dataTransfer.dropEffect=\'move\'" '+
-        'ondrop="onDropCell(event,'+c+','+r+')" '+
-        'onclick="addKey('+c+','+r+')"><span class="cl">'+c+','+r+'</span></div>';
-    }
+  if(page){
+    page.keys.forEach(k=>{
+      const col=k.col||0,row=k.row||0,w=k.w||1,h_=k.h||1;
+      const sel=k.id===selKey?" sel":"";
+      html+='<div class="ck'+sel+'" data-kid="'+k.id+'" '+
+        'style="background:'+(k.color||'var(--card)')+';left:'+(col*cs)+'px;top:'+(row*cs)+'px;width:'+(w*cs-4)+'px;height:'+(h_*cs-4)+'px;margin:2px" '+
+        'onmousedown="onKeyDown(event,\''+k.id+'\')" '+
+        'onclick="event.stopPropagation();selKey=\''+k.id+'\';rr();rpr()">'+
+        '<span class="kl">'+h(k.label)+'</span>'+
+        (w>1||h_>1?'<span class="sz">'+w+'×'+h_+'</span>':'')+
+        '<div class="rh" onmousedown="onRS(event,\''+k.id+'\')"></div>'+
+        '</div>';
+    });
   }
-  // Keys on top
-  const done=new Set();
-  for(let r=1;r<=rows;r++){
-    for(let c=1;c<=cols;c++){
-      const kid=occ[r][c];
-      if(kid&&!done.has(kid)){
-        done.add(kid);
-        const k=page.keys.find(x=>x.id===kid);if(!k)continue;
-        const kc=k.col||c,kr=k.row||r,kw=k.w||1,kh=k.h||1;
-        const sel=k.id===selKey?" sel":"";
-        html+='<div class="gk'+sel+'" data-kid="'+k.id+'" '+
-          'style="background:'+(k.color||'var(--card)')+';grid-column:'+kc+'/span '+kw+';grid-row:'+kr+'/span '+kh+'" '+
-          'draggable="true" ondragstart="onDS(event,\''+k.id+'\')" ondragend="onDE(event)" '+
-          'ondragover="event.preventDefault();event.dataTransfer.dropEffect=\'move\'" '+
-          'ondrop="onDropKey(event,\''+k.id+'\')" '+
-          'onclick="event.stopPropagation();selKey=\''+k.id+'\';rg();rpr()">'+
-          '<span class="kl">'+h(k.label)+'</span>'+
-          (kw>1||kh>1?'<span class="sz">'+kw+'×'+kh+'</span>':'')+
-          '<div class="rh" onmousedown="onRS(event,\''+k.id+'\')"></div>'+
-          '</div>';
-      }
-    }
-  }
-  grid.innerHTML=html;
+  canvas.innerHTML=html;
 }
 
+// ── Canvas interaction ──
+let mx=0,my=0;
+document.getElementById("carea").addEventListener("wheel",e=>{
+  e.preventDefault();
+  const d=e.deltaY>0?-5:5;
+  zoomBy(d);
+},{passive:false});
+
+document.getElementById("carea").addEventListener("mousedown",e=>{
+  if(e.target.closest(".ck"))return; // dragging a key
+  panning=true;panStartX=e.clientX;panStartY=e.clientY;
+  mx=profile.canvasX||0;my=profile.canvasY||0;
+  e.preventDefault();
+});
+
+document.addEventListener("mousemove",e=>{
+  if(!panning)return;
+  const cs=profile.cellSize||60;
+  const dx=(e.clientX-panStartX)/cs*60;
+  const dy=(e.clientY-panStartY)/cs*60;
+  profile.canvasX=mx-dx;profile.canvasY=my-dy;
+  dirty=true;rr();
+});
+
+document.addEventListener("mouseup",()=>{panning=false});
+
+document.getElementById("carea").addEventListener("dblclick",e=>{
+  if(e.target.closest(".ck"))return;
+  const ca=document.getElementById("carea");
+  const rect=ca.getBoundingClientRect();
+  const cs=profile.cellSize||60;
+  const cx=profile.canvasX||0,cy=profile.canvasY||0;
+  const col=Math.round((e.clientX-rect.left+cx)/cs);
+  const row=Math.round((e.clientY-rect.top+cy)/cs);
+  addKey(col,row);
+});
+
+function zoomBy(d){
+  const nv=Math.max(20,Math.min(200,(profile.cellSize||60)+d));
+  if(nv!==profile.cellSize){profile.cellSize=nv;dirty=true;rr()}
+}
+
+function onDeviceChange(){
+  const dev=DEVS[document.getElementById("devSel").value];
+  if(dev&&profile){profile.device=document.getElementById("devSel").value;profile.deviceWidth=dev.w;profile.deviceHeight=dev.h;dirty=true;rr()}
+}
+
+// ── Key interactions ──
 function addKey(c,r){
   const page=cp_();if(!page)return;
   const id="k_"+Date.now();
   page.keys.push({id,label:"?",action:"key",value:"A",color:"#0f3460",col:c,row:r,w:1,h:1,sound:""});
-  selKey=id;dirty=true;rg();rpr()
+  selKey=id;dirty=true;rr();rpr()
 }
 
-// ── Drag & Drop ──
-function onDS(e,kid){dragKey=kid;e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain",kid);setTimeout(()=>{const el=document.querySelector('[data-kid="'+kid+'"]');if(el)el.classList.add("drag")},0)}
-function onDE(e){dragKey=null;document.querySelectorAll(".gk.drag").forEach(el=>el.classList.remove("drag"))}
-
-function onDropCell(e,c,r){
-  e.preventDefault();e.stopPropagation();
-  if(!dragKey)return;
-  const page=cp_();if(!page)return;
-  const key=page.keys.find(k=>k.id===dragKey);
-  if(key){key.col=c;key.row=r;dirty=true}
-  dragKey=null;rg()
-}
-function onDropKey(e,targetId){
-  e.preventDefault();e.stopPropagation();
-  if(!dragKey||dragKey===targetId){dragKey=null;return}
-  const page=cp_();if(!page)return;
-  const a=page.keys.find(k=>k.id===dragKey);
-  const b=page.keys.find(k=>k.id===targetId);
-  if(a&&b){
-    // Swap positions and sizes
-    const ac=a.col||1,ar=a.row||1,aw=a.w||1,ah=a.h||1;
-    a.col=b.col||1;a.row=b.row||1;a.w=b.w||1;a.h=b.h||1;
-    b.col=ac;b.row=ar;b.w=aw;b.h=ah;
-    dirty=true
-  }
-  dragKey=null;rg()
-}
-
-// ── Resize ──
-function onRS(e,kid){
-  e.preventDefault();e.stopPropagation();
-  selKey=kid;rg();rpr();
-  const el=document.querySelector('[data-kid="'+kid+'"]');
-  if(!el)return;
-  const page=cp_();if(!page)return;
-  const cols=page.columns||15,rows=page.rows||15;
-  const grid=document.getElementById("eg");
-  const rect=grid.getBoundingClientRect();
-  const cellW=rect.width/cols;
-  const cellH=rect.height/rows;
+function onKeyDown(e,kid){
+  if(e.button!==0)return;
+  selKey=kid;rr();rpr();
+  dragging=true;dragKey=kid;
+  const k=cp_()?.keys.find(x=>x.id===kid);if(!k)return;
+  const cs=profile.cellSize||60;
   const startX=e.clientX,startY=e.clientY;
-  const key=page.keys.find(k=>k.id===kid);if(!key)return;
-  const startW=key.w||1,startH=key.h||1;
+  const startCol=k.col||0,startRow=k.row||0;
 
   function onMM(ev){
-    const dw=Math.round((ev.clientX-startX)/cellW);
-    const dh=Math.round((ev.clientY-startY)/cellH);
-    const nw=Math.max(1,Math.min(cols-(key.col||1)+1,startW+dw));
-    const nh=Math.max(1,Math.min(rows-(key.row||1)+1,startH+dh));
-    if(nw!==key.w||nh!==key.h){key.w=nw;key.h=nh;dirty=true;rg();selKey=kid}
+    const dx=(ev.clientX-startX)/cs,dy=(ev.clientY-startY)/cs;
+    const nc=Math.round(startCol+dx),nr=Math.round(startRow+dy);
+    if(nc!==k.col||nr!==k.row){k.col=nc;k.row=nr;dirty=true;rr();selKey=kid}
   }
-  function onMU(){document.removeEventListener("mousemove",onMM);document.removeEventListener("mouseup",onMU);resizing=null}
+  function onMU(){
+    document.removeEventListener("mousemove",onMM);
+    document.removeEventListener("mouseup",onMU);
+    dragging=false;dragKey=null;
+    // Check if dropped on another key (swap)
+    const el=document.elementFromPoint(event.clientX,event.clientY);
+    const tk=el?.closest?.(".ck");
+    if(tk){
+      const tid=tk.dataset.kid;
+      if(tid&&tid!==kid){
+        const a=cp_()?.keys.find(x=>x.id===kid);
+        const b=cp_()?.keys.find(x=>x.id===tid);
+        if(a&&b){
+          const ac=a.col,ar=a.row,aw=a.w,ah=a.h;
+          a.col=b.col;a.row=b.row;a.w=b.w;a.h=b.h;
+          b.col=ac;b.row=ar;b.w=aw;b.h=ah;
+          dirty=true;rr();selKey=kid;
+        }
+      }
+    }
+  }
   document.addEventListener("mousemove",onMM);
   document.addEventListener("mouseup",onMU);
-  resizing={kid,onMM,onMU}
 }
 
-// ── Grid size steppers ──
-function chgGrid(prop,d){
-  const page=cp_();if(!page)return;
-  const v=page[prop]||15;
-  const nv=Math.max(2,Math.min(30,v+d));
-  if(nv!==v){page[prop]=nv;dirty=true;rg()}
+function onRS(e,kid){
+  e.preventDefault();e.stopPropagation();
+  selKey=kid;rr();rpr();
+  const k=cp_()?.keys.find(x=>x.id===kid);if(!k)return;
+  const cs=profile.cellSize||60;
+  const startX=e.clientX,startY=e.clientY;
+  const startW=k.w||1,startH=k.h||1;
+
+  function onMM(ev){
+    const dw=Math.round((ev.clientX-startX)/cs),dh=Math.round((ev.clientY-startY)/cs);
+    const nw=Math.max(1,startW+dw),nh=Math.max(1,startH+dh);
+    if(nw!==k.w||nh!==k.h){k.w=nw;k.h=nh;dirty=true;rr();selKey=kid}
+  }
+  function onMU(){document.removeEventListener("mousemove",onMM);document.removeEventListener("mouseup",onMU)}
+  document.addEventListener("mousemove",onMM);
+  document.addEventListener("mouseup",onMU);
 }
 
-// ── Props panel ──
+// ── Props ──
 function rpr(){
   const panel=document.getElementById("pc"),page=cp_();
   const key=selKey?page?.keys.find(k=>k.id===selKey):null;
-  // Update global sound selector
-  const gs=document.getElementById("gs");
-  if(gs&&profile)gs.value=profile.defaultSound||"none";
 
-  if(!key){panel.innerHTML='<p style="font-size:11px;color:var(--dim)">Click a key to edit<br>or click empty cell to add</p>';return}
+  if(!key){panel.innerHTML='<p style="font-size:11px;color:var(--dim)">Click a key to edit<br>Dbl-click canvas to add</p>';return}
   const kw=key.w||1,kh=key.h||1;
   panel.innerHTML=
     '<label>Label</label><input value="'+h(key.label)+'" onchange="upk(\'label\',this.value)">'+
-    '<label>Action</label><select onchange="upk(\'action\',this.value)">'+
-      '<option value="key"'+(key.action==="key"?" selected":"")+'>Key Press</option>'+
-      '<option value="text"'+(key.action==="text"?" selected":"")+'>Type Text</option></select>'+
+    '<label>Action</label><select onchange="upk(\'action\',this.value)"><option value="key"'+(key.action==="key"?" selected":"")+'>Key Press</option><option value="text"'+(key.action==="text"?" selected":"")+'>Type Text</option></select>'+
     '<label>Value / Combo</label><input value="'+h(key.value||"")+'" onchange="upk(\'value\',this.value)">'+
     '<div class="hint">A, TAB, COMMAND+T, COMMAND+SHIFT+S</div>'+
     '<label>Color</label><input type="color" value="'+(key.color||"#0f3460")+'" onchange="upk(\'color\',this.value)">'+
-    '<label>Sound <button onclick="testSnd(\''+(key.sound||"none")+'\')" style="font-size:9px;padding:1px 5px;margin-left:4px;cursor:pointer">▶</button></label>'+
-    '<select onchange="upk(\'sound\',this.value)">'+
-      '<option value=""'+(key.sound===""||!key.sound?" selected":"")+'>Inherit (global)</option>'+
-      '<option value="none"'+(key.sound==="none"?" selected":"")+'>None</option>'+
-      '<option value="click"'+(key.sound==="click"?" selected":"")+'>Click</option>'+
-      '<option value="soft"'+(key.sound==="soft"?" selected":"")+'>Soft</option>'+
-      '<option value="mechanical"'+(key.sound==="mechanical"?" selected":"")+'>Mechanical</option>'+
-      '<option value="deep"'+(key.sound==="deep"?" selected":"")+'>Deep</option></select>'+
-    '<div class="rw" style="margin-top:8px">'+
-      '<div><label>Width</label><div class="stepper"><button onclick="upk(\'w\','+(kw-1)+')">−</button><span>'+kw+'</span><button onclick="upk(\'w\','+(kw+1)+')">+</button></div></div>'+
-      '<div><label>Height</label><div class="stepper"><button onclick="upk(\'h\','+(kh-1)+')">−</button><span>'+kh+'</span><button onclick="upk(\'h\','+(kh+1)+')">+</button></div></div>'+
-    '</div>'+
-    '<div class="rw">'+
-      '<div><label>Col</label><div class="stepper"><button onclick="upk(\'col\','+((key.col||1)-1)+')">−</button><span>'+(key.col||1)+'</span><button onclick="upk(\'col\','+((key.col||1)+1)+')">+</button></div></div>'+
-      '<div><label>Row</label><div class="stepper"><button onclick="upk(\'row\','+((key.row||1)-1)+')">−</button><span>'+(key.row||1)+'</span><button onclick="upk(\'row\','+((key.row||1)+1)+')">+</button></div></div>'+
-    '</div>'+
+    '<label>Sound <button onclick="testSnd(\''+(key.sound||"none")+'\')" style="font-size:9px;padding:1px 5px;cursor:pointer">▶</button></label>'+
+    '<select onchange="upk(\'sound\',this.value)"><option value=""'+(key.sound===""||!key.sound?" selected":"")+'>Inherit</option><option value="none"'+("selected"+(key.sound==="none"?" selected":""))+'>None</option><option value="click"'+(key.sound==="click"?" selected":"")+'>Click</option><option value="soft"'+(key.sound==="soft"?" selected":"")+'>Soft</option><option value="mechanical"'+(key.sound==="mechanical"?" selected":"")+'>Mechanical</option><option value="deep"'+(key.sound==="deep"?" selected":"")+'>Deep</option></select>'+
+    '<div class="rw" style="margin-top:8px"><div><label>Width</label><div class="stepper"><button onclick="upk(\'w\','+(kw-1)+')">−</button><span>'+kw+'</span><button onclick="upk(\'w\','+(kw+1)+')">+</button></div></div><div><label>Height</label><div class="stepper"><button onclick="upk(\'h\','+(kh-1)+')">−</button><span>'+kh+'</span><button onclick="upk(\'h\','+(kh+1)+')">+</button></div></div></div>'+
     '<div class="br"><button class="btn-del" onclick="dkey()">Delete Key</button></div>';
 }
 
 function upk(prop,val){
   const key=cp_()?.keys.find(k=>k.id===selKey);if(!key)return;
-  if(prop==="w"||prop==="h"||prop==="col"||prop==="row")val=Math.max(1,parseInt(val)||1);
-  key[prop]=val;dirty=true;rg();rpr()
+  if(prop==="w"||prop==="h")val=Math.max(1,parseInt(val)||1);
+  key[prop]=val;dirty=true;rr();rpr()
 }
 function dkey(){if(!selKey||!confirm("Delete?"))return;const page=cp_();page.keys=page.keys.filter(k=>k.id!==selKey);selKey=null;dirty=true;renderAll()}
 
-// ── Sound test ──
+// ── Sound ──
 const SND={none:null,click:[800,0.06,"square",0.3],soft:[400,0.08,"sine",0.2],mechanical:[1200,0.04,"square",0.4],deep:[200,0.1,"triangle",0.5]};
 let actx=null;
-function testSnd(nm){
-  if(!nm||nm==="none")return;const s=SND[nm];if(!s)return;
-  try{
-    if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();
-    const o=actx.createOscillator(),g=actx.createGain();
-    o.type=s[2];o.frequency.setValueAtTime(s[0],actx.currentTime);
-    g.gain.setValueAtTime(s[3],actx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+s[1]);
-    o.connect(g);g.connect(actx.destination);
-    o.start();o.stop(actx.currentTime+s[1]);
-  }catch(e){}
-}
+function testSnd(nm){if(!nm||nm==="none")return;const s=SND[nm];if(!s)return;try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();const o=actx.createOscillator(),g=actx.createGain();o.type=s[2];o.frequency.setValueAtTime(s[0],actx.currentTime);g.gain.setValueAtTime(s[3],actx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+s[1]);o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+s[1])}catch(e){}}
 
 // ── Helpers ──
 function h(s){return String(s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
-function t(msg,err){const el=document.getElementById("toast");el.textContent=msg;el.className="toast"+(err?" err":"");el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2000)}
-function sts(msg){document.getElementById("st").textContent=msg;setTimeout(()=>document.getElementById("st").textContent="",3000)}
+function t(msg){const el=document.getElementById("toast");el.textContent=msg;el.className="toast";el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2000)}
 
 // ── Init ──
 cws();lpl();lp("Default.json");
