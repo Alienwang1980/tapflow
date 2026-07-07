@@ -57,17 +57,14 @@ function conn(){
 function ss(cls){document.getElementById("sd").className="sd "+cls;document.getElementById("stx").textContent=cls}
 
 // ── Send key ──
-function sendKey(kd){
-  if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:"key",key:kd.value,action:kd.action==="text"?"text":"press"}));
-  psnd(kd.sound||(profile&&profile.defaultSound)||"none");
-}
+
 
 // ── Touch events ──
 const active=new Set();let touchUsed=false;
-document.addEventListener("touchstart",e=>{e.preventDefault();touchUsed=true;for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i],el=document.elementFromPoint(t.clientX,t.clientY);if(el?.classList.contains("key-btn")){const kid=el.dataset.keyId;if(kid&&!active.has(kid)){active.add(kid);el.classList.add("active");const pg=profile?.pages.find(p=>p.id===activePage),kd=pg?.keys.find(k=>k.id===kid);if(kd)sendKey(kd)}}}},{passive:false});
-document.addEventListener("touchend",e=>{e.preventDefault();active.forEach(kid=>{const b=document.querySelector('[data-key-id="'+kid+'"]');if(b)b.classList.remove("active")});active.clear()},{passive:false});
-document.addEventListener("touchmove",e=>{e.preventDefault();for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i],el=document.elementFromPoint(t.clientX,t.clientY);if(el?.classList.contains("key-btn")){const kid=el.dataset.keyId;if(kid&&!active.has(kid)){active.forEach(okid=>{const b=document.querySelector('[data-key-id="'+okid+'"]');if(b)b.classList.remove("active")});active.clear();active.add(kid);el.classList.add("active");const pg=profile?.pages.find(p=>p.id===activePage),kd=pg?.keys.find(k=>k.id===kid);if(kd)sendKey(kd)}}}},{passive:false});
-document.addEventListener("click",e=>{if(touchUsed){touchUsed=false;return}const el=e.target.closest(".key-btn");if(!el)return;const pg=profile?.pages.find(p=>p.id===activePage),kd=pg?.keys.find(k=>k.id===el.dataset.keyId);if(kd)sendKey(kd)});
+document.addEventListener("touchstart",e=>{e.preventDefault();touchUsed=true;for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i],el=document.elementFromPoint(t.clientX,t.clientY);if(el?.classList.contains("key-btn")){const kid=el.dataset.keyId;if(kid&&!active.has(kid)){active.add(kid);el.classList.add("active");const pg=profile?.pages.find(p=>p.id===activePage),kd=pg?.keys.find(k=>k.id===kid);if(kd){psnd(kd.sound||(profile&&profile.defaultSound)||"none");if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:"key",key:kd.value,action:"down"}))}}}}},{passive:false});
+document.addEventListener("touchend",e=>{e.preventDefault();active.forEach(kid=>{const b=document.querySelector('[data-key-id="'+kid+'"]');if(b)b.classList.remove("active");const pg=profile?.pages.find(p=>p.id===activePage),kd=pg?.keys.find(k=>k.id===kid);if(kd&&ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:"key",key:kd.value,action:"up"}))});active.clear()},{passive:false});
+document.addEventListener("touchmove",e=>{e.preventDefault();for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i],el=document.elementFromPoint(t.clientX,t.clientY);if(el?.classList.contains("key-btn")){const kid=el.dataset.keyId;if(kid&&!active.has(kid)){active.forEach(okid=>{const b=document.querySelector('[data-key-id="'+okid+'"]');if(b)b.classList.remove("active")});active.clear();active.add(kid);el.classList.add("active");const pg=profile?.pages.find(p=>p.id===activePage),kd=pg?.keys.find(k=>k.id===kid);if(kd){psnd(kd.sound||(profile&&profile.defaultSound)||"none");if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:"key",key:kd.value,action:"down"}))}}}}},{passive:false});
+document.addEventListener("click",e=>{if(touchUsed){touchUsed=false;return}const el=e.target.closest(".key-btn");if(!el)return;const pg=profile?.pages.find(p=>p.id===activePage),kd=pg?.keys.find(k=>k.id===el.dataset.keyId);if(kd&&ws&&ws.readyState===WebSocket.OPEN){ws.send(JSON.stringify({type:"key",key:kd.value,action:"press"}));psnd(kd.sound||(profile&&profile.defaultSound)||"none")}});
 
 // ── Render — CSS transform scale approach ──
 function render(){
