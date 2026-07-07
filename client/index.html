@@ -27,7 +27,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:-apple-system,sans-
 .panel-inner{position:absolute;top:0;left:0;width:100%;height:100%}
 
 .key-btn{
-  position:absolute;background:var(--key-default);border:1px solid var(--border);border-radius:5px;
+  position:absolute;background:var(--key-default);border:none;border-radius:5px;
   color:var(--text);font-size:13px;font-weight:500;
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;touch-action:none;
@@ -161,8 +161,9 @@ function rpanel(){
   let html="";
   (page.keys||[]).forEach(k=>{
     const col=k.col||0,row=k.row||0,w=k.w||1,h_=k.h||1;
-    const x=ox+(col*cs-cx)*scale,y=oy+(row*cs-cy)*scale;
-    const kw=w*cs*scale-2,kh=h_*cs*scale-2;
+    const cx_cells=cx/60,cy_cells=cy/60;
+    const x=ox+(col-cx_cells)*cs*scale,y=oy+(row-cy_cells)*cs*scale;
+    const kw=w*cs*scale,kh=h_*cs*scale;
     // Only render if visible
     if(x+kw>0&&y+kh>0&&x<vw&&y<vh){
       html+='<button class="key-btn" data-key-id="'+k.id+'" '+
