@@ -226,7 +226,7 @@ function rr(){
   // Canvas
   const canvas=document.getElementById("canvas");
   canvas.style.backgroundSize=cs+"px "+cs+"px";
-  canvas.style.transform="translate("+(-cx*cs/60*scale)+"px,"+(-cy*cs/60*scale)+"px) scale("+(cs/60*scale)+")";
+  canvas.style.transform="translate("+(cw/2-cx*cs/60*scale)+"px,"+(ch/2-cy*cs/60*scale)+"px) scale("+(cs/60*scale)+")";
 
   // Keys
   const page=cp_();
@@ -266,8 +266,9 @@ document.getElementById("carea").addEventListener("mousedown",e=>{
 document.addEventListener("mousemove",e=>{
   if(!panning)return;
   const cs=profile.cellSize||60;
-  const dx=(e.clientX-panStartX)/cs*60;
-  const dy=(e.clientY-panStartY)/cs*60;
+  const factor=cs/60*(lastScale||1);
+  const dx=(e.clientX-panStartX)/factor; // screen px → canvas px
+  const dy=(e.clientY-panStartY)/factor;
   profile.canvasX=mx-dx;profile.canvasY=my-dy;
   dirty=true;rr();
 });
@@ -280,9 +281,9 @@ document.getElementById("carea").addEventListener("dblclick",e=>{
   const rect=ca.getBoundingClientRect();
   const cs=profile.cellSize||60;
   const cx=profile.canvasX||0,cy=profile.canvasY||0;
-  const factor=cs/60*lastScale;
-  const col=Math.round(((e.clientX-rect.left)/factor+cx)/cs);
-  const row=Math.round(((e.clientY-rect.top)/factor+cy)/cs);
+  const factor=cs/60*(lastScale||1);
+  const col=Math.round(((e.clientX-rect.left - cw/2)/factor + cx*cs/60*lastScale/factor)/cs);
+  const row=Math.round(((e.clientY-rect.top - ch/2)/factor + cy*cs/60*lastScale/factor)/cs);
   addKey(col,row);
 });
 
