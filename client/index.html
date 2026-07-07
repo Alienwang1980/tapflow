@@ -20,7 +20,7 @@ body{position:relative}
 .tabs{position:fixed;top:32px;left:0;right:0;z-index:50;display:flex;gap:1px;padding:2px 4px;background:#1a1a2e}
 .tb{padding:2px 7px;border-radius:3px 3px 0 0;background:#16213e;color:#888;border:none;font-size:10px;cursor:pointer;touch-action:manipulation}
 .tb.on{background:#0f3460;color:#eee}
-.info{position:fixed;bottom:4px;left:4px;color:#444;font-size:9px;z-index:99;background:rgba(0,0,0,0.6);padding:2px 6px;border-radius:3px}
+.info{position:fixed;bottom:4px;left:4px;color:#fff;font-size:11px;z-index:99;background:rgba(0,0,0,0.85);padding:6px 10px;border-radius:4px;user-select:text;-webkit-user-select:text;max-width:95vw;word-break:break-all}
 </style></head>
 <body>
 <div class="top-bar"><h1>Smart <span>Touch</span></h1>
@@ -86,7 +86,11 @@ function render(){
     el.style.cssText=`left:${x}px;top:${y}px;width:${kw}px;height:${kh}px;background:${k.color||'#0f3460'};font-size:${Math.max(9,cs*scale*0.2)}px`;
     el.textContent=k.label;document.body.appendChild(el);
   });
-  document.getElementById("info").textContent=`${vis}/${pg.keys.length} | ${profile?.device||"?"} s=${scale.toFixed(2)} cs=${cs}`;
+  document.getElementById("info").textContent=`KEYS:${vis}/${pg.keys.length} | DEV:${dw}x${dh} | vw=${vw} vh=${vh} | s=${scale.toFixed(3)} | cs=${cs} cx=${cx.toFixed(1)} cy=${cy.toFixed(1)} | padX=${padX.toFixed(1)}`;
+  // Draw device frame outline for visual reference
+  let fb=document.getElementById("frame-box");
+  if(!fb){fb=document.createElement("div");fb.id="frame-box";fb.style.cssText="position:fixed;pointer-events:none;z-index:60;border:2px dashed rgba(233,69,96,0.5);border-radius:4px";document.body.appendChild(fb);}
+  fb.style.left=ox+"px";fb.style.top=oy+"px";fb.style.width=(dw*scale)+"px";fb.style.height=(dh*scale)+"px";
 }
 
 // ── Load ──
