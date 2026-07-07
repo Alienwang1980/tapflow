@@ -236,12 +236,13 @@ function rr(){
   if(page){
     page.keys.forEach(k=>{
       const col=k.col||0,row=k.row||0,w=k.w||1,h_=k.h||1;
-      const cx_c=cx/60,cy_c=cy/60;
+      const cx_c=0,cy_c=0; // ignore pan for key positions
       const padX=dw/(2*cs),padY=dh/(2*cs);
       const kx=ox_e+(col-cx_c+padX)*cs*scale,ky=oy_e+(row-cy_c+padY)*cs*scale;
       const kw=w*cs*scale-2,kh=h_*cs*scale-2;
       const sel=k.id===selKey?" sel":"";
-      html+='<div class="ck'+sel+'" data-kid="'+k.id+'" '+
+      if(!window._firstKx){window._firstKx=kx;window._firstKy=ky;}
+        html+='<div class="ck'+sel+'" data-kid="'+k.id+'" '+
         'style="background:'+(k.color||'var(--card)')+';left:'+kx+'px;top:'+ky+'px;width:'+kw+'px;height:'+kh+'px" '+
         'onmousedown="onKeyDown(event,\''+k.id+'\')" '+
         'onclick="event.stopPropagation();selKey=\''+k.id+'\';rr();rpr()">'+
@@ -252,6 +253,10 @@ function rr(){
     });
   }
   canvas.innerHTML=html;
+  // Debug overlay
+  let db=document.getElementById("ed-debug");
+  if(!db){db=document.createElement("div");db.id="ed-debug";db.style.cssText="position:fixed;bottom:4px;left:4px;color:#fff;font-size:10px;z-index:999;background:rgba(0,0,0,0.85);padding:6px 10px;border-radius:4px;user-select:text;-webkit-user-select:text;max-width:95vw";document.body.appendChild(db);}
+  const fkx=window._firstKx||0,fky=window._firstKy||0;window._firstKx=window._firstKy=null;db.textContent=`EDITOR cw=${cw} ch=${ch} | DEV ${dw}x${dh} | s=${scale.toFixed(3)} cs=${cs} cx=${cx.toFixed(1)} | ox_e=${ox_e.toFixed(0)} oy_e=${oy_e.toFixed(0)} padX=${padX.toFixed(1)} | key0@(${fkx.toFixed(0)},${fky.toFixed(0)}) frame@(${(cw/2-dw*scale/2).toFixed(0)},${(ch/2-dh*scale/2).toFixed(0)})`;
 }
 
 // ── Canvas interaction ──
@@ -286,7 +291,7 @@ document.getElementById("carea").addEventListener("dblclick",e=>{
   const rect=ca.getBoundingClientRect();
   const cs=profile.cellSize||60;
   const cx=profile.canvasX||0,cy=profile.canvasY||0;
-  const cx_c=cx/60,cy_c=cy/60;
+  const cx_c=0,cy_c=0; // ignore pan for key positions
   const padX=dw/(2*cs),padY=dh/(2*cs);
   const col=Math.round((e.clientX-rect.left-ox_e)/(cs*scale)-padX+cx_c);
   const row=Math.round((e.clientY-rect.top-oy_e)/(cs*scale)-padY+cy_c);
