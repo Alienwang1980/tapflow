@@ -95,10 +95,10 @@ function render(){
     const px=cs*1; // 1:1 in device coordinates (scale handles resizing)
     const x=(k.col+padX+cx)*px; // cx in grid cells
     const y=(k.row+padY+cy)*px;
-    const kw=k.w*px,kh=k.h*px;
+    const kw=k.w*px-3,kh=k.h*px-3;
     if(x+kw>0&&y+kh>0&&x<dw&&y<dh)vis++;
     const el=document.createElement("div");el.className="key-btn";el.dataset.keyId=k.id;
-    el.style.cssText=`left:${x}px;top:${y}px;width:${kw}px;height:${kh}px;background:${k.color||'#0f3460'};font-size:${Math.max(9,px*0.2)}px`;
+    el.style.cssText=`left:${x}px;top:${y}px;width:${kw}px;height:${kh}px;background:${k.color||'#0f3460'};font-size:14px`;
     el.textContent=k.label;canvas.appendChild(el);
   });
   document.getElementById("info").textContent=`${vis}/${pg.keys.length} | ${dw}x${dh} cs=${cs} cx=${cx} s=${scale.toFixed(3)} vw=${vw}x${vh}`;

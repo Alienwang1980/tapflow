@@ -22,9 +22,9 @@ body{display:flex;flex-direction:column}
 .side .ar{display:flex;gap:3px;padding:3px 8px}
 .side .ar input{flex:1;padding:2px 5px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:3px;font-size:10px}
 .side .ar button{padding:2px 5px;font-size:10px;background:#555;color:#fff;border:none;border-radius:3px;cursor:pointer}
-.carea{flex:1;position:relative;overflow:hidden;background:var(--bg)}
+.carea{flex:1;position:relative;overflow:hidden;background:var(--bg);display:flex;align-items:center;justify-content:center}
 /* Fixed-size canvas wrapper — same approach as iPad */
-.cwrap{position:absolute;top:50%;left:50%;transform-origin:0 0}
+.cwrap{transform-origin:center center}
 .canvas{position:relative;border:2px solid var(--accent);box-shadow:0 0 20px rgba(233,69,96,0.3);background:rgba(0,0,0,0.15)}
 .ck{position:absolute;background:var(--card);border:2px solid transparent;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;cursor:grab;transition:border-color 0.1s;user-select:none;overflow:hidden}
 .ck:hover{border-color:rgba(255,255,255,0.4)}.ck.sel{border-color:var(--accent);box-shadow:0 0 8px rgba(233,69,96,0.5);cursor:default}
@@ -120,7 +120,7 @@ function rr(){
   const scale=Math.min(cw*0.85/dw,ch*0.85/dh);
   const wrap=document.getElementById("cwrap");
   wrap.style.width=dw+"px";wrap.style.height=dh+"px";
-  wrap.style.transform=`translate(-50%,-50%) scale(${scale})`;
+  wrap.style.transform=`scale(${scale})`;
 
   const canvas=document.getElementById("canvas");
   canvas.style.width=dw+"px";canvas.style.height=dh+"px";
@@ -132,11 +132,11 @@ function rr(){
   page.keys.forEach(k=>{
     const col=k.col||0,row=k.row||0,w=k.w||1,h_=k.h||1;
     const px=cs*1; // 1:1 device coords (scale handles sizing)
-    const x=(col+padX+panX)*px,y=(row+padY+panY)*px;
-    const kw=w*px,kh=h_*px;
+    const x=(col+padX+panX)*px+1.5,y=(row+padY+panY)*px+1.5;
+    const kw=w*px-3,kh=h_*px-3;
     const sel=k.id===selKey?" sel":"";
     const el=document.createElement("div");el.className="ck"+sel;el.dataset.kid=k.id;
-    el.style.cssText=`left:${x}px;top:${y}px;width:${kw-2}px;height:${kh-2}px;background:${k.color||'var(--card)'}`;
+    el.style.cssText=`left:${x}px;top:${y}px;width:${kw}px;height:${kh}px;background:${k.color||'var(--card)'}`;
     el.innerHTML='<span class="kl">'+h(k.label)+'</span>'+(w>1||h_>1?'<span class="sz">'+w+'×'+h_+'</span>':'')+'<div class="rh"></div>';
     el.addEventListener("mousedown",e=>onKeyDown(e,k.id));
     el.addEventListener("click",e=>{e.stopPropagation();selKey=k.id;rr();rpr()});
