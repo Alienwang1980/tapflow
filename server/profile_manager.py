@@ -37,7 +37,7 @@ DEFAULT_PROFILE = {
     "pages": [
         # ── Apple Magic Keyboard (ANSI, 77 keys) ──
         {
-            "id": "keyboard", "label": "Keyboard", "columns": 15,
+            "id": "keyboard", "label": "Keyboard", "columns": 15, "rows": 15,
             "keys": [
                 # Row 1: Function keys
                 {"id":"esc","label":"esc","action":"key","value":"ESCAPE","color":"#555","w":1},
@@ -126,7 +126,7 @@ DEFAULT_PROFILE = {
         },
         # ── Context shortcuts ──
         {
-            "id": "browsing", "label": "Browser", "columns": 4,
+            "id": "browsing", "label": "Browser", "columns": 15, "rows": 15,
             "keys": [
                 {"id":"b1","label":"⌘T","action":"key","value":"COMMAND+T","color":"#555","w":1},
                 {"id":"b2","label":"⌘W","action":"key","value":"COMMAND+W","color":"#8b3a3a","w":1},
@@ -139,7 +139,7 @@ DEFAULT_PROFILE = {
             ],
         },
         {
-            "id": "terminal", "label": "Terminal", "columns": 4,
+            "id": "terminal", "label": "Terminal", "columns": 15, "rows": 15,
             "keys": [
                 {"id":"t1","label":"⌘C","action":"key","value":"COMMAND+C","color":"#8b3a3a","w":1},
                 {"id":"t2","label":"⌘K","action":"key","value":"COMMAND+K","color":"#555","w":1},
@@ -152,7 +152,7 @@ DEFAULT_PROFILE = {
             ],
         },
         {
-            "id": "coding", "label": "Coding", "columns": 4,
+            "id": "coding", "label": "Coding", "columns": 15, "rows": 15,
             "keys": [
                 {"id":"c1","label":"⌘S","action":"key","value":"COMMAND+S","color":"#3a7ca5","w":1},
                 {"id":"c2","label":"⌘Z","action":"key","value":"COMMAND+Z","color":"#555","w":1},
@@ -172,7 +172,7 @@ def migrate_key_positions(profile: dict) -> dict:
     """Ensure all keys have col/row/h. Auto-calculate for keys without them."""
     for page in profile.get("pages", []):
         cols = page.get("columns", 15)
-        page.setdefault("rows", 8)
+        page.setdefault("rows", 15)
         cur_col, cur_row = 1, 1
         for key in page.get("keys", []):
             w = key.get("w", 1)
