@@ -26,9 +26,18 @@ logger = logging.getLogger("stp.main")
 
 app = FastAPI(title="Smart Touch Panel")
 
-CLIENT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "client")
-os.makedirs(CLIENT_DIR, exist_ok=True)
-app.mount("/static", StaticFiles(directory=CLIENT_DIR), name="static")
+# Bundle-aware resource path
+def _get_resource_dir() -> str:
+    """Get the resource directory. Works in both dev and py2app bundle."""
+    if getattr(sys, 'frozen', False):
+        # py2app: Resources dir is ../Resources relative to executable
+        return os.path.join(os.path.dirname(sys.executable), "..", "Resources")
+    else:
+        return os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+
+RESOURCE_DIR = _get_resource_dir()
+CLIENT_DIR = os.path.join(RESOURCE_DIR, "client")
+app.mount("/static", StaticFiles(directory=CLIENT_DIR, check_dir=False), name="static")
 
 # ── mDNS state ──
 mdns_info = {"enabled": False, "service_name": "Smart Touch Panel", "port": 8082, "addresses": []}

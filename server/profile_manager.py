@@ -7,7 +7,19 @@ from typing import Optional
 
 logger = logging.getLogger("stp.profile")
 
-PROFILES_DIR = Path(__file__).parent / "profiles"
+def _get_data_dir() -> Path:
+    """Get writable data directory. Uses ~/Library/Application Support when bundled."""
+    import sys
+    # py2app sets sys.frozen
+    if getattr(sys, 'frozen', False):
+        base = Path.home() / "Library" / "Application Support" / "Smart Touch Panel"
+    else:
+        base = Path(__file__).parent
+    base.mkdir(parents=True, exist_ok=True)
+    return base
+
+DATA_DIR = _get_data_dir()
+PROFILES_DIR = DATA_DIR / "profiles"
 PROFILES_DIR.mkdir(exist_ok=True)
 
 # Default profile that ships with the app
@@ -192,13 +204,23 @@ class ProfileManager:
     def _ensure_default(self):
         default_path = self.dir / "Default.json"
         if not default_path.exists():
+            # Try to copy from bundled app resources first
+            import sys
+            if getattr(sys, 'frozen', False):
+                # py2app: resources are ../Resources relative to executable
+                resource_dir = Path(sys.executable).parent.parent / "Resources"
+                resource_default = resource_dir / "server" / "profiles" / "Default.json"
+                if resource_default.exists():
+                    import shutil
+                    default_path.write_text(resource_default.read_text(encoding='utf-8'), encoding='utf-8')
+                    return
             self.save_profile(DEFAULT_PROFILE, "Default.json")
 
     def list_profiles(self) -> list[dict]:
         profiles = []
         for f in sorted(self.dir.glob("*.json")):
             try:
-                data = json.loads(f.read_text())
+                data = json.loads(f.read_text(encoding='utf-8'))
                 profiles.append({
                     "profileName": data.get("profileName", f.stem),
                     "filename": f.name,
@@ -214,7 +236,7 @@ class ProfileManager:
         path = self.dir / filename
         if not path.exists():
             return None
-        profile = json.loads(path.read_text())
+        profile = json.loads(path.read_text(encoding='utf-8'))
         return migrate_key_positions(profile)
 
     def save_profile(self, profile: dict, filename: Optional[str] = None) -> str:
@@ -260,7 +282,7 @@ class ProfileManager:
         Returns {"filename": ..., "profileName": ..., "page": ...} or None."""
         for f in sorted(self.dir.glob("*.json")):
             try:
-                profile = json.loads(f.read_text())
+                profile = json.loads(f.read_text(encoding='utf-8'))
                 page_id = self.find_page_for_app(profile, bundle_id, app_name)
                 if page_id:
                     return {
