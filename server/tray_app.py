@@ -11,6 +11,7 @@ import pystray
 from PIL import Image, ImageDraw
 
 from main import app
+from editor_app import open_editor
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelname)s %(message)s")
 logger = logging.getLogger("stp.tray")
@@ -78,6 +79,12 @@ def on_show_qr(icon, item):
     os.system(f"open {url}")  # Open in default browser
 
 
+def on_open_editor(icon, item):
+    """Open the keyboard layout editor in a native window."""
+    import threading
+    threading.Thread(target=open_editor, daemon=True).start()
+
+
 def on_show_health(icon, item):
     """Show server health."""
     import urllib.request, json
@@ -103,7 +110,8 @@ def run_tray():
     url = f"http://{ip}:8082"
 
     menu = pystray.Menu(
-        pystray.MenuItem(f"🔗 {url}", on_show_qr, default=True),
+        pystray.MenuItem("✏️ Open Editor", on_open_editor, default=True),
+        pystray.MenuItem(f"🔗 {url}", on_show_qr),
         pystray.MenuItem("📋 Health", on_show_health),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem("❌ Quit", on_quit),

@@ -2,6 +2,7 @@
 import json
 import logging
 import os
+import socket
 import sys
 import uuid
 import asyncio
@@ -41,9 +42,21 @@ except ImportError:
 _zeroconf_instance = None
 
 
+
+async def broadcast_profile_update(filename: str):
+    """Load profile from disk and broadcast to all WebSocket clients."""
+    p = profiles.get_profile(filename)
+    if p:
+        await manager.broadcast({
+            "type": "profile_update",
+            "profile": p,
+            "filename": filename,
+        })
+        logger.info(f"Broadcast profile update: {filename} to {manager.count} clients")
+
+
 def get_local_ips():
     """Return list of local non-loopback IPs."""
-    import socket
     ips = []
     try:
         hostname = socket.gethostname()
@@ -58,6 +71,7 @@ def get_local_ips():
 
 def start_mdns():
     """Advertise this server via mDNS (Bonjour)."""
+    import socket
     global _zeroconf_instance
     if not HAVE_ZEROCONF:
         return False
@@ -187,6 +201,17 @@ async def root():
     return HTMLResponse("<h1>Smart Touch Panel</h1><p>Client files missing.</p>")
 
 
+
+@app.get("/editor")
+async def editor():
+    """Serve the editor page for the Mac native app."""
+    editor_path = os.path.join(CLIENT_DIR, "editor.html")
+    if os.path.exists(editor_path):
+        with open(editor_path) as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse("<h1>Editor not found</h1>", status_code=404)
+
+
 @app.get("/health")
 async def health():
     return {
@@ -253,6 +278,11 @@ async def ws_endpoint(websocket: WebSocket):
                     keys = [{"type": data.get("action", "press"), "key": data["key"]}]
                 results = [handle_key_action(k) for k in keys]
                 await manager.send_to(client_id, {"type": "ack", "results": results})
+            elif msg_type == "profile_saved":
+                # Editor saved a profile — broadcast to all clients
+                fn = data.get("filename", "Default.json")
+                await broadcast_profile_update(fn)
+                await manager.send_to(client_id, {"type": "ack", "action": "profile_saved", "filename": fn})
             elif msg_type == "ping":
                 await manager.send_to(client_id, {"type": "pong"})
             else:
