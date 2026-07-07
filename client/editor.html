@@ -103,14 +103,15 @@ function cws(){
   ws=new WebSocket("ws://"+location.hostname+":8082/ws");
   ws.onopen=()=>{document.getElementById("cs").textContent="connected";document.getElementById("cs").className="conn on"};
   ws.onclose=()=>{document.getElementById("cs").textContent="off";document.getElementById("cs").className="conn off";setTimeout(cws,2000)};
-  ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==="profile"||m.type==="profile_update"){const oldPanX=panX,oldPanY=panY;profile=m.profile;activeProfile=m.filename||activeProfile;activePage=profile.pages.find(p=>p.id===activePage)?activePage:(profile.pages[0]?.id||"");panX=oldPanX;panY=oldPanY;renderAll()}};
+  ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==="profile"||m.type==="profile_update"){profile=m.profile;activeProfile=m.filename||activeProfile;activePage=profile.pages.find(p=>p.id===activePage)?activePage:(profile.pages[0]?.id||"");panX=profile.canvasX||0;panY=profile.canvasY||0;renderAll()}};
 }
 
 // ── Profile CRUD ──
 async function lpl(){const r=await fetch("/api/profiles");profiles=(await r.json()).profiles||[];rpl()}
-async function lp(fn){const r=await fetch("/api/profiles/"+fn);profile=await r.json();activeProfile=fn;activePage=profile.pages[0]?.id||"";selKey=null;panX=0;panY=0;renderAll()}
+async function lp(fn){const r=await fetch("/api/profiles/"+fn);profile=await r.json();activeProfile=fn;activePage=profile.pages[0]?.id||"";selKey=null;panX=profile.canvasX||0;panY=profile.canvasY||0;renderAll()}
 async function saveProfile(){
   if(!profile)return;
+  profile.canvasX=panX;profile.canvasY=panY;
   const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(profile)});
   const d=await r.json();activeProfile=d.filename;dirty=false;
   if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:"profile_saved",filename:d.filename}));
