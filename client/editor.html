@@ -226,7 +226,8 @@ function rr(){
   // Canvas
   const canvas=document.getElementById("canvas");
   canvas.style.backgroundSize=cs+"px "+cs+"px";
-  canvas.style.transform="translate("+(cw/2-cx*cs/60*scale)+"px,"+(ch/2-cy*cs/60*scale)+"px) scale("+(cs/60*scale)+")";
+  const padX=dw/(2*cs),padY=dh/(2*cs);
+  canvas.style.transform="translate("+(cw/2+(padX-cx/60)*cs*cs/60*scale)+"px,"+(ch/2+(padY-cy/60)*cs*cs/60*scale)+"px) scale("+(cs/60*scale)+")";
 
   // Keys
   const page=cp_();
