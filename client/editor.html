@@ -128,6 +128,7 @@ body { display: flex; flex-direction: column; }
 <div class="toolbar">
   <h1>Smart <span>Touch</span> Editor</h1>
   <span class="connected off" id="connStatus">disconnected</span>
+  <select id="globalSound" onchange="if(profile){profile.defaultSound=this.value;dirty=true}" style="background:var(--key-default);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:2px 6px;font-size:11px"><option value="none">Sound: None</option><option value="click">Sound: Click</option><option value="soft">Sound: Soft</option><option value="mechanical">Sound: Mechanical</option><option value="deep">Sound: Deep</option></select>
   <button class="btn-save" onclick="saveProfile()">💾 Save & Sync</button>
   <button class="btn-new" onclick="newProfile()">+ New</button>
   <button class="btn-new" onclick="showQR()" style="font-size:11px">QR</button>
@@ -212,7 +213,11 @@ function deletePage(pid){if(profile.pages.length<=1)return;profile.pages=profile
 // ── Render ──
 function curPage(){return profile?.pages.find(p=>p.id===activePageId);}
 
-function renderAll(){renderProfileList();renderPageList();renderGrid();renderProps();}
+function renderAll(){renderProfileList();renderPageList();renderGrid();renderProps();
+  // Update global sound selector
+  const gs=document.getElementById("globalSound");
+  if(gs&&profile)gs.value=profile.defaultSound||"none";
+}
 
 function renderProfileList(){
   document.getElementById("profileList").innerHTML=profiles.map(p=>
@@ -274,17 +279,7 @@ function renderGrid(){
   // We use click on the grid container as fallback.
   grid.innerHTML=html;
 
-  // Add grid container click for empty cell → add key
-  grid.onclick=function(e){
-    if(e.target!==grid)return; // only direct clicks on grid background
-    const rect=grid.getBoundingClientRect();
-    const cellW=rect.width/cols, cellH=rect.height/rows;
-    const col=Math.floor((e.clientX-rect.left)/cellW)+1;
-    const row=Math.floor((e.clientY-rect.top)/cellH)+1;
-    if(col>=1&&col<=cols&&row>=1&&row<=rows&&!occ[row][col]){
-      addKeyAt(col,row);
-    }
-  };
+  // Cell placeholders handle clicks via onclick on .gcell
 }
 
 function addKeyAt(col,row){
@@ -362,6 +357,14 @@ function renderProps(){
     '<label>Value / Combo</label><input value="'+h(key.value)+'" onchange="upd(\'value\',this.value)">'+
     '<div class="hint">A, TAB, COMMAND+T, COMMAND+SHIFT+S</div>'+
     '<label>Color</label><input type="color" value="'+(key.color||"#0f3460")+'" onchange="upd(\'color\',this.value)">'+
+    '<label>Sound <button onclick="testSound(\''+(key.sound||"none")+'\')" style="font-size:10px;padding:1px 6px;margin-left:4px">▶</button></label>'+
+    '<select onchange="upd(\'sound\',this.value)">'+
+      '<option value="none"'+(key.sound==="none"||!key.sound?" selected":"")+'>None</option>'+
+      '<option value="click"'+(key.sound==="click"?" selected":"")+'>Click</option>'+
+      '<option value="soft"'+(key.sound==="soft"?" selected":"")+'>Soft</option>'+
+      '<option value="mechanical"'+(key.sound==="mechanical"?" selected":"")+'>Mechanical</option>'+
+      '<option value="deep"'+(key.sound==="deep"?" selected":"")+'>Deep</option>'+
+    '</select>'+
     '<div class="row2">'+
       '<div><label>Col</label><input type="number" min="1" value="'+(key.col||1)+'" onchange="upd(\'col\',parseInt(this.value))"></div>'+
       '<div><label>Row</label><input type="number" min="1" value="'+(key.row||1)+'" onchange="upd(\'row\',parseInt(this.value))"></div>'+
@@ -401,6 +404,22 @@ function toast(msg,isErr){
 
 // ── Init ──
 connectWS();loadProfiles();loadProfile("Default.json");
+const SOUNDS={none:null,click:[800,0.06,"square",0.3],soft:[400,0.08,"sine",0.2],mechanical:[1200,0.04,"square",0.4],deep:[200,0.1,"triangle",0.5]};
+let audioCtx=null;
+function testSound(name){
+  if(!name||name==="none")return;
+  const s=SOUNDS[name];if(!s)return;
+  try{
+    if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.type=s[2];o.frequency.setValueAtTime(s[0],audioCtx.currentTime);
+    g.gain.setValueAtTime(s[3],audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+s[1]);
+    o.connect(g);g.connect(audioCtx.destination);
+    o.start();o.stop(audioCtx.currentTime+s[1]);
+  }catch(e){}
+}
+
 </script>
 
 <div class="toast" id="qrToast" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:999;justify-content:center;align-items:center;" onclick="this.style.display='none'">
@@ -418,6 +437,22 @@ function showQR(){
   document.getElementById("qrImg").src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data="+encodeURIComponent(url);
   document.getElementById("qrToast").style.display="flex";
 }
+const SOUNDS={none:null,click:[800,0.06,"square",0.3],soft:[400,0.08,"sine",0.2],mechanical:[1200,0.04,"square",0.4],deep:[200,0.1,"triangle",0.5]};
+let audioCtx=null;
+function testSound(name){
+  if(!name||name==="none")return;
+  const s=SOUNDS[name];if(!s)return;
+  try{
+    if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.type=s[2];o.frequency.setValueAtTime(s[0],audioCtx.currentTime);
+    g.gain.setValueAtTime(s[3],audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+s[1]);
+    o.connect(g);g.connect(audioCtx.destination);
+    o.start();o.stop(audioCtx.currentTime+s[1]);
+  }catch(e){}
+}
+
 </script>
 
 </body>

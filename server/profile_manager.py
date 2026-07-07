@@ -26,6 +26,7 @@ PROFILES_DIR.mkdir(exist_ok=True)
 DEFAULT_PROFILE = {
     "profileName": "Default",
     "version": "1.0",
+    "defaultSound": "click",
     "windowRules": [
         {"bundle_id": "com.apple.Safari", "page": "browsing"},
         {"bundle_id": "com.google.Chrome", "page": "browsing"},
@@ -191,6 +192,7 @@ def migrate_key_positions(profile: dict) -> dict:
         # Ensure rows is at least the max key row
         max_row = max((k.get("row", 1) + k.get("h", 1) - 1 for k in page.get("keys", [])), default=1)
         page["rows"] = max(page.get("rows", 8), max_row)
+    profile.setdefault("defaultSound", "click")
     return profile
 
 
