@@ -38,8 +38,6 @@ DEFAULT_PROFILE = {
     "deviceWidth": 834,
     "deviceHeight": 1210,
     "cellSize": 60,
-    "canvasX": 0,
-    "canvasY": 0,
     "defaultSound": "click",
     "windowRules": [
         {"bundle_id": "com.apple.Safari", "page": "browsing"},
@@ -76,9 +74,9 @@ def migrate_key_positions(profile: dict) -> dict:
     profile.setdefault("deviceWidth", 834)
     profile.setdefault("deviceHeight", 1210)
     profile.setdefault("cellSize", 60)
-    profile.setdefault("canvasX", 0)
-    profile.setdefault("canvasY", 0)
     profile.setdefault("defaultSound", "click")
+    profile.pop("canvasX", None)
+    profile.pop("canvasY", None)
 
     # Remove old cols/rows from pages (no longer used)
     for page in profile.get("pages", []):
