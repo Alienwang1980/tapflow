@@ -90,12 +90,12 @@ let panX=0,panY=0,mx=0,my=0,panStartX=0,panStartY=0;
 const DEVS={"iPad 4:3":{w:1024,h:1366},"iPad 11\"":{w:834,h:1210},"iPad mini":{w:744,h:1133},"Android 16:10":{w:1280,h:800}};
 
 // ── UNIFIED RENDER FORMULA ──
-function gridToPixel(col,row,w,h,dw,dh,cs,vw,vh){
+function gridToPixel(col,row,w,h,dw,dh,cs,vw,vh,pxOff,pyOff){
   const scale=Math.min(vw/dw,vh/dh);
   const ox=(vw-dw*scale)/2,oy=(vh-dh*scale)/2;
   const px=cs*scale;
   const padX=dw/(2*cs),padY=dh/(2*cs);
-  return{x:ox+(col+padX)*px,y:oy+(row+padY)*px,kw:w*px,kh:h*px,scale,ox,oy,px,padX,padY};
+  return{x:ox+(col+padX)*px+(pxOff||0),y:oy+(row+padY)*px+(pyOff||0),kw:w*px,kh:h*px,scale,ox,oy,px,padX,padY};
 }
 
 // ── WebSocket ──
@@ -137,7 +137,7 @@ function rr(){
   document.getElementById("zv").textContent=cs;
 
   // Frame
-  const pp0=gridToPixel(0,0,1,1,dw,dh,cs,cw,ch);
+  const pp0=gridToPixel(0,0,1,1,dw,dh,cs,cw,ch,panX,panY);
   const frame=document.getElementById("frame");
   frame.style.width=(dw*pp0.scale)+"px";frame.style.height=(dh*pp0.scale)+"px";
   document.getElementById("fl").textContent=profile.device+" · "+Math.round(dw/cs)+"×"+Math.round(dh/cs);
@@ -148,7 +148,7 @@ function rr(){
   const page=cp_();if(!page)return;
   page.keys.forEach(k=>{
     const col=k.col||0,row=k.row||0,w=k.w||1,h_=k.h||1;
-    const p=gridToPixel(col,row,w,h_,dw,dh,cs,cw,ch);
+    const p=gridToPixel(col,row,w,h_,dw,dh,cs,cw,ch,panX,panY);
     const sel=k.id===selKey?" sel":"";
     const el=document.createElement("div");el.className="ck"+sel;el.dataset.kid=k.id;
     el.style.cssText=`background:${k.color||'var(--card)'};left:${p.x}px;top:${p.y}px;width:${p.kw-2}px;height:${p.kh-2}px`;
@@ -171,8 +171,7 @@ document.getElementById("carea").addEventListener("mousedown",e=>{
 document.addEventListener("mousemove",e=>{
   if(!panning)return;
   panX=mx+(e.clientX-panStartX);panY=my+(e.clientY-panStartY);
-  // Apply pan as CSS transform to carea (moves background visually)
-  document.getElementById("carea").style.backgroundPosition=panX+"px "+panY+"px";
+  rr(); // re-render with new pan offset
 });
 document.addEventListener("mouseup",()=>{panning=false});
 
@@ -187,7 +186,7 @@ document.getElementById("carea").addEventListener("dblclick",e=>{
   if(e.target.closest(".ck"))return;
   const ca=document.getElementById("carea"),rect=ca.getBoundingClientRect();
   const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60;
-  const p=gridToPixel(0,0,1,1,dw,dh,cs,ca.clientWidth,ca.clientHeight);
+  const p=gridToPixel(0,0,1,1,dw,dh,cs,ca.clientWidth,ca.clientHeight,panX,panY);
   const col=Math.round((e.clientX-rect.left-p.ox)/p.px-p.padX);
   const row=Math.round((e.clientY-rect.top-p.oy)/p.px-p.padY);
   addKey(col,row);
@@ -199,7 +198,7 @@ function onKeyDown(e,kid){
   const k=cp_()?.keys.find(x=>x.id===kid);if(!k)return;
   const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60;
   const ca=document.getElementById("carea");
-  const p=gridToPixel(0,0,1,1,dw,dh,cs,ca.clientWidth,ca.clientHeight);
+  const p=gridToPixel(0,0,1,1,dw,dh,cs,ca.clientWidth,ca.clientHeight,panX,panY);
   const startX=e.clientX,startY=e.clientY;
   const startCol=k.col||0,startRow=k.row||0;
 
@@ -226,7 +225,7 @@ function onRS(e,kid){
   const k=cp_()?.keys.find(x=>x.id===kid);if(!k)return;
   const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60;
   const ca=document.getElementById("carea");
-  const p=gridToPixel(0,0,1,1,dw,dh,cs,ca.clientWidth,ca.clientHeight);
+  const p=gridToPixel(0,0,1,1,dw,dh,cs,ca.clientWidth,ca.clientHeight,panX,panY);
   const startX=e.clientX,startY=e.clientY,startW=k.w||1,startH=k.h||1;
   function onMM(ev){const dw_=Math.round((ev.clientX-startX)/p.px),dh_=Math.round((ev.clientY-startY)/p.px);const nw=Math.max(1,startW+dw_),nh=Math.max(1,startH+dh_);if(nw!==k.w||nh!==k.h){k.w=nw;k.h=nh;dirty=true;rr();selKey=kid}}
   function onMU(){document.removeEventListener("mousemove",onMM);document.removeEventListener("mouseup",onMU)}
@@ -258,4 +257,5 @@ function h(s){return String(s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").
 function t(msg){const el=document.getElementById("toast");el.textContent=msg;el.className="toast";el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2000)}
 
 cws();lpl();lp("Default.json");
+window.addEventListener("resize",()=>rr());
 </script></body></html>
