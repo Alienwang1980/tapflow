@@ -35,8 +35,8 @@ DEFAULT_PROFILE = {
     "profileName": "Default",
     "version": "1.0",
     "device": "iPad 11\"",
-    "deviceWidth": 834,
-    "deviceHeight": 1210,
+    "deviceWidth": 1210,
+    "deviceHeight": 834,
     "cellSize": 60,
     "canvasX": 0,
     "canvasY": 0,
@@ -73,8 +73,8 @@ def migrate_key_positions(profile: dict) -> dict:
     """Ensure profile has new model fields + keys have col/row/w/h."""
     # Profile-level defaults
     profile.setdefault("device", "iPad 11\"")
-    profile.setdefault("deviceWidth", 834)
-    profile.setdefault("deviceHeight", 1210)
+    profile.setdefault("deviceWidth", 1210)
+    profile.setdefault("deviceHeight", 834)
     profile.setdefault("cellSize", 60)
     profile.setdefault("defaultSound", "click")
     profile.setdefault("canvasX", 0)

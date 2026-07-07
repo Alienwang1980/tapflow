@@ -5,7 +5,7 @@
 :root{--bg:#1a1a2e;--panel:#16213e;--card:#0f3460;--accent:#e94560;--text:#eee;--dim:#888;--border:#2a2a4a;--green:#3a7ca5;--red:#8b3a3a}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;font-family:-apple-system,sans-serif;background:var(--bg);color:var(--text)}
-body{display:flex;flex-direction:column}
+body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:none}
 .tb{display:flex;align-items:center;gap:8px;padding:4px 10px;background:var(--panel);border-bottom:1px solid var(--border);height:38px;flex-shrink:0}
 .tb h1{font-size:${Math.max(8,cs*0.25)}px}.tb h1 span{color:var(--accent)}
 .tb .conn{font-size:10px;padding:1px 6px;border-radius:3px}
@@ -22,7 +22,7 @@ body{display:flex;flex-direction:column}
 .side .ar{display:flex;gap:3px;padding:3px 8px}
 .side .ar input{flex:1;padding:2px 5px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:3px;font-size:10px}
 .side .ar button{padding:2px 5px;font-size:10px;background:#555;color:#fff;border:none;border-radius:3px;cursor:pointer}
-.carea{flex:1;position:relative;overflow:hidden;background:var(--bg);display:flex;align-items:center;justify-content:center}
+.carea{flex:1;position:relative;overflow:hidden;background:var(--bg);display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none}
 /* Fixed-size canvas wrapper — same approach as iPad */
 .cwrap{transform-origin:center center}
 .canvas{position:relative;border:2px solid var(--accent);box-shadow:0 0 20px rgba(233,69,96,0.3);background:rgba(0,0,0,0.15)}
@@ -212,8 +212,8 @@ document.getElementById("carea").addEventListener("dblclick",e=>{
   const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60;
   const scale=Math.min(cw*0.85/dw,ch*0.85/dh);
   const padX=dw/(2*cs),padY=dh/(2*cs);
-  const col=Math.round((e.clientX-rect.left-cw/2)/(cs*scale)-panX-padX+dw/(2*cs)/2);
-  const row=Math.round((e.clientY-rect.top-ch/2)/(cs*scale)-panY-padY+dh/(2*cs)/2);
+  const col=Math.round((e.clientX-rect.left-cw/2)/(cs*scale)-panX);
+  const row=Math.round((e.clientY-rect.top-ch/2)/(cs*scale)-panY);
   const page=cp_();if(!page)return;
   page.keys.push({id:"k_"+Date.now(),label:"?",action:"key",value:"A",color:"#0f3460",col,row,w:1,h:1,sound:""});
   selKey=page.keys[page.keys.length-1].id;dirty=true;rr();rpr();
