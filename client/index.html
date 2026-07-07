@@ -1,147 +1,42 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no,viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Smart Touch Panel</title>
+<!DOCTYPE html><html><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>STP</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100%;overflow:hidden;background:#1a1a2e;font-family:-apple-system,sans-serif;color:#eee;
-  touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+html,body{width:100vw;height:100vh;overflow:hidden;background:#1a1a2e;font-family:sans-serif}
 body{position:relative}
-.key-btn{position:absolute;border:none;border-radius:5px;display:flex;align-items:center;justify-content:center;
-  font-size:14px;font-weight:500;transition:transform 0.04s;overflow:hidden}
-.key-btn:active,.key-btn.active{transform:scale(0.93)}
-.top-bar{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
-  padding:4px 8px;background:rgba(22,33,62,0.95);height:32px}
-.top-bar h1{font-size:13px}.top-bar span{color:#e94560}
-.top-actions{display:flex;gap:4px;align-items:center}
-.top-actions select{background:#0f3460;color:#eee;border:1px solid #2a2a4a;border-radius:4px;padding:2px 6px;font-size:10px}
-.top-actions button{background:#0f3460;color:#eee;border:1px solid #2a2a4a;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer}
-.sd{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:2px}
-.sd.on{background:#4caf50}.sd.off{background:#f44336}
-.st{font-size:9px;color:#888}
-.tabs{position:fixed;top:32px;left:0;right:0;z-index:50;display:flex;gap:1px;padding:2px 4px;background:#1a1a2e}
-.tb{padding:2px 7px;border-radius:3px 3px 0 0;background:#16213e;color:#888;border:none;font-size:10px;cursor:pointer}
-.tb.on{background:#0f3460;color:#eee}
-.info{position:fixed;bottom:6px;left:6px;color:#555;font-size:10px;z-index:99;background:rgba(0,0,0,0.7);padding:3px 8px;border-radius:3px}
-</style>
-</head>
+.key-btn{position:absolute;border:none;border-radius:5px;color:#eee;font-size:14px;display:flex;align-items:center;justify-content:center}
+.info{position:fixed;bottom:6px;left:6px;color:#555;font-size:10px;background:rgba(0,0,0,0.7);padding:3px 8px;border-radius:3px;z-index:99}
+</style></head>
 <body>
-<div class="top-bar"><h1>Smart <span>Touch</span></h1>
-<div class="top-actions">
-  <select id="ps" onchange="onPC()"></select>
-  <span class="sd off" id="sd"></span><span class="st" id="stx">off</span>
-  <button onclick="showQR()">QR</button>
-</div></div>
-<div class="tabs" id="tabs"></div>
-<div id="info" class="info"></div>
-
+<div id="info" class="info">loading...</div>
 <script>
-"use strict";
-let profile=null,activePage="",activeProfile="Default.json";
-let ws=null,timer=null,delay=1000;
-
-// ── Sound ──
-const SND={none:null,click:[800,0.06,"square",0.3],soft:[400,0.08,"sine",0.2],mechanical:[1200,0.04,"square",0.4],deep:[200,0.1,"triangle",0.5]};
-let ctx=null;
-function psnd(n){
-  if(!n||n==="none")return;const s=SND[n];if(!s)return;
-  try{if(!ctx)ctx=new(window.AudioContext||window.webkitAudioContext)();const o=ctx.createOscillator(),g=ctx.createGain();o.type=s[2];o.frequency.setValueAtTime(s[0],ctx.currentTime);g.gain.setValueAtTime(s[3],ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+s[1]);o.connect(g);g.connect(ctx.destination);o.start();o.stop(ctx.currentTime+s[1])}catch(e){}
-}
-
-// ── WebSocket ──
-function conn(){
-  const p=location.protocol==="https:"?"wss:":"ws:";
-  ws=new WebSocket(p+"//"+location.hostname+":8082/ws");
-  ws.onopen=()=>{ss("on");delay=1000};
-  ws.onmessage=e=>{
-    const m=JSON.parse(e.data);
-    if(m.type==="profile"||m.type==="profile_update"){profile=m.profile;activeProfile=m.filename||activeProfile;activePage=profile.pages.find(p=>p.id===activePage)?activePage:(profile.pages[0]?.id||"");render()}
-    else if(m.type==="profile_switch"){activePage=m.page||activePage;render()}
-  };
-  ws.onclose=()=>{ss("off");timer=setTimeout(()=>{delay=Math.min(delay*1.5,15000);conn()},delay)};
-  ws.onerror=()=>{ss("off")};
-}
-function ss(cls){document.getElementById("sd").className="sd "+cls;document.getElementById("stx").textContent=cls}
-
-// ── Load profile (REST first, then WS) ──
 async function load(){
-  try{
-    const r=await fetch("/api/profiles/Default.json");
-    profile=await r.json();
-    activeProfile="Default.json";
-    activePage=profile.pages[0]?.id||"";
-    render();
-    // Also load profile list
-    const r2=await fetch("/api/profiles");
-    const data=await r2.json();
-    const sel=document.getElementById("ps");
-    sel.innerHTML=(data.profiles||[]).map(p=>'<option value="'+p.filename+'"'+(p.filename===activeProfile?" selected":"")+'>'+p.profileName+'</option>').join("");
-  }catch(e){console.log("Load:",e)}
-  conn(); // Then connect WS for live updates
-}
-
-async function onPC(){
-  const fn=document.getElementById("ps").value;
-  try{const r=await fetch("/api/profiles/"+fn);if(!r.ok)return;profile=await r.json();activeProfile=fn;activePage=profile.pages[0]?.id||"";render()}catch(e){}
-}
-
-// ── Render ──
-function render(){
-  // Tabs
-  document.getElementById("tabs").innerHTML=(profile?.pages||[]).map(p=>'<button class="tb'+(p.id===activePage?" on":"")+'" onclick="activePage=\''+p.id+'\';render()">'+p.label+'</button>').join("");
-
-  // Keys — same formula as test.html
-  const pg=profile?.pages.find(p=>p.id===activePage);
-  if(!pg)return;
-
-  const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60;
+  const r=await fetch("/api/profiles/Default.json");
+  const profile=await r.json();
+  const pg=profile.pages[0];
+  const dw=profile.deviceWidth,dh=profile.deviceHeight,cs=profile.cellSize;
   const cx=profile.canvasX||0,cy=profile.canvasY||0;
   const vw=window.innerWidth,vh=window.innerHeight;
   const scale=Math.min(vw/dw,vh/dh);
   const ox=(vw-dw*scale)/2,oy=(vh-dh*scale)/2;
   const cx_cells=cx/60,cy_cells=cy/60;
   const padX=dw/(2*cs),padY=dh/(2*cs);
-
-  // Remove old keys
-  document.querySelectorAll(".key-btn").forEach(el=>el.remove());
-
-  let visible=0;
+  let vis=0;
   pg.keys.forEach(k=>{
     const x=ox+(k.col-cx_cells+padX)*cs*scale;
     const y=oy+(k.row-cy_cells+padY)*cs*scale;
     const kw=k.w*cs*scale,kh=k.h*cs*scale;
-    if(x+kw>0&&y+kh>0&&x<vw&&y<vh)visible++;
+    if(x+kw>0&&y+kh>0&&x<vw&&y<vh)vis++;
     const el=document.createElement("div");
     el.className="key-btn";
-    el.dataset.keyId=k.id;
-    el.style.cssText=`left:${x}px;top:${y}px;width:${kw}px;height:${kh}px;background:${k.color||'#0f3460'};font-size:${Math.max(9,cs*scale*0.2)}px`;
+    el.style.cssText=`left:${x}px;top:${y}px;width:${kw}px;height:${kh}px;background:${k.color||'#0f3460'}`;
     el.textContent=k.label;
-    el.addEventListener("touchstart",e=>{e.preventDefault();el.classList.add("active");sendKey(k)});
-    el.addEventListener("touchend",e=>{e.preventDefault();el.classList.remove("active")});
-    el.addEventListener("mousedown",()=>{el.classList.add("active");sendKey(k)});
-    el.addEventListener("mouseup",()=>el.classList.remove("active"));
     document.body.appendChild(el);
   });
-
-  document.getElementById("info").textContent=`vw=${vw} vh=${vh} s=${scale.toFixed(2)} cs=${cs} vis:${visible}/${pg.keys.length}`;
+  document.getElementById("info").textContent=`vw=${vw} vh=${vh} s=${scale.toFixed(2)} cx=${cx} padX=${padX.toFixed(1)} padY=${padY.toFixed(1)} | ${vis}/${pg.keys.length}`;
 }
-
-function sendKey(kd){
-  if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:"key",key:kd.value,action:kd.action==="text"?"text":"press"}));
-  psnd(kd.sound||(profile&&profile.defaultSound)||"none");
-}
-
-function showQR(){
-  const url="http://"+location.hostname+":8082";
-  prompt("Scan or open:",url);
-}
-
-// ── Start ──
 load();
-</script>
-</body>
-</html>
+window.addEventListener("resize",render);
+window.addEventListener("orientationchange",()=>setTimeout(render,300));
+</script></body></html>
