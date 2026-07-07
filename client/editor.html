@@ -136,7 +136,7 @@ function rr(){
     const kw=w*px-3,kh=h_*px-3;
     const sel=k.id===selKey?" sel":"";
     const el=document.createElement("div");el.className="ck"+sel;el.dataset.kid=k.id;
-    el.style.cssText=`left:${x}px;top:${y}px;width:${kw}px;height:${kh}px;background:${k.color||'var(--card)'}`;
+    el.style.cssText=`left:${x}px;top:${y}px;width:${kw}px;height:${kh}px;background:${k.color||'var(--card)'};font-size:${Math.max(8,cs*0.25)}px`;
     el.innerHTML='<span class="kl">'+h(k.label)+'</span>'+(w>1||h_>1?'<span class="sz">'+w+'×'+h_+'</span>':'')+'<div class="rh"></div>';
     el.addEventListener("mousedown",e=>onKeyDown(e,k.id));
     el.addEventListener("click",e=>{e.stopPropagation();selKey=k.id;rr();rpr()});
