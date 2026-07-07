@@ -314,7 +314,8 @@ function onKeyDown(e,kid){
   const startCol=k.col||0,startRow=k.row||0;
 
   function onMM(ev){
-    const dx=(ev.clientX-startX)/cs,dy=(ev.clientY-startY)/cs;
+    const factor=cs/60*(lastScale||1);
+    const dx=(ev.clientX-startX)/factor/cs,dy=(ev.clientY-startY)/factor/cs;
     const nc=Math.round(startCol+dx),nr=Math.round(startRow+dy);
     if(nc!==k.col||nr!==k.row){k.col=nc;k.row=nr;dirty=true;rr();selKey=kid}
   }
@@ -351,9 +352,9 @@ function onRS(e,kid){
   const startX=e.clientX,startY=e.clientY;
   const startW=k.w||1,startH=k.h||1;
 
-  function onMM(ev){
-    const dw=Math.round((ev.clientX-startX)/cs),dh=Math.round((ev.clientY-startY)/cs);
-    const nw=Math.max(1,startW+dw),nh=Math.max(1,startH+dh);
+    function onMM(ev){
+    const factor=cs/60*(lastScale||1);
+    const dw=Math.round((ev.clientX-startX)/factor/cs),dh=Math.round((ev.clientY-startY)/factor/cs);   const nw=Math.max(1,startW+dw),nh=Math.max(1,startH+dh);
     if(nw!==k.w||nh!==k.h){k.w=nw;k.h=nh;dirty=true;rr();selKey=kid}
   }
   function onMU(){document.removeEventListener("mousemove",onMM);document.removeEventListener("mouseup",onMU)}
