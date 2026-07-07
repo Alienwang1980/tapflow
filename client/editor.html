@@ -103,7 +103,7 @@ function cws(){
   ws=new WebSocket("ws://"+location.hostname+":8082/ws");
   ws.onopen=()=>{document.getElementById("cs").textContent="connected";document.getElementById("cs").className="conn on"};
   ws.onclose=()=>{document.getElementById("cs").textContent="off";document.getElementById("cs").className="conn off";setTimeout(cws,2000)};
-  ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==="profile"||m.type==="profile_update"){profile=m.profile;activeProfile=m.filename||activeProfile;activePage=profile.pages.find(p=>p.id===activePage)?activePage:(profile.pages[0]?.id||"");renderAll()}};
+  ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==="profile"||m.type==="profile_update"){const oldPanX=panX,oldPanY=panY;profile=m.profile;activeProfile=m.filename||activeProfile;activePage=profile.pages.find(p=>p.id===activePage)?activePage:(profile.pages[0]?.id||"");panX=oldPanX;panY=oldPanY;renderAll()}};
 }
 
 // ── Profile CRUD ──
@@ -115,6 +115,8 @@ async function saveProfile(){
   const d=await r.json();activeProfile=d.filename;dirty=false;
   if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:"profile_saved",filename:d.filename}));
   lpl();t("Saved & synced");
+  // Reload from server to ensure consistency
+  try{const r2=await fetch("/api/profiles/"+d.filename);profile=await r2.json();activePage=profile.pages.find(p=>p.id===activePage)?activePage:(profile.pages[0]?.id||"");panX=0;panY=0;rr()}catch(e){}
 }
 async function dp(fn){if(!confirm("Delete "+fn+"?"))return;await fetch("/api/profiles/"+fn,{method:"DELETE"});if(activeProfile===fn){activeProfile="Default.json";await lp("Default.json")}lpl()}
 async function cp(){const nm=document.getElementById("npn").value.trim();if(!nm)return;const p={profileName:nm,version:"1.0",device:"iPad 11\"",deviceWidth:834,deviceHeight:1210,cellSize:60,defaultSound:"click",windowRules:[],pages:[{id:"main",label:"Main",keys:[]}]};const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)});document.getElementById("npn").value="";lpl();lp((await r.json()).filename)}
