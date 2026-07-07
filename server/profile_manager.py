@@ -30,72 +30,41 @@ DEVICE_PRESETS = {
     "Android 16:10":  {"width": 1280, "height": 800},
 }
 
+# Load default profile from template file
+def _load_default_template():
+    import json, sys
+    # Try app bundle first, then source directory
+    if getattr(sys, 'frozen', False):
+        resource_dir = Path(sys.executable).parent.parent / "Resources"
+        template_path = resource_dir / "server" / "profiles" / "_default_template.json"
+    else:
+        template_path = Path(__file__).parent / "profiles" / "_default_template.json"
+    if template_path.exists():
+        return json.loads(template_path.read_text(encoding='utf-8'))
+    return {"profileName":"Default","version":"1.0","device":"iPad 11\" (landscape)","deviceWidth":1210,"deviceHeight":834,"cellSize":60,"canvasX":0,"canvasY":0,"defaultSound":"click","windowRules":[],"pages":[{"id":"main","label":"Main","keys":[]}]}
+
 # Default profile that ships with the app
-DEFAULT_PROFILE = {
-    "profileName": "Default",
-    "version": "1.0",
-    "device": "iPad 11\"",
-    "deviceWidth": 1210,
-    "deviceHeight": 834,
-    "cellSize": 60,
-    "canvasX": 0,
-    "canvasY": 0,
-    "defaultSound": "click",
-    "windowRules": [
-        {"bundle_id": "com.apple.Safari", "page": "browsing"},
-        {"bundle_id": "com.google.Chrome", "page": "browsing"},
-        {"bundle_id": "com.apple.Finder", "page": "finder"},
-        {"bundle_id": "com.apple.Terminal", "page": "terminal"},
-        {"bundle_id": "com.microsoft.VSCode", "page": "coding"},
-    ],
-    "pages": [
-        {
-            "id": "main", "label": "Main",
-            "keys": [
-                {"id":"k1","label":"←","col":-2,"row":-1,"w":1,"h":1,"action":"key","value":"LEFT","color":"#444","sound":""},
-                {"id":"k2","label":"↓","col":-1,"row":-1,"w":1,"h":1,"action":"key","value":"DOWN","color":"#444","sound":""},
-                {"id":"k3","label":"→","col":0,"row":-1,"w":1,"h":1,"action":"key","value":"RIGHT","color":"#444","sound":""},
-                {"id":"k4","label":"↑","col":1,"row":-1,"w":1,"h":1,"action":"key","value":"UP","color":"#444","sound":""},
-                {"id":"k5","label":"Tab","col":-2,"row":0,"w":1,"h":1,"action":"key","value":"TAB","color":"#555","sound":""},
-                {"id":"k6","label":"Space","col":-1,"row":0,"w":2,"h":1,"action":"key","value":"SPACE","color":"#3a7ca5","sound":""},
-                {"id":"k7","label":"Enter","col":1,"row":0,"w":1,"h":1,"action":"key","value":"RETURN","color":"#3a7ca5","sound":""},
-                {"id":"k9","label":"⌘","col":-2,"row":1,"w":1,"h":1,"action":"key","value":"COMMAND","color":"#666","sound":""},
-                {"id":"k10","label":"⌥","col":-1,"row":1,"w":1,"h":1,"action":"key","value":"OPTION","color":"#666","sound":""},
-                {"id":"k11","label":"⌃","col":0,"row":1,"w":1,"h":1,"action":"key","value":"CONTROL","color":"#666","sound":""},
-                {"id":"k12","label":"⇧","col":1,"row":1,"w":1,"h":1,"action":"key","value":"SHIFT","color":"#666","sound":""},
-                {"id":"k13","label":"⌫","col":2,"row":-1,"w":1,"h":1,"action":"key","value":"DELETE","color":"#8b3a3a","sound":""},
-            ],
-        },
-    ],
-}
+DEFAULT_PROFILE = _load_default_template()
 
 def migrate_key_positions(profile: dict) -> dict:
-    """Ensure profile has new model fields + keys have col/row/w/h."""
-    # Profile-level defaults
-    profile.setdefault("device", "iPad 11\"")
+    """Ensure profile has required fields + keys have col/row/w/h."""
+    profile.setdefault("device", "iPad 11\" (landscape)")
     profile.setdefault("deviceWidth", 1210)
     profile.setdefault("deviceHeight", 834)
     profile.setdefault("cellSize", 60)
-    profile.setdefault("defaultSound", "click")
     profile.setdefault("canvasX", 0)
     profile.setdefault("canvasY", 0)
-
-    # Remove old cols/rows from pages (no longer used)
+    profile.setdefault("defaultSound", "click")
     for page in profile.get("pages", []):
         page.pop("columns", None)
         page.pop("rows", None)
-        cur_col, cur_row = 0, 0
         for key in page.get("keys", []):
-            w = key.get("w", 1)
-            h = key.get("h", 1)
-            if "col" not in key or "row" not in key:
-                key["col"] = cur_col
-                key["row"] = cur_row
-                key.setdefault("h", h)
-                cur_col += w
-            else:
-                cur_col = key["col"] + key.get("w", 1)
-                cur_row = key["row"]
+            key.setdefault("col", 0)
+            key.setdefault("row", 0)
+            key.setdefault("w", 1)
+            key.setdefault("h", 1)
+            key.setdefault("sound", "")
+            key.setdefault("color", "#0f3460")
     return profile
 
 

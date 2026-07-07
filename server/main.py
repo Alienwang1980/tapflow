@@ -236,6 +236,13 @@ async def health():
 
 # ── Profile REST API ──
 
+
+@app.get("/api/default-template")
+async def default_template():
+    """Return the 89-key default keyboard template."""
+    from profile_manager import _load_default_template
+    return _load_default_template()
+
 @app.get("/api/profiles")
 async def list_profiles():
     return {"profiles": profiles.list_profiles()}

@@ -57,6 +57,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
     <option value="mechanical">Mechanical</option><option value="deep">Deep</option>
   </select>
   <button class="btn-save" onclick="saveProfile()">Save & Sync</button>
+  <button class="btn-new" onclick="resetDefault()">Reset Default</button>
   <button class="btn-new" onclick="cp()">+ New</button>
 </div>
 <div class="main">
@@ -80,6 +81,10 @@ let selKey=null,dirty=false,panX=0,panY=0,panning=false,panStartX=0,panStartY=0,
 const DEVS={"iPad 4:3":{w:1024,h:1366},"iPad 11\"":{w:834,h:1210},"iPad mini":{w:744,h:1133},"Android 16:10":{w:1280,h:800}};
 
 // ── WebSocket ──
+async function resetDefault(){
+  if(!confirm("Reset to default 89-key keyboard? Current layout will be lost."))return;
+  try{const r=await fetch("/api/default-template");profile=await r.json();profile.profileName="Default";activePage=profile.pages[0]?.id||"";panX=0;panY=0;dirty=true;renderAll();t("Default layout loaded")}catch(e){t("Failed: "+e,true)}
+}
 function cws(){
   ws=new WebSocket("ws://"+location.hostname+":8082/ws");
   ws.onopen=()=>{document.getElementById("cs").textContent="connected";document.getElementById("cs").className="conn on"};
