@@ -97,7 +97,6 @@ function render(){
   if(!fb){fb=document.createElement("div");fb.id="frame-box";fb.style.cssText="position:fixed;pointer-events:none;z-index:60;border:2px dashed rgba(233,69,96,0.5);border-radius:4px";document.body.appendChild(fb);}
   fb.style.left=pp.ox+"px";fb.style.top=pp.oy+"px";fb.style.width=(dw*pp.scale)+"px";fb.style.height=(dh*pp.scale)+"px";
   document.getElementById("info").textContent=`KEYS:${vis}/${pg.keys.length} | DEV:${dw}x${dh} | vw=${vw} vh=${vh} | s=${pp.scale.toFixed(3)} | cs=${cs} padX=${pp.padX.toFixed(1)}`;
-  }catch(e){document.getElementById("info").textContent="ERROR: "+e.message;console.error(e);}
 }
 
 // ── Load ──
