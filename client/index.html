@@ -23,8 +23,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:-apple-system,sans-
 .tb.on{background:var(--key-default);color:var(--text)}
 
 /* Touch panel area */
-.panel-area{flex:1;position:relative;overflow:hidden;background:var(--bg)}
-.panel-inner{position:absolute;top:0;left:0;width:100%;height:100%}
+.panel-area{flex:1;position:relative;overflow:hidden;background:var(--bg);min-height:300px}
+.panel-inner{position:absolute;top:0;left:0;width:100vw;height:100vh}
 
 .key-btn{
   position:absolute;background:var(--key-default);border:none;border-radius:5px;
@@ -58,7 +58,13 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:-apple-system,sans-
   </div>
 </div>
 <div class="tabs" id="tabs"></div>
-<div class="panel-area"><div class="panel-inner" id="panel"></div></div>
+<div class="panel-area">
+  <div class="panel-inner" id="panel">
+    <div id="loading-msg" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#888;font-size:16px;text-align:center">
+      Connecting...<br><span style="font-size:12px">http://192.168.2.20:8082</span>
+    </div>
+  </div>
+</div>
 
 <div class="qr-modal" id="qrModal" onclick="closeQR(event)">
   <div class="qr-card" onclick="event.stopPropagation()">
@@ -80,9 +86,7 @@ function connect(){
   console.log("STP connecting to",p+"//"+location.hostname+":8082/ws");
   ws.onopen=()=>{ss("on");delay=1000};
   // Fallback: if no profile after 3s, fetch via REST
-  setTimeout(async()=>{
-    if(!profile){try{const r=await fetch("/api/profiles/Default.json");profile=await r.json();activeProfile="Default.json";activePage=profile.pages[0]?.id||"";renderAll()}catch(e){console.log("REST fallback failed:",e)}}
-  },3000);
+  
   ws.onmessage=e=>{
     const m=JSON.parse(e.data);
     if(m.type==="profile"||m.type==="profile_update"){profile=m.profile;activeProfile=m.filename||activeProfile;activePage=profile.pages.find(p=>p.id===activePage)?activePage:(profile.pages[0]?.id||"");lpls();renderAll()}
@@ -90,6 +94,10 @@ function connect(){
   };
   ws.onclose=()=>{ss("off");schedule()};
   ws.onerror=()=>{ss("off")};
+  // Load profile immediately via REST
+  fetch("/api/profiles/Default.json").then(r=>r.json()).then(p=>{
+    if(!profile){profile=p;activeProfile="Default.json";activePage=profile.pages[0]?.id||"";renderAll();console.log("STP loaded via REST")}
+  }).catch(e=>console.log("REST load:",e));
 }
 function schedule(){clearTimeout(timer);timer=setTimeout(()=>{delay=Math.min(delay*1.5,15000);connect()},delay)}
 function ss(cls){document.getElementById("sd").className="sd "+cls;document.getElementById("stx").textContent=cls}
@@ -159,7 +167,7 @@ function rpanel(){
   const cx=profile.canvasX||0,cy=profile.canvasY||0;
 
   // Scale: map device pixels to viewport pixels
-  const vw=panel.clientWidth,vh=panel.clientHeight;
+  const vw=window.innerWidth||834,vh=window.innerHeight||1210;
   const scale=Math.min(vw/dw,vh/dh);
   const ox=(vw-dw*scale)/2,oy=(vh-dh*scale)/2; // center
 
@@ -167,7 +175,8 @@ function rpanel(){
   (page.keys||[]).forEach(k=>{
     const col=k.col||0,row=k.row||0,w=k.w||1,h_=k.h||1;
     const cx_cells=cx/60,cy_cells=cy/60;
-    const x=ox+(col-cx_cells)*cs*scale,y=oy+(row-cy_cells)*cs*scale;
+    const padX=dw/(2*cs),padY=dh/(2*cs);
+    const x=ox+(col-cx_cells+padX)*cs*scale,y=oy+(row-cy_cells+padY)*cs*scale;
     const kw=w*cs*scale,kh=h_*cs*scale;
     // Only render if visible
     if(x+kw>0&&y+kh>0&&x<vw&&y<vh){
@@ -176,6 +185,7 @@ function rpanel(){
         '<span class="key-label">'+h_(k.label)+'</span></button>';
     }
   });
+  const lm=document.getElementById("loading-msg");if(lm)lm.style.display="none";
   panel.innerHTML=html;
 }
 
