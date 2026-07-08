@@ -52,6 +52,7 @@ def migrate_key_positions(profile: dict) -> dict:
     profile.setdefault("deviceWidth", 1210)
     profile.setdefault("deviceHeight", 834)
     profile.setdefault("cellSize", 60)
+    profile.setdefault("gap", 0)
     profile.setdefault("canvasX", 0)
     profile.setdefault("canvasY", 0)
     profile.setdefault("defaultSound", "click")

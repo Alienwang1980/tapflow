@@ -7,7 +7,7 @@
 html,body{height:100%;font-family:-apple-system,sans-serif;background:var(--bg);color:var(--text)}
 body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:none}
 .tb{display:flex;align-items:center;gap:8px;padding:4px 10px;background:var(--panel);border-bottom:1px solid var(--border);height:38px;flex-shrink:0}
-.tb h1{font-size:${Math.max(8,cs*0.25)}px}.tb h1 span{color:var(--accent)}
+.tb h1{font-size:14px}.tb h1 span{color:var(--accent)}
 .tb .conn{font-size:10px;padding:1px 6px;border-radius:3px}
 .tb .conn.on{background:#4caf5040;color:#4caf50}.tb .conn.off{background:#f4433640;color:#f44336}
 .tb select,.tb button{padding:3px 8px;border-radius:3px;border:1px solid var(--border);cursor:pointer;font-size:11px;background:var(--card);color:var(--text)}
@@ -37,7 +37,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 .rp input,.rp select{width:100%;padding:4px 6px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:3px;font-size:11px}
 .rp input[type=color]{height:26px;padding:1px}.rp .rw{display:flex;gap:4px}.rp .rw>div{flex:1}
 .rp .stepper{display:flex;align-items:center;gap:2px}
-.rp .stepper button{width:24px;height:24px;font-size:${Math.max(8,cs*0.25)}px;line-height:1;text-align:center;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:3px;cursor:pointer}
+.rp .stepper button{width:24px;height:24px;font-size:14px;line-height:1;text-align:center;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:3px;cursor:pointer}
 .rp .stepper span{width:24px;text-align:center;font-size:13px;font-weight:600}
 .rp .hint{font-size:9px;color:var(--dim);margin-top:1px}.rp .br{display:flex;gap:4px;margin-top:8px}
 .rp .br button{flex:1;padding:5px;font-size:11px;cursor:pointer;border-radius:3px}.rp .btn-del{background:var(--red);color:#fff;border:none}
@@ -67,7 +67,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
   <h3>Pages</h3><div id="pgl"></div>
   <div class="ar"><input id="npl" placeholder="Label"><button onclick="apg()">+</button></div>
   <h3>Zoom</h3>
-  <div class="stepper" style="padding:4px 8px"><button onclick="zoomBy(-5)">−</button><span id="zv">60</span><button onclick="zoomBy(5)">+</button></div>
+  <div class="stepper" style="padding:4px 8px"><button onclick="zoomBy(-1)">−</button><span id="zv">60</span><button onclick="zoomBy(1)">+</button></div>
 </div>
 <div class="carea" id="carea"><div class="cwrap" id="cwrap"><div class="canvas" id="canvas"></div></div></div>
 <div class="rp"><h3>Key Properties</h3><div id="pc"><p style="font-size:11px;color:var(--dim)">Click key to edit</p></div></div>
@@ -104,7 +104,7 @@ async function saveProfile(){
   lpl();t("Saved & synced");
 }
 async function dp(fn){if(!confirm("Delete "+fn+"?"))return;await fetch("/api/profiles/"+fn,{method:"DELETE"});if(activeProfile===fn){activeProfile="Default.json";await lp("Default.json")}lpl()}
-async function cp(){const nm=document.getElementById("npn").value.trim();if(!nm)return;const p={profileName:nm,version:"1.0",device:"iPad 11\"",deviceWidth:834,deviceHeight:1210,cellSize:60,canvasX:0,canvasY:0,defaultSound:"click",windowRules:[],pages:[{id:"main",label:"Main",keys:[]}]};const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)});document.getElementById("npn").value="";lpl();lp((await r.json()).filename)}
+async function cp(){const nm=document.getElementById("npn").value.trim();if(!nm)return;const p={profileName:nm,version:"1.0",device:"iPad 11\"",deviceWidth:834,deviceHeight:1210,cellSize:60,gap:0,canvasX:0,canvasY:0,defaultSound:"click",windowRules:[],pages:[{id:"main",label:"Main",keys:[]}]};const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)});document.getElementById("npn").value="";lpl();lp((await r.json()).filename)}
 function apg(){const lb=document.getElementById("npl").value.trim();if(!lb)return;profile.pages.push({id:"p_"+Date.now(),label:lb,keys:[]});activePage=profile.pages[profile.pages.length-1].id;dirty=true;document.getElementById("npl").value="";renderAll()}
 function dpg(pid){if(profile.pages.length<=1)return;profile.pages=profile.pages.filter(p=>p.id!==pid);if(activePage===pid)activePage=profile.pages[0].id;selKey=null;dirty=true;renderAll()}
 function cp_(){return profile?.pages.find(p=>p.id===activePage)}
@@ -112,10 +112,18 @@ function renderAll(){rpl();rpgl();rr();rpr()}
 function rpl(){document.getElementById("pl").innerHTML=profiles.map(p=>'<div class="it'+(p.filename===activeProfile?" ac":"")+'" onclick="lp(\''+p.filename+'\')">'+h(p.profileName)+'<span class="x" onclick="event.stopPropagation();dp(\''+p.filename+'\')">×</span></div>').join("")}
 function rpgl(){document.getElementById("pgl").innerHTML=profile?.pages.map(p=>'<div class="it'+(p.id===activePage?" ac":"")+'" onclick="activePage=\''+p.id+'\';selKey=null;renderAll()">'+h(p.label)+'<span class="x" onclick="event.stopPropagation();dpg(\''+p.id+'\')">×</span></div>').join("")||""}
 
-// ── Render using CSS transform scale (SAME as iPad) ──
+// ── Collision detection (AABB) ──
+function _overlap(a,b){return !(a.col+a.w<=b.col||b.col+b.w<=a.col||a.row+a.h<=b.row||b.row+b.h<=a.row)}
+function _collides(kid,col,row,w,h){
+  const page=cp_();if(!page)return false;
+  return page.keys.some(k=>k.id!==kid&&_overlap({col,row,w,h},{col:k.col||0,row:k.row||0,w:k.w||1,h:k.h||1}));
+}
+function _snap4(v){return Math.round(v*4)/4}
+
+// ── Render — 0.25 grid + gap ──
 function rr(){
   if(!profile)return;
-  const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60;
+  const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60,gp=profile.gap||0;
   const ca=document.getElementById("carea"),cw=ca.clientWidth,ch=ca.clientHeight;
   document.getElementById("devSel").value=profile.device||"iPad 11\"";
   document.getElementById("gs").value=profile.defaultSound||"none";
@@ -130,28 +138,27 @@ function rr(){
   const canvas=document.getElementById("canvas");
   canvas.style.width=dw+"px";canvas.style.height=dh+"px";
 
-  // Render keys in fixed device coordinates
-  const padX=dw/(2*cs),padY=dh/(2*cs);
+  // Render keys — cpx = cellSize + gap (1 cell unit in device px)
+  const cpx=cs+gp;
   canvas.innerHTML="";
   const page=cp_();if(!page)return;
   page.keys.forEach(k=>{
-    const col=k.col||0,row=k.row||0,w=k.w||1,h_=k.h||1;
-    const px=cs*1; // 1:1 device coords (scale handles sizing)
-    const x=(col+padX+panX)*px+1.5,y=(row+padY+panY)*px+1.5;
-    const kw=w*px-3,kh=h_*px-3;
+    const col=k.col||0,row=k.row||0,w=k.w||1,h=k.h||1;
+    const x=(col+panX)*cpx+dw/2,y=(row+panY)*cpx+dh/2;
+    const kw=w*cs+(w-1)*gp-3,kh=h*cs+(h-1)*gp-3;
     const sel=k.id===selKey?" sel":"";
     const el=document.createElement("div");el.className="ck"+sel;el.dataset.kid=k.id;
     el.style.cssText=`left:${x}px;top:${y}px;width:${kw}px;height:${kh}px;background:${k.color||'var(--card)'};font-size:${Math.max(8,cs*0.25)}px`;
-    el.innerHTML='<span class="kl">'+h(k.label)+'</span>'+(w>1||h_>1?'<span class="sz">'+w+'×'+h_+'</span>':'')+'<div class="rh"></div>';
+    el.innerHTML='<span class="kl">'+h(k.label)+'</span>'+(w>1||h>1?'<span class="sz">'+w.toFixed(2)+'×'+h.toFixed(2)+'</span>':'')+'<div class="rh"></div>';
     el.addEventListener("mousedown",e=>onKeyDown(e,k.id));
     el.addEventListener("click",e=>{e.stopPropagation();selKey=k.id;rr();rpr()});
     el.querySelector(".rh").addEventListener("mousedown",e=>onRS(e,k.id));
     canvas.appendChild(el);
   });
-  document.getElementById("edinfo").textContent=`cw=${cw}x${ch} dw=${dw}x${dh} cs=${cs} s=${scale.toFixed(3)} pan=(${panX.toFixed(1)},${panY.toFixed(1)})`;
+  document.getElementById("edinfo").textContent=`cw=${cw}x${ch} dw=${dw}x${dh} cs=${cs} gap=${gp} s=${scale.toFixed(3)} pan=(${panX.toFixed(1)},${panY.toFixed(1)})`;
 }
 
-// ── Pan (in grid cells, SAME as iPad) ──
+// ── Pan (in grid cells) ──
 document.getElementById("carea").addEventListener("mousedown",e=>{
   if(e.target.closest(".ck"))return;
   panning=true;panStartX=e.clientX;panStartY=e.clientY;mx=panX;my=panY;e.preventDefault();
@@ -159,33 +166,34 @@ document.getElementById("carea").addEventListener("mousedown",e=>{
 document.addEventListener("mousemove",e=>{
   if(!panning)return;
   const ca=document.getElementById("carea"),cw=ca.clientWidth,ch=ca.clientHeight;
-  const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60;
+  const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60,gp=profile.gap||0;
+  const cpx=cs+gp;
   const scale=Math.min(cw*0.85/dw,ch*0.85/dh);
-  panX=mx+(e.clientX-panStartX)/(cs*scale);
-  panY=my+(e.clientY-panStartY)/(cs*scale);
+  panX=mx+(e.clientX-panStartX)/(cpx*scale);
+  panY=my+(e.clientY-panStartY)/(cpx*scale);
   rr();
 });
 document.addEventListener("mouseup",()=>{panning=false});
 
 // ── Zoom ──
-document.getElementById("carea").addEventListener("wheel",e=>{e.preventDefault();zoomBy(e.deltaY>0?-5:5)},{passive:false});
+document.getElementById("carea").addEventListener("wheel",e=>{e.preventDefault();zoomBy(e.deltaY>0?-1:1)},{passive:false});
 function zoomBy(d){const nv=Math.max(20,Math.min(200,(profile.cellSize||60)+d));if(nv!==profile.cellSize){profile.cellSize=nv;dirty=true;rr()}}
 function onDev(){const d=DEVS[document.getElementById("devSel").value];if(d&&profile){profile.device=document.getElementById("devSel").value;profile.deviceWidth=d.w;profile.deviceHeight=d.h;dirty=true;rr()}}
 
-// ── Key drag (in grid cells) ──
+// ── Key drag (0.25 snap) ──
 function onKeyDown(e,kid){
   if(e.button!==0)return;e.stopPropagation();
   selKey=kid;rr();rpr();
   const k=cp_()?.keys.find(x=>x.id===kid);if(!k)return;
-  const cs=profile.cellSize||60;
+  const cs=profile.cellSize||60,gp=profile.gap||0,cpx=cs+gp;
   const ca=document.getElementById("carea"),cw=ca.clientWidth,ch=ca.clientHeight;
   const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210;
   const scale=Math.min(cw*0.85/dw,ch*0.85/dh);
   const startX=e.clientX,startY=e.clientY,startCol=k.col||0,startRow=k.row||0;
   function mm(ev){
-    const dx=(ev.clientX-startX)/(cs*scale),dy=(ev.clientY-startY)/(cs*scale);
-    const nc=Math.round(startCol+dx),nr=Math.round(startRow+dy);
-    if(nc!==k.col||nr!==k.row){k.col=nc;k.row=nr;dirty=true;rr();selKey=kid}
+    const dx=(ev.clientX-startX)/(cpx*scale),dy=(ev.clientY-startY)/(cpx*scale);
+    const nc=_snap4(startCol+dx),nr=_snap4(startRow+dy);
+    if(!_collides(kid,nc,nr,k.w||1,k.h||1)&&(nc!==k.col||nr!==k.row)){k.col=nc;k.row=nr;dirty=true;rr();selKey=kid}
   }
   function mu(ev){
     document.removeEventListener("mousemove",mm);document.removeEventListener("mouseup",mu);
@@ -197,28 +205,38 @@ function onKeyDown(e,kid){
   }
   document.addEventListener("mousemove",mm);document.addEventListener("mouseup",mu);
 }
+
+// ── Key resize (0.25 snap + collision) ──
 function onRS(e,kid){
   e.preventDefault();e.stopPropagation();selKey=kid;rr();rpr();
   const k=cp_()?.keys.find(x=>x.id===kid);if(!k)return;
-  const cs=profile.cellSize||60;
+  const cs=profile.cellSize||60,gp=profile.gap||0,cpx=cs+gp;
   const ca=document.getElementById("carea"),cw=ca.clientWidth,ch=ca.clientHeight;
   const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210;
   const scale=Math.min(cw*0.85/dw,ch*0.85/dh);
-  const startX=e.clientX,startY=e.clientY,startW=k.w||1,startH=k.h||1;
-  function mm(ev){const dw_=Math.round((ev.clientX-startX)/(cs*scale)),dh_=Math.round((ev.clientY-startY)/(cs*scale));const nw=Math.max(1,startW+dw_),nh=Math.max(1,startH+dh_);if(nw!==k.w||nh!==k.h){k.w=nw;k.h=nh;dirty=true;rr();selKey=kid}}
+  const startX=e.clientX,startY=e.clientY,startW=k.w||1,startH=k.h||1,startCol=k.col||0;
+  function mm(ev){
+    const dw_=_snap4((ev.clientX-startX)/(cpx*scale)),dh_=_snap4((ev.clientY-startY)/(cpx*scale));
+    const nw=Math.max(0.25,_snap4(startW+dw_)),nh=Math.max(0.25,_snap4(startH+dh_));
+    const ncol=ev.shiftKey?_snap4(startCol-dw_):startCol;
+    if(!_collides(kid,ncol,k.row||0,nw,nh)&&(nw!==k.w||nh!==k.h||ncol!==k.col)){k.col=ncol;k.w=nw;k.h=nh;dirty=true;rr();selKey=kid}
+  }
   function mu(){document.removeEventListener("mousemove",mm);document.removeEventListener("mouseup",mu)}
   document.addEventListener("mousemove",mm);document.addEventListener("mouseup",mu);
 }
 
-// ── Dblclick to add key ──
+// ── Dblclick to add key (0.25 snap) ──
 document.getElementById("carea").addEventListener("dblclick",e=>{
   if(e.target.closest(".ck"))return;
   const ca=document.getElementById("carea"),rect=ca.getBoundingClientRect(),cw=ca.clientWidth,ch=ca.clientHeight;
-  const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60;
+  const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60,gp=profile.gap||0;
+  const cpx=cs+gp;
   const scale=Math.min(cw*0.85/dw,ch*0.85/dh);
-  const padX=dw/(2*cs),padY=dh/(2*cs);
-  const col=Math.round((e.clientX-rect.left-cw/2)/(cs*scale)-panX);
-  const row=Math.round((e.clientY-rect.top-ch/2)/(cs*scale)-panY);
+  const offsetX=(cw-dw*scale)/2,offsetY=(ch-dh*scale)/2;
+  const deviceX=(e.clientX-rect.left-offsetX)/scale;
+  const deviceY=(e.clientY-rect.top-offsetY)/scale;
+  const col=_snap4((deviceX-dw/2)/cpx-panX);
+  const row=_snap4((deviceY-dh/2)/cpx-panY);
   const page=cp_();if(!page)return;
   page.keys.push({id:"k_"+Date.now(),label:"?",action:"key",value:"A",color:"#0f3460",col,row,w:1,h:1,sound:""});
   selKey=page.keys[page.keys.length-1].id;dirty=true;rr();rpr();
@@ -235,10 +253,10 @@ function rpr(){
     '<label>Value</label><input value="'+h(key.value||"")+'" onchange="upk(\'value\',this.value)"><div class="hint">A, TAB, COMMAND+T</div>'+
     '<label>Color</label><input type="color" value="'+(key.color||"#0f3460")+'" onchange="upk(\'color\',this.value)">'+
     '<label>Sound</label><select onchange="upk(\'sound\',this.value)"><option value=""'+(!key.sound?" selected":"")+'>Inherit</option><option value="none"'+(key.sound==="none"?" selected":"")+'>None</option><option value="click"'+(key.sound==="click"?" selected":"")+'>Click</option><option value="soft"'+(key.sound==="soft"?" selected":"")+'>Soft</option><option value="mechanical"'+(key.sound==="mechanical"?" selected":"")+'>Mechanical</option><option value="deep"'+(key.sound==="deep"?" selected":"")+'>Deep</option></select>'+
-    '<div class="rw" style="margin-top:8px"><div><label>Width</label><div class="stepper"><button onclick="upk(\'w\','+(kw-1)+')">−</button><span>'+kw+'</span><button onclick="upk(\'w\','+(kw+1)+')">+</button></div></div><div><label>Height</label><div class="stepper"><button onclick="upk(\'h\','+(kh-1)+')">−</button><span>'+kh+'</span><button onclick="upk(\'h\','+(kh+1)+')">+</button></div></div></div>'+
+    '<div class="rw" style="margin-top:8px"><div><label>Width</label><div class="stepper"><button onclick="upk(\'w\','+_snap4(kw-0.25)+')">−</button><span>'+kw.toFixed(2)+'</span><button onclick="upk(\'w\','+_snap4(kw+0.25)+')">+</button></div></div><div><label>Height</label><div class="stepper"><button onclick="upk(\'h\','+_snap4(kh-0.25)+')">−</button><span>'+kh.toFixed(2)+'</span><button onclick="upk(\'h\','+_snap4(kh+0.25)+')">+</button></div></div></div>'+
     '<div class="br"><button class="btn-del" onclick="dkey()">Delete</button></div>';
 }
-function upk(prop,val){const key=cp_()?.keys.find(k=>k.id===selKey);if(!key)return;if(prop==="w"||prop==="h")val=Math.max(1,parseInt(val)||1);key[prop]=val;dirty=true;rr();rpr()}
+function upk(prop,val){const key=cp_()?.keys.find(k=>k.id===selKey);if(!key)return;if(prop==="w"||prop==="h")val=Math.max(0.25,_snap4(parseFloat(val)||1));key[prop]=val;dirty=true;rr();rpr()}
 function dkey(){if(!selKey||!confirm("Delete?"))return;const p=cp_();p.keys=p.keys.filter(k=>k.id!==selKey);selKey=null;dirty=true;renderAll()}
 
 // ── Sound ──

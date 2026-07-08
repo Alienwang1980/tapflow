@@ -6,6 +6,7 @@ __pycache__/
 dist/
 build/
 server/profiles/*.json
+!server/profiles/_default_template.json
 server/venv/
 logs/
 dist/

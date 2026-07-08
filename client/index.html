@@ -63,21 +63,22 @@ function render(){
   const canvas=document.getElementById("canvas");
   canvas.style.width=dw+"px";canvas.style.height=dh+"px";
 
-  // Render keys at fixed device coordinates
-  const padX=dw/(2*cs),padY=dh/(2*cs);
+  // Render keys at fixed device coordinates (0.25 grid + gap)
+  const gp=profile.gap||0;
+  const cpx=cs+gp;
   canvas.innerHTML="";
   let vis=0;
   pg.keys.forEach(k=>{
-    const px=cs*1;
-    const x=(k.col+padX+cx)*px;
-    const y=(k.row+padY+cy)*px;
-    const kw=k.w*px-3,kh=k.h*px-3;
+    const w=k.w||1,h=k.h||1;
+    const x=(k.col+cx)*cpx+dw/2;
+    const y=(k.row+cy)*cpx+dh/2;
+    const kw=w*cs+(w-1)*gp-3,kh=h*cs+(h-1)*gp-3;
     if(x+kw>0&&y+kh>0&&x<dw&&y<dh)vis++;
     const el=document.createElement("div");el.className="key-btn";el.dataset.keyId=k.id;
     el.style.cssText=`left:${x}px;top:${y}px;width:${kw}px;height:${kh}px;background:${k.color||'#0f3460'};font-size:${Math.max(8,cs*0.25)}px`;
     el.textContent=k.label;canvas.appendChild(el);
   });
-  document.getElementById("info").textContent=`keys ${vis}/${pg.keys.length} | ${dw}×${dh} cs${cs} | vw${vw}×${vh}h | scale ${scale.toFixed(3)} | cx${cx.toFixed(1)} cy${cy.toFixed(1)}`;
+  document.getElementById("info").textContent=`keys ${vis}/${pg.keys.length} | ${dw}×${dh} cs${cs} gap${gp} | vw${vw}×${vh}h | scale ${scale.toFixed(3)} | cx${cx.toFixed(1)} cy${cy.toFixed(1)}`;
 }
 
 window.addEventListener("resize",render);
