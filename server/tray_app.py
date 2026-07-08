@@ -33,18 +33,10 @@ def get_local_ip() -> str:
 
 
 def check_accessibility() -> bool:
-    """Check and prompt for Accessibility permission."""
+    """Check Accessibility permission (silent — no system prompt)."""
     try:
-        from ApplicationServices import AXIsProcessTrusted, AXIsProcessTrustedWithOptions
-        if AXIsProcessTrusted():
-            return True
-        # This triggers the system prompt
-        opts = __import__('CoreFoundation').CFDictionaryCreate(
-            None, ["AXTrustedCheckOptionPrompt"], [True], 1,
-            __import__('CoreFoundation').kCFTypeDictionaryKeyCallBacks,
-            __import__('CoreFoundation').kCFTypeDictionaryValueCallBacks
-        )
-        return AXIsProcessTrustedWithOptions(opts)
+        from ApplicationServices import AXIsProcessTrusted
+        return AXIsProcessTrusted()
     except ImportError:
         return False
 
