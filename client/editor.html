@@ -46,17 +46,13 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 .rp .br button{flex:1;padding:5px;font-size:11px;cursor:pointer;border-radius:3px}.rp .btn-del{background:var(--red);color:#fff;border:none}
 .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:6px 16px;border-radius:5px;font-size:12px;z-index:999;opacity:0;transition:opacity 0.3s}.toast.show{opacity:1}
 .ftb{position:absolute;display:flex;align-items:center;gap:4px;height:20px;z-index:10;pointer-events:none}.ftb>*{pointer-events:auto}.ftb select{background:rgba(15,52,96,0.85);color:#eee;border:1px solid var(--accent);border-radius:2px;padding:0 4px;font-size:9px;cursor:pointer}.ftb .btn-ori{background:rgba(15,52,96,0.85);color:#eee;border:1px solid var(--accent);border-radius:2px;padding:0 5px;font-size:9px;cursor:pointer;white-space:nowrap}
-.ftb{position:absolute;display:flex;align-items:center;gap:4px;height:20px;z-index:10;pointer-events:none}.ftb>*{pointer-events:auto}.ftb select{background:rgba(15,52,96,0.85);color:#eee;border:1px solid var(--accent);border-radius:2px;padding:0 4px;font-size:9px;cursor:pointer}.ftb .btn-ori{background:rgba(15,52,96,0.85);color:#eee;border:1px solid var(--accent);border-radius:2px;padding:0 5px;font-size:9px;cursor:pointer;white-space:nowrap}
+
 .info{position:fixed;bottom:4px;left:4px;color:#fff;font-size:10px;z-index:999;background:rgba(0,0,0,0.85);padding:5px 8px;border-radius:4px;user-select:text;-webkit-user-select:text;max-width:95vw}
 </style></head>
 <body>
 <div class="tb">
   <h1>Smart <span>Touch</span> Editor</h1>
   <span class="conn off" id="cs">off</span>
-  <select id="devSel" onchange="onDev()">
-    <option value="iPad 11&quot;">iPad 11"</option><option value="iPad 4:3">iPad 4:3</option>
-    <option value="iPad mini">iPad mini</option><option value="Android 16:10">Android 16:10</option>
-  </select>
   <select id="gs" onchange="if(profile){profile.defaultSound=this.value;dirty=true}" style="font-size:10px">
     <option value="none">None</option><option value="click">Click</option><option value="soft">Soft</option>
     <option value="mechanical">Mechanical</option><option value="deep">Deep</option>
@@ -218,7 +214,6 @@ function rr(){
   if(!profile)return;
   const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60,gp=profile.gap||0;
   const ca=document.getElementById("carea"),cw=ca.clientWidth,ch=ca.clientHeight;
-  document.getElementById("devSel").value=profile.device||"iPad 11\"";
   document.getElementById("gs").value=profile.defaultSound||"none";
   document.getElementById("zv").textContent=cs;
 
@@ -390,10 +385,10 @@ document.addEventListener("mouseup",e=>{
 carea.addEventListener("wheel",e=>{e.preventDefault();zoomBy(e.deltaY>0?-1:1)},{passive:false});
 function zoomBy(d){const nv=Math.max(20,Math.min(200,(profile.cellSize||60)+d));if(nv!==profile.cellSize){profile.cellSize=nv;dirty=true;rr()}}
 function toggleOri(){const t=profile.deviceWidth;profile.deviceWidth=profile.deviceHeight;profile.deviceHeight=t;dirty=true;rr()}
-function onFDev(){const d=DEVS[document.getElementById("fdev").value];if(d&&profile){profile.device=document.getElementById("fdev").value;profile.deviceWidth=d.w;profile.deviceHeight=d.h;document.getElementById("devSel").value=document.getElementById("fdev").value;dirty=true;rr()}}
-function toggleOri(){const t=profile.deviceWidth;profile.deviceWidth=profile.deviceHeight;profile.deviceHeight=t;dirty=true;rr()}
-function onFDev(){const d=DEVS[document.getElementById("fdev").value];if(d&&profile){profile.device=document.getElementById("fdev").value;profile.deviceWidth=d.w;profile.deviceHeight=d.h;document.getElementById("devSel").value=document.getElementById("fdev").value;dirty=true;rr()}}
-function onDev(){const d=DEVS[document.getElementById("devSel").value];if(d&&profile){profile.device=document.getElementById("devSel").value;profile.deviceWidth=d.w;profile.deviceHeight=d.h;document.getElementById("fdev").value=document.getElementById("devSel").value;dirty=true;rr()}}
+function onFDev(){const d=DEVS[document.getElementById("fdev").value];if(d&&profile){profile.device=document.getElementById("fdev").value;profile.deviceWidth=d.w;profile.deviceHeight=d.h;dirty=true;rr()}}
+
+
+function onDev(){} // removed — use onFDev from frame toolbar
 
 // ── Props ──
 function rpr(){
