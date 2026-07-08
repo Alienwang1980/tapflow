@@ -286,31 +286,40 @@ function rr(){
 function grResizeStart(e,corner){
   e.preventDefault();e.stopPropagation();
   var page=cp_();if(!page)return;
+  var cs2=profile.cellSize||60,gp2=profile.gap||0,cpx2=cs2+gp2;
+  var ca2=document.getElementById("carea"),cw2=ca2.clientWidth,ch2=ca2.clientHeight;
+  var dw2=profile.deviceWidth||834,dh2=profile.deviceHeight||1210;
+  var scale2=Math.min(cw2*0.85/dw2,ch2*0.85/dh2);
   var startX=e.clientX,startY=e.clientY;
-  var before=page.keys.filter(function(k){return selKeys.has(k.id)}).map(function(k){return _snapshot(k)});
+  var orig=page.keys.filter(function(k){return selKeys.has(k.id)}).map(function(k){var s=_snapshot(k);s.col=s.col||0;s.row=s.row||0;s.w=s.w||1;s.h=s.h||1;return s});
+  var oMinX=Infinity,oMinY=Infinity,oMaxX=-Infinity,oMaxY=-Infinity;
+  orig.forEach(function(k){
+    if(k.col<oMinX)oMinX=k.col;if(k.row<oMinY)oMinY=k.row;
+    if(k.col+k.w>oMaxX)oMaxX=k.col+k.w;if(k.row+k.h>oMaxY)oMaxY=k.row+k.h;
+  });
+  var oW=oMaxX-oMinX,oH=oMaxY-oMinY;
   function mm(ev){
-    var cs2=profile.cellSize||60,gp2=profile.gap||0,cpx2=cs2+gp2;
-    var ca2=document.getElementById("carea"),cw2=ca2.clientWidth,ch2=ca2.clientHeight;
-    var dw2=profile.deviceWidth||834,dh2=profile.deviceHeight||1210;
-    var scale2=Math.min(cw2*0.85/dw2,ch2*0.85/dh2);
     var dx=(ev.clientX-startX)/(cpx2*scale2),dy=(ev.clientY-startY)/(cpx2*scale2);
-    // Scale all selected keys around the opposite corner
+    var sX=1,sY=1,aX=0,aY=0;
+    if(corner==="grh_tl"){aX=oMaxX;aY=oMaxY;sX=Math.max(0.1,(oW-dx)/oW);sY=Math.max(0.1,(oH-dy)/oH)}
+    else if(corner==="grh_tr"){aX=oMinX;aY=oMaxY;sX=Math.max(0.1,(oW+dx)/oW);sY=Math.max(0.1,(oH-dy)/oH)}
+    else if(corner==="grh_bl"){aX=oMaxX;aY=oMinY;sX=Math.max(0.1,(oW-dx)/oW);sY=Math.max(0.1,(oH+dy)/oH)}
+    else{aX=oMinX;aY=oMinY;sX=Math.max(0.1,(oW+dx)/oW);sY=Math.max(0.1,(oH+dy)/oH)}
     page.keys.forEach(function(k){
       if(!selKeys.has(k.id))return;
-      var col=k.col||0,row=k.row||0,w=k.w||1,h=k.h||1;
-      var oldBefore=JSON.parse(JSON.stringify(before.find(function(b){return b.id===k.id})));
-      if(!oldBefore)return;
-      if(corner==="grh_tl"){k.col=_snap4(oldBefore.col+dx);k.row=_snap4(oldBefore.row+dy);k.w=_snap4(Math.max(0.25,oldBefore.w-dx));k.h=_snap4(Math.max(0.25,oldBefore.h-dy))}
-      else if(corner==="grh_tr"){k.row=_snap4(oldBefore.row+dy);k.w=_snap4(Math.max(0.25,oldBefore.w+dx));k.h=_snap4(Math.max(0.25,oldBefore.h-dy))}
-      else if(corner==="grh_bl"){k.col=_snap4(oldBefore.col+dx);k.w=_snap4(Math.max(0.25,oldBefore.w-dx));k.h=_snap4(Math.max(0.25,oldBefore.h+dy))}
-      else if(corner==="grh_br"){k.w=_snap4(Math.max(0.25,oldBefore.w+dx));k.h=_snap4(Math.max(0.25,oldBefore.h+dy))}
+      var o=orig.find(function(x){return x.id===k.id});if(!o)return;
+      if(corner==="grh_tl"){k.col=_snap4(aX-(aX-o.col)*sX);k.row=_snap4(aY-(aY-o.row)*sY)}
+      else if(corner==="grh_tr"){k.col=_snap4(aX+(o.col-aX)*sX);k.row=_snap4(aY-(aY-o.row)*sY)}
+      else if(corner==="grh_bl"){k.col=_snap4(aX-(aX-o.col)*sX);k.row=_snap4(aY+(o.row-aY)*sY)}
+      else{k.col=_snap4(aX+(o.col-aX)*sX);k.row=_snap4(aY+(o.row-aY)*sY)}
+      k.w=_snap4(Math.max(0.25,o.w*sX));k.h=_snap4(Math.max(0.25,o.h*sY));
     });
     dirty=true;rr();
   }
   function mu(){
     document.removeEventListener("mousemove",mm);document.removeEventListener("mouseup",mu);
-    var now=cp_().keys.filter(function(k){return selKeys.has(k.id)}).map(function(k){return _snapshot(k)});
-    if(JSON.stringify(before)!==JSON.stringify(now))_pushUndo(before);
+    var now=page.keys.filter(function(k){return selKeys.has(k.id)}).map(function(k){return _snapshot(k)});
+    if(JSON.stringify(orig)!==JSON.stringify(now))_pushUndo(orig);
   }
   document.addEventListener("mousemove",mm);document.addEventListener("mouseup",mu);
 }
@@ -416,7 +425,7 @@ document.getElementById("carea").addEventListener("dblclick",e=>{
 // ── Carea: left=select rect, right=pan ──
 const carea=document.getElementById("carea");
 carea.addEventListener("mousedown",e=>{
-  if(e.button===0&&!e.target.closest(".ck")){
+  if(e.button===0&&!e.target.closest(".ck")&&!e.target.closest(".grh")){
     selecting=true;
     srSX=e.clientX;srSY=e.clientY;srCX=e.clientX;srCY=e.clientY;
     if(!e.shiftKey){selKeys.clear();selKey=null;rr();rpr()}
@@ -479,7 +488,7 @@ function onDev(){} // removed — use onFDev from frame toolbar
 // ── Props ──
 function rpr(){
   if(selKeys.size>1){
-    document.getElementById("pc").innerHTML="<p style=\"font-size:11px;color:var(--dim);margin-bottom:6px\">"+selKeys.size+" keys selected</p>"+ "<label>Label (all)</label><input value=\"\" onchange=\"upkGroup('label',this.value)\" placeholder=\"Set label\">"+ "<label>Color (all)</label><input type=color value=\"#0f3460\" onchange=\"upkGroup('color',this.value)\">"+ "<label>Sound (all)</label><select onchange=\"upkGroup('sound',this.value)\"><option value=\"\">Inherit</option><option value=\"none\">None</option><option value=\"click\">Click</option><option value=\"soft\">Soft</option><option value=\"mechanical\">Mech</option><option value=\"deep\">Deep</option></select>"+ "<label>Font (all)</label><select onchange=\"upkGroup('fontFamily',this.value)\"><option value=\"\">Inherit</option><option value=\"monospace\">Mono</option><option value=\"serif\">Serif</option><option value=\"sans-serif\">Sans</option></select>"+ "<label>Border (all)</label><input type=range min=0 max=20 value=5 onchange=\"upkGroup('borderRadius',parseInt(this.value))\">"+ "<div class=\"br\" style=\"margin-top:4px\"><button class=\"btn-del\" onclick=\"delSelected()\">Delete Selected</button></div>";
+    document.getElementById("pc").innerHTML="<p style=\"font-size:11px;color:var(--dim);margin-bottom:6px\">"+selKeys.size+" keys selected</p>"+"<label>Label <small style=\"color:var(--dim)\">(inactive)</small></label><input disabled style=\"opacity:0.4;width:100%;padding:4px 6px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:3px;font-size:11px\">"+"<label>Color (all)</label><input type=color value=\"#0f3460\" onchange=\"upkGroup('color',this.value)\">"+"<label>Sound (all)</label><select onchange=\"upkGroup('sound',this.value)\"><option value=\"\">Inherit</option><option value=\"none\">None</option><option value=\"click\">Click</option><option value=\"soft\">Soft</option><option value=\"mechanical\">Mech</option><option value=\"deep\">Deep</option></select>"+"<label>Border (all)</label><input type=range min=0 max='"+Math.floor(cs/2)+"' value=5 onchange=\"upkGroup('borderRadius',parseInt(this.value))\">"+"<label>Width (all) ±0.25</label><div class=\"stepper\" style=\"margin:4px 0\"><button onclick=\"upkGroupStep('w',-0.25)\">−</button><span>0.25</span><button onclick=\"upkGroupStep('w',0.25)\">+</button></div>"+"<label>Height (all) ±0.25</label><div class=\"stepper\" style=\"margin:4px 0\"><button onclick=\"upkGroupStep('h',-0.25)\">−</button><span>0.25</span><button onclick=\"upkGroupStep('h',0.25)\">+</button></div>"+"<div class=\"br\" style=\"margin-top:4px\"><button class=\"btn-del\" onclick=\"delSelected()\">Delete Selected</button></div>";
     return;
   }
   const key=selKey?cp_()?.keys.find(k=>k.id===selKey):null;
@@ -495,6 +504,52 @@ function rpr(){
     '<button onclick="openMM(' + "'" + selKey + "'" + ')" style="width:100%;padding:5px;margin-bottom:4px;font-size:11px;cursor:pointer;background:rgba(233,69,96,0.2);color:var(--accent);border:1px solid var(--accent);border-radius:3px">Record Macro</button><div class="br" style="margin-top:4px"><button class="btn-del" onclick="dkey()">Delete</button></div>';
 }
 function upk(prop,val){const key=cp_()?.keys.find(k=>k.id===selKey);if(!key)return;const before=_snapshot(key);if(prop==="w"||prop==="h")val=Math.max(0.25,_snap4(parseFloat(val)||1));key[prop]=val;dirty=true;if(JSON.stringify(before)!==JSON.stringify(_snapshot(key))){_pushUndo([before])}rr();rpr()}
+function upkGroupStep(prop,delta){
+  var page=cp_();if(!page)return;
+  var before=page.keys.filter(function(k){return selKeys.has(k.id)}).map(function(k){return _snapshot(k)});
+  var isW=prop==="w";
+  // Add delta
+  page.keys.forEach(function(k){
+    if(!selKeys.has(k.id))return;
+    var o=before.find(function(x){return x.id===k.id});if(!o)return;
+    if(isW){k.w=_snap4(Math.max(0.25,o.w+delta))}else{k.h=_snap4(Math.max(0.25,o.h+delta))}
+  });
+  // Group by perpendicular overlap (not exact equality)
+  var used={};var groups=[];
+  before.forEach(function(o){
+    if(used[o.id])return;
+    var grp=[o];used[o.id]=true;
+    var changed=true;
+    while(changed){ // expand group: include all keys that overlap any key in group
+      changed=false;
+      before.forEach(function(p){
+        if(used[p.id])return;
+        for(var gi=0;gi<grp.length;gi++){
+          var g=grp[gi];
+          var overlap=isW?!(g.row+g.h<=p.row||p.row+p.h<=g.row):!(g.col+g.w<=p.col||p.col+p.w<=g.col);
+          if(overlap){grp.push(p);used[p.id]=true;changed=true;break}
+        }
+      });
+    }
+    groups.push(grp);
+  });
+  // Within each group, sort and shift
+  for(var g=0;g<groups.length;g++){
+    var arr=groups[g].sort(function(a,b){return isW?(a.col-b.col):(a.row-b.row)});
+    for(var i=0;i<arr.length;i++){
+      var k=page.keys.find(function(x){return x.id===arr[i].id});if(!k)continue;
+      if(isW){k.col=arr[i].col}else{k.row=arr[i].row}
+      if(i===0)continue;
+      var prevO=arr[i-1],prevK=page.keys.find(function(x){return x.id===prevO.id});
+      var prevEdge=isW?(prevK.col+prevK.w):(prevK.row+prevK.h);
+      var origEdge=isW?(prevO.col+prevO.w):(prevO.row+prevO.h);
+      var origStart=isW?arr[i].col:arr[i].row;
+      var g2=origStart-origEdge;
+      if(g2>=0){if(isW){k.col=_snap4(prevEdge+g2)}else{k.row=_snap4(prevEdge+g2)}}
+    }
+  }
+  _pushUndo(before);dirty=true;rr();rpr();
+}
 function upkGroup(prop,val){const page=cp_();if(!page)return;const before=page.keys.filter(k=>selKeys.has(k.id)).map(k=>_snapshot(k));selKeys.forEach(kid=>{const k=page.keys.find(x=>x.id===kid);if(k){if(prop==="w"||prop==="h")val=Math.max(0.25,_snap4(parseFloat(val)||1));k[prop]=val}});_pushUndo(before);dirty=true;rr();rpr();}
 function buildCombo(){let v="";if(document.getElementById("cb_cmd")?.checked)v+="COMMAND+";if(document.getElementById("cb_opt")?.checked)v+="OPTION+";if(document.getElementById("cb_ctl")?.checked)v+="CONTROL+";if(document.getElementById("cb_sft")?.checked)v+="SHIFT+";v+=document.getElementById("cb_key")?.value||"";const kv=document.getElementById("kv");if(kv)kv.value=v;upk("value",v)}
 
