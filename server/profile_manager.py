@@ -65,7 +65,8 @@ def migrate_key_positions(profile: dict) -> dict:
             key.setdefault("row", 0)
             key.setdefault("w", 1)
             key.setdefault("h", 1)
-            key.setdefault("sound", "")
+            key.setdefault("sound", "");
+            key.setdefault("action", "turbo")
             key.setdefault("color", "#0f3460");
             key.setdefault("groupId", None)
     return profile

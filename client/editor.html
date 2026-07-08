@@ -13,8 +13,8 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 .tb select,.tb button{padding:3px 8px;border-radius:3px;border:1px solid var(--border);cursor:pointer;font-size:11px;background:var(--card);color:var(--text)}
 .tb .btn-save{background:var(--green);color:#fff;border-color:var(--green)}
 .tb .btn-new{background:#555;color:#fff}
-.tb .btn-group{background:rgba(233,161,69,0.3);color:var(--group);border-color:var(--group)}
-.tb .sep{width:1px;height:20px;background:var(--border);margin:0 2px}
+
+
 .main{display:flex;flex:1;overflow:hidden}
 .side{width:200px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);overflow-y:auto}
 .side h3{font-size:10px;text-transform:uppercase;color:var(--dim);padding:8px 8px 2px;letter-spacing:1px}
@@ -29,7 +29,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 .canvas{position:relative;border:2px solid var(--accent);box-shadow:0 0 20px rgba(233,69,96,0.3);background:rgba(0,0,0,0.15)}
 .ck{position:absolute;background:var(--card);border:2px solid transparent;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;cursor:grab;transition:border-color 0.1s;user-select:none;overflow:hidden}
 .ck:hover{border-color:rgba(255,255,255,0.4)}.ck.sel{border-color:var(--accent);box-shadow:0 0 8px rgba(233,69,96,0.5);cursor:default}
-.ck.grouped{border-style:dashed;border-color:var(--group)}
+
 .ck .kl{pointer-events:none;text-align:center;line-height:1.2;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .ck .sz{position:absolute;top:1px;right:3px;font-size:8px;color:rgba(255,255,255,0.4);pointer-events:none}
 .ck .rh{position:absolute;bottom:0;right:0;width:12px;height:12px;cursor:se-resize;opacity:0;background:linear-gradient(135deg,transparent 50%,rgba(255,255,255,0.4) 50%);border-radius:0 0 4px 0}
@@ -60,10 +60,6 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
   <button class="btn-save" onclick="saveProfile()">Save & Sync</button>
   <button class="btn-new" onclick="resetDefault()">Reset Default</button>
   <button class="btn-new" onclick="saveAs()">Save As</button>
-  <span class="sep"></span>
-  <button class="btn-group" onclick="groupSelected()" title="Group (Ctrl+G)">Group</button>
-  <button class="btn-group" onclick="ungroupSelected()" title="Ungroup (Ctrl+Shift+G)">Ungroup</button>
-  <span class="sep"></span>
   <button onclick="undo()" title="Undo (Ctrl+Z)">↩</button>
   <button onclick="redo()" title="Redo (Ctrl+Shift+Z)">↪</button>
 </div>
@@ -82,7 +78,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
   <div class="sr" id="sr"></div>
   <div class="cwrap" id="cwrap"><div class="canvas" id="canvas"></div></div>
 </div>
-<div class="rp"><h3>Key Properties</h3><div id="pc"><p style="font-size:11px;color:var(--dim)">Click key to edit</p></div></div>
+<div class="rp"><h3>Key Properties</h3><div id="pc"><p style="font-size:11px;color:var(--dim)">Click key to edit</p></div><h3 style="margin-top:16px">Groups</h3><div id="grpl"><p style="font-size:10px;color:var(--dim)">Select keys → Save as Group</p></div></div>
 </div>
 <div class="toast" id="toast"></div>
 <div class="info" id="edinfo"></div>
@@ -142,6 +138,9 @@ function groupSelected(){
   page.keys.forEach(k=>{if(selKeys.has(k.id))k.groupId=gid});
   _pushUndo(before);dirty=true;rr();rpr();
 }
+function rgrp(){const groups=profile?.groups||[];document.getElementById("grpl").innerHTML=groups.length?groups.map(g=>"<div class=\"it\" onclick=\"selectGroup('"+g.id+"')\">"+hesc(g.name)+"<span class=\"x\" onclick=\"event.stopPropagation();ungroupById('"+g.id+"')\">×</span></div>").join(""):"<p style=\"font-size:10px;color:var(--dim)\">Select keys → Save as Group</p>";}function saveAsGroup(){const name=prompt("Group name:","Group "+((profile.groups?.length||0)+1));if(!name||!name.trim())return;const gid="g_"+Date.now();if(!profile.groups)profile.groups=[];profile.groups.push({id:gid,name:name.trim()});const before=cp_().keys.filter(k=>selKeys.has(k.id)).map(k=>_snapshot(k));cp_().keys.forEach(k=>{if(selKeys.has(k.id))k.groupId=gid});_pushUndo(before);dirty=true;renderAll();}
+function selectGroup(gid){selKeys.clear();selKey=null;cp_().keys.forEach(k=>{if(k.groupId===gid)selKeys.add(k.id)});rr();rpr();}
+function ungroupById(gid){if(!confirm("Ungroup?"))return;const before=cp_().keys.filter(k=>k.groupId===gid).map(k=>_snapshot(k));cp_().keys.forEach(k=>{if(k.groupId===gid)k.groupId=null});profile.groups=profile.groups.filter(g=>g.id!==gid);_pushUndo(before);dirty=true;renderAll();}
 function ungroupSelected(){
   const page=cp_();if(!page)return;
   const gids=new Set();selKeys.forEach(id=>{const k=page.keys.find(x=>x.id===id);if(k&&k.groupId)gids.add(k.groupId)});
@@ -189,7 +188,7 @@ async function renameProfile(fn){const nm=prompt("Rename profile:",fn.replace(".
 async function copyProfile(fn){const r=await fetch("/api/profiles/"+fn);const p=await r.json();p.profileName=(p.profileName||fn.replace(".json",""))+" (Copy)";const r2=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)});lpl();t("Copied: "+p.profileName)}
 function dpg(pid){if(profile.pages.length<=1)return;profile.pages=profile.pages.filter(p=>p.id!==pid);if(activePage===pid)activePage=profile.pages[0].id;selKey=null;selKeys.clear();dirty=true;renderAll()}
 function cp_(){return profile?.pages.find(p=>p.id===activePage)}
-function renderAll(){rpl();rpgl();rr();rpr()}
+function renderAll(){rpl();rpgl();rr();rpr();rgrp()}
 function rpl(){document.getElementById("pl").innerHTML=profiles.map(p=>'<div class="it'+(p.filename===activeProfile?" ac":"")+'" onclick="lp(\''+p.filename+'\')">'+hesc(p.profileName)+'<span class="x" onclick="event.stopPropagation();dp(\''+p.filename+'\')">×</span></div>').join("")}
 function rpgl(){document.getElementById("pgl").innerHTML=profile?.pages.map(p=>'<div class="it'+(p.id===activePage?" ac":"")+'" onclick="activePage=\''+p.id+'\';selKey=null;selKeys.clear();renderAll()">'+hesc(p.label)+'<span class="x" onclick="event.stopPropagation();dpg(\''+p.id+'\')">×</span></div>').join("")||""}
 
@@ -239,8 +238,7 @@ function rr(){
     const x=(col+panX)*cpx+dw/2,y=(row+panY)*cpx+dh/2;
     const kw=w*cs+(w-1)*gp-3,kh=h*cs+(h-1)*gp-3;
     const sel=(k.id===selKey||selKeys.has(k.id))?" sel":"";
-    const grp=k.groupId?" grouped":"";
-    const el=document.createElement("div");el.className="ck"+sel+grp;el.dataset.kid=k.id;
+    const el=document.createElement("div");el.className="ck"+sel;el.dataset.kid=k.id;
     const br=(k.borderRadius!==undefined?k.borderRadius:5)+'px';const ff=k.fontFamily||'inherit';const fs=(k.fontSize||Math.max(8,cs*0.25))+'px';let bg=k.color||'var(--card)';if(k.bgType==='gradient'&&k.bgGradient){bg=_gradCSS(k.bgGradient,k.color||'#0f3460')}else if(k.bgType==='image'&&k.bgImage){bg='var(--card) url(/'+k.bgImage+') center/cover'};el.style.cssText=`left:${x}px;top:${y}px;width:${kw}px;height:${kh}px;background:${bg};border-radius:${br};font-family:${ff};font-size:${fs}`;
     el.innerHTML='<span class="kl">'+hesc(k.label)+'</span>'+(w>1||h>1?'<span class="sz">'+w.toFixed(2)+'×'+h.toFixed(2)+'</span>':'')+'<div class="rh"></div>';
     el.addEventListener("mousedown",e=>onKeyDown(e,k.id));

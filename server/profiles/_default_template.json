@@ -43,7 +43,7 @@
           "row": -3,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "ESCAPE",
           "color": "#555",
           "sound": ""
@@ -55,7 +55,7 @@
           "row": -3,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "F1",
           "color": "#444",
           "sound": ""
@@ -67,7 +67,7 @@
           "row": -3,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "F2",
           "color": "#444",
           "sound": ""
@@ -79,7 +79,7 @@
           "row": -3,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "F3",
           "color": "#444",
           "sound": ""
@@ -91,7 +91,7 @@
           "row": -3,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "F4",
           "color": "#444",
           "sound": ""
@@ -103,7 +103,7 @@
           "row": -3,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "F5",
           "color": "#444",
           "sound": ""
@@ -115,7 +115,7 @@
           "row": -3,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "F6",
           "color": "#444",
           "sound": ""
@@ -127,7 +127,7 @@
           "row": -3,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "F7",
           "color": "#444",
           "sound": ""
@@ -139,7 +139,7 @@
           "row": -3,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "F8",
           "color": "#444",
           "sound": ""
@@ -151,7 +151,7 @@
           "row": -3,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "F9",
           "color": "#444",
           "sound": ""
@@ -163,7 +163,7 @@
           "row": -3,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "F10",
           "color": "#444",
           "sound": ""
@@ -175,7 +175,7 @@
           "row": -3,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "F11",
           "color": "#444",
           "sound": ""
@@ -187,7 +187,7 @@
           "row": -3,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "F12",
           "color": "#444",
           "sound": ""
@@ -199,7 +199,7 @@
           "row": -2,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "`",
           "color": "#3a3a4a",
           "sound": ""
@@ -211,7 +211,7 @@
           "row": -2,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "1",
           "color": "#3a3a4a",
           "sound": ""
@@ -223,7 +223,7 @@
           "row": -2,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "2",
           "color": "#3a3a4a",
           "sound": ""
@@ -235,7 +235,7 @@
           "row": -2,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "3",
           "color": "#3a3a4a",
           "sound": ""
@@ -247,7 +247,7 @@
           "row": -2,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "4",
           "color": "#3a3a4a",
           "sound": ""
@@ -259,7 +259,7 @@
           "row": -2,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "5",
           "color": "#3a3a4a",
           "sound": ""
@@ -271,7 +271,7 @@
           "row": -2,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "6",
           "color": "#3a3a4a",
           "sound": ""
@@ -283,7 +283,7 @@
           "row": -2,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "7",
           "color": "#3a3a4a",
           "sound": ""
@@ -295,7 +295,7 @@
           "row": -2,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "8",
           "color": "#3a3a4a",
           "sound": ""
@@ -307,7 +307,7 @@
           "row": -2,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "9",
           "color": "#3a3a4a",
           "sound": ""
@@ -319,7 +319,7 @@
           "row": -2,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "0",
           "color": "#3a3a4a",
           "sound": ""
@@ -331,7 +331,7 @@
           "row": -2,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "-",
           "color": "#3a3a4a",
           "sound": ""
@@ -343,7 +343,7 @@
           "row": -2,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "=",
           "color": "#3a3a4a",
           "sound": ""
@@ -355,7 +355,7 @@
           "row": -2,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "DELETE",
           "color": "#555",
           "sound": ""
@@ -367,7 +367,7 @@
           "row": -1,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "TAB",
           "color": "#555",
           "sound": ""
@@ -379,7 +379,7 @@
           "row": -1,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "Q",
           "color": "#3a3a4a",
           "sound": ""
@@ -391,7 +391,7 @@
           "row": -1,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "W",
           "color": "#3a3a4a",
           "sound": ""
@@ -403,7 +403,7 @@
           "row": -1,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "E",
           "color": "#3a3a4a",
           "sound": ""
@@ -415,7 +415,7 @@
           "row": -1,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "R",
           "color": "#3a3a4a",
           "sound": ""
@@ -427,7 +427,7 @@
           "row": -1,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "T",
           "color": "#3a3a4a",
           "sound": ""
@@ -439,7 +439,7 @@
           "row": -1,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "Y",
           "color": "#3a3a4a",
           "sound": ""
@@ -451,7 +451,7 @@
           "row": -1,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "U",
           "color": "#3a3a4a",
           "sound": ""
@@ -463,7 +463,7 @@
           "row": -1,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "I",
           "color": "#3a3a4a",
           "sound": ""
@@ -475,7 +475,7 @@
           "row": -1,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "O",
           "color": "#3a3a4a",
           "sound": ""
@@ -487,7 +487,7 @@
           "row": -1,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "P",
           "color": "#3a3a4a",
           "sound": ""
@@ -499,7 +499,7 @@
           "row": -1,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "[",
           "color": "#3a3a4a",
           "sound": ""
@@ -511,7 +511,7 @@
           "row": -1,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "]",
           "color": "#3a3a4a",
           "sound": ""
@@ -523,7 +523,7 @@
           "row": -1,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "\\",
           "color": "#3a3a4a",
           "sound": ""
@@ -535,7 +535,7 @@
           "row": 0,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "hold",
           "value": "CAPSLOCK",
           "color": "#555",
           "sound": ""
@@ -547,7 +547,7 @@
           "row": 0,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "A",
           "color": "#3a3a4a",
           "sound": ""
@@ -559,7 +559,7 @@
           "row": 0,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "S",
           "color": "#3a3a4a",
           "sound": ""
@@ -571,7 +571,7 @@
           "row": 0,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "D",
           "color": "#3a3a4a",
           "sound": ""
@@ -583,7 +583,7 @@
           "row": 0,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "F",
           "color": "#3a3a4a",
           "sound": ""
@@ -595,7 +595,7 @@
           "row": 0,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "G",
           "color": "#3a3a4a",
           "sound": ""
@@ -607,7 +607,7 @@
           "row": 0,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "H",
           "color": "#3a3a4a",
           "sound": ""
@@ -619,7 +619,7 @@
           "row": 0,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "J",
           "color": "#3a3a4a",
           "sound": ""
@@ -631,7 +631,7 @@
           "row": 0,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "K",
           "color": "#3a3a4a",
           "sound": ""
@@ -643,7 +643,7 @@
           "row": 0,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "L",
           "color": "#3a3a4a",
           "sound": ""
@@ -655,7 +655,7 @@
           "row": 0,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": ";",
           "color": "#3a3a4a",
           "sound": ""
@@ -667,7 +667,7 @@
           "row": 0,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "'",
           "color": "#3a3a4a",
           "sound": ""
@@ -679,7 +679,7 @@
           "row": 0,
           "w": 2,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "RETURN",
           "color": "#3a7ca5",
           "sound": ""
@@ -691,7 +691,7 @@
           "row": 1,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "hold",
           "value": "SHIFT",
           "color": "#555",
           "sound": ""
@@ -703,7 +703,7 @@
           "row": 1,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "Z",
           "color": "#3a3a4a",
           "sound": ""
@@ -715,7 +715,7 @@
           "row": 1,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "X",
           "color": "#3a3a4a",
           "sound": ""
@@ -727,7 +727,7 @@
           "row": 1,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "C",
           "color": "#3a3a4a",
           "sound": ""
@@ -739,7 +739,7 @@
           "row": 1,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "V",
           "color": "#3a3a4a",
           "sound": ""
@@ -751,7 +751,7 @@
           "row": 1,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "B",
           "color": "#3a3a4a",
           "sound": ""
@@ -763,7 +763,7 @@
           "row": 1,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "N",
           "color": "#3a3a4a",
           "sound": ""
@@ -775,7 +775,7 @@
           "row": 1,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "M",
           "color": "#3a3a4a",
           "sound": ""
@@ -787,7 +787,7 @@
           "row": 1,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": ",",
           "color": "#3a3a4a",
           "sound": ""
@@ -799,7 +799,7 @@
           "row": 1,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": ".",
           "color": "#3a3a4a",
           "sound": ""
@@ -811,7 +811,7 @@
           "row": 1,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "/",
           "color": "#3a3a4a",
           "sound": ""
@@ -823,19 +823,19 @@
           "row": 1,
           "w": 2,
           "h": 1,
-          "action": "key",
+          "action": "hold",
           "value": "SHIFT",
           "color": "#555",
           "sound": ""
         },
         {
           "id": "up",
-          "label": "\u2191",
+          "label": "↑",
           "col": 7,
           "row": 1,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "UP",
           "color": "#555",
           "sound": ""
@@ -847,43 +847,43 @@
           "row": 2,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "F13",
           "color": "#555",
           "sound": ""
         },
         {
           "id": "lctrl",
-          "label": "\u2303",
+          "label": "⌃",
           "col": -5,
           "row": 2,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "hold",
           "value": "CONTROL",
           "color": "#555",
           "sound": ""
         },
         {
           "id": "lopt",
-          "label": "\u2325",
+          "label": "⌥",
           "col": -4,
           "row": 2,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "hold",
           "value": "OPTION",
           "color": "#555",
           "sound": ""
         },
         {
           "id": "lcmd",
-          "label": "\u2318",
+          "label": "⌘",
           "col": -3,
           "row": 2,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "hold",
           "value": "COMMAND",
           "color": "#555",
           "sound": ""
@@ -895,67 +895,67 @@
           "row": 2,
           "w": 5,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "SPACE",
           "color": "#4a4a5a",
           "sound": ""
         },
         {
           "id": "rcmd",
-          "label": "\u2318",
+          "label": "⌘",
           "col": 3,
           "row": 2,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "hold",
           "value": "COMMAND",
           "color": "#555",
           "sound": ""
         },
         {
           "id": "ropt",
-          "label": "\u2325",
+          "label": "⌥",
           "col": 4,
           "row": 2,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "hold",
           "value": "OPTION",
           "color": "#555",
           "sound": ""
         },
         {
           "id": "left",
-          "label": "\u2190",
+          "label": "←",
           "col": 5,
           "row": 2,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "LEFT",
           "color": "#555",
           "sound": ""
         },
         {
           "id": "down",
-          "label": "\u2193",
+          "label": "↓",
           "col": 6,
           "row": 2,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "DOWN",
           "color": "#555",
           "sound": ""
         },
         {
           "id": "right",
-          "label": "\u2192",
+          "label": "→",
           "col": 7,
           "row": 2,
           "w": 1,
           "h": 1,
-          "action": "key",
+          "action": "turbo",
           "value": "RIGHT",
           "color": "#555",
           "sound": ""
