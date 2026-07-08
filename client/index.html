@@ -5,18 +5,18 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;overflow:hidden;background:#1a1a2e;font-family:-apple-system,sans-serif;color:#eee;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
-.top-bar{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:4px 8px;background:rgba(22,33,62,0.85);height:32px}
+
 .top-bar h1{font-size:13px}.top-bar span{color:#e94560}
-.top-actions{display:flex;gap:4px;align-items:center}
-.top-actions select{background:#0f3460;color:#eee;border:1px solid #2a2a4a;border-radius:4px;padding:2px 6px;font-size:10px;max-width:110px}
-.top-actions button{background:#0f3460;color:#eee;border:1px solid #2a2a4a;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer}
-.sd{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:2px}
-.sd.on{background:#4caf50}.sd.off{background:#f44336}.sd.pending{background:#ff9800;animation:pulse 1s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
-.st{font-size:9px;color:#888}
-.tabs{position:fixed;top:32px;left:0;right:0;z-index:50;display:flex;gap:1px;padding:2px 4px;background:#1a1a2e}
-.tb{padding:2px 7px;border-radius:3px 3px 0 0;background:#16213e;color:#888;border:none;font-size:10px;cursor:pointer}
-.tb.on{background:#0f3460;color:#eee}
+
+
+
+
+
+50%{opacity:0.3}}
+
+
+
+
 /* Canvas container — centered, scaled to fit viewport */
 .canvas-wrap{position:fixed;top:50%;left:50%;transform-origin:center center;z-index:1}
 /* Fixed-size canvas at device dimensions */
@@ -26,13 +26,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#1a1a2e;font-family:
 .info{display:none;position:fixed;bottom:4px;left:4px;color:#fff;font-size:10px;z-index:99;background:rgba(0,0,0,0.85);padding:5px 8px;border-radius:4px;user-select:text;-webkit-user-select:text}
 </style></head>
 <body>
-<div class="top-bar"><h1>Smart <span>Touch</span></h1>
-<div class="top-actions">
-  <select id="ps" onchange="onPC()"></select>
-  <span class="sd pending" id="sd"></span><span class="st" id="stx"></span>
-  <button onclick="showQR()">QR</button>
-</div></div>
-<div class="tabs" id="tabs"></div>
+
+
 <div class="canvas-wrap" id="wrap"><div class="canvas" id="canvas"></div></div>
 <div id="info" class="info"></div>
 <script>
@@ -50,11 +45,11 @@ function conn(){
   const p=location.protocol==="https:"?"wss:":"ws:";
   ws=new WebSocket(p+"//"+location.hostname+":8082/ws");
   ws.onopen=()=>{ss("on");delay=1000};
-  ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==="profile"||m.type==="profile_update"){profile=m.profile;activeProfile=m.filename||activeProfile;activePage=profile.pages.find(p=>p.id===activePage)?activePage:(profile.pages[0]?.id||"");lpls();render()}else if(m.type==="profile_switch"){activePage=m.page||activePage;render()}};
-  ws.onclose=()=>{ss("off");timer=setTimeout(()=>{delay=Math.min(delay*1.5,15000);conn()},delay)};
-  ws.onerror=()=>{ss("off")};
+  ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==="profile"||m.type==="profile_update"){profile=m.profile;activeProfile=m.filename||activeProfile;activePage=profile.pages.find(p=>p.id===activePage)?activePage:(profile.pages[0]?.id||"");render()}else if(m.type==="profile_switch"){activePage=m.page||activePage;render()}};
+  ws.onclose=()=>{timer=setTimeout(()=>{delay=Math.min(delay*1.5,15000);conn()},delay)};
+  ws.onerror=()=>{};
 }
-function ss(cls){document.getElementById("sd").className="sd "+cls;document.getElementById("stx").textContent=cls}
+
 
 // ── Send key ──
 
@@ -107,10 +102,10 @@ window.addEventListener("orientationchange",()=>setTimeout(render,300));
 // ── Load ──
 async function load(){
   try{const r=await fetch("/api/profiles/Default.json");profile=await r.json();activeProfile="Default.json";activePage=profile.pages[0]?.id||"";render()}catch(e){}
-  conn();lpls();
+  conn();
 }
-async function lpls(){try{const r=await fetch("/api/profiles");const d=await r.json();document.getElementById("ps").innerHTML=d.profiles.map(p=>'<option value="'+p.filename+'"'+(p.filename===activeProfile?" selected":"")+'>'+p.profileName+'</option>').join("")}catch(e){}}
-async function onPC(){const fn=document.getElementById("ps").value;try{const r=await fetch("/api/profiles/"+fn);if(!r.ok)return;profile=await r.json();activeProfile=fn;activePage=profile.pages[0]?.id||"";render()}catch(e){}}
-function showQR(){const url="http://"+location.hostname+":8082";prompt("Open:",url)}
+
+
+
 load();
 </script></body></html>
