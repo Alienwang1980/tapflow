@@ -5,7 +5,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;overflow:hidden;background:#1a1a2e;font-family:-apple-system,sans-serif;color:#eee;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
-.top-bar{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:4px 8px;background:rgba(22,33,62,0.95);height:32px}
+.top-bar{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:4px 8px;background:rgba(22,33,62,0.85);height:32px}
 .top-bar h1{font-size:13px}.top-bar span{color:#e94560}
 .top-actions{display:flex;gap:4px;align-items:center}
 .top-actions select{background:#0f3460;color:#eee;border:1px solid #2a2a4a;border-radius:4px;padding:2px 6px;font-size:10px;max-width:110px}
@@ -18,12 +18,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:#1a1a2e;font-family:
 .tb{padding:2px 7px;border-radius:3px 3px 0 0;background:#16213e;color:#888;border:none;font-size:10px;cursor:pointer}
 .tb.on{background:#0f3460;color:#eee}
 /* Canvas container — centered, scaled to fit viewport */
-.canvas-wrap{position:fixed;top:50%;left:50%;transform-origin:0 0;z-index:1}
+.canvas-wrap{position:fixed;top:50%;left:50%;transform-origin:center center;z-index:1}
 /* Fixed-size canvas at device dimensions */
 .canvas{position:relative;overflow:hidden}
 .key-btn{position:absolute;border:none;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:${Math.max(8,cs*0.25)}px;font-weight:500;transition:transform 0.04s;overflow:hidden}
 .key-btn:active,.key-btn.active{transform:scale(0.93)}
-.info{position:fixed;bottom:4px;left:4px;color:#fff;font-size:10px;z-index:99;background:rgba(0,0,0,0.85);padding:5px 8px;border-radius:4px;user-select:text;-webkit-user-select:text}
+.info{display:none;position:fixed;bottom:4px;left:4px;color:#fff;font-size:10px;z-index:99;background:rgba(0,0,0,0.85);padding:5px 8px;border-radius:4px;user-select:text;-webkit-user-select:text}
 </style></head>
 <body>
 <div class="top-bar"><h1>Smart <span>Touch</span></h1>
