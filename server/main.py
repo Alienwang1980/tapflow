@@ -284,6 +284,24 @@ async def save_profile(body: dict):
     return {"status": "saved", "filename": filename}
 
 
+
+@app.put("/api/profiles/{filename:path}/rename")
+async def rename_profile(filename: str, body: dict):
+    """Rename a profile file."""
+    new_name = body.get("newName", "").strip()
+    if not new_name:
+        raise HTTPException(400, "newName required")
+    import os as _os
+    old_path = profiles.dir / filename
+    if not old_path.exists():
+        raise HTTPException(404, f"Profile not found: {filename}")
+    new_filename = new_name + ".json" if not new_name.endswith(".json") else new_name
+    new_path = profiles.dir / new_filename
+    if new_path.exists() and new_path != old_path:
+        raise HTTPException(409, f"Profile already exists: {new_filename}")
+    _os.rename(str(old_path), str(new_path))
+    return {"status": "renamed", "filename": new_filename}
+
 @app.delete("/api/profiles/{filename:path}")
 async def delete_profile(filename: str):
     ok = profiles.delete_profile(filename)

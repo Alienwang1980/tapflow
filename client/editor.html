@@ -34,7 +34,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 .ck .sz{position:absolute;top:1px;right:3px;font-size:8px;color:rgba(255,255,255,0.4);pointer-events:none}
 .ck .rh{position:absolute;bottom:0;right:0;width:12px;height:12px;cursor:se-resize;opacity:0;background:linear-gradient(135deg,transparent 50%,rgba(255,255,255,0.4) 50%);border-radius:0 0 4px 0}
 .ck:hover .rh,.ck.sel .rh{opacity:1}
-.sr{position:absolute;border:1px solid var(--accent);background:rgba(233,69,96,0.15);z-index:5;pointer-events:none;display:none}
+.gh{position:absolute;border:1px dashed rgba(255,255,255,0.3);background:rgba(255,255,255,0.05);pointer-events:none;z-index:2;display:none}.gt{position:absolute;color:rgba(255,255,255,0.5);font-size:10px;pointer-events:none;z-index:2;display:none;white-space:nowrap}.sr{position:absolute;border:1px solid var(--accent);background:rgba(233,69,96,0.15);z-index:5;pointer-events:none;display:none}
 .rp{width:260px;flex-shrink:0;background:var(--panel);border-left:1px solid var(--border);overflow-y:auto;padding:10px}
 .rp h3{font-size:12px;margin-bottom:8px}.rp label{display:block;font-size:10px;color:var(--dim);margin:6px 0 2px}
 .rp input,.rp select{width:100%;padding:4px 6px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:3px;font-size:11px}
@@ -77,6 +77,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
   <div class="stepper" style="padding:4px 8px"><button onclick="zoomBy(-1)">−</button><span id="zv">60</span><button onclick="zoomBy(1)">+</button></div>
 </div>
 <div class="carea" id="carea">
+  <div class="gh" id="gh"></div><div class="gt" id="gt">åå»æ°å»ºæé®</div>
   <div class="ftb" id="ftb"><select id="fdev" onchange="onFDev()"><option value="iPad 11&quot;">iPad 11"</option><option value="iPad 4:3">iPad 4:3</option><option value="iPad mini">iPad mini</option><option value="Android 16:10">Android 16:10</option></select><button class="btn-ori" onclick="toggleOri()" title="Toggle landscape/portrait">&#x21C4;</button></div>
   <div class="sr" id="sr"></div>
   <div class="cwrap" id="cwrap"><div class="canvas" id="canvas"></div></div>
@@ -182,8 +183,10 @@ async function saveProfile(){
 async function dp(fn){if(!confirm("Delete "+fn+"?"))return;await fetch("/api/profiles/"+fn,{method:"DELETE"});if(activeProfile===fn){activeProfile="Default.json";await lp("Default.json")}lpl()}
 async function saveAs(){const nm=prompt("Save as profile name:",profile?profile.profileName:"");if(!nm)return;profile.profileName=nm;profile.canvasX=panX;profile.canvasY=panY;const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(profile)});const d=await r.json();activeProfile=d.filename;dirty=false;lpl();t("Saved as "+d.filename)}
 async function saveAs(){const nm=prompt("Save as profile name:",profile?profile.profileName:"");if(!nm)return;profile.profileName=nm;profile.canvasX=panX;profile.canvasY=panY;const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(profile)});const d=await r.json();activeProfile=d.filename;dirty=false;lpl();t("Saved as "+d.filename)}
-async function cp(){const nm=document.getElementById("npn").value.trim();if(!nm)return;const p={profileName:nm,version:"1.0",device:"iPad 11\"",deviceWidth:834,deviceHeight:1210,cellSize:60,gap:0,canvasX:0,canvasY:0,defaultSound:"click",windowRules:[],pages:[{id:"main",label:"Main",keys:[]}]};const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)});document.getElementById("npn").value="";lpl();lp((await r.json()).filename)}
+async function cp(){const p={profileName:"Untitled",version:"1.0",device:"iPad 11\"",deviceWidth:834,deviceHeight:1210,cellSize:60,gap:0,canvasX:0,canvasY:0,defaultSound:"click",windowRules:[],pages:[{id:"main",label:"Main",keys:[]}],groups:[]};const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)});lpl();lp((await r.json()).filename)}
 function apg(){const lb=document.getElementById("npl").value.trim();if(!lb)return;profile.pages.push({id:"p_"+Date.now(),label:lb,keys:[]});activePage=profile.pages[profile.pages.length-1].id;dirty=true;document.getElementById("npl").value="";renderAll()}
+async function renameProfile(fn){const nm=prompt("Rename profile:",fn.replace(".json",""));if(!nm||!nm.trim())return;const r=await fetch("/api/profiles/"+encodeURIComponent(fn)+"/rename",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({newName:nm.trim()})});if(r.ok){const d=await r.json();if(activeProfile===fn)activeProfile=d.filename;lpl();t("Renamed to "+d.filename)}}
+async function copyProfile(fn){const r=await fetch("/api/profiles/"+fn);const p=await r.json();p.profileName=(p.profileName||fn.replace(".json",""))+" (Copy)";const r2=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)});lpl();t("Copied: "+p.profileName)}
 function dpg(pid){if(profile.pages.length<=1)return;profile.pages=profile.pages.filter(p=>p.id!==pid);if(activePage===pid)activePage=profile.pages[0].id;selKey=null;selKeys.clear();dirty=true;renderAll()}
 function cp_(){return profile?.pages.find(p=>p.id===activePage)}
 function renderAll(){rpl();rpgl();rr();rpr()}
@@ -343,6 +346,22 @@ carea.addEventListener("contextmenu",e=>{e.preventDefault()});
 
 // ── Document mousemove: selection rect or pan ──
 document.addEventListener("mousemove",e=>{
+  if(!selecting&&!panning&&!e.target.closest(".ck")&&profile){
+    const cs=profile.cellSize||60,gp=profile.gap||0,cpx=cs+gp;
+    const ca=document.getElementById("carea"),cw=ca.clientWidth,ch=ca.clientHeight;
+    const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210;
+    const scale=Math.min(cw*0.85/dw,ch*0.85/dh);
+    const c=_scr2cell(e.clientX,e.clientY);const sc=_snap4(c.col),sr=_snap4(c.row);
+    const ox=(cw-dw*scale)/2,oy=(ch-dh*scale)/2;
+    const crect=ca.getBoundingClientRect();
+    const csx=crect.left+ox+((sc+panX)*cpx+dw/2)*scale;
+    const csy=crect.top+oy+((sr+panY)*cpx+dh/2)*scale;
+    const csw=cpx*scale;const gh2=document.getElementById("gh");
+    gh2.style.display="block";gh2.style.left=(csx-crect.left)+"px";
+    gh2.style.top=(csy-crect.top)+"px";gh2.style.width=csw+"px";gh2.style.height=csw+"px";
+    const gt2=document.getElementById("gt");gt2.style.display="block";
+    gt2.style.left=(csx-crect.left)+"px";gt2.style.top=Math.max(0,csy-crect.top-16)+"px";
+  }else{const gx=document.getElementById("gh");if(gx)gx.style.display="none";const gy=document.getElementById("gt");if(gy)gy.style.display="none";}
   if(selecting){
     srCX=e.clientX;srCY=e.clientY;
     const sr=document.getElementById("sr"),ca=document.getElementById("carea"),rect=ca.getBoundingClientRect();
@@ -393,7 +412,7 @@ function onDev(){} // removed — use onFDev from frame toolbar
 // ── Props ──
 function rpr(){
   if(selKeys.size>1){
-    document.getElementById("pc").innerHTML='<p style="font-size:11px;color:var(--dim)">'+selKeys.size+' keys selected<br>Drag to move together</p>';
+    document.getElementById("pc").innerHTML="<p style=\"font-size:11px;color:var(--dim);margin-bottom:6px\">"+selKeys.size+" keys selected</p>"+ "<label>Label (all)</label><input value=\"\" onchange=\"upkGroup('label',this.value)\" placeholder=\"Set label\">"+ "<label>Color (all)</label><input type=color value=\"#0f3460\" onchange=\"upkGroup('color',this.value)\">"+ "<label>Sound (all)</label><select onchange=\"upkGroup('sound',this.value)\"><option value=\"\">Inherit</option><option value=\"none\">None</option><option value=\"click\">Click</option><option value=\"soft\">Soft</option><option value=\"mechanical\">Mech</option><option value=\"deep\">Deep</option></select>"+ "<label>Font (all)</label><select onchange=\"upkGroup('fontFamily',this.value)\"><option value=\"\">Inherit</option><option value=\"monospace\">Mono</option><option value=\"serif\">Serif</option><option value=\"sans-serif\">Sans</option></select>"+ "<label>Border (all)</label><input type=range min=0 max=20 value=5 onchange=\"upkGroup('borderRadius',parseInt(this.value))\">"+ "<div class=\"br\" style=\"margin-top:8px\"><button class=\"btn-del\" onclick=\"delSelected()\">Delete Selected</button></div>";
     return;
   }
   const key=selKey?cp_()?.keys.find(k=>k.id===selKey):null;
@@ -409,6 +428,8 @@ function rpr(){
     '<div class="br"><button class="btn-del" onclick="dkey()">Delete</button></div>';
 }
 function upk(prop,val){const key=cp_()?.keys.find(k=>k.id===selKey);if(!key)return;const before=_snapshot(key);if(prop==="w"||prop==="h")val=Math.max(0.25,_snap4(parseFloat(val)||1));key[prop]=val;dirty=true;if(JSON.stringify(before)!==JSON.stringify(_snapshot(key))){_pushUndo([before])}rr();rpr()}
+function upkGroup(prop,val){const page=cp_();if(!page)return;const before=page.keys.filter(k=>selKeys.has(k.id)).map(k=>_snapshot(k));selKeys.forEach(kid=>{const k=page.keys.find(x=>x.id===kid);if(k){if(prop==="w"||prop==="h")val=Math.max(0.25,_snap4(parseFloat(val)||1));k[prop]=val}});_pushUndo(before);dirty=true;rr();rpr();}
+function delSelected(){if(!confirm("Delete "+selKeys.size+" keys?"))return;const page=cp_();if(!page)return;const before=page.keys.filter(k=>selKeys.has(k.id)).map(k=>_snapshot(k));page.keys=page.keys.filter(k=>!selKeys.has(k.id));_pushUndo(before);selKeys.clear();selKey=null;dirty=true;renderAll();}
 function dkey(){if(!selKey||!confirm("Delete?"))return;const p=cp_();const k=p.keys.find(k=>k.id===selKey);if(k){_pushUndo([_snapshot(k)])}p.keys=p.keys.filter(k=>k.id!==selKey);selKeys.delete(selKey);selKey=null;dirty=true;renderAll()}
 
 // ── Sound ──
