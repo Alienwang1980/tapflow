@@ -28,7 +28,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 .cwrap{transform-origin:center center}
 .canvas{position:relative;border:2px solid var(--accent);box-shadow:0 0 20px rgba(233,69,96,0.3);background:rgba(0,0,0,0.15)}
 .ck{position:absolute;background:var(--card);border:2px solid transparent;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;cursor:default;transition:border-color 0.1s;user-select:none;overflow:visible}
-.ck:hover{border-color:rgba(255,255,255,0.4)}.ck.sel{border-color:var(--accent);box-shadow:0 0 8px rgba(233,69,96,0.5);cursor:default}
+.ck{transition:transform 0.06s ease,box-shadow 0.06s ease,filter 0.06s ease}.ck:hover{border-color:rgba(255,255,255,0.4)}.ck:active{transform:scale(0.95);filter:brightness(1.3)}.ck.sel{border-color:var(--accent);box-shadow:0 0 8px rgba(233,69,96,0.5);cursor:default}
 
 .ck .kl{pointer-events:none;text-align:center;line-height:1.2;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .ck .sz{position:absolute;top:1px;right:3px;font-size:8px;color:rgba(255,255,255,0.4);pointer-events:none}
@@ -613,7 +613,7 @@ function delSelected(){if(!confirm("Delete "+selKeys.size+" keys?"))return;const
 function addKeyOfType(type){
   const page=cp_();if(!page)return;
   page.keys.push({id:"k_"+Date.now(),label:"?",action:type,value:type==="text"?"":"A",
-    color:"#0f3460",col:window._pendingCol||0,row:window._pendingRow||0,w:1,h:1,sound:""});
+    color:type==="touchpad"?"#2a3a5a":"#0f3460",col:window._pendingCol||0,row:window._pendingRow||0,w:type==="touchpad"?4:1,h:type==="touchpad"?3:1,sound:""});
   _pushUndo([]);selKey=page.keys[page.keys.length-1].id;selKeys.clear();selKeys.add(selKey);
   dirty=true;closeKeyTypeModal();rr();rpr();
 }
@@ -636,7 +636,7 @@ background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center
 <h3 style="margin-bottom:12px">New Key</h3>
 <p style="color:var(--dim);margin-bottom:12px">Select key type:</p>
 <button onclick="addKeyOfType('key')" style="display:block;width:100%;margin:4px 0;padding:10px;
-background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Regular Key (Press)</button>
+background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Regular Key (Press)</button><button onclick="addKeyOfType('touchpad')" style="display:block;width:100%;margin:4px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Touch Pad</button>
 <button onclick="closeKeyTypeModal()" style="margin-top:12px;width:100%;padding:8px;
 background:transparent;color:var(--dim);border:1px solid var(--border);border-radius:4px;cursor:pointer">Cancel</button>
 </div></div>

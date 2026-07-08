@@ -143,6 +143,28 @@ def is_accessibility_enabled() -> bool:
         return False
 
 
+
+def move_mouse(dx, dy):
+    """Move mouse cursor by relative offset."""
+    if not HAVE_QUARTZ:
+        logger.info(f"[SIMULATE] Mouse move: dx={dx}, dy={dy}")
+        return
+    from Quartz.CoreGraphics import CGEventCreateMouseEvent, kCGEventMouseMoved, kCGMouseButtonLeft
+    from Quartz.CoreGraphics import CGEventGetLocation
+    # Get current mouse position and create move event
+    event = CGEventCreateMouseEvent(None, kCGEventMouseMoved, (dx, dy), 0)
+    CGEventPost(kCGHIDEventTap, event)
+
+def scroll_mouse(dx, dy):
+    """Scroll by delta."""
+    if not HAVE_QUARTZ:
+        logger.info(f"[SIMULATE] Scroll: dx={dx}, dy={dy}")
+        return
+    from Quartz.CoreGraphics import CGEventCreateScrollWheelEvent
+    event = CGEventCreateScrollWheelEvent(None, 0, 1, int(dy))
+    CGEventPost(kCGHIDEventTap, event)
+
+
 def type_text(text: str):
     """Type a string character by character."""
     for char in text:

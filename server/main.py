@@ -326,7 +326,17 @@ async def ws_endpoint(websocket: WebSocket):
         while True:
             data = await websocket.receive_json()
             msg_type = data.get("type", "")
-            if msg_type == "key":
+            if msg_type == "touchpad":
+                action = data.get("action", "move")
+                dx = float(data.get("dx", 0))
+                dy = float(data.get("dy", 0))
+                from input_engine import move_mouse, scroll_mouse
+                if action == "move":
+                    move_mouse(dx, dy)
+                elif action == "scroll":
+                    scroll_mouse(dx, dy)
+                await manager.send_to(client_id, {"type": "ack", "action": "touchpad"})
+            elif msg_type == "key":
                 keys = data.get("keys", [])
                 if not keys and "key" in data:
                     keys = [{"type": data.get("action", "press"), "key": data["key"]}]
