@@ -2,7 +2,7 @@
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Smart Touch Panel — Editor</title>
 <style>
-:root{--bg:#1a1a2e;--panel:#16213e;--card:#0f3460;--accent:#e94560;--text:#eee;--dim:#888;--border:#2a2a4a;--green:#3a7ca5;--red:#8b3a3a;--group:#e9a145}
+:root{--bg:#1a1a2e;--panel:#16213e;--card:#0f3460;--accent:#e94560;--text:#eee;--dim:#888;--border:#2a2a4a;--green:#3a7ca5;--red:#8b3a3a}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;font-family:-apple-system,sans-serif;background:var(--bg);color:var(--text)}
 body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:none}
@@ -46,6 +46,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 .rp .br button{flex:1;padding:5px;font-size:11px;cursor:pointer;border-radius:3px}.rp .btn-del{background:var(--red);color:#fff;border:none}
 .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:6px 16px;border-radius:5px;font-size:12px;z-index:999;opacity:0;transition:opacity 0.3s}.toast.show{opacity:1}
 .ftb{position:absolute;display:flex;align-items:center;gap:4px;height:20px;z-index:10;pointer-events:none}.ftb>*{pointer-events:auto}.ftb select{background:rgba(15,52,96,0.85);color:#eee;border:1px solid var(--accent);border-radius:2px;padding:0 4px;font-size:9px;cursor:pointer}.ftb .btn-ori{background:rgba(15,52,96,0.85);color:#eee;border:1px solid var(--accent);border-radius:2px;padding:0 5px;font-size:9px;cursor:pointer;white-space:nowrap}
+.ftb{position:absolute;display:flex;align-items:center;gap:4px;height:20px;z-index:10;pointer-events:none}.ftb>*{pointer-events:auto}.ftb select{background:rgba(15,52,96,0.85);color:#eee;border:1px solid var(--accent);border-radius:2px;padding:0 4px;font-size:9px;cursor:pointer}.ftb .btn-ori{background:rgba(15,52,96,0.85);color:#eee;border:1px solid var(--accent);border-radius:2px;padding:0 5px;font-size:9px;cursor:pointer;white-space:nowrap}
 .info{position:fixed;bottom:4px;left:4px;color:#fff;font-size:10px;z-index:999;background:rgba(0,0,0,0.85);padding:5px 8px;border-radius:4px;user-select:text;-webkit-user-select:text;max-width:95vw}
 </style></head>
 <body>
@@ -80,7 +81,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
   <div class="stepper" style="padding:4px 8px"><button onclick="zoomBy(-1)">−</button><span id="zv">60</span><button onclick="zoomBy(1)">+</button></div>
 </div>
 <div class="carea" id="carea">
-  <div class="ftb" id="ftb"><select id="fdev" onchange="onFDev()"><option value="iPad 11&quot;">iPad 11"</option><option value="iPad 4:3">iPad 4:3</option><option value="iPad mini">iPad mini</option><option value="Android 16:10">Android 16:10</option></select><button class="btn-ori" onclick="toggleOri()" title="Toggle landscape/portrait">↻</button></div>
+  <div class="ftb" id="ftb"><select id="fdev" onchange="onFDev()"><option value="iPad 11&quot;">iPad 11"</option><option value="iPad 4:3">iPad 4:3</option><option value="iPad mini">iPad mini</option><option value="Android 16:10">Android 16:10</option></select><button class="btn-ori" onclick="toggleOri()" title="Toggle landscape/portrait">&#x21C4;</button></div>
   <div class="sr" id="sr"></div>
   <div class="cwrap" id="cwrap"><div class="canvas" id="canvas"></div></div>
 </div>
@@ -90,6 +91,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 <div class="info" id="edinfo"></div>
 <script>
 "use strict";
+function hesc(s){return String(s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
 let ws=null,profile=null,profiles=[],activePage="",activeProfile="Default.json";
 let selKey=null,selKeys=new Set(),dirty=false;
 let panX=0,panY=0,panning=false,panStartX=0,panStartY=0,mx=0,my=0;
@@ -98,72 +100,9 @@ let undoStack=[],redoStack=[];
 const MAX_UNDO=200;
 const DEVS={"iPad 4:3":{w:1024,h:1366},"iPad 11\"":{w:834,h:1210},"iPad mini":{w:744,h:1133},"Android 16:10":{w:1280,h:800}};
 
-// ── Undo/Redo ──
-function _snapshot(k){return{id:k.id,col:k.col,row:k.row,w:k.w,h:k.h,label:k.label,action:k.action,value:k.value,color:k.color,sound:k.sound,groupId:k.groupId}}
-function _pushUndo(keysBefore){
-  const page=cp_();if(!page)return;
-  const after=keysBefore.map(b=>{const k=page.keys.find(x=>x.id===b.id);return k?_snapshot(k):null}).filter(Boolean);
-  undoStack.push({before:keysBefore.map(b=>({...b})),after,ts:Date.now()});
-  if(undoStack.length>MAX_UNDO)undoStack.shift();
-  redoStack=[];
-}
-function undo(){
-  if(!undoStack.length)return;
-  const e=undoStack.pop();
-  const page=cp_();if(!page)return;
-  e.before.forEach(b=>{const k=page.keys.find(x=>x.id===b.id);if(k){Object.assign(k,b)}else{page.keys.push({...b})}});
-  const bid=new Set(e.before.map(b=>b.id));
-  const toDel=page.keys.filter(k=>!bid.has(k.id)&&e.after.some(a=>a.id===k.id));
-  toDel.forEach(k=>{page.keys=page.keys.filter(x=>x.id!==k.id)});
-  redoStack.push(e);dirty=true;
-  selKey=e.before.length===1?e.before[0].id:null;selKeys.clear();e.before.forEach(b=>selKeys.add(b.id));
-  rr();rpr();
-}
-function redo(){
-  if(!redoStack.length)return;
-  const e=redoStack.pop();
-  const page=cp_();if(!page)return;
-  e.after.forEach(a=>{const k=page.keys.find(x=>x.id===a.id);if(k){Object.assign(k,a)}else{page.keys.push({...a})}});
-  const aid=new Set(e.after.map(a=>a.id));
-  const toDel=page.keys.filter(k=>!aid.has(k.id)&&e.before.some(b=>b.id===k.id));
-  toDel.forEach(k=>{page.keys=page.keys.filter(x=>x.id!==k.id)});
-  undoStack.push(e);dirty=true;
-  selKey=e.after.length===1?e.after[0].id:null;selKeys.clear();e.after.forEach(a=>selKeys.add(a.id));
-  rr();rpr();
-}
-
-// ── Group/Ungroup ──
-function groupSelected(){
-  if(selKeys.size<2)return;
-  const page=cp_();if(!page)return;
-  const before=page.keys.filter(k=>selKeys.has(k.id)).map(k=>_snapshot(k));
-  const gid="g_"+Date.now();
-  if(!profile.groups)profile.groups=[];
-  profile.groups.push({id:gid,name:"Group "+(profile.groups.length+1)});
-  page.keys.forEach(k=>{if(selKeys.has(k.id))k.groupId=gid});
-  _pushUndo(before);dirty=true;rr();rpr();
-}
-function ungroupSelected(){
-  const page=cp_();if(!page)return;
-  const gids=new Set();selKeys.forEach(id=>{const k=page.keys.find(x=>x.id===id);if(k&&k.groupId)gids.add(k.groupId)});
-  if(!gids.size)return;
-  const before=page.keys.filter(k=>k.groupId&&gids.has(k.groupId)).map(k=>_snapshot(k));
-  page.keys.forEach(k=>{if(gids.has(k.groupId))k.groupId=null});
-  if(profile.groups)profile.groups=profile.groups.filter(g=>!gids.has(g.id));
-  _pushUndo(before);dirty=true;rr();rpr();
-}
-
-// ── Keyboard shortcuts ──
-document.addEventListener("keydown",e=>{
-  const mod=e.ctrlKey||e.metaKey;
-  if(mod&&e.key==="z"){e.preventDefault();if(e.shiftKey)redo();else undo()}
-  if(mod&&e.key==="g"){e.preventDefault();if(e.shiftKey)ungroupSelected();else groupSelected()}
-});
-
-// ── WebSocket ──
 async function resetDefault(){
   if(!confirm("Reset to default 89-key keyboard? Current layout will be lost."))return;
-  try{const r=await fetch("/api/default-template");profile=await r.json();profile.profileName="Default";activePage=profile.pages[0]?.id||"";panX=0;panY=0;selKey=null;selKeys.clear();undoStack=[];redoStack=[];dirty=true;renderAll();t("Default layout loaded")}catch(e){t("Failed: "+e,true)}
+  try{const r=await fetch("/api/default-template");profile=await r.json();profile.profileName="Default";activePage=profile.pages[0]?.id||"";panX=0;panY=0;selKey=null;selKeys.clear();dirty=true;renderAll();t("Default layout loaded")}catch(e){t("Failed: "+e,true)}
 }
 function cws(){
   ws=new WebSocket("ws://"+location.hostname+":8082/ws");
@@ -172,9 +111,8 @@ function cws(){
   ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==="profile"||m.type==="profile_update"){profile=m.profile;activeProfile=m.filename||activeProfile;activePage=profile.pages.find(p=>p.id===activePage)?activePage:(profile.pages[0]?.id||"");panX=profile.canvasX||0;panY=profile.canvasY||0;selKey=null;selKeys.clear();undoStack=[];redoStack=[];renderAll()}};
 }
 
-// ── Profile CRUD ──
 async function lpl(){const r=await fetch("/api/profiles");profiles=(await r.json()).profiles||[];rpl()}
-async function lp(fn){const r=await fetch("/api/profiles/"+fn);profile=await r.json();activeProfile=fn;activePage=profile.pages[0]?.id||"";selKey=null;selKeys.clear();undoStack=[];redoStack=[];panX=profile.canvasX||0;panY=profile.canvasY||0;renderAll()}
+async function lp(fn){const r=await fetch("/api/profiles/"+fn);profile=await r.json();activeProfile=fn;activePage=profile.pages[0]?.id||"";selKey=null;selKeys.clear();panX=profile.canvasX||0;panY=profile.canvasY||0;renderAll()}
 async function saveProfile(){
   if(!profile)return;
   profile.canvasX=panX;profile.canvasY=panY;
@@ -184,32 +122,54 @@ async function saveProfile(){
   lpl();t("Saved & synced");
 }
 async function dp(fn){if(!confirm("Delete "+fn+"?"))return;await fetch("/api/profiles/"+fn,{method:"DELETE"});if(activeProfile===fn){activeProfile="Default.json";await lp("Default.json")}lpl()}
-async function saveAs(){const nm=prompt("Save as profile name:",profile?.profileName||"");if(!nm)return;profile.profileName=nm;profile.canvasX=panX;profile.canvasY=panY;const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(profile)});const d=await r.json();activeProfile=d.filename;dirty=false;lpl();t("Saved as "+d.filename)}
-async function cp(){const nm=document.getElementById("npn").value.trim();if(!nm)return;const p={profileName:nm,version:"1.0",device:"iPad 11\"",deviceWidth:834,deviceHeight:1210,cellSize:60,gap:0,canvasX:0,canvasY:0,defaultSound:"click",windowRules:[],groups:[],pages:[{id:"main",label:"Main",keys:[]}]};const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)});document.getElementById("npn").value="";lpl();lp((await r.json()).filename)}
+async function saveAs(){const nm=prompt("Save as profile name:",profile?profile.profileName:"");if(!nm)return;profile.profileName=nm;profile.canvasX=panX;profile.canvasY=panY;const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(profile)});const d=await r.json();activeProfile=d.filename;dirty=false;lpl();t("Saved as "+d.filename)}
+async function saveAs(){const nm=prompt("Save as profile name:",profile?profile.profileName:"");if(!nm)return;profile.profileName=nm;profile.canvasX=panX;profile.canvasY=panY;const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(profile)});const d=await r.json();activeProfile=d.filename;dirty=false;lpl();t("Saved as "+d.filename)}
+async function cp(){const nm=document.getElementById("npn").value.trim();if(!nm)return;const p={profileName:nm,version:"1.0",device:"iPad 11\"",deviceWidth:834,deviceHeight:1210,cellSize:60,gap:0,canvasX:0,canvasY:0,defaultSound:"click",windowRules:[],pages:[{id:"main",label:"Main",keys:[]}]};const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)});document.getElementById("npn").value="";lpl();lp((await r.json()).filename)}
 function apg(){const lb=document.getElementById("npl").value.trim();if(!lb)return;profile.pages.push({id:"p_"+Date.now(),label:lb,keys:[]});activePage=profile.pages[profile.pages.length-1].id;dirty=true;document.getElementById("npl").value="";renderAll()}
 function dpg(pid){if(profile.pages.length<=1)return;profile.pages=profile.pages.filter(p=>p.id!==pid);if(activePage===pid)activePage=profile.pages[0].id;selKey=null;selKeys.clear();dirty=true;renderAll()}
 function cp_(){return profile?.pages.find(p=>p.id===activePage)}
 function renderAll(){rpl();rpgl();rr();rpr()}
-function rpl(){document.getElementById("pl").innerHTML=profiles.map(p=>'<div class="it'+(p.filename===activeProfile?" ac":"")+'" onclick="lp(\''+p.filename+'\')">'+h(p.profileName)+'<span class="x" onclick="event.stopPropagation();dp(\''+p.filename+'\')">×</span></div>').join("")}
-function rpgl(){document.getElementById("pgl").innerHTML=profile?.pages.map(p=>'<div class="it'+(p.id===activePage?" ac":"")+'" onclick="activePage=\''+p.id+'\';selKey=null;selKeys.clear();renderAll()">'+h(p.label)+'<span class="x" onclick="event.stopPropagation();dpg(\''+p.id+'\')">×</span></div>').join("")||""}
+function rpl(){document.getElementById("pl").innerHTML=profiles.map(p=>'<div class="it'+(p.filename===activeProfile?" ac":"")+'" onclick="lp(\''+p.filename+'\')">'+hesc(p.profileName)+'<span class="x" onclick="event.stopPropagation();dp(\''+p.filename+'\')">×</span></div>').join("")}
+function rpgl(){document.getElementById("pgl").innerHTML=profile?.pages.map(p=>'<div class="it'+(p.id===activePage?" ac":"")+'" onclick="activePage=\''+p.id+'\';selKey=null;selKeys.clear();renderAll()">'+hesc(p.label)+'<span class="x" onclick="event.stopPropagation();dpg(\''+p.id+'\')">×</span></div>').join("")||""}
 
-// ── Helpers ──
 function _overlap(a,b){return !(a.col+a.w<=b.col||b.col+b.w<=a.col||a.row+a.h<=b.row||b.row+b.h<=a.row)}
-function _collides(kid,col,row,w,h){const page=cp_();if(!page)return false;return page.keys.some(k=>k.id!==kid&&_overlap({col,row,w,h},{col:k.col||0,row:k.row||0,w:k.w||1,h:k.h||1}))}
+function _collides(kid,col,row,w,h){
+  const page=cp_();if(!page)return false;
+  return page.keys.some(k=>k.id!==kid&&_overlap({col,row,w,h},{col:k.col||0,row:k.row||0,w:k.w||1,h:k.h||1}));
+}
 function _snap4(v){return Math.round(v*4)/4}
-function _gradCSS(preset,color){const c=color||'#0f3460';const m={'top-down':'linear-gradient(180deg,'+c+' 0%,rgba(0,0,0,0.6) 100%)','left-right':'linear-gradient(90deg,'+c+' 0%,rgba(0,0,0,0.6) 100%)','diagonal-tl':'linear-gradient(135deg,'+c+' 0%,rgba(0,0,0,0.6) 100%)','diagonal-tr':'linear-gradient(225deg,'+c+' 0%,rgba(0,0,0,0.6) 100%)','radial':'radial-gradient(circle,'+c+' 0%,rgba(0,0,0,0.6) 100%)'};return m[preset]||c}
-function _scr2cell(sx,sy){const ca=document.getElementById("carea"),rect=ca.getBoundingClientRect(),cw=ca.clientWidth,ch=ca.clientHeight;const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60,gp=profile.gap||0;const cpx=cs+gp;const scale=Math.min(cw*0.85/dw,ch*0.85/dh);const ox=(cw-dw*scale)/2,oy=(ch-dh*scale)/2;const dx=(sx-rect.left-ox)/scale,dy=(sy-rect.top-oy)/scale;return{col:(dx-dw/2)/cpx-panX,row:(dy-dh/2)/cpx-panY}}
 
-// ── Render ──
+// Screen → cell coordinates (for selection rect)
+function _gradCSS(preset,color){const c=color||'#0f3460';const m={'top-down':'linear-gradient(180deg,'+c+' 0%,rgba(0,0,0,0.6) 100%)','left-right':'linear-gradient(90deg,'+c+' 0%,rgba(0,0,0,0.6) 100%)','diagonal-tl':'linear-gradient(135deg,'+c+' 0%,rgba(0,0,0,0.6) 100%)','diagonal-tr':'linear-gradient(225deg,'+c+' 0%,rgba(0,0,0,0.6) 100%)','radial':'radial-gradient(circle,'+c+' 0%,rgba(0,0,0,0.6) 100%)'};return m[preset]||c}
+function _gradCSS(preset,color){const c=color||'#0f3460';const m={'top-down':'linear-gradient(180deg,'+c+' 0%,rgba(0,0,0,0.6) 100%)','left-right':'linear-gradient(90deg,'+c+' 0%,rgba(0,0,0,0.6) 100%)','diagonal-tl':'linear-gradient(135deg,'+c+' 0%,rgba(0,0,0,0.6) 100%)','diagonal-tr':'linear-gradient(225deg,'+c+' 0%,rgba(0,0,0,0.6) 100%)','radial':'radial-gradient(circle,'+c+' 0%,rgba(0,0,0,0.6) 100%)'};return m[preset]||c}
+function _scr2cell(sx,sy){
+  const ca=document.getElementById("carea"),rect=ca.getBoundingClientRect(),cw=ca.clientWidth,ch=ca.clientHeight;
+  const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60,gp=profile.gap||0;
+  const cpx=cs+gp;
+  const scale=Math.min(cw*0.85/dw,ch*0.85/dh);
+  const ox=(cw-dw*scale)/2,oy=(ch-dh*scale)/2;
+  const dx=(sx-rect.left-ox)/scale,dy=(sy-rect.top-oy)/scale;
+  return {col:(dx-dw/2)/cpx-panX,row:(dy-dh/2)/cpx-panY};
+}
+
 function rr(){
   if(!profile)return;
   const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60,gp=profile.gap||0;
   const ca=document.getElementById("carea"),cw=ca.clientWidth,ch=ca.clientHeight;
-  document.getElementById("devSel").value=profile.device||"iPad 11\"";document.getElementById("gs").value=profile.defaultSound||"none";document.getElementById("zv").textContent=cs;
+  document.getElementById("devSel").value=profile.device||"iPad 11\"";
+  document.getElementById("gs").value=profile.defaultSound||"none";
+  document.getElementById("zv").textContent=cs;
+
   const scale=Math.min(cw*0.85/dw,ch*0.85/dh);
-  const wrap=document.getElementById("cwrap");wrap.style.width=dw+"px";wrap.style.height=dh+"px";wrap.style.transform='scale('+scale+')';
-  const canvas=document.getElementById("canvas");canvas.style.width=dw+"px";canvas.style.height=dh+"px";const ftb=document.getElementById("ftb");const ox=(cw-dw*scale)/2;const oy=(ch-dh*scale)/2;ftb.style.left=ox+"px";ftb.style.top=Math.max(0,oy-20)+"px";ftb.style.width=(dw*scale)+"px";document.getElementById("fdev").value=profile.device||"iPad 11";";
-  const cpx=cs+gp;canvas.innerHTML="";
+  const wrap=document.getElementById("cwrap");
+  wrap.style.width=dw+"px";wrap.style.height=dh+"px";
+  wrap.style.transform=`scale(${scale})`;
+
+  const canvas=document.getElementById("canvas");
+  canvas.style.width=dw+"px";canvas.style.height=dh+"px";
+
+  const cpx=cs+gp;
+  canvas.innerHTML="";
   const page=cp_();if(!page)return;
   page.keys.forEach(k=>{
     const col=k.col||0,row=k.row||0,w=k.w||1,h=k.h||1;
@@ -218,23 +178,31 @@ function rr(){
     const sel=(k.id===selKey||selKeys.has(k.id))?" sel":"";
     const grp=k.groupId?" grouped":"";
     const el=document.createElement("div");el.className="ck"+sel+grp;el.dataset.kid=k.id;
-    const br=(k.borderRadius!==undefined?k.borderRadius:5)+'px';const ff=k.fontFamily||'inherit';const fs=(k.fontSize||Math.max(8,cs*0.25))+'px';let bg=k.color||'var(--card)';if(k.bgType==='gradient'&&k.bgGradient){bg=_gradCSS(k.bgGradient,k.color||'#0f3460')}else if(k.bgType==='image'&&k.bgImage){bg='var(--card) url(/'+k.bgImage+') center/cover'};el.style.cssText='left:'+x+'px;top:'+y+'px;width:'+kw+'px;height:'+kh+'px;background:'+bg+';border-radius:'+br+';font-family:'+ff+';font-size:'+fs;
-    el.innerHTML='<span class="kl">'+h(k.label)+'</span>'+(w>1||h>1?'<span class="sz">'+w.toFixed(2)+'×'+h.toFixed(2)+'</span>':'')+'<div class="rh"></div>';
+    const br=(k.borderRadius!==undefined?k.borderRadius:5)+'px';const ff=k.fontFamily||'inherit';const fs=(k.fontSize||Math.max(8,cs*0.25))+'px';let bg=k.color||'var(--card)';if(k.bgType==='gradient'&&k.bgGradient){bg=_gradCSS(k.bgGradient,k.color||'#0f3460')}else if(k.bgType==='image'&&k.bgImage){bg='var(--card) url(/'+k.bgImage+') center/cover'};el.style.cssText=`left:${x}px;top:${y}px;width:${kw}px;height:${kh}px;background:${bg};border-radius:${br};font-family:${ff};font-size:${fs}`;
+    el.innerHTML='<span class="kl">'+hesc(k.label)+'</span>'+(w>1||h>1?'<span class="sz">'+w.toFixed(2)+'×'+h.toFixed(2)+'</span>':'')+'<div class="rh"></div>';
     el.addEventListener("mousedown",e=>onKeyDown(e,k.id));
     el.addEventListener("click",e=>onKeyClick(e,k.id));
     el.querySelector(".rh").addEventListener("mousedown",e=>onRS(e,k.id));
     canvas.appendChild(el);
   });
-  document.getElementById("edinfo").textContent='sel='+selKeys.size+' undo='+undoStack.length+'/'+redoStack.length+' s='+scale.toFixed(3)+' pan=('+panX.toFixed(1)+','+panY.toFixed(1)+')';
+  document.getElementById("edinfo").textContent=`sel=${selKeys.size} cw=${cw}x${ch} dw=${dw}x${dh} cs=${cs} gap=${gp} s=${scale.toFixed(3)} pan=(${panX.toFixed(1)},${panY.toFixed(1)})`;
 }
 
-// ── Key click ──
-function onKeyClick(e,kid){e.stopPropagation();if(e.shiftKey){if(selKeys.has(kid)){selKeys.delete(kid)}else{selKeys.add(kid)}}else{selKeys.clear();selKeys.add(kid)}selKey=kid;rr();rpr()}
+// Key click: select or Shift-toggle
+function onKeyClick(e,kid){
+  e.stopPropagation();
+  if(e.shiftKey){
+    if(selKeys.has(kid)){selKeys.delete(kid)}else{selKeys.add(kid)}
+  }else{
+    selKeys.clear();selKeys.add(kid);
+  }
+  selKey=kid;rr();rpr();
+}
 
-// ── Key drag (multi-select, undo) ──
+// Key drag: multi-select aware, 0.25 snap, collision
 function onKeyDown(e,kid){
   if(e.button!==0)return;e.stopPropagation();
-  if(!selKeys.has(kid)){selKeys.clear();selKeys.add(kid)}
+  if(!selKeys.has(kid)){selKeys.clear();selKeys.add(kid);}
   selKey=kid;rr();rpr();
   const k=cp_()?.keys.find(x=>x.id===kid);if(!k)return;
   const cs=profile.cellSize||60,gp=profile.gap||0,cpx=cs+gp;
@@ -254,7 +222,7 @@ function onKeyDown(e,kid){
   function mu(ev){
     document.removeEventListener("mousemove",mm);document.removeEventListener("mouseup",mu);
     const now=cp_()?.keys.filter(kk=>selKeys.has(kk.id)).map(kk=>_snapshot(kk))||[];
-    if(JSON.stringify(before)!==JSON.stringify(now)){_pushUndo(before)}
+    if(!undoStack.length||JSON.stringify(undoStack[undoStack.length-1].before)!==JSON.stringify(now)){if(JSON.stringify(before)!==JSON.stringify(now)){_pushUndo(before)}}
     if(selKeys.size===1){
       const el=document.elementFromPoint(ev.clientX,ev.clientY),tk=el?.closest?.(".ck");
       if(tk&&tk.dataset.kid!==kid){
@@ -266,7 +234,7 @@ function onKeyDown(e,kid){
   document.addEventListener("mousemove",mm);document.addEventListener("mouseup",mu);
 }
 
-// ── Key resize (undo) ──
+// Key resize: 0.25 snap, collision, Shift=left resize
 function onRS(e,kid){
   e.preventDefault();e.stopPropagation();selKey=kid;selKeys.clear();selKeys.add(kid);rr();rpr();
   const k=cp_()?.keys.find(x=>x.id===kid);if(!k)return;
@@ -286,31 +254,37 @@ function onRS(e,kid){
   document.addEventListener("mousemove",mm);document.addEventListener("mouseup",mu);
 }
 
-// ── Dblclick add key (undo) ──
+// Dblclick to add key (0.25 snap)
 document.getElementById("carea").addEventListener("dblclick",e=>{
   if(e.target.closest(".ck"))return;
   const ca=document.getElementById("carea"),rect=ca.getBoundingClientRect(),cw=ca.clientWidth,ch=ca.clientHeight;
   const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60,gp=profile.gap||0;
-  const cpx=cs+gp;const scale=Math.min(cw*0.85/dw,ch*0.85/dh);
+  const cpx=cs+gp;
+  const scale=Math.min(cw*0.85/dw,ch*0.85/dh);
   const ox=(cw-dw*scale)/2,oy=(ch-dh*scale)/2;
   const dx=(e.clientX-rect.left-ox)/scale,dy=(e.clientY-rect.top-oy)/scale;
-  const col=_snap4((dx-dw/2)/cpx-panX),row=_snap4((dy-dh/2)/cpx-panY);
+  const col=_snap4((dx-dw/2)/cpx-panX);
+  const row=_snap4((dy-dh/2)/cpx-panY);
   const page=cp_();if(!page)return;
-  const nk={id:"k_"+Date.now(),label:"?",action:"key",value:"A",color:"#0f3460",col,row,w:1,h:1,sound:""};
-  page.keys.push(nk);_pushUndo([]);selKey=nk.id;selKeys.clear();selKeys.add(nk.id);dirty=true;rr();rpr();
+  page.keys.push({id:"k_"+Date.now(),label:"?",action:"key",value:"A",color:"#0f3460",col,row,w:1,h:1,sound:""});
+  selKey=page.keys[page.keys.length-1].id;selKeys.clear();selKeys.add(selKey);dirty=true;rr();rpr();
 });
 
-// ── Carea events ──
+// ── Carea: left=select rect, right=pan ──
 const carea=document.getElementById("carea");
 carea.addEventListener("mousedown",e=>{
   if(e.button===0&&!e.target.closest(".ck")){
-    selecting=true;srSX=e.clientX;srSY=e.clientY;srCX=e.clientX;srCY=e.clientY;
+    selecting=true;
+    srSX=e.clientX;srSY=e.clientY;srCX=e.clientX;srCY=e.clientY;
     if(!e.shiftKey){selKeys.clear();selKey=null;rr();rpr()}
     e.preventDefault();
-  }else if(e.button===2){panning=true;panStartX=e.clientX;panStartY=e.clientY;mx=panX;my=panY;e.preventDefault()}
+  }else if(e.button===2){
+    panning=true;panStartX=e.clientX;panStartY=e.clientY;mx=panX;my=panY;e.preventDefault();
+  }
 });
 carea.addEventListener("contextmenu",e=>{e.preventDefault()});
 
+// ── Document mousemove: selection rect or pan ──
 document.addEventListener("mousemove",e=>{
   if(selecting){
     srCX=e.clientX;srCY=e.clientY;
@@ -318,6 +292,7 @@ document.addEventListener("mousemove",e=>{
     const x1=Math.min(srSX,srCX),y1=Math.min(srSY,srCY),x2=Math.max(srSX,srCX),y2=Math.max(srSY,srCY);
     sr.style.display="block";sr.style.left=(x1-rect.left)+"px";sr.style.top=(y1-rect.top)+"px";
     sr.style.width=(x2-x1)+"px";sr.style.height=(y2-y1)+"px";
+    // Highlight keys in rect
     const c1=_scr2cell(x1,y1),c2=_scr2cell(x2,y2);
     const mc=Math.min(c1.col,c2.col),Mc=Math.max(c1.col,c2.col),mr=Math.min(c1.row,c2.row),Mr=Math.max(c1.row,c2.row);
     selKeys.clear();
@@ -327,19 +302,33 @@ document.addEventListener("mousemove",e=>{
   if(!panning)return;
   const ca=document.getElementById("carea"),cw=ca.clientWidth,ch=ca.clientHeight;
   const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60,gp=profile.gap||0;
-  const cpx=cs+gp;const scale=Math.min(cw*0.85/dw,ch*0.85/dh);
-  panX=mx+(e.clientX-panStartX)/(cpx*scale);panY=my+(e.clientY-panStartY)/(cpx*scale);
+  const cpx=cs+gp;
+  const scale=Math.min(cw*0.85/dw,ch*0.85/dh);
+  panX=mx+(e.clientX-panStartX)/(cpx*scale);
+  panY=my+(e.clientY-panStartY)/(cpx*scale);
   rr();
 });
 
+// ── Document mouseup: finalize selection / pan snap ──
 document.addEventListener("mouseup",e=>{
-  if(selecting){selecting=false;document.getElementById("sr").style.display="none";if(selKeys.size===1)selKey=[...selKeys][0];else selKey=null;rr();rpr()}
-  if(panning){panning=false;panX=_snap4(panX);panY=_snap4(panY);rr()}
+  if(selecting){
+    selecting=false;
+    document.getElementById("sr").style.display="none";
+    if(selKeys.size===1)selKey=[...selKeys][0];else selKey=null;
+    rr();rpr();
+  }
+  if(panning){
+    panning=false;
+    panX=_snap4(panX);panY=_snap4(panY);
+    rr();
+  }
 });
 
-// ── Zoom + Device ──
+// ── Zoom ──
 carea.addEventListener("wheel",e=>{e.preventDefault();zoomBy(e.deltaY>0?-1:1)},{passive:false});
 function zoomBy(d){const nv=Math.max(20,Math.min(200,(profile.cellSize||60)+d));if(nv!==profile.cellSize){profile.cellSize=nv;dirty=true;rr()}}
+function toggleOri(){const t=profile.deviceWidth;profile.deviceWidth=profile.deviceHeight;profile.deviceHeight=t;dirty=true;rr()}
+function onFDev(){const d=DEVS[document.getElementById("fdev").value];if(d&&profile){profile.device=document.getElementById("fdev").value;profile.deviceWidth=d.w;profile.deviceHeight=d.h;document.getElementById("devSel").value=document.getElementById("fdev").value;dirty=true;rr()}}
 function toggleOri(){const t=profile.deviceWidth;profile.deviceWidth=profile.deviceHeight;profile.deviceHeight=t;dirty=true;rr()}
 function onFDev(){const d=DEVS[document.getElementById("fdev").value];if(d&&profile){profile.device=document.getElementById("fdev").value;profile.deviceWidth=d.w;profile.deviceHeight=d.h;document.getElementById("devSel").value=document.getElementById("fdev").value;dirty=true;rr()}}
 function onDev(){const d=DEVS[document.getElementById("devSel").value];if(d&&profile){profile.device=document.getElementById("devSel").value;profile.deviceWidth=d.w;profile.deviceHeight=d.h;document.getElementById("fdev").value=document.getElementById("devSel").value;dirty=true;rr()}}
@@ -347,19 +336,19 @@ function onDev(){const d=DEVS[document.getElementById("devSel").value];if(d&&pro
 // ── Props ──
 function rpr(){
   if(selKeys.size>1){
-    document.getElementById("pc").innerHTML='<p style="font-size:11px;color:var(--dim)">'+selKeys.size+' keys selected<br><button onclick="groupSelected()" style="margin-top:4px">Group</button> (Ctrl+G)</p>';
+    document.getElementById("pc").innerHTML='<p style="font-size:11px;color:var(--dim)">'+selKeys.size+' keys selected<br>Drag to move together</p>';
     return;
   }
   const key=selKey?cp_()?.keys.find(k=>k.id===selKey):null;
   if(!key){document.getElementById("pc").innerHTML='<p style="font-size:11px;color:var(--dim)">Click key to edit</p>';return}
   const kw=key.w||1,kh=key.h||1;
   document.getElementById("pc").innerHTML=
-    '<label>Label</label><input value="'+h(key.label)+'" onchange="upk(\'label\',this.value)">'+
+    '<label>Label</label><input value="'+hesc(key.label)+'" onchange="upk(\'label\',this.value)">'+
     '<label>Action</label><select onchange="upk(\'action\',this.value)"><option value="key"'+(key.action==="key"?" selected":"")+'>Key Press</option><option value="text"'+(key.action==="text"?" selected":"")+'>Type Text</option></select>'+
-    '<label>Value</label><input value="'+h(key.value||"")+'" onchange="upk(\'value\',this.value)"><div class="hint">A, TAB, COMMAND+T</div>'+
+    '<label>Value</label><input value="'+hesc(key.value||"")+'" onchange="upk(\'value\',this.value)"><div class="hint">A, TAB, COMMAND+T</div>'+
     '<label>Color</label><input type="color" value="'+(key.color||"#0f3460")+'" onchange="upk(\'color\',this.value)">'+
     '<label>Sound</label><select onchange="upk(\'sound\',this.value)"><option value=""'+(!key.sound?" selected":"")+'>Inherit</option><option value="none"'+(key.sound==="none"?" selected":"")+'>None</option><option value="click"'+(key.sound==="click"?" selected":"")+'>Click</option><option value="soft"'+(key.sound==="soft"?" selected":"")+'>Soft</option><option value="mechanical"'+(key.sound==="mechanical"?" selected":"")+'>Mechanical</option><option value="deep"'+(key.sound==="deep"?" selected":"")+'>Deep</option></select>'+
-    '+'<label>Background</label><div style="display:flex;gap:8px"><label style="font-size:10px;color:var(--dim)"><input type=radio name=bgType value=solid onchange="upk(\'bgType\',\'solid\')"'+(key.bgType===\"solid\"||!key.bgType?\" checked\":\"\")+'>Solid</label><label style="font-size:10px;color:var(--dim)"><input type=radio name=bgType value=gradient onchange="upk(\'bgType\',\'gradient\')"'+(key.bgType===\"gradient\"?\" checked\":\"\")+'>Gradient</label><label style="font-size:10px;color:var(--dim)"><input type=radio name=bgType value=image onchange="upk(\'bgType\',\'image\')"'+(key.bgType===\"image\"?\" checked\":\"\")+'>Image</label></div>'++'<label>Font</label><select onchange="upk(\'fontFamily\',this.value)"><option value=\"\"'+(key.fontFamily===\"\"?\" selected\":\"\")+'>System</option><option value=\"monospace\"'+(key.fontFamily===\"monospace\"?\" selected\":\"\")+'>Monospace</option><option value=\"serif\"'+(key.fontFamily===\"serif\"?\" selected\":\"\")+'>Serif</option><option value=\"sans-serif\"'+(key.fontFamily===\"sans-serif\"?\" selected\":\"\")+'>Sans</option></select>'+<div class="rw" style="margin-top:8px"><div><label>Width</label><div class="stepper"><button onclick="upk(\'w\','+_snap4(kw-0.25)+')">−</button><span>'+kw.toFixed(2)+'</span><button onclick="upk(\'w\','+_snap4(kw+0.25)+')">+</button></div></div><div><label>Height</label><div class="stepper"><button onclick="upk(\'h\','+_snap4(kh-0.25)+')">−</button><span>'+kh.toFixed(2)+'</span><button onclick="upk(\'h\','+_snap4(kh+0.25)+')">+</button></div></div></div>'+
+    '<div class="rw" style="margin-top:8px"><div><label>Width</label><div class="stepper"><button onclick="upk(\'w\','+_snap4(kw-0.25)+')">−</button><span>'+kw.toFixed(2)+'</span><button onclick="upk(\'w\','+_snap4(kw+0.25)+')">+</button></div></div><div><label>Height</label><div class="stepper"><button onclick="upk(\'h\','+_snap4(kh-0.25)+')">−</button><span>'+kh.toFixed(2)+'</span><button onclick="upk(\'h\','+_snap4(kh+0.25)+')">+</button></div></div></div>'+
     '<div class="br"><button class="btn-del" onclick="dkey()">Delete</button></div>';
 }
 function upk(prop,val){const key=cp_()?.keys.find(k=>k.id===selKey);if(!key)return;const before=_snapshot(key);if(prop==="w"||prop==="h")val=Math.max(0.25,_snap4(parseFloat(val)||1));key[prop]=val;dirty=true;if(JSON.stringify(before)!==JSON.stringify(_snapshot(key))){_pushUndo([before])}rr();rpr()}
@@ -369,8 +358,9 @@ function dkey(){if(!selKey||!confirm("Delete?"))return;const p=cp_();const k=p.k
 const SND={none:null,click:[800,0.06,"square",0.3],soft:[400,0.08,"sine",0.2],mechanical:[1200,0.04,"square",0.4],deep:[200,0.1,"triangle",0.5]};
 let actx=null;
 function testSnd(nm){if(!nm||nm==="none")return;const s=SND[nm];if(!s)return;try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();const o=actx.createOscillator(),g=actx.createGain();o.type=s[2];o.frequency.setValueAtTime(s[0],actx.currentTime);g.gain.setValueAtTime(s[3],actx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+s[1]);o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+s[1])}catch(e){}}
-function h(s){return String(s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+
 function t(msg){const el=document.getElementById("toast");el.textContent=msg;el.className="toast";el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2000)}
+
 window.addEventListener("resize",()=>rr());
 cws();lpl();lp("Default.json");
 </script></body></html>
