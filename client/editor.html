@@ -518,6 +518,8 @@ function rpr(){
     '<label style="color:var(--accent);font-size:10px;text-transform:uppercase;letter-spacing:1px">Function</label>'+
     '<label>Label</label><input value="'+hesc(key.label)+'" onchange="upk(\'label\',this.value)">'+
     '<label>Action</label><select onchange="upk(\'action\',this.value)"><option value="hold"'+(key.action==="hold"||key.action==="key"?" selected":"")+'>Hold (long press)</option><option value="turbo"'+(key.action==="turbo"?" selected":"")+'>Turbo (rapid fire)</option></select>'+
+    '<button onclick="startCapture()" style="width:100%;padding:5px;margin-top:4px;font-size:11px;cursor:pointer;background:rgba(58,124,165,0.2);color:var(--green);border:1px solid var(--green);border-radius:3px">Assign Key</button>'+
+    '<div id="captureHint" style="font-size:9px;color:var(--accent);margin-top:2px"></div>'+
     '<button onclick="openMM(' + "'" + selKey + "'" + ')" style="width:100%;padding:5px;margin-top:4px;font-size:11px;cursor:pointer;background:rgba(233,69,96,0.2);color:var(--accent);border:1px solid var(--accent);border-radius:3px">Record Macro</button>'+
     '</div>'+
     '<div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border)">'+
