@@ -5,13 +5,15 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;overflow:hidden;background:#1a1a2e;font-family:-apple-system,sans-serif;color:#eee;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
-/* Canvas container — centered, scaled to fit viewport */
-.canvas-wrap{position:fixed;top:50%;left:50%;transform-origin:0 0;z-index:1}
+/* Flexbox centering — body is the centering container */
+body{display:flex;align-items:center;justify-content:center}
+/* Canvas container — scaled to fit viewport, centered by flexbox */
+.canvas-wrap{flex-shrink:0;transform-origin:center center}
 /* Fixed-size canvas at device dimensions */
 .canvas{position:relative;overflow:hidden}
 .key-btn{position:absolute;border:none;border-radius:5px;display:flex;align-items:center;justify-content:center;font-weight:500;transition:transform 0.04s;overflow:hidden}
 .key-btn:active,.key-btn.active{transform:scale(0.93)}
-.info{display:none;position:fixed;bottom:4px;left:4px;color:#fff;font-size:10px;z-index:99;background:rgba(0,0,0,0.85);padding:5px 8px;border-radius:4px;user-select:text;-webkit-user-select:text}
+.info{position:fixed;bottom:4px;left:4px;color:#fff;font-size:10px;z-index:99;background:rgba(0,0,0,0.7);padding:4px 6px;border-radius:3px;user-select:text;-webkit-user-select:text}
 </style></head>
 <body>
 <div class="canvas-wrap" id="wrap"><div class="canvas" id="canvas"></div></div>
@@ -43,18 +45,19 @@ document.addEventListener("touchend",e=>{e.preventDefault();for(let i=0;i<e.chan
 document.addEventListener("touchmove",e=>{e.preventDefault();for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i],el=document.elementFromPoint(t.clientX,t.clientY);if(el?.classList.contains("key-btn")){const kid=el.dataset.keyId;if(kid&&!active.has(kid)){active.add(kid);el.classList.add("active");const pg=profile?.pages.find(p=>p.id===activePage),kd=pg?.keys.find(k=>k.id===kid);if(kd){psnd(kd.sound||(profile&&profile.defaultSound)||"none");if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:"key",key:kd.value,action:"down"}))}}}}},{passive:false});
 document.addEventListener("click",e=>{if(touchUsed){touchUsed=false;return}const el=e.target.closest(".key-btn");if(!el)return;const pg=profile?.pages.find(p=>p.id===activePage),kd=pg?.keys.find(k=>k.id===el.dataset.keyId);if(kd&&ws&&ws.readyState===WebSocket.OPEN){ws.send(JSON.stringify({type:"key",key:kd.value,action:"press"}));psnd(kd.sound||(profile&&profile.defaultSound)||"none")}});
 
-// ── Render — CSS transform scale approach ──
+// ── Render — Flexbox centering + CSS transform scale ──
 function render(){
   const pg=profile?.pages.find(p=>p.id===activePage);if(!pg)return;
   const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60;
   const cx=profile.canvasX||0,cy=profile.canvasY||0;
   const vw=window.innerWidth,vh=window.innerHeight;
 
-  // Scale canvas to fit viewport
+  // Scale canvas to fit viewport (flexbox handles centering)
   const scale=Math.min(vw/dw,vh/dh);
   const wrap=document.getElementById("wrap");
   wrap.style.width=dw+"px";wrap.style.height=dh+"px";
-  wrap.style.transform=`translate(-50%,-50%) scale(${scale})`;
+  wrap.style.transform=`scale(${scale})`;
+  // no translate — flexbox on body handles centering
 
   // Set canvas size
   const canvas=document.getElementById("canvas");
@@ -74,7 +77,7 @@ function render(){
     el.style.cssText=`left:${x}px;top:${y}px;width:${kw}px;height:${kh}px;background:${k.color||'#0f3460'};font-size:${Math.max(8,cs*0.25)}px`;
     el.textContent=k.label;canvas.appendChild(el);
   });
-  document.getElementById("info").textContent=`${vis}/${pg.keys.length} | ${dw}x${dh} cs=${cs} cx=${cx} s=${scale.toFixed(3)} vw=${vw}x${vh}`;
+  document.getElementById("info").textContent=`keys ${vis}/${pg.keys.length} | ${dw}×${dh} cs${cs} | vw${vw}×${vh}h | scale ${scale.toFixed(3)} | cx${cx.toFixed(1)} cy${cy.toFixed(1)}`;
 }
 
 window.addEventListener("resize",render);
