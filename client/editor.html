@@ -226,7 +226,7 @@ function rr(){
   wrap.style.transform=`scale(${scale})`;
 
   const canvas=document.getElementById("canvas");
-  canvas.style.width=dw+"px";canvas.style.height=dh+"px";
+  canvas.style.width=dw+"px";canvas.style.height=dh+"px";const gridPx=cs+gp;canvas.style.backgroundImage="linear-gradient(rgba(255,255,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.04) 1px,transparent 1px)";canvas.style.backgroundSize=gridPx+"px "+gridPx+"px";
 
   // ftb at frame top-right corner
   const ox=(cw-dw*scale)/2,oy=(ch-dh*scale)/2;const ftb=document.getElementById("ftb");ftb.style.right=ox+"px";ftb.style.top=Math.max(0,oy-22)+"px";ftb.style.left="auto";ftb.style.width="auto";
@@ -326,11 +326,9 @@ document.getElementById("carea").addEventListener("dblclick",e=>{
   const scale=Math.min(cw*0.85/dw,ch*0.85/dh);
   const ox=(cw-dw*scale)/2,oy=(ch-dh*scale)/2;
   const dx=(e.clientX-rect.left-ox)/scale,dy=(e.clientY-rect.top-oy)/scale;
-  const col=_snap4((dx-dw/2)/cpx-panX);
-  const row=_snap4((dy-dh/2)/cpx-panY);
-  const page=cp_();if(!page)return;
-  page.keys.push({id:"k_"+Date.now(),label:"?",action:"key",value:"A",color:"#0f3460",col,row,w:1,h:1,sound:""});
-  selKey=page.keys[page.keys.length-1].id;selKeys.clear();selKeys.add(selKey);dirty=true;rr();rpr();
+  window._pendingCol=_snap4((dx-dw/2)/cpx-panX);
+  window._pendingRow=_snap4((dy-dh/2)/cpx-panY);
+  document.getElementById("keyTypeModal").style.display="flex";
 });
 
 // ── Carea: left=select rect, right=pan ──
@@ -456,6 +454,15 @@ document.addEventListener("keydown",e=>{
   setTimeout(()=>{document.getElementById("captureHint").textContent=""},2000);
 },{capture:true});
 function delSelected(){if(!confirm("Delete "+selKeys.size+" keys?"))return;const page=cp_();if(!page)return;const before=page.keys.filter(k=>selKeys.has(k.id)).map(k=>_snapshot(k));page.keys=page.keys.filter(k=>!selKeys.has(k.id));_pushUndo(before);selKeys.clear();selKey=null;dirty=true;renderAll();}
+
+function addKeyOfType(type){
+  const page=cp_();if(!page)return;
+  page.keys.push({id:"k_"+Date.now(),label:"?",action:type,value:type==="text"?"":"A",
+    color:"#0f3460",col:window._pendingCol||0,row:window._pendingRow||0,w:1,h:1,sound:""});
+  _pushUndo([]);selKey=page.keys[page.keys.length-1].id;selKeys.clear();selKeys.add(selKey);
+  dirty=true;closeKeyTypeModal();rr();rpr();
+}
+function closeKeyTypeModal(){document.getElementById("keyTypeModal").style.display="none"}
 function dkey(){if(!selKey||!confirm("Delete?"))return;const p=cp_();const k=p.keys.find(k=>k.id===selKey);if(k){_pushUndo([_snapshot(k)])}p.keys=p.keys.filter(k=>k.id!==selKey);selKeys.delete(selKey);selKey=null;dirty=true;renderAll()}
 
 // ── Sound ──
@@ -467,4 +474,15 @@ function t(msg){const el=document.getElementById("toast");el.textContent=msg;el.
 
 window.addEventListener("resize",()=>rr());
 cws();lpl();lp("Default.json");
-</script></body></html>
+</script>
+<div id="keyTypeModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center">
+<div style="background:var(--panel);padding:24px;border-radius:8px;border:1px solid var(--accent);min-width:280px">
+<h3 style="margin-bottom:12px">New Key</h3>
+<p style="color:var(--dim);margin-bottom:12px">Select key type:</p>
+<button onclick="addKeyOfType('key')" style="display:block;width:100%;margin:4px 0;padding:10px;
+background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Regular Key (Press)</button>
+<button onclick="closeKeyTypeModal()" style="margin-top:12px;width:100%;padding:8px;
+background:transparent;color:var(--dim);border:1px solid var(--border);border-radius:4px;cursor:pointer">Cancel</button>
+</div></div>
+</body></html>
