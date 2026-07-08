@@ -63,7 +63,6 @@ document.addEventListener("click",e=>{if(touchUsed){touchUsed=false;return}const
 
 // ── Render — CSS transform scale approach ──
 function render(){
-  document.getElementById("tabs").innerHTML=(profile?.pages||[]).map(p=>'<button class="tb'+(p.id===activePage?" on":"")+'" onclick="activePage=\''+p.id+'\';render()">'+p.label+'</button>').join("");
   const pg=profile?.pages.find(p=>p.id===activePage);if(!pg)return;
   const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60;
   const cx=profile.canvasX||0,cy=profile.canvasY||0;
