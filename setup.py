@@ -4,7 +4,7 @@ from pathlib import Path
 from setuptools import setup
 
 client_dir = Path("client")
-client_files = [(str(client_dir), [str(f) for f in client_dir.glob("*.html")])]
+client_files = [(str(client_dir), [str(f) for f in client_dir.glob("*.html")]), (str(client_dir/"fonts"), [str(f) for f in (client_dir/"fonts").glob("*")])]
 
 profiles_dir = Path("server/profiles")
 profile_files = [(str(profiles_dir), [str(f) for f in profiles_dir.glob("*.json")])]
