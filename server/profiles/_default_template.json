@@ -46,7 +46,8 @@
           "action": "turbo",
           "value": "ESCAPE",
           "color": "#555",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "f1",
@@ -58,7 +59,8 @@
           "action": "turbo",
           "value": "F1",
           "color": "#444",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "f2",
@@ -70,7 +72,8 @@
           "action": "turbo",
           "value": "F2",
           "color": "#444",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "f3",
@@ -82,7 +85,8 @@
           "action": "turbo",
           "value": "F3",
           "color": "#444",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "f4",
@@ -94,7 +98,8 @@
           "action": "turbo",
           "value": "F4",
           "color": "#444",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "f5",
@@ -106,7 +111,8 @@
           "action": "turbo",
           "value": "F5",
           "color": "#444",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "f6",
@@ -118,7 +124,8 @@
           "action": "turbo",
           "value": "F6",
           "color": "#444",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "f7",
@@ -130,7 +137,8 @@
           "action": "turbo",
           "value": "F7",
           "color": "#444",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "f8",
@@ -142,7 +150,8 @@
           "action": "turbo",
           "value": "F8",
           "color": "#444",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "f9",
@@ -154,7 +163,8 @@
           "action": "turbo",
           "value": "F9",
           "color": "#444",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "f10",
@@ -166,7 +176,8 @@
           "action": "turbo",
           "value": "F10",
           "color": "#444",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "f11",
@@ -178,7 +189,8 @@
           "action": "turbo",
           "value": "F11",
           "color": "#444",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "f12",
@@ -190,7 +202,8 @@
           "action": "turbo",
           "value": "F12",
           "color": "#444",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "grave",
@@ -202,7 +215,8 @@
           "action": "turbo",
           "value": "`",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "n1",
@@ -214,7 +228,8 @@
           "action": "turbo",
           "value": "1",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "n2",
@@ -226,7 +241,8 @@
           "action": "turbo",
           "value": "2",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "n3",
@@ -238,7 +254,8 @@
           "action": "turbo",
           "value": "3",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "n4",
@@ -250,7 +267,8 @@
           "action": "turbo",
           "value": "4",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "n5",
@@ -262,7 +280,8 @@
           "action": "turbo",
           "value": "5",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "n6",
@@ -274,7 +293,8 @@
           "action": "turbo",
           "value": "6",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "n7",
@@ -286,7 +306,8 @@
           "action": "turbo",
           "value": "7",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "n8",
@@ -298,7 +319,8 @@
           "action": "turbo",
           "value": "8",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "n9",
@@ -310,7 +332,8 @@
           "action": "turbo",
           "value": "9",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "n0",
@@ -322,7 +345,8 @@
           "action": "turbo",
           "value": "0",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "minus",
@@ -334,7 +358,8 @@
           "action": "turbo",
           "value": "-",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "equal",
@@ -346,7 +371,8 @@
           "action": "turbo",
           "value": "=",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "delete",
@@ -358,7 +384,8 @@
           "action": "turbo",
           "value": "DELETE",
           "color": "#555",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "tab",
@@ -370,7 +397,8 @@
           "action": "turbo",
           "value": "TAB",
           "color": "#555",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "q",
@@ -382,7 +410,8 @@
           "action": "turbo",
           "value": "Q",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "w",
@@ -394,7 +423,8 @@
           "action": "turbo",
           "value": "W",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "e",
@@ -406,7 +436,8 @@
           "action": "turbo",
           "value": "E",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "r",
@@ -418,7 +449,8 @@
           "action": "turbo",
           "value": "R",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "t",
@@ -430,7 +462,8 @@
           "action": "turbo",
           "value": "T",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "y",
@@ -442,7 +475,8 @@
           "action": "turbo",
           "value": "Y",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "u",
@@ -454,7 +488,8 @@
           "action": "turbo",
           "value": "U",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "i",
@@ -466,7 +501,8 @@
           "action": "turbo",
           "value": "I",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "o",
@@ -478,7 +514,8 @@
           "action": "turbo",
           "value": "O",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "p",
@@ -490,7 +527,8 @@
           "action": "turbo",
           "value": "P",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "lbracket",
@@ -502,7 +540,8 @@
           "action": "turbo",
           "value": "[",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "rbracket",
@@ -514,7 +553,8 @@
           "action": "turbo",
           "value": "]",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "bslash",
@@ -526,7 +566,8 @@
           "action": "turbo",
           "value": "\\",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "caps",
@@ -538,7 +579,8 @@
           "action": "hold",
           "value": "CAPSLOCK",
           "color": "#555",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "a",
@@ -550,7 +592,8 @@
           "action": "turbo",
           "value": "A",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "s",
@@ -562,7 +605,8 @@
           "action": "turbo",
           "value": "S",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "d",
@@ -574,7 +618,8 @@
           "action": "turbo",
           "value": "D",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "f",
@@ -586,7 +631,8 @@
           "action": "turbo",
           "value": "F",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "g",
@@ -598,7 +644,8 @@
           "action": "turbo",
           "value": "G",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "h",
@@ -610,7 +657,8 @@
           "action": "turbo",
           "value": "H",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "j",
@@ -622,7 +670,8 @@
           "action": "turbo",
           "value": "J",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "k",
@@ -634,7 +683,8 @@
           "action": "turbo",
           "value": "K",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "l",
@@ -646,7 +696,8 @@
           "action": "turbo",
           "value": "L",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "semicolon",
@@ -658,7 +709,8 @@
           "action": "turbo",
           "value": ";",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "quote",
@@ -670,7 +722,8 @@
           "action": "turbo",
           "value": "'",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "return",
@@ -682,7 +735,8 @@
           "action": "turbo",
           "value": "RETURN",
           "color": "#3a7ca5",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "lshift",
@@ -694,7 +748,8 @@
           "action": "hold",
           "value": "SHIFT",
           "color": "#555",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "z",
@@ -706,7 +761,8 @@
           "action": "turbo",
           "value": "Z",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "x",
@@ -718,7 +774,8 @@
           "action": "turbo",
           "value": "X",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "c",
@@ -730,7 +787,8 @@
           "action": "turbo",
           "value": "C",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "v",
@@ -742,7 +800,8 @@
           "action": "turbo",
           "value": "V",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "b",
@@ -754,7 +813,8 @@
           "action": "turbo",
           "value": "B",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "n",
@@ -766,7 +826,8 @@
           "action": "turbo",
           "value": "N",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "m",
@@ -778,7 +839,8 @@
           "action": "turbo",
           "value": "M",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "comma",
@@ -790,7 +852,8 @@
           "action": "turbo",
           "value": ",",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "period",
@@ -802,7 +865,8 @@
           "action": "turbo",
           "value": ".",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "slash",
@@ -814,7 +878,8 @@
           "action": "turbo",
           "value": "/",
           "color": "#3a3a4a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "rshift",
@@ -826,7 +891,8 @@
           "action": "hold",
           "value": "SHIFT",
           "color": "#555",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "up",
@@ -838,7 +904,8 @@
           "action": "turbo",
           "value": "UP",
           "color": "#555",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "fn",
@@ -850,7 +917,8 @@
           "action": "turbo",
           "value": "F13",
           "color": "#555",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "lctrl",
@@ -862,7 +930,8 @@
           "action": "hold",
           "value": "CONTROL",
           "color": "#555",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "lopt",
@@ -874,7 +943,8 @@
           "action": "hold",
           "value": "OPTION",
           "color": "#555",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "lcmd",
@@ -886,7 +956,8 @@
           "action": "hold",
           "value": "COMMAND",
           "color": "#555",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "space",
@@ -898,7 +969,8 @@
           "action": "turbo",
           "value": "SPACE",
           "color": "#4a4a5a",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "rcmd",
@@ -910,7 +982,8 @@
           "action": "hold",
           "value": "COMMAND",
           "color": "#555",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "ropt",
@@ -922,7 +995,8 @@
           "action": "hold",
           "value": "OPTION",
           "color": "#555",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "left",
@@ -934,7 +1008,8 @@
           "action": "turbo",
           "value": "LEFT",
           "color": "#555",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "down",
@@ -946,7 +1021,8 @@
           "action": "turbo",
           "value": "DOWN",
           "color": "#555",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         },
         {
           "id": "right",
@@ -958,7 +1034,8 @@
           "action": "turbo",
           "value": "RIGHT",
           "color": "#555",
-          "sound": ""
+          "sound": "",
+          "borderRadius": 10
         }
       ]
     }
