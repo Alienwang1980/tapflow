@@ -250,7 +250,7 @@ function rr(){
     const kw=Math.max(24,w*cs+(w-1)*gp-3),kh=Math.max(24,h*cs+(h-1)*gp-3);
     const sel=(k.id===selKey||selKeys.has(k.id))?" sel":"";
     const el=document.createElement("div");el.className="ck"+sel;el.dataset.kid=k.id;
-    const brPct=(k.borderRadius!==undefined?k.borderRadius:10)/100;const br=(brPct*Math.min(kw,kh))+'px';const ff=k.fontFamily||'inherit';const fs=(k.fontSize||Math.max(8,cs*0.25))+'px';let bg=k.color||'var(--card)';if(k.bgType==='gradient'&&k.bgGradient){bg=_gradCSS(k.bgGradient,k.color||'#0f3460')}else if(k.bgType==='image'&&k.bgImage){bg='var(--card) url(/'+k.bgImage+') center/cover'};el.style.cssText=`left:${x}px;top:${y}px;width:${kw}px;height:${kh}px;background:${bg};border-radius:${br};font-family:${ff};font-size:${fs}`;
+    const brPct=(k.borderRadius!==undefined?k.borderRadius:10)/100;const br=(brPct*Math.min(kw,kh))+'px';const ff=k.fontFamily||'inherit';const fs=(k.fontSize||Math.max(8,cs*0.25))+'px';let bg=k.color||'var(--card)';let fc=k.fontColor||'inherit';if(k.bgType==='gradient'&&k.bgGradient){bg=_gradCSS(k.bgGradient,k.color||'#0f3460')}else if(k.bgType==='image'&&k.bgImage){bg='var(--card) url(/'+k.bgImage+') center/cover'};el.style.cssText=`left:${x}px;top:${y}px;width:${kw}px;height:${kh}px;background:${bg};color:${fc};border-radius:${br};font-family:${ff};font-size:${fs}`;
     el.innerHTML='<span class="kl">'+hesc(k.label)+'</span>'+(w>1||h>1?'<span class="sz">'+w.toFixed(2)+'×'+h.toFixed(2)+'</span>':'')+(selKeys.size<=1?'<div class="rh"></div>':'');
     el.addEventListener("mousedown",e=>onKeyDown(e,k.id));
     el.addEventListener("click",e=>onKeyClick(e,k.id));
@@ -488,8 +488,8 @@ function onDev(){} // removed — use onFDev from frame toolbar
 // ── Props ──
 function rpr(){
   if(selKeys.size>1){
-    var pg2=cp_(),firstBr2=10,commonColor="#0f3460",colorCount=0,clrs=new Set();
-    for(var i=0;i<pg2.keys.length;i++){if(selKeys.has(pg2.keys[i].id)){var k2=pg2.keys[i];if(firstBr2===10)firstBr2=k2.borderRadius!==undefined?k2.borderRadius:10;var cc=k2.color||"#0f3460";commonColor=cc;clrs.add(cc)}}colorCount=clrs.size;if(clrs.size===1)commonColor=[...clrs][0];
+    var pg2=cp_(),firstBr2=10,commonColor="#0f3460",colorCount=0,clrs=new Set(),fcSet=new Set(),ffSet=new Set(),commonFontColor="inherit",commonFontFamily="";
+    for(var i=0;i<pg2.keys.length;i++){if(selKeys.has(pg2.keys[i].id)){var k2=pg2.keys[i];if(firstBr2===10)firstBr2=k2.borderRadius!==undefined?k2.borderRadius:10;var cc=k2.color||"#0f3460";commonColor=cc;clrs.add(cc);var fc2=k2.fontColor||"inherit";commonFontColor=fc2;fcSet.add(fc2);var ff2=k2.fontFamily||"";commonFontFamily=ff2;ffSet.add(ff2)}}colorCount=clrs.size;if(clrs.size===1)commonColor=[...clrs][0];
     document.getElementById("pc").innerHTML=
       "<p style=\"font-size:11px;color:var(--dim);margin-bottom:6px\">"+selKeys.size+" keys selected</p>"+
       "<label>Label <small style=\"color:var(--dim)\">(inactive)</small></label><input disabled style=\"opacity:0.4;width:100%;padding:4px 6px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:3px;font-size:11px\">"+
