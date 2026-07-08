@@ -15,7 +15,7 @@ DATA_FILES = client_files + profile_files
 OPTIONS = {
     "argv_emulation": False,
     "packages": [
-        "fastapi", "uvicorn", "starlette", "pydantic", "anyio",
+        "fastapi", "uvicorn", "starlette", "pydantic", "anyio", "multipart",
         "pystray", "PIL",
         "Quartz", "Foundation", "AppKit", "ApplicationServices", "CoreFoundation",
         "objc",

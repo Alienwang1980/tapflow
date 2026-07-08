@@ -100,6 +100,68 @@ let undoStack=[],redoStack=[];
 const MAX_UNDO=200;
 const DEVS={"iPad 4:3":{w:1024,h:1366},"iPad 11\"":{w:834,h:1210},"iPad mini":{w:744,h:1133},"Android 16:10":{w:1280,h:800}};
 
+// ── Undo/Redo ──
+function _snapshot(k){return{id:k.id,col:k.col,row:k.row,w:k.w,h:k.h,label:k.label,action:k.action,value:k.value,color:k.color,sound:k.sound,groupId:k.groupId}}
+function _pushUndo(keysBefore){
+  const page=cp_();if(!page)return;
+  const after=keysBefore.map(b=>{const k=page.keys.find(x=>x.id===b.id);return k?_snapshot(k):null}).filter(Boolean);
+  undoStack.push({before:keysBefore.map(b=>({...b})),after,ts:Date.now()});
+  if(undoStack.length>MAX_UNDO)undoStack.shift();
+  redoStack=[];
+}
+function undo(){
+  if(!undoStack.length)return;
+  const e=undoStack.pop();
+  const page=cp_();if(!page)return;
+  e.before.forEach(b=>{const k=page.keys.find(x=>x.id===b.id);if(k){Object.assign(k,b)}else{page.keys.push({...b})}});
+  const bid=new Set(e.before.map(b=>b.id));
+  const toDel=page.keys.filter(k=>!bid.has(k.id)&&e.after.some(a=>a.id===k.id));
+  toDel.forEach(k=>{page.keys=page.keys.filter(x=>x.id!==k.id)});
+  redoStack.push(e);dirty=true;
+  selKey=e.before.length===1?e.before[0].id:null;selKeys.clear();e.before.forEach(b=>selKeys.add(b.id));
+  rr();rpr();
+}
+function redo(){
+  if(!redoStack.length)return;
+  const e=redoStack.pop();
+  const page=cp_();if(!page)return;
+  e.after.forEach(a=>{const k=page.keys.find(x=>x.id===a.id);if(k){Object.assign(k,a)}else{page.keys.push({...a})}});
+  const aid=new Set(e.after.map(a=>a.id));
+  const toDel=page.keys.filter(k=>!aid.has(k.id)&&e.before.some(b=>b.id===k.id));
+  toDel.forEach(k=>{page.keys=page.keys.filter(x=>x.id!==k.id)});
+  undoStack.push(e);dirty=true;
+  selKey=e.after.length===1?e.after[0].id:null;selKeys.clear();e.after.forEach(a=>selKeys.add(a.id));
+  rr();rpr();
+}
+
+// ── Group/Ungroup ──
+function groupSelected(){
+  if(selKeys.size<2)return;
+  const page=cp_();if(!page)return;
+  const before=page.keys.filter(k=>selKeys.has(k.id)).map(k=>_snapshot(k));
+  const gid="g_"+Date.now();
+  if(!profile.groups)profile.groups=[];
+  profile.groups.push({id:gid,name:"Group "+(profile.groups.length+1)});
+  page.keys.forEach(k=>{if(selKeys.has(k.id))k.groupId=gid});
+  _pushUndo(before);dirty=true;rr();rpr();
+}
+function ungroupSelected(){
+  const page=cp_();if(!page)return;
+  const gids=new Set();selKeys.forEach(id=>{const k=page.keys.find(x=>x.id===id);if(k&&k.groupId)gids.add(k.groupId)});
+  if(!gids.size)return;
+  const before=page.keys.filter(k=>k.groupId&&gids.has(k.groupId)).map(k=>_snapshot(k));
+  page.keys.forEach(k=>{if(gids.has(k.groupId))k.groupId=null});
+  if(profile.groups)profile.groups=profile.groups.filter(g=>!gids.has(g.id));
+  _pushUndo(before);dirty=true;rr();rpr();
+}
+
+// ── Keyboard shortcuts ──
+document.addEventListener("keydown",e=>{
+  const mod=e.ctrlKey||e.metaKey;
+  if(mod&&e.key==="z"){e.preventDefault();if(e.shiftKey)redo();else undo()}
+  if(mod&&e.key==="g"){e.preventDefault();if(e.shiftKey)ungroupSelected();else groupSelected()}
+});
+
 async function resetDefault(){
   if(!confirm("Reset to default 89-key keyboard? Current layout will be lost."))return;
   try{const r=await fetch("/api/default-template");profile=await r.json();profile.profileName="Default";activePage=profile.pages[0]?.id||"";panX=0;panY=0;selKey=null;selKeys.clear();dirty=true;renderAll();t("Default layout loaded")}catch(e){t("Failed: "+e,true)}
