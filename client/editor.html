@@ -488,12 +488,13 @@ function onDev(){} // removed — use onFDev from frame toolbar
 // ── Props ──
 function rpr(){
   if(selKeys.size>1){
-    var pg2=cp_(),firstBr2=10,commonColor="#0f3460",colorCount=0;
-    for(var i=0;i<pg2.keys.length;i++){if(selKeys.has(pg2.keys[i].id)){var k2=pg2.keys[i];if(firstBr2===10)firstBr2=k2.borderRadius!==undefined?k2.borderRadius:10;commonColor=k2.color||"#0f3460";colorCount++}}
+    var pg2=cp_(),firstBr2=10,commonColor="#0f3460",colorCount=0,clrs=new Set();
+    for(var i=0;i<pg2.keys.length;i++){if(selKeys.has(pg2.keys[i].id)){var k2=pg2.keys[i];if(firstBr2===10)firstBr2=k2.borderRadius!==undefined?k2.borderRadius:10;var cc=k2.color||"#0f3460";commonColor=cc;clrs.add(cc)}}colorCount=clrs.size;if(clrs.size===1)commonColor=[...clrs][0];
     document.getElementById("pc").innerHTML=
       "<p style=\"font-size:11px;color:var(--dim);margin-bottom:6px\">"+selKeys.size+" keys selected</p>"+
       "<label>Label <small style=\"color:var(--dim)\">(inactive)</small></label><input disabled style=\"opacity:0.4;width:100%;padding:4px 6px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:3px;font-size:11px\">"+
-      "<label>Color (all)"+(colorCount>1?" (Mixed)":"")+"</label><input type=color value="+commonColor+" onchange=\"upkGroup('color',this.value)\">"+
+      "<label>Color (all)"+(colorCount>1?" (Mixed)":"")+"</label>"+
+      "<input type=color value="+commonColor+" onchange=\"upkGroup('color',this.value)\" style=\"width:50px;height:22px;border:1px solid var(--border);border-radius:3px;cursor:pointer;padding:0;background:"+(colorCount>1?"linear-gradient(90deg,red,orange,yellow,green,blue,violet)":commonColor)+"\">"+
       "<label>Sound (all)</label><select onchange=\"upkGroup('sound',this.value)\"><option value=\"\">Inherit</option><option value=\"none\">None</option><option value=\"click\">Click</option><option value=\"soft\">Soft</option><option value=\"mechanical\">Mech</option><option value=\"deep\">Deep</option></select>"+
       "<label>Border (all)</label><div style=\"display:flex;gap:4px;align-items:center\"><input type=range min=0 max=50 value="+firstBr2+" oninput=\"this.nextElementSibling.value=this.value\" onchange=\"upkGroup('borderRadius',parseInt(this.value))\" style=\"flex:1\"><input type=number min=0 max=50 value="+firstBr2+" onchange=\"this.previousElementSibling.value=this.value;upkGroup('borderRadius',parseInt(this.value))\" style=\"width:40px;padding:2px 4px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:3px;font-size:10px;text-align:center\"></div>"+
       "<label>Width (all) \u00b10.25</label><div class=\"stepper\" style=\"margin:4px 0\"><button onclick=\"upkGroupStep('w',-0.25)\">\u2212</button><span>0.25</span><button onclick=\"upkGroupStep('w',0.25)\">+</button></div>"+
