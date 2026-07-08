@@ -144,16 +144,91 @@ def is_accessibility_enabled() -> bool:
 
 
 
-def move_mouse(dx, dy):
-    """Move mouse cursor by relative offset."""
+def move_mouse(dx, dy, drag=False):
+    """Move mouse cursor by relative offset. If drag=True, post drag event."""
     if not HAVE_QUARTZ:
-        logger.info(f"[SIMULATE] Mouse move: dx={dx}, dy={dy}")
+        logger.info(f"[SIMULATE] Mouse move: dx={dx}, dy={dy}, drag={drag}")
         return
-    from Quartz.CoreGraphics import CGEventCreateMouseEvent, kCGEventMouseMoved, kCGMouseButtonLeft
-    from Quartz.CoreGraphics import CGEventGetLocation
-    # Get current mouse position and create move event
-    event = CGEventCreateMouseEvent(None, kCGEventMouseMoved, (dx, dy), 0)
+    from Quartz.CoreGraphics import CGEventCreate, CGEventGetLocation, CGWarpMouseCursorPosition
+    from Quartz.CoreGraphics import CGEventCreateMouseEvent, CGEventPost, kCGHIDEventTap
+    from Quartz.CoreGraphics import kCGEventLeftMouseDragged, kCGEventMouseMoved, kCGMouseButtonLeft
+    # CGEventCreateMouseEvent takes absolute coords, not delta.
+    # Get current position, add delta, warp to new absolute position.
+    null_event = CGEventCreate(None)
+    loc = CGEventGetLocation(null_event)
+    new_x = loc.x + dx
+    new_y = loc.y + dy
+    CGWarpMouseCursorPosition((new_x, new_y))
+    # Post move/drag event so apps see real-time selection updates
+    evt_type = kCGEventLeftMouseDragged if drag else kCGEventMouseMoved
+    event = CGEventCreateMouseEvent(None, evt_type, (new_x, new_y), kCGMouseButtonLeft)
     CGEventPost(kCGHIDEventTap, event)
+
+
+def mouse_down(button="left"):
+    """Press and hold mouse button."""
+    if not HAVE_QUARTZ:
+        logger.info(f"[SIMULATE] Mouse down: {button}")
+        return
+    from Quartz.CoreGraphics import (
+        CGEventCreate, CGEventGetLocation, CGEventCreateMouseEvent, CGEventPost,
+        kCGMouseButtonLeft, kCGMouseButtonRight,
+        kCGEventLeftMouseDown, kCGEventRightMouseDown, kCGHIDEventTap,
+    )
+    null_event = CGEventCreate(None)
+    loc = CGEventGetLocation(null_event)
+    pos = (loc.x, loc.y)
+    btn = kCGMouseButtonRight if button == "right" else kCGMouseButtonLeft
+    evt_type = kCGEventRightMouseDown if button == "right" else kCGEventLeftMouseDown
+    event = CGEventCreateMouseEvent(None, evt_type, pos, btn)
+    CGEventPost(kCGHIDEventTap, event)
+
+def mouse_up(button="left"):
+    """Release mouse button."""
+    if not HAVE_QUARTZ:
+        logger.info(f"[SIMULATE] Mouse up: {button}")
+        return
+    from Quartz.CoreGraphics import (
+        CGEventCreate, CGEventGetLocation, CGEventCreateMouseEvent, CGEventPost,
+        kCGMouseButtonLeft, kCGMouseButtonRight,
+        kCGEventLeftMouseUp, kCGEventRightMouseUp, kCGHIDEventTap,
+    )
+    null_event = CGEventCreate(None)
+    loc = CGEventGetLocation(null_event)
+    pos = (loc.x, loc.y)
+    btn = kCGMouseButtonRight if button == "right" else kCGMouseButtonLeft
+    evt_type = kCGEventRightMouseUp if button == "right" else kCGEventLeftMouseUp
+    event = CGEventCreateMouseEvent(None, evt_type, pos, btn)
+    CGEventPost(kCGHIDEventTap, event)
+
+def click_mouse(button="left"):
+    """Click mouse button at current position (left or right)."""
+    if not HAVE_QUARTZ:
+        logger.info(f"[SIMULATE] Mouse click: {button}")
+        return
+    from Quartz.CoreGraphics import (
+        CGEventCreate, CGEventGetLocation,
+        CGEventCreateMouseEvent, CGEventPost,
+        kCGMouseButtonLeft, kCGMouseButtonRight,
+        kCGEventLeftMouseDown, kCGEventLeftMouseUp,
+        kCGEventRightMouseDown, kCGEventRightMouseUp,
+        kCGHIDEventTap,
+    )
+    null_event = CGEventCreate(None)
+    loc = CGEventGetLocation(null_event)
+    pos = (loc.x, loc.y)
+    if button == "right":
+        down_type = kCGEventRightMouseDown
+        up_type = kCGEventRightMouseUp
+        btn = kCGMouseButtonRight
+    else:
+        down_type = kCGEventLeftMouseDown
+        up_type = kCGEventLeftMouseUp
+        btn = kCGMouseButtonLeft
+    down = CGEventCreateMouseEvent(None, down_type, pos, btn)
+    up = CGEventCreateMouseEvent(None, up_type, pos, btn)
+    CGEventPost(kCGHIDEventTap, down)
+    CGEventPost(kCGHIDEventTap, up)
 
 def scroll_mouse(dx, dy):
     """Scroll by delta."""

@@ -208,7 +208,8 @@ async def root():
     index_path = os.path.join(CLIENT_DIR, "index.html")
     if os.path.exists(index_path):
         with open(index_path, encoding='utf-8') as f:
-            return HTMLResponse(content=f.read())
+            from fastapi.responses import HTMLResponse as HR
+            return HR(content=f.read(), headers={"Cache-Control":"no-cache, no-store, must-revalidate"})
     return HTMLResponse("<h1>Smart Touch Panel</h1><p>Client files missing.</p>")
 
 
@@ -219,7 +220,8 @@ async def editor():
     editor_path = os.path.join(CLIENT_DIR, "editor.html")
     if os.path.exists(editor_path):
         with open(editor_path, encoding='utf-8') as f:
-            return HTMLResponse(content=f.read())
+            from fastapi.responses import HTMLResponse as HR
+            return HR(content=f.read(), headers={"Cache-Control":"no-cache, no-store, must-revalidate"})
     return HTMLResponse("<h1>Editor not found</h1>", status_code=404)
 
 
@@ -326,15 +328,32 @@ async def ws_endpoint(websocket: WebSocket):
         while True:
             data = await websocket.receive_json()
             msg_type = data.get("type", "")
+            try:
+                with open("/tmp/stp_ws.log","a") as _f:
+                    import json as _js, datetime as _dt
+                    _f.write(_dt.datetime.now().isoformat()+" ["+client_id[:8]+"] "+msg_type+" "+_js.dumps(data)+"\n")
+            except: pass
             if msg_type == "touchpad":
                 action = data.get("action", "move")
-                dx = float(data.get("dx", 0))
-                dy = float(data.get("dy", 0))
-                from input_engine import move_mouse, scroll_mouse
+                from input_engine import move_mouse, scroll_mouse, click_mouse, mouse_down, mouse_up
                 if action == "move":
-                    move_mouse(dx, dy)
+                    dx = float(data.get("dx", 0))
+                    dy = float(data.get("dy", 0))
+                    is_drag = data.get("drag", False)
+                    move_mouse(dx, dy, drag=is_drag)
                 elif action == "scroll":
+                    dx = float(data.get("dx", 0))
+                    dy = float(data.get("dy", 0))
                     scroll_mouse(dx, dy)
+                elif action == "click":
+                    btn = data.get("button", "left")
+                    click_mouse(btn)
+                elif action == "mousedown":
+                    btn = data.get("button", "left")
+                    mouse_down(btn)
+                elif action == "mouseup":
+                    btn = data.get("button", "left")
+                    mouse_up(btn)
                 await manager.send_to(client_id, {"type": "ack", "action": "touchpad"})
             elif msg_type == "key":
                 keys = data.get("keys", [])

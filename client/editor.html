@@ -33,7 +33,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 .ck .kl{pointer-events:none;text-align:center;line-height:1.2;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .ck .sz{position:absolute;top:1px;right:3px;font-size:8px;color:rgba(255,255,255,0.4);pointer-events:none}
 .ck .rh{position:absolute;bottom:-4px;right:-4px;width:28px;height:28px;cursor:se-resize;opacity:0;pointer-events:none;background:linear-gradient(135deg,transparent 50%,rgba(255,255,255,0.4) 50%);border-radius:0 0 4px 0;z-index:2}
-.ck:hover .rh,.ck.sel .rh{opacity:1;pointer-events:auto!important}
+.ck:hover .rh,.ck.sel .rh{opacity:1;pointer-events:auto!important}.ck.touchpad{border:1px dashed rgba(255,255,255,0.2)!important;background:repeating-linear-gradient(45deg,rgba(255,255,255,0.02),rgba(255,255,255,0.02) 4px,rgba(255,255,255,0.05) 4px,rgba(255,255,255,0.05) 8px)!important}
 .gh{position:absolute;border:1px dashed rgba(255,255,255,0.3);background:rgba(255,255,255,0.05);pointer-events:none;z-index:2;display:none}.gt{position:absolute;color:rgba(255,255,255,0.5);font-size:10px;pointer-events:none;z-index:2;display:none;white-space:nowrap}.sr{position:absolute;border:1px solid var(--accent);background:rgba(233,69,96,0.15);z-index:5;pointer-events:none;display:none}.grh{position:absolute;width:10px;height:10px;background:var(--accent);border-radius:2px;z-index:6;cursor:pointer;display:none}.grbox{position:absolute;border:2px dashed rgba(233,69,96,0.6);border-radius:2px;z-index:4;pointer-events:none;display:none}
 .rp{width:260px;flex-shrink:0;background:var(--panel);border-left:1px solid var(--border);overflow-y:auto;padding:0}.rp-section{padding:10px}.rp-divider{height:1px;background:var(--border);margin:0 10px}
 .rp h3{font-size:12px;margin-bottom:8px}.rp label{display:block;font-size:10px;color:var(--dim);margin:6px 0 2px}
@@ -166,6 +166,7 @@ function ungroupSelected(){
 
 // ── Keyboard shortcuts ──
 document.addEventListener("keydown",e=>{
+  if((e.key==="Delete"||e.key==="Backspace")&&selKey&&!e.target.closest("input,select,textarea")){e.preventDefault();dkey()}
   const mod=e.ctrlKey||e.metaKey;
   if(mod&&e.key==="z"){e.preventDefault();if(e.shiftKey)redo();else undo()}
   if(mod&&e.key==="g"){e.preventDefault();if(e.shiftKey)ungroupSelected();else groupSelected()}
@@ -252,7 +253,7 @@ function rr(){
     const x=(col+panX)*cpx+dw/2,y=(row+panY)*cpx+dh/2;
     const kw=Math.max(24,w*cs+(w-1)*gp-3),kh=Math.max(24,h*cs+(h-1)*gp-3);
     const sel=(k.id===selKey||selKeys.has(k.id))?" sel":"";
-    const el=document.createElement("div");el.className="ck"+sel;el.dataset.kid=k.id;
+    const el=document.createElement("div");el.className="ck"+sel+(k.action==="touchpad"?" touchpad":"");el.dataset.kid=k.id;
     const brPct=(k.borderRadius!==undefined?k.borderRadius:10)/100;const br=(brPct*Math.min(kw,kh))+'px';const ff=k.fontFamily||'inherit';const fs=(k.fontSize||Math.max(8,cs*0.25))+'px';let bg=k.color||'var(--card)';let fc=k.fontColor||'inherit';if(k.bgType==='gradient'&&k.bgGradient){bg=_gradCSS(k.bgGradient,k.color||'#0f3460')}else if(k.bgType==='image'&&k.bgImage){bg='var(--card) url(/'+k.bgImage+') center/cover'};el.style.cssText=`left:${x}px;top:${y}px;width:${kw}px;height:${kh}px;background:${bg};color:${fc};border-radius:${br};font-family:${ff};font-size:${fs}`;
     el.innerHTML='<span class="kl">'+hesc(k.label)+'</span>'+(w>1||h>1?'<span class="sz">'+w.toFixed(2)+'×'+h.toFixed(2)+'</span>':'')+((selKeys.size<=1&&k.action!=='touchpad'?'<div class="rh"></div>':''));
     el.addEventListener("mousedown",e=>onKeyDown(e,k.id));
@@ -511,8 +512,8 @@ function rpr(){
       "<div class=\"br\" style=\"margin-top:4px\"><button class=\"btn-del\" onclick=\"delSelected()\">Delete Selected</button></div>";
     return;
   }
-  if(key&&key.action==="touchpad"){document.getElementById("pc").innerHTML="<div style=\"margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border)\">"+"<label style=\"color:var(--accent);font-size:10px;text-transform:uppercase;letter-spacing:1px\">Touch Pad</label>"+"<p style=\"font-size:10px;color:var(--dim);margin:4px 0\">1 finger = move | 2 fingers = scroll</p>"+"</div>"+"<label>Label</label><input value=\""+hesc(key.label)+"\" onchange=\"upk('label',this.value)\">"+"<label>Color</label><input type=\"color\" value=\""+(key.color||"#2a3a5a")+"\" onchange=\"upk('color',this.value)\">"+"<div class=\"rw\" style=\"margin-top:8px\"><div><label>Width</label><div class=\"stepper\"><button onclick=\"upk('w',"+_snap4((key.w||4)-0.25)+")\">\u2212</button><span>"+(key.w||4).toFixed(2)+"</span><button onclick=\"upk('w',"+_snap4((key.w||4)+0.25)+")\">+</button></div></div><div><label>Height</label><div class=\"stepper\"><button onclick=\"upk('h',"+_snap4((key.h||3)-0.25)+")\">\u2212</button><span>"+(key.h||3).toFixed(2)+"</span><button onclick=\"upk('h',"+_snap4((key.h||3)+0.25)+")\">+</button></div></div></div>"+"<div class=\"br\"><button class=\"btn-del\" onclick=\"dkey()\">Delete</button></div>";return;}
   const key=selKey?cp_()?.keys.find(k=>k.id===selKey):null;
+  if(key&&key.action==="touchpad"){document.getElementById("pc").innerHTML="<div style=\"margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border)\">"+"<label style=\"color:var(--accent);font-size:10px;text-transform:uppercase;letter-spacing:1px\">Touch Pad</label>"+"<p style=\"font-size:10px;color:var(--dim);margin:4px 0\">1 finger = move | 2 fingers = scroll</p>"+"</div>"+"<label>Label</label><input value=\""+hesc(key.label)+"\" onchange=\"upk('label',this.value)\">"+"<label>Color</label><input type=\"color\" value=\""+(key.color||"#2a3a5a")+"\" onchange=\"upk('color',this.value)\">"+"<div class=\"rw\" style=\"margin-top:8px\"><div><label>Width</label><div class=\"stepper\"><button onclick=\"upk('w',"+_snap4((key.w||4)-0.25)+")\">\u2212</button><span>"+(key.w||4).toFixed(2)+"</span><button onclick=\"upk('w',"+_snap4((key.w||4)+0.25)+")\">+</button></div></div><div><label>Height</label><div class=\"stepper\"><button onclick=\"upk('h',"+_snap4((key.h||3)-0.25)+")\">\u2212</button><span>"+(key.h||3).toFixed(2)+"</span><button onclick=\"upk('h',"+_snap4((key.h||3)+0.25)+")\">+</button></div></div></div>"+"<div class=\"br\"><button class=\"btn-del\" onclick=\"dkey()\">Delete</button></div>";return;}
   if(!key){document.getElementById("pc").innerHTML='<p style="font-size:11px;color:var(--dim)">Click key to edit</p>';return}
   const kw=key.w||1,kh=key.h||1;
   document.getElementById("pc").innerHTML=
