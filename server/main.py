@@ -8,7 +8,7 @@ import uuid
 import asyncio
 from pathlib import Path
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Query
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Query, UploadFile
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 
@@ -37,6 +37,8 @@ def _get_resource_dir() -> str:
 
 RESOURCE_DIR = _get_resource_dir()
 CLIENT_DIR = os.path.join(RESOURCE_DIR, "client")
+UPLOAD_DIR = os.path.join(os.path.expanduser("~/Library/Application Support/Smart Touch Panel"), "uploads")
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR, check_dir=False), name="uploads")
 app.mount("/static", StaticFiles(directory=CLIENT_DIR, check_dir=False), name="static")
 
 # ── mDNS state ──
@@ -236,6 +238,24 @@ async def health():
 
 # ── Profile REST API ──
 
+
+
+@app.post("/api/upload")
+async def upload_image(file: UploadFile):
+    """Upload an image file (max 5MB)."""
+    import uuid as _uuid
+    import os as _os
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(400, "Only image files allowed")
+    contents = await file.read()
+    if len(contents) > 5 * 1024 * 1024:
+        raise HTTPException(413, "File too large (max 5MB)")
+    _os.makedirs(UPLOAD_DIR, exist_ok=True)
+    ext = _os.path.splitext(file.filename or "img.png")[1] or ".png"
+    fname = _uuid.uuid4().hex + ext
+    with open(_os.path.join(UPLOAD_DIR, fname), "wb") as f:
+        f.write(contents)
+    return {"path": f"uploads/{fname}"}
 
 @app.get("/api/default-template")
 async def default_template():
