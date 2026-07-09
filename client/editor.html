@@ -214,7 +214,35 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
   <button class="btn-new" onclick="resetDefault()">Reset</button><button class="btn-new" onclick="copyStyle()">&#x2398; Copy Style</button><button class="btn-new" onclick="pasteStyle()">&#x2399; Paste Style</button>
 </div>
 <div class="main">
-<div class="rp" id="lp-panel"></div>
+<div class="rp" id="lp-panel"><div class="rp-section">
+        <h3>Pages</h3>
+        <div id="pgl"></div>
+        <div class="ar"><input id="npl" placeholder="Label"><button onclick="apg()">+</button></div>
+      </div>
+      <label style="margin-top:12px">Background</label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input type="color" id="bgColor" value="#151210" onchange="if(profile){profile.bgColor=this.value;dirty=true;rr()}" style="width:32px;height:28px;padding:2px;border-radius:4px;cursor:pointer;border:1px solid var(--border)">
+        <select id="bgTexture" onchange="if(profile){profile.bgTexture=this.value;dirty=true;rr()}" style="flex:1;padding:5px 8px">
+          <option value="">None</option>
+          <option value="topography">Topography</option>
+          <option value="bathroom">Bathroom Floor</option>
+          <option value="circuit">Circuit Board</option>
+          <option value="hexagons">Hexagons</option>
+          <option value="dots">Dots</option>
+          <option value="graph">Graph Paper</option>
+        </select>
+      </div>
+      <label style="margin-top:8px;display:flex;align-items:center;gap:6px;cursor:pointer">
+        <input type="checkbox" id="showGrid" checked onchange="if(profile){profile.showGrid=this.checked;rr()}">
+        <span style="font-size:11px">Show Grid</span>
+      </label>
+
+      <div class="rp-divider"></div>
+      <div class="rp-section">
+        <h3>Groups <button id="btnSaveGroup" onclick="saveAsGroup()" style="font-size:10px;padding:2px 8px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;float:right">+ Group</button></h3>
+        <div id="grpl"><p style="font-size:10px;color:var(--dim);padding:8px 0">No groups</p></div>
+      </div>
+    </div>
 <div class="carea" id="carea">
   <div class="gh" id="gh"></div>
   <div class="ftb" id="ftb"><select id="fdev" onchange="onFDev()"><option value="iPad 11&quot;" selected>iPad 11"</option><option value="iPad 4:3">iPad 4:3</option><option value="iPad mini">iPad mini</option><option value="Android 16:10">Android 16:10</option></select><button class="btn-ori" onclick="toggleOri()" title="Toggle">↻</button></div>
@@ -225,17 +253,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 </div>
 <div class="rp">
     <div id="rp-profile"><div id="pl" style="display:none"></div>
-      <div class="rp-section">
-        <h3>Pages</h3>
-        <div id="pgl"></div>
-        <div class="ar"><input id="npl" placeholder="Label"><button onclick="apg()">+</button></div>
       </div>
-      <div class="rp-divider"></div>
-      <div class="rp-section">
-        <h3>Groups <button id="btnSaveGroup" onclick="saveAsGroup()" style="font-size:10px;padding:2px 8px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;float:right">+ Group</button></h3>
-        <div id="grpl"><p style="font-size:10px;color:var(--dim);padding:8px 0">No groups</p></div>
-      </div>
-    </div>
     <div id="rp-props" style="display:none">
       <div class="rp-section">
         <h3>Properties</h3>
@@ -345,8 +363,8 @@ async function saveProfile(){
   lpl();t("Saved & synced");
 }
 async function dp(fn){if(!confirm("Delete "+fn+"?"))return;await fetch("/api/profiles/"+fn,{method:"DELETE"});if(activeProfile===fn){activeProfile="Default.json";await lp("Default.json")}lpl()}
-async function saveAs(){const nm=prompt("Save as profile name:",profile?profile.profileName:"");if(!nm)return;profile.profileName=nm;profile.canvasX=panX;profile.canvasY=panY;const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(profile)});const d=await r.json();activeProfile=d.filename;dirty=false;lpl();t("Saved as "+d.filename)}
-async function saveAs(){const nm=prompt("Save as profile name:",profile?profile.profileName:"");if(!nm)return;profile.profileName=nm;profile.canvasX=panX;profile.canvasY=panY;const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(profile)});const d=await r.json();activeProfile=d.filename;dirty=false;lpl();t("Saved as "+d.filename)}
+async 
+async 
 async function cp(){const p={profileName:"Untitled",version:"1.0",device:"iPad 11\"",deviceWidth:834,deviceHeight:1210,cellSize:60,gap:0,canvasX:0,canvasY:0,defaultSound:"click",windowRules:[],pages:[{id:"main",label:"Main",keys:[]}],groups:[]};const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)});lpl();lp((await r.json()).filename)}
 function apg(){const lb=document.getElementById("npl").value.trim();if(!lb)return;profile.pages.push({id:"p_"+Date.now(),label:lb,keys:[]});activePage=profile.pages[profile.pages.length-1].id;dirty=true;document.getElementById("npl").value="";renderAll()}
 async function renameProfile(fn){const nm=prompt("Rename profile:",fn.replace(".json",""));if(!nm||!nm.trim())return;const r=await fetch("/api/profiles/"+encodeURIComponent(fn)+"/rename",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({newName:nm.trim()})});if(r.ok){const d=await r.json();if(activeProfile===fn)activeProfile=d.filename;lpl();t("Renamed to "+d.filename)}}
@@ -380,7 +398,7 @@ function _scr2cell(sx,sy){
 function rr(){
   if(!profile)return;
   const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60,gp=profile.gap||0;
-  const ca=document.getElementById("carea"),cw=ca.clientWidth,ch=ca.clientHeight;
+  var ca=document.getElementById("carea"),cw=ca.clientWidth,ch=ca.clientHeight;ca.style.backgroundColor=profile.bgColor||"";
   document.getElementById("tgs").value=profile.defaultSound||"none";
   var _zv=document.getElementById("zv");if(_zv)_zv.textContent=cs;
 
@@ -497,7 +515,7 @@ function onKeyDown(e,kid){
 rr();rpr();
   const k=cp_()?.keys.find(x=>x.id===kid);if(!k)return;
   const cs=profile.cellSize||60,gp=profile.gap||0,cpx=cs+gp;
-  const ca=document.getElementById("carea"),cw=ca.clientWidth,ch=ca.clientHeight;
+  var ca=document.getElementById("carea"),cw=ca.clientWidth,ch=ca.clientHeight;ca.style.backgroundColor=profile.bgColor||"";
   const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210;
   const scale=Math.min(cw*0.85/dw,ch*0.85/dh);
   const startX=e.clientX,startY=e.clientY;
@@ -530,7 +548,7 @@ function onRS(e,kid){
   e.preventDefault();e.stopPropagation();selKey=kid;selKeys.clear();selKeys.add(kid);rr();rpr();
   const k=cp_()?.keys.find(x=>x.id===kid);if(!k)return;
   const cs=profile.cellSize||60,gp=profile.gap||0,cpx=cs+gp;
-  const ca=document.getElementById("carea"),cw=ca.clientWidth,ch=ca.clientHeight;
+  var ca=document.getElementById("carea"),cw=ca.clientWidth,ch=ca.clientHeight;ca.style.backgroundColor=profile.bgColor||"";
   const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210;
   const scale=Math.min(cw*0.85/dw,ch*0.85/dh);
   const startX=e.clientX,startY=e.clientY,startW=k.w||1,startH=k.h||1,startCol=k.col||0;
@@ -604,7 +622,7 @@ document.addEventListener("mousemove",e=>{
     rr();return;
   }
   if(!panning)return;
-  const ca=document.getElementById("carea"),cw=ca.clientWidth,ch=ca.clientHeight;
+  var ca=document.getElementById("carea"),cw=ca.clientWidth,ch=ca.clientHeight;ca.style.backgroundColor=profile.bgColor||"";
   const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60,gp=profile.gap||0;
   const cpx=cs+gp;
   const scale=Math.min(cw*0.85/dw,ch*0.85/dh);
@@ -737,13 +755,10 @@ function upkGroupStep(prop,delta){
   _pushUndo(before);dirty=true;rr();rpr();
 }
 function upkGroup(prop,val){const page=cp_();if(!page)return;const before=page.keys.filter(k=>selKeys.has(k.id)).map(k=>_snapshot(k));selKeys.forEach(kid=>{const k=page.keys.find(x=>x.id===kid);if(k){if(prop==="w"||prop==="h")val=Math.max(0.25,_snap4(parseFloat(val)||1));k[prop]=val}});_pushUndo(before);dirty=true;rr();rpr();}
-function buildCombo(){let v="";if(document.getElementById("cb_cmd")?.checked)v+="COMMAND+";if(document.getElementById("cb_opt")?.checked)v+="OPTION+";if(document.getElementById("cb_ctl")?.checked)v+="CONTROL+";if(document.getElementById("cb_sft")?.checked)v+="SHIFT+";v+=document.getElementById("cb_key")?.value||"";const kv=document.getElementById("kv");if(kv)kv.value=v;upk("value",v)}
+
 
 let captureMode=false;
-function startCapture(){
-  captureMode=true;
-  document.getElementById("captureHint").textContent="Press any key...";
-}
+
 document.addEventListener("keydown",e=>{
   if(!captureMode)return;
   e.preventDefault();e.stopPropagation();
@@ -788,7 +803,7 @@ function testSnd(nm){if(!nm||nm==="none")return;const s=SND[nm];if(!s)return;try
 function t(msg){const el=document.getElementById("toast");el.textContent=msg;el.className="toast";el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2000)}
 
 window.addEventListener("resize",()=>rr());
-setTimeout(function(){var lp=document.getElementById("lp-panel");var rp=document.getElementById("rp-profile");if(lp&&rp){var children=rp.children;var toMove=[];for(var i=0;i<children.length;i++){var c=children[i];if(c.tagName!=="DIV"||c.id==="pl")continue;if(c.className==="rp-section"||c.className==="rp-divider")toMove.push(c)}for(var i=0;i<toMove.length;i++){lp.appendChild(toMove[i])}}},200);cws();lpl();lp("Default.json");
+cws();lpl();lp("Default.json");
 </script>
 <div id="keyTypeModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
 background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center">

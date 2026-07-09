@@ -57,6 +57,9 @@ def migrate_key_positions(profile: dict) -> dict:
     profile.setdefault("canvasX", 0)
     profile.setdefault("canvasY", 0)
     profile.setdefault("defaultSound", "click")
+    profile.setdefault("bgColor", "")
+    profile.setdefault("bgTexture", "")
+    profile.setdefault("showGrid", True)
     for page in profile.get("pages", []):
         page.pop("columns", None)
         page.pop("rows", None)
