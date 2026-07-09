@@ -763,10 +763,12 @@ function copyStyle(){if(!selKey&&selKeys.size===0)return;var k;if(selKey){k=cp_(
 function pasteStyle(){if(!copiedStyle)return;var page=cp_();if(!page)return;var targets;if(selKeys.size>0){targets=page.keys.filter(function(k){return selKeys.has(k.id)})}else if(selKey){targets=[page.keys.find(function(k){return k.id===selKey})]}else{return}if(!targets.length)return;var snapshots=targets.map(function(k){return _snapshot(k)});targets.forEach(function(k){if(copiedStyle.borderRadius!==undefined)k.borderRadius=copiedStyle.borderRadius;if(copiedStyle.color!==undefined)k.color=copiedStyle.color;if(copiedStyle.fontColor!==undefined)k.fontColor=copiedStyle.fontColor;if(copiedStyle.fontFamily!==undefined)k.fontFamily=copiedStyle.fontFamily;if(copiedStyle.fontSize!==undefined)k.fontSize=copiedStyle.fontSize;if(copiedStyle.sound!==undefined)k.sound=copiedStyle.sound});_pushUndo(snapshots);dirty=true;rr();rpr();t("Style pasted")}
 function delSelected(){if(!confirm("Delete "+selKeys.size+" keys?"))return;const page=cp_();if(!page)return;const before=page.keys.filter(k=>selKeys.has(k.id)).map(k=>_snapshot(k));page.keys=page.keys.filter(k=>!selKeys.has(k.id));_pushUndo(before);selKeys.clear();selKey=null;dirty=true;renderAll();}
 
-function addKeyOfType(type){
-  const page=cp_();if(!page)return;
-  page.keys.push({id:"k_"+Date.now(),label:"?",action:type,value:type==="text"?"":"A",
-    color:type==="touchpad"?"#2a3a5a":"#0f3460",col:window._pendingCol||0,row:window._pendingRow||0,w:type==="touchpad"?4:1,h:type==="touchpad"?3:1,sound:""});
+var WIDGET_TYPES={key:{label:"Regular Key",defaults:{w:1,h:1,color:"#0f3460",action:"turbo"}},touchpad:{label:"Touch Pad",defaults:{w:4,h:3,color:"#2a3a5a",action:"touchpad"}}};function addKeyOfType(type){
+  var page=cp_();if(!page)return;
+  var wt=WIDGET_TYPES[type]||WIDGET_TYPES.key;
+  var d=wt.defaults;
+  page.keys.push({id:"k_"+Date.now(),label:"?",action:d.action,value:"A",
+    color:d.color,col:window._pendingCol||0,row:window._pendingRow||0,w:d.w,h:d.h,sound:""});
   _pushUndo([]);selKey=page.keys[page.keys.length-1].id;selKeys.clear();selKeys.add(selKey);
   dirty=true;closeKeyTypeModal();rr();rpr();
 }
