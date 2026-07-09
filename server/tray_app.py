@@ -56,8 +56,15 @@ def create_icon_image(size=64):
 
 def run_server():
     """Run FastAPI server in background thread."""
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8082, log_level="warning")
+    import uvicorn, os
+    cert_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "certs")
+    cert_file = os.path.join(cert_dir, "cert.pem")
+    key_file = os.path.join(cert_dir, "key.pem")
+    if os.path.exists(cert_file) and os.path.exists(key_file):
+        uvicorn.run(app, host="0.0.0.0", port=8082, log_level="warning",
+                    ssl_keyfile=key_file, ssl_certfile=cert_file)
+    else:
+        uvicorn.run(app, host="0.0.0.0", port=8082, log_level="warning")
 
 
 def on_show_qr(icon, item):
