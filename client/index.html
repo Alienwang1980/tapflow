@@ -51,7 +51,7 @@ document.addEventListener("click",e=>{if(touchUsed){touchUsed=false;return}const
 
 // ── Render — Flexbox centering + CSS transform scale ──
 function render(){
-  const pg=profile?.pages.find(p=>p.id===activePage);if(!pg)return;
+  const pg=profile?.pages.find(p=>p.id===activePage);if(!pg)return;document.body.style.background=pg.bgColor||"#1a1a2e";
   const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60;
   const cx=profile.canvasX||0,cy=profile.canvasY||0;
   const vw=window.innerWidth,vh=window.innerHeight;
