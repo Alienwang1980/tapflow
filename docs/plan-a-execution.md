@@ -273,3 +273,44 @@ Commit: "feat: window layout presets"
 ## 验证标准
 
 每 Phase 后: 构建 → Playwright → commit
+
+## 依赖审计（2026-07-10 已验证）
+
+### 可用（系统自带/标准库）
+
+| 依赖 | 方式 | 用途 |
+|------|------|------|
+| `osascript` | 系统自带 | 音量、静音、启动/退出应用 |
+| `sips` | 系统自带 | icns→PNG 图标转换 |
+| `pgrep` | 系统自带 | 应用运行状态检测 |
+| `plistlib` | Python stdlib | Dock plist 解析 |
+| `ctypes` | Python stdlib | **AX API 调用**（替代 pyobjc） |
+
+### 需打包
+
+| 依赖 | 大小 | 用途 |
+|------|------|------|
+| `SwitchAudioSource` | 55KB ARM64 | 音源切换 |
+
+### 不需要打包的
+
+| 依赖 | 原因 |
+|------|------|
+| `pyobjc` | ctypes 可替代 AX API，无需 20MB 额外依赖 |
+| `ddcctl` | 待外接屏验证后才决定是否打包 |
+
+### ctypes 验证记录
+
+```python
+# 已验证可调用 ApplicationServices AX API
+import ctypes
+lib = ctypes.cdll.LoadLibrary(
+    '/System/Library/Frameworks/ApplicationServices.framework/ApplicationServices'
+)
+# AXUIElementCreateApplication(pid) → AX 元素
+# AXUIElementCopyAttributeValue(elem, attr, &result) → 读属性
+# 
+# 测试结果: Safari PID → AXTitle OK, AXMenuBar OK (error code 0)
+```
+
+这意味着全部 Plan A 依赖加起来只有 **55KB**（SwitchAudioSource 一个二进制），其余全是系统自带或 Python 标准库。应用包不会显著增大。
