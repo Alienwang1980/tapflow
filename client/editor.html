@@ -510,8 +510,8 @@ rr();rpr();
     const dx=(ev.clientX-startX)/(cpx*scale),dy=(ev.clientY-startY)/(cpx*scale);
     let anyMoved=false;
     const newPos=moved.map(m=>{const nc=_snap4(m.scol+dx),nr=_snap4(m.srow+dy);return{...m,nc,nr}});
-    const ok=newPos.every(m=>!cp_()?.keys.some(ok=>ok.id!==m.id&&!selKeys.has(ok.id)&&_overlap({col:m.nc,row:m.nr,w:cp_()?.keys.find(x=>x.id===m.id)?.w||1,h:cp_()?.keys.find(x=>x.id===m.id)?.h||1},{col:ok.col||0,row:ok.row||0,w:ok.w||1,h:ok.h||1})));
-    if(ok){newPos.forEach(m=>{const kk=cp_()?.keys.find(x=>x.id===m.id);if(kk&&(kk.col!==m.nc||kk.row!==m.nr)){kk.col=m.nc;kk.row=m.nr;anyMoved=true}});if(anyMoved){dirty=true;rr();selKey=kid}}
+    var _tryMove=function(np){return np.every(function(m){return !cp_()?.keys.some(function(ok){return ok.id!==m.id&&!selKeys.has(ok.id)&&_overlap({col:m.nc,row:m.nr,w:cp_()?.keys.find(function(x){return x.id===m.id})?.w||1,h:cp_()?.keys.find(function(x){return x.id===m.id})?.h||1},{col:ok.col||0,row:ok.row||0,w:ok.w||1,h:ok.h||1})})})};var finalPos=newPos;var ok=_tryMove(newPos);if(!ok){var xOnly=newPos.map(function(m){return{id:m.id,scol:m.scol,srow:m.srow,nc:m.nc,nr:m.srow}});if(_tryMove(xOnly)){finalPos=xOnly;ok=true}else{var yOnly=newPos.map(function(m){return{id:m.id,scol:m.scol,srow:m.srow,nc:m.scol,nr:m.nr}});if(_tryMove(yOnly)){finalPos=yOnly;ok=true}}};
+    if(ok){finalPos.forEach(m=>{const kk=cp_()?.keys.find(x=>x.id===m.id);if(kk&&(kk.col!==m.nc||kk.row!==m.nr)){kk.col=m.nc;kk.row=m.nr;anyMoved=true}});if(anyMoved){dirty=true;rr();selKey=kid}}
   }
   function mu(ev){
     document.removeEventListener("mousemove",mm);document.removeEventListener("mouseup",mu);
