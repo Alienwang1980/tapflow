@@ -1,0 +1,67 @@
+// ── Media Control Widgets (volume, mute, mic-mute, audio devices) ──
+
+function _drawVolume(canvas, value, muted) {
+  var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.fillRect(0, 0, w, h);
+  if (muted) value = 0;
+  var margin = w * 0.08, barH = Math.max(8, h * 0.25);
+  var barY = (h - barH) / 2, barW = w - margin * 2;
+  ctx.fillStyle = "rgba(255,255,255,0.1)";
+  ctx.fillRect(margin, barY, barW, barH);
+  var fillW = barW * (value / 100);
+  var g = ctx.createLinearGradient(margin, 0, margin + barW, 0);
+  g.addColorStop(0, "#4ade80"); g.addColorStop(1, "#22c55e");
+  ctx.fillStyle = muted ? "#ef4444" : g;
+  ctx.fillRect(margin, barY, fillW, barH);
+  var hx = margin + fillW, hy = barY + barH / 2;
+  ctx.fillStyle = "#fff"; ctx.beginPath();
+  ctx.arc(hx, hy, barH * 0.6, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#fff"; var fs = Math.max(10, h * 0.3);
+  ctx.font = "bold " + fs + "px -apple-system,sans-serif";
+  ctx.textAlign = "left"; ctx.textBaseline = "top";
+  ctx.fillText(muted ? "MUTED" : Math.round(value) + "%", margin, barY - fs - 4);
+  ctx.font = fs * 0.8 + "px -apple-system,sans-serif";
+  ctx.textAlign = "right"; ctx.fillText(muted ? "MUTE" : "VOL", w - margin, barY - fs - 4);
+  canvas._volValue = value; canvas._volMuted = muted;
+  canvas._volMargin = margin; canvas._volBarW = barW;
+}
+
+function _onVolumeTouch(e, canvas) {
+  e.stopPropagation();
+  var rect = canvas.getBoundingClientRect();
+  var x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+  var scale = canvas.width / rect.width;
+  x *= scale;
+  var v = Math.round(((x - canvas._volMargin) / canvas._volBarW) * 100);
+  v = Math.max(0, Math.min(100, v));
+  _drawVolume(canvas, v, false);
+  fetch("/api/system/volume", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ value: v }) }).catch(function () { });
+}
+
+function _fetchAndDrawVolume(canvas) {
+  fetch("/api/system/volume").then(function (r) { return r.json(); }).then(function (d) {
+    _drawVolume(canvas, d.output_volume, d.output_muted);
+  }).catch(function () { _drawVolume(canvas, 75, false); });
+}
+
+function _drawMuteBtn(canvas, muted) {
+  var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = muted ? "rgba(239,68,68,0.3)" : "rgba(255,255,255,0.08)";
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = muted ? "#ef4444" : "#888";
+  var r = Math.min(w, h) * 0.35;
+  ctx.beginPath(); ctx.arc(w / 2, h / 2, r, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#fff"; var fs = Math.max(14, Math.min(w, h) * 0.4);
+  ctx.font = fs + "px -apple-system,sans-serif";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText("M", w / 2, h / 2);
+  canvas._muted = muted;
+}
+
+function _toggleMute(canvas) {
+  fetch("/api/system/mute", { method: "POST" }).then(function (r) { return r.json(); }).then(function (d) {
+    _drawMuteBtn(canvas, d.muted);
+  });
+}
