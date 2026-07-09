@@ -56,15 +56,41 @@ def create_icon_image(size=64):
 
 def run_server():
     """Run FastAPI server in background thread."""
-    import uvicorn, os
-    cert_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "certs")
-    cert_file = os.path.join(cert_dir, "cert.pem")
-    key_file = os.path.join(cert_dir, "key.pem")
-    if os.path.exists(cert_file) and os.path.exists(key_file):
-        uvicorn.run(app, host="0.0.0.0", port=8082, log_level="warning",
-                    ssl_keyfile=key_file, ssl_certfile=cert_file)
-    else:
-        uvicorn.run(app, host="0.0.0.0", port=8082, log_level="warning")
+    import uvicorn, json as _json, os as _os, re as _re, logging as _logging
+    from profile_manager import profile_manager as _pm
+    from connection_manager import manager as _mgr
+    _logger = _logging.getLogger("stp.widgets")
+    _current_profile = "Default.json"
+    
+    @app.get("/api/active-profile")
+    async def _get_active_profile():
+        nonlocal _current_profile
+        p = _pm.get_profile(_current_profile)
+        if p: return {"profile": p, "filename": _current_profile}
+        from fastapi import HTTPException; raise HTTPException(404, "No active profile")
+    
+    @app.post("/api/active-profile")
+    async def _set_active_profile(body: dict):
+        nonlocal _current_profile
+        _current_profile = body.get("filename", "Default.json")
+        return {"active": _current_profile}
+    
+    @app.get("/api/deepseek/balance")
+    async def _get_balance(api_key: str = ""):
+        import urllib.request
+        if not api_key:
+            from fastapi import HTTPException; raise HTTPException(400, "Missing api_key")
+        try:
+            req = urllib.request.Request(
+                "https://api.deepseek.com/user/balance",
+                headers={"Authorization": f"Bearer {api_key}", "Accept": "application/json"})
+            body = urllib.request.urlopen(req, timeout=10).read()
+            return _json.loads(body)
+        except Exception as e:
+            from fastapi import HTTPException; raise HTTPException(500, str(e))
+    
+    _logger.info("Widget routes registered")
+    uvicorn.run(app, host="0.0.0.0", port=8082, log_level="warning")
 
 
 def on_show_qr(icon, item):
