@@ -83,7 +83,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 }
 .ck:hover{border-color:rgba(255,255,255,0.2)}
 .ck:active{transform:scale(0.95)}
-.ck.sel{border-color:var(--accent);box-shadow:0 0 16px rgba(217,119,6,0.3)}
+.ck.sel{border-color:var(--accent)!important;box-shadow:0 0 16px rgba(217,119,6,0.3)}
 .ck .kl{pointer-events:none;text-align:center;line-height:1.2;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .ck .sz{position:absolute;top:2px;right:4px;font-size:8px;color:rgba(255,255,255,0.2);pointer-events:none}
 .ck .rh{
@@ -93,7 +93,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
   border-radius:0 0 3px 0;z-index:2;
 }
 .ck:hover .rh,.ck.sel .rh{opacity:1;pointer-events:auto!important}
-.ck.touchpad{border:1px solid rgba(255,255,255,0.08)!important;background:#2a2a30!important}
+.ck.touchpad{border:1px solid rgba(255,255,255,0.06)}
 
 #carea-overlay{position:absolute;inset:0;z-index:5;pointer-events:none;background:rgba(0,0,0,0.35)}
 /* ==== Overlay Elements ==== */
