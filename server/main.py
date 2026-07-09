@@ -20,9 +20,25 @@ if _server_dir not in sys.path:
 from connection_manager import manager
 from input_engine import press_key, type_text, is_accessibility_enabled, HAVE_QUARTZ
 from profile_manager import profile_manager as profiles
+try:
+    from audio_capture import audio_capture
+except ImportError:
+    audio_capture = None
+try:
+    from balance_poller import balance_poller
+except ImportError:
+    balance_poller = None
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelname)s %(message)s")
 logger = logging.getLogger("stp.main")
+
+async def _broadcast_audio(data: dict):
+    """Broadcast audio spectrum to all clients."""
+    await manager.broadcast(data)
+
+async def _broadcast_balance(data: dict):
+    """Broadcast balance update to all clients."""
+    await manager.broadcast(data)
 
 app = FastAPI(title="Smart Touch Panel")
 
@@ -325,6 +341,41 @@ async def delete_profile(filename: str):
     return {"status": "deleted", "filename": filename}
 
 
+# ── Widget Config ──
+
+@app.get("/api/deepseek/balance")
+async def get_balance():
+    """Return current Deepseek balance."""
+    import urllib.request, re
+    _key = ""
+    try:
+        with open(os.path.expanduser("~/.claude/settings.json")) as _f:
+            _m = re.search(r'"ANTHROPIC_AUTH_TOKEN"\s*:\s*"([^"]+)"', _f.read())
+            if _m: _key = _m.group(1)
+    except: pass
+    if not _key:
+        raise HTTPException(400, "No API key found in settings")
+    try:
+        req = urllib.request.Request(
+            "https://api.deepseek.com/user/balance",
+            headers={"Authorization": f"Bearer {_key}", "Accept": "application/json"},
+        )
+        body = urllib.request.urlopen(req, timeout=10).read()
+        return json.loads(body)
+    except Exception as e:
+        raise HTTPException(500, str(e))
+
+@app.get("/api/deepseek/key")
+async def get_api_key():
+    import re
+    _key = ""
+    try:
+        with open(os.path.expanduser("~/.claude/settings.json")) as _f:
+            _m = re.search(r'"ANTHROPIC_AUTH_TOKEN"\s*:\s*"([^"]+)"', _f.read())
+            if _m: _key = _m.group(1)
+    except: pass
+    return {"has_key": bool(_key), "key_preview": _key[:8] + "***" if _key else ""}
+
 # ── WebSocket ──
 
 @app.websocket("/ws")
@@ -396,12 +447,21 @@ async def ws_endpoint(websocket: WebSocket):
 async def startup():
     start_mdns()
     start_window_watcher()
+    if audio_capture:
+        import threading
+        threading.Thread(target=audio_capture.start, args=(_broadcast_audio,), daemon=True).start()
+    if balance_poller:
+        await balance_poller.start(_broadcast_balance)
 
 
 @app.on_event("shutdown")
 async def shutdown():
     stop_mdns()
     stop_window_watcher()
+    if audio_capture:
+        audio_capture.stop()
+    if balance_poller:
+        await balance_poller.stop()
 
 
 def main(host="0.0.0.0", port=8082):
