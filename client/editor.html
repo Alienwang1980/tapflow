@@ -365,7 +365,7 @@ function cws(){
 }
 
 async function lpl(){const r=await fetch("/api/profiles");profiles=(await r.json()).profiles||[];rpl()}
-async function lp(fn){if(fn==="__manage__"){openProfileManager();this.value=activeProfile||"";return}const r=await fetch("/api/profiles/"+fn);profile=await r.json();activeProfile=fn;activePage=profile.pages[0]?.id||"";selKey=null;selKeys.clear();panX=profile.canvasX||0;panY=profile.canvasY||0;renderAll();fetch("/api/active-profile",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({filename:fn})}).catch(function(){})}
+async function lp(fn){if(fn==="__manage__"){openProfileManager();this.value=activeProfile||"";return}const r=await fetch("/api/profiles/"+fn);profile=await r.json();activeProfile=fn;activePage=profile.pages[0]?.id||"";selKey=null;selKeys.clear();panX=profile.canvasX||0;panY=profile.canvasY||0;try{localStorage.setItem("stp_active",fn)}catch(e){};renderAll();fetch("/api/active-profile",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({filename:fn})}).catch(function(){})}
 async function saveProfile(){
   if(!profile)return;
   profile.canvasX=panX;profile.canvasY=panY;
@@ -801,7 +801,7 @@ function testSnd(nm){if(!nm||nm==="none")return;const s=SND[nm];if(!s)return;try
 function t(msg){const el=document.getElementById("toast");el.textContent=msg;el.className="toast";el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2000)}
 
 window.addEventListener("resize",()=>rr());
-setTimeout(function(){var lp=document.getElementById("lp-panel");var rp=document.getElementById("rp-profile");if(lp&&rp){var children=rp.children;var toMove=[];for(var i=0;i<children.length;i++){var c=children[i];if(c.tagName!=="DIV"||c.id==="pl")continue;if(c.className==="rp-section"||c.className==="rp-divider")toMove.push(c)}for(var i=0;i<toMove.length;i++){lp.appendChild(toMove[i]);toMove[i].style.opacity='1'}}},200);cws();lpl();lp("Default.json");
+setTimeout(function(){var lp=document.getElementById("lp-panel");var rp=document.getElementById("rp-profile");if(lp&&rp){var children=rp.children;var toMove=[];for(var i=0;i<children.length;i++){var c=children[i];if(c.tagName!=="DIV"||c.id==="pl")continue;if(c.className==="rp-section"||c.className==="rp-divider")toMove.push(c)}for(var i=0;i<toMove.length;i++){lp.appendChild(toMove[i]);toMove[i].style.opacity='1'}}},200);cws();lpl();lp(localStorage.getItem("stp_active")||"Default.json");
 </script>
 <div id="keyTypeModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
 background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center">
