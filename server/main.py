@@ -23,6 +23,7 @@ from profile_manager import profile_manager as profiles
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelname)s %(message)s")
 logger = logging.getLogger("stp.main")
+_current_profile = "Default.json"  # last saved/active profile
 
 app = FastAPI(title="Smart Touch Panel")
 
@@ -326,7 +327,27 @@ async def delete_profile(filename: str):
 
 
 
+
+# ── Active Profile ──
+
+@app.get("/api/active-profile")
+async def get_active_profile():
+    """Return the current active profile data (for iPad)."""
+    global _current_profile
+    p = profiles.get_profile(_current_profile)
+    if p:
+        return {"profile": p, "filename": _current_profile}
+    raise HTTPException(404, "No active profile")
+
+@app.post("/api/active-profile")
+async def set_active_profile(body: dict):
+    """Remember which profile is active (called by editor on switch)."""
+    global _current_profile
+    _current_profile = body.get("filename", "Default.json")
+    return {"active": _current_profile}
+
 # ── Deepseek Balance ──
+
 
 @app.get("/api/deepseek/balance")
 async def get_deepseek_balance(api_key: str = ""):
@@ -348,14 +369,16 @@ async def get_deepseek_balance(api_key: str = ""):
 
 @app.websocket("/ws")
 async def ws_endpoint(websocket: WebSocket):
+    global _current_profile
     client_id = str(uuid.uuid4())[:8]
     await manager.connect(client_id, websocket)
-    # Send default profile on connect
-    default = profiles.get_profile("Default.json") or profiles.get_profile(
-        profiles.list_profiles()[0]["filename"] if profiles.list_profiles() else None
-    )
-    if default:
-        await manager.send_to(client_id, {"type": "profile", "profile": default, "filename": "Default.json"})
+    # Send current profile on connect
+    p = profiles.get_profile(_current_profile)
+    if not p and profiles.list_profiles():
+        _current_profile = profiles.list_profiles()[0]["filename"]
+        p = profiles.get_profile(_current_profile)
+    if p:
+        await manager.send_to(client_id, {"type": "profile", "profile": p, "filename": _current_profile})
     try:
         while True:
             data = await websocket.receive_json()
@@ -396,6 +419,7 @@ async def ws_endpoint(websocket: WebSocket):
             elif msg_type == "profile_saved":
                 # Editor saved a profile — broadcast to all clients
                 fn = data.get("filename", "Default.json")
+                _current_profile = fn
                 await broadcast_profile_update(fn)
                 await manager.send_to(client_id, {"type": "ack", "action": "profile_saved", "filename": fn})
             elif msg_type == "ping":
