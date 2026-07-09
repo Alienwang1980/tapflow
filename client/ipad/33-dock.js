@@ -132,3 +132,48 @@ function _fetchAndDrawMenus(canvas) {
     _drawMenuPanel(canvas, d.menus);
   }).catch(function(){});
 }
+
+function _drawLayoutPresets(canvas, layouts) {
+  var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.fillRect(0, 0, w, h);
+  if (!layouts || !layouts.length) { ctx.fillStyle = "#888"; ctx.font = "12px -apple-system,sans-serif"; ctx.textAlign = "center"; ctx.fillText("No presets - tap + in editor", w/2, h/2); return; }
+  var rowH = Math.max(24, Math.min(40, h / Math.max(1, layouts.length)));
+  ctx.font = Math.max(8, rowH * 0.35) + "px -apple-system,sans-serif";
+  ctx.textBaseline = "middle";
+  canvas._lyBtns = [];
+  layouts.forEach(function(l, i) {
+    var y = 4 + i * rowH;
+    ctx.fillStyle = "rgba(255,255,255,0.08)";
+    ctx.fillRect(4, y, w-8, rowH-2);
+    ctx.fillStyle = "#ccc"; ctx.textAlign = "left";
+    ctx.fillText(l.name, 10, y + rowH/2);
+    // Apply button
+    ctx.fillStyle = "#4ade80"; ctx.textAlign = "right";
+    ctx.fillText("Apply", w-10, y + rowH/2);
+    canvas._lyBtns.push({y: y, h: rowH, name: l.name, action: "apply"});
+  });
+  canvas._lyRowH = rowH;
+}
+
+function _onLayoutTap(e, canvas) {
+  e.stopPropagation();
+  var rect = canvas.getBoundingClientRect();
+  var y = ((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) * (canvas.width / rect.width);
+  var btns = canvas._lyBtns;
+  if (!btns) return;
+  for (var i = 0; i < btns.length; i++) {
+    if (y >= btns[i].y && y < btns[i].y + btns[i].h) {
+      if (btns[i].action === "apply") {
+        fetch("/api/system/layouts/apply", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({name: btns[i].name})}).catch(function(){});
+      }
+      break;
+    }
+  }
+}
+
+function _fetchAndDrawLayouts(canvas) {
+  fetch("/api/system/layouts").then(function(r){return r.json()}).then(function(d){
+    _drawLayoutPresets(canvas, d);
+  }).catch(function(){});
+}

@@ -283,6 +283,67 @@ def run_server():
         if keys: press_key(keys)
         return {"status": "ok"}
 
+    
+    # ── Window Tile + Layout Presets ──
+    import json as _json, os as _os3
+    _LAYOUT_DIR = _os3.path.expanduser("~/Library/Application Support/Smart Touch Panel/layouts")
+    _os3.makedirs(_LAYOUT_DIR, exist_ok=True)
+
+    @app.post("/api/system/window/tile")
+    async def _sys_tile(body: dict):
+        layout = body.get("layout", "2x2")
+        n = _front_name()
+        # Use osascript to tile the frontmost window
+        _sc.run(["osascript", "-e", f'tell app "System Events" to tell process "{n}"',
+                 "-e", "set sz to get size of front window",
+                 "-e", f'if "{layout}" is "left-right" then',
+                 "-e", "set position of front window to {0, 30}",
+                 "-e", "set size of front window to {item 1 of sz / 2, item 2 of sz}",
+                 "-e", "end if"])
+        return {"status": "ok"}
+
+    @app.get("/api/system/layouts")
+    async def _sys_layouts():
+        layouts = []
+        for f in sorted(_os3.listdir(_LAYOUT_DIR)):
+            if f.endswith(".json"):
+                try:
+                    with open(_os3.path.join(_LAYOUT_DIR, f)) as fh:
+                        data = _json.load(fh)
+                        layouts.append({"name": data.get("name", f[:-5]), "timestamp": data.get("timestamp", 0)})
+                except: pass
+        return layouts
+
+    @app.post("/api/system/layouts")
+    async def _sys_save_layout(body: dict):
+        name = body.get("name", "layout")
+        # Collect all window positions
+        import AppKit as _ak
+        ws = _ak.NSWorkspace.sharedWorkspace()
+        apps = ws.runningApplications()
+        snapshot = {"name": name, "timestamp": __import__("time").time(), "apps": []}
+        for app in apps:
+            if not app.bundleIdentifier(): continue
+            snapshot["apps"].append({
+                "name": app.localizedName() or "?",
+                "bundle_id": app.bundleIdentifier() or "",
+            })
+        path = _os3.path.join(_LAYOUT_DIR, name.replace("/", "_") + ".json")
+        with open(path, "w") as fh: _json.dump(snapshot, fh)
+        return {"status": "saved", "name": name}
+
+    @app.post("/api/system/layouts/apply")
+    async def _sys_apply_layout(body: dict):
+        name = body.get("name", "")
+        path = _os3.path.join(_LAYOUT_DIR, name.replace("/", "_") + ".json")
+        if not _os3.path.exists(path): return {"error": "not found"}
+        try:
+            with open(path) as fh: data = _json.load(fh)
+            for app in data.get("apps", []):
+                _sc.run(["open", "-a", app["name"]])
+        except: pass
+        return {"status": "ok"}
+
     _logger.info("Widget routes registered")
     
     uvicorn.run(app, host="0.0.0.0", port=8082, log_level="warning")
