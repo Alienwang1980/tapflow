@@ -109,56 +109,6 @@ def run_server():
             from fastapi import HTTPException; raise HTTPException(500, str(e))
     
     _logger.info("Widget routes registered")
-        
-    # Override WS connect to send active profile
-    from fastapi import WebSocket as _WS, WebSocketDisconnect as _WSD
-    import uuid as _uuid
-    
-    @app.websocket("/ws")
-    async def _ws_override(websocket: _WS):
-        nonlocal _current_profile
-        cid = str(_uuid.uuid4())[:8]
-        await _mgr.connect(cid, websocket)
-        p = _pm.get_profile(_current_profile)
-        if not p and _pm.list_profiles():
-            _current_profile = _pm.list_profiles()[0]["filename"]
-            p = _pm.get_profile(_current_profile)
-        if p:
-            await _mgr.send_to(cid, {"type": "profile", "profile": p, "filename": _current_profile})
-        try:
-            while True:
-                data = await websocket.receive_json()
-                mt = data.get("type", "")
-                if mt == "touchpad":
-                    from input_engine import move_mouse, scroll_mouse, click_mouse, mouse_down, mouse_up
-                    action = data.get("action", "move")
-                    if action == "move": move_mouse(float(data.get("dx",0)), float(data.get("dy",0)), drag=data.get("drag",False))
-                    elif action == "scroll": scroll_mouse(float(data.get("dx",0)), float(data.get("dy",0)))
-                    elif action == "click": click_mouse(data.get("button","left"))
-                    elif action == "mousedown": mouse_down(data.get("button","left"))
-                    elif action == "mouseup": mouse_up(data.get("button","left"))
-                    await _mgr.send_to(cid, {"type": "ack", "action": "touchpad"})
-                elif mt == "key":
-                    keys = data.get("keys", [])
-                    if not keys and "key" in data: keys = [{"type": data.get("action","press"), "key": data["key"]}]
-                    from main import handle_key_action
-                    results = [handle_key_action(k) for k in keys]
-                    await _mgr.send_to(cid, {"type": "ack", "results": results})
-                elif mt == "profile_saved":
-                    fn = data.get("filename", "Default.json")
-                    _current_profile = fn
-                    try:
-                        with open(_profile_state_file, "w") as _f: _f.write(_current_profile)
-                    except Exception: pass
-                    from main import broadcast_profile_update
-                    await broadcast_profile_update(fn)
-                    await _mgr.send_to(cid, {"type": "ack", "action": "profile_saved", "filename": fn})
-                elif mt == "ping":
-                    await _mgr.send_to(cid, {"type": "pong"})
-        except _WSD:
-            _mgr.disconnect(cid)
-        except Exception:
-            _mgr.disconnect(cid)
     
     uvicorn.run(app, host="0.0.0.0", port=8082, log_level="warning")
 
