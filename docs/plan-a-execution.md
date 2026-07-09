@@ -314,3 +314,71 @@ lib = ctypes.cdll.LoadLibrary(
 ```
 
 这意味着全部 Plan A 依赖加起来只有 **55KB**（SwitchAudioSource 一个二进制），其余全是系统自带或 Python 标准库。应用包不会显著增大。
+
+## 自主执行评估
+
+### 不需要用户参与的部分 ✅
+
+| 步骤 | 我能做 | 工具 |
+|------|--------|------|
+| 写服务端代码 | ✅ | Python stdlib |
+| 写 iPad 渲染模块 | ✅ | JS + Canvas API |
+| 更新 Editor Widget | ✅ | WIDGET_TYPES + Library |
+| 构建 + 符号验证 | ✅ | `python tools/build.py` |
+| JS 语法检查 | ✅ | `node --check` |
+| Playwright 自动化测试 | ✅ | `npx playwright` (已安装) |
+| dist 同步 + 重启 app | ✅ | shell 命令 |
+| Git commit + push | ✅ | git |
+| 安装 brew 工具 | ✅ | `brew install` |
+| 复制二进制文件 | ✅ | `cp` |
+
+### 需要用户参与的部分 ⚠️
+
+| 步骤 | 原因 | 频率 |
+|------|------|------|
+| py2app 重建 | setup.py 修改后需 `python setup.py py2app` | 1 次（加 SwitchAudioSource 后） |
+| 辅助功能权限 | 每次 .app 重建后 macOS 把新二进制当新应用 | 1-2 次 |
+| iPad 真机测试 | Playwright 模拟触摸但无法完全模拟 iPad Safari | 每 Phase 1 次 |
+| 外接屏幕（亮度） | 待你接上才能验证 DDC/CI | 1 次 |
+
+### 已完成的搜索项
+
+| # | 搜索内容 | 结果 | 状态 |
+|---|---------|------|------|
+| S1 | osascript volume 语法 | `set volume output volume N` | ✅ 已验证 |
+| S2 | SwitchAudioSource flags | `-a` list, `-t output/input`, `-i name` | ✅ 已验证 |
+| S3 | AX 窗口 position/size | `AXPosition`, `AXSize`, `AXFullScreen` | ✅ ctypes 通 |
+| S4 | CGEvent key code 映射 | 完整 keyCode 表 (kVK_ANSI_R=15, kVK_Command=55, etc.) | ✅ 已获取 |
+| S5 | sips icns→PNG | `sips -s format png input.icns --out output.png` | ✅ 已验证 |
+| S6 | pyobjc 可用性 | 不可用，改用 ctypes | ✅ 已解决 |
+
+### 工具箱（执行前需要准备）
+
+全部已有，不需要新安装：
+- `npx playwright` — 浏览器自动化测试 ✓
+- `node --check` — JS 语法验证 ✓
+- `python tools/build.py` — 构建 ✓
+- `git` — 版本管理 ✓
+- `lsof` / `kill` / `open` — 重启 app ✓
+- `/System/Library/Frameworks/ApplicationServices.framework` — AX API ✓
+- `/opt/homebrew/Cellar/switchaudio-osx/1.2.2/SwitchAudioSource` — 55KB 二进制 ✓
+
+### 自主执行时间估算
+
+假设每次 Playwright 测试约 30s，每次构建约 5s：
+
+| Phase | 步骤 | 总时间 |
+|-------|------|--------|
+| 1 | 5 步骤 | ~1.5h |
+| 2 | 3 步骤 | ~45min |
+| 3 | 2 步骤 | ~1h |
+| 4 | 2 步骤 | ~1.5h |
+| 5 | 2 步骤 | ~1.5h |
+| 6 | 2 步骤 | ~1h |
+| **总计** | **16 步骤** | **~7h** |
+
+### 唯一需要你在的阶段
+
+1. **Phase 1 开始前**：py2app 重建（加 SwitchAudioSource 到 setup.py data_files）
+2. **Phase 4 后**：iPad 真机测试 Dock widget 触摸交互
+3. **Phase 6 后**：iPad 真机测试布局预设
