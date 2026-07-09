@@ -42,7 +42,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
   user-select:none;-webkit-user-select:none;
 }
 .cwrap{transform-origin:center center;position:relative;z-index:1}
-.canvas{position:relative;background:rgba(0,0,0,0.15);border-radius:4px;box-shadow:0 0 0 9999px rgba(30,27,24,0.55)}
+.canvas{position:relative;background:transparent;border-radius:4px;border:1.5px solid rgba(255,255,255,0.12);}
 
 /* ==== Frame Toolbar ==== */
 .ftb{
@@ -98,6 +98,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
   background:repeating-linear-gradient(45deg,rgba(255,255,255,0.008),rgba(255,255,255,0.008) 5px,rgba(255,255,255,0.02) 5px,rgba(255,255,255,0.02) 10px)!important;
 }
 
+#carea-overlay{position:absolute;inset:0;z-index:5;pointer-events:none;background:rgba(0,0,0,0.35)}
 /* ==== Overlay Elements ==== */
 .gh{position:absolute;border:1px dashed rgba(255,255,255,0.1);background:rgba(255,255,255,0.015);pointer-events:none;z-index:2;display:none}
 .gt{position:absolute;color:rgba(255,255,255,0.25);font-size:10px;pointer-events:none;z-index:2;display:none;white-space:nowrap}
@@ -191,17 +192,26 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 @font-face{font-family:"Press Start 2P";src:url("/static/fonts/PressStart2P.woff2") format("woff2")}
 @font-face{font-family:"VT323";src:url("/static/fonts/VT323.woff2") format("woff2")}
 @font-face{font-family:"Russo One";src:url("/static/fonts/RussoOne.woff2") format("woff2")}
-</style></head>
+
+.btb{position:absolute;display:flex;align-items:center;gap:6px;height:34px;z-index:30;pointer-events:none;background:var(--panel);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:0 8px}
+.btb>*{pointer-events:auto}
+.btb button{height:28px;background:transparent;color:var(--text);border:none;padding:0 8px;font-size:14px;cursor:pointer;font-weight:500;transition:all 0.15s}
+.btb button:hover{color:var(--accent)}
+.btb span{font-size:11px;font-weight:600;min-width:24px;text-align:center;user-select:none}
+#pmList button:hover{opacity:0.8}</style></head>
 <body>
 <div class="tb">
   <h1>Smart <span>Touch</span> Editor</h1>
   <span class="conn off" id="cs">off</span>
-  
-  <button class="btn-save" onclick="saveProfile()">Save & Sync</button>
-  <button class="btn-new" onclick="resetDefault()">Reset Default</button>
+  <span class="tb-sep">|</span>
+  <span class="tb-lbl">Profile</span>
+  <select id="tpf" onchange="var v=this.value;lp(v);if(v==='__manage__')this.value=activeProfile||''" style="min-width:150px"><option value="">loading...</option></select>
+  <span class="tb-sep">|</span>
+  <span class="tb-lbl">&#9834;</span>
+  <select id="tgs" onchange="if(profile){profile.defaultSound=this.value;dirty=true}"><option value="none">None</option><option value="click">Click</option><option value="soft">Soft</option><option value="mechanical">Mechanical</option><option value="deep">Deep</option><option value="red">Red Switch</option><option value="topre">Topre EC</option><option value="glass">Glass Tap</option><option value="bubble">Bubble Pop</option><option value="blip">8-bit Blip</option><option value="spark">Electric Spark</option></select>
+  <button class="btn-save" onclick="saveProfile()">Save &amp; Sync</button>
   <button class="btn-new" onclick="saveAs()">Save As</button>
-  <button onclick="undo()" title="Undo (Ctrl+Z)">↩</button>
-  <button onclick="redo()" title="Redo (Ctrl+Shift+Z)">↪</button>
+  <button class="btn-new" onclick="resetDefault()">Reset</button>
 </div>
 <div class="main">
 <div class="carea" id="carea">
@@ -209,17 +219,11 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
   <div class="ftb" id="ftb"><select id="fdev" onchange="onFDev()"><option value="iPad 11&quot;" selected>iPad 11"</option><option value="iPad 4:3">iPad 4:3</option><option value="iPad mini">iPad mini</option><option value="Android 16:10">Android 16:10</option></select><button class="btn-ori" onclick="toggleOri()" title="Toggle">↻</button><span class="ftb-sep"></span><button onclick="zoomBy(-1)">−</button><span id="zv">60</span><button onclick="zoomBy(1)">+</button></div>
   <div class="sr" id="sr"></div><div class="grh" id="grh_b" style="cursor:s-resize"></div><div class="grh" id="grh_l" style="cursor:w-resize"></div><div class="grh" id="grh_r" style="cursor:e-resize"></div>
   <div class="cwrap" id="cwrap"><div class="canvas" id="canvas"></div></div>
+  <div id="carea-overlay"></div>
+  <div class="btb" id="btb"><button onclick="zoomBy(-1)">−</button><span id="zv">60</span><button onclick="zoomBy(1)">+</button><span class="tb-sep">|</span><button onclick="undo()" title="Undo">↩</button><button onclick="redo()" title="Redo">↪</button></div>
 </div>
 <div class="rp">
-    <div id="rp-profile">
-      <div class="rp-section">
-        <h3>Profiles</h3>
-        <div id="pl"></div>
-        <div class="ar"><input id="npn" placeholder="Name"><button onclick="cp()">+</button></div>
-        <label style="margin-top:12px">Default Sound</label>
-        <select id="gs" onchange="if(profile){profile.defaultSound=this.value;dirty=true}"><option value="none">None</option><option value="click">Click</option><option value="soft">Soft</option><option value="mechanical">Mechanical</option><option value="deep">Deep</option><option value="red">Red Switch</option><option value="topre">Topre EC</option><option value="glass">Glass Tap</option><option value="bubble">Bubble Pop</option><option value="blip">8-bit Blip</option><option value="spark">Electric Spark</option></select>
-      </div>
-      <div class="rp-divider"></div>
+    <div id="rp-profile"><div id="pl" style="display:none"></div>
       <div class="rp-section">
         <h3>Pages</h3>
         <div id="pgl"></div>
@@ -318,7 +322,7 @@ document.addEventListener("keydown",e=>{
 
 async function resetDefault(){
   if(!confirm("Reset to default 89-key keyboard? Current layout will be lost."))return;
-  try{const r=await fetch("/api/default-template");profile=await r.json();profile.profileName="Default";activePage=profile.pages[0]?.id||"";panX=0;panY=0;selKey=null;selKeys.clear();dirty=true;renderAll();t("Default layout loaded")}catch(e){t("Failed: "+e,true)}
+  try{const r=await fetch("/api/default-template");var keepName=profile?profile.profileName:"";profile=await r.json();if(keepName)profile.profileName=keepName;activePage=profile.pages[0]?.id||"";panX=0;panY=0;selKey=null;selKeys.clear();dirty=true;renderAll();t("Default layout loaded")}catch(e){t("Failed: "+e,true)}
 }
 function cws(){
   ws=new WebSocket("ws://"+location.hostname+":8082/ws");
@@ -328,11 +332,13 @@ function cws(){
 }
 
 async function lpl(){const r=await fetch("/api/profiles");profiles=(await r.json()).profiles||[];rpl()}
-async function lp(fn){const r=await fetch("/api/profiles/"+fn);profile=await r.json();activeProfile=fn;activePage=profile.pages[0]?.id||"";selKey=null;selKeys.clear();panX=profile.canvasX||0;panY=profile.canvasY||0;renderAll()}
+async function lp(fn){if(fn==="__manage__"){openProfileManager();this.value=activeProfile||"";return}const r=await fetch("/api/profiles/"+fn);profile=await r.json();activeProfile=fn;activePage=profile.pages[0]?.id||"";selKey=null;selKeys.clear();panX=profile.canvasX||0;panY=profile.canvasY||0;renderAll()}
 async function saveProfile(){
   if(!profile)return;
   profile.canvasX=panX;profile.canvasY=panY;
+  profile._filename=activeProfile;
   const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(profile)});
+  delete profile._filename;
   const d=await r.json();activeProfile=d.filename;dirty=false;
   if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:"profile_saved",filename:d.filename}));
   lpl();t("Saved & synced");
@@ -347,7 +353,7 @@ async function copyProfile(fn){const r=await fetch("/api/profiles/"+fn);const p=
 function dpg(pid){if(profile.pages.length<=1)return;profile.pages=profile.pages.filter(p=>p.id!==pid);if(activePage===pid)activePage=profile.pages[0].id;selKey=null;selKeys.clear();dirty=true;renderAll()}
 function cp_(){return profile?.pages.find(p=>p.id===activePage)}
 function renderAll(){rpl();rpgl();rr();rpr();rgrp()}
-function rpl(){document.getElementById("pl").innerHTML=profiles.map(p=>'<div class="it'+(p.filename===activeProfile?" ac":"")+'" onclick="lp(\''+p.filename+'\')">'+hesc(p.profileName)+'<span class="x" onclick="event.stopPropagation();dp(\''+p.filename+'\')">×</span></div>').join("")}
+function rpl(){var _pl=document.getElementById("pl");if(_pl)_pl.innerHTML=profiles.map(p=>'<div class="it'+(p.filename===activeProfile?" ac":"")+'" onclick="lp(\''+p.filename+'\')">'+hesc(p.profileName)+'<span class="x" onclick="event.stopPropagation();dp(\''+p.filename+'\')">×</span></div>').join("");var tpf=document.getElementById("tpf");if(tpf){tpf.innerHTML=profiles.map(function(p){return"<option value='"+p.filename+"'>"+p.profileName+"</option>"}).join("")+"<option value='__manage__' style='color:var(--accent)'>Manage...</option></option>";if(activeProfile)tpf.value=activeProfile}}
 function rpgl(){document.getElementById("pgl").innerHTML=profile?.pages.map(p=>'<div class="it'+(p.id===activePage?" ac":"")+'" onclick="activePage=\''+p.id+'\';selKey=null;selKeys.clear();selGroup=null;renderAll()">'+hesc(p.label)+'<span class="x" onclick="event.stopPropagation();dpg(\''+p.id+'\')">×</span></div>').join("")||""}
 
 function _overlap(a,b){return !(a.col+a.w<=b.col||b.col+b.w<=a.col||a.row+a.h<=b.row||b.row+b.h<=a.row)}
@@ -374,7 +380,7 @@ function rr(){
   if(!profile)return;
   const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60,gp=profile.gap||0;
   const ca=document.getElementById("carea"),cw=ca.clientWidth,ch=ca.clientHeight;
-  document.getElementById("gs").value=profile.defaultSound||"none";
+  document.getElementById("tgs").value=profile.defaultSound||"none";
   document.getElementById("zv").textContent=cs;
 
   const scale=Math.min(cw*0.85/dw,ch*0.85/dh);
@@ -383,13 +389,14 @@ function rr(){
   wrap.style.transform=`scale(${scale})`;
 
   const canvas=document.getElementById("canvas");
-  canvas.style.width=dw+"px";canvas.style.height=dh+"px";const gridPx=cs+gp;canvas.style.backgroundImage="linear-gradient(rgba(255,255,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.04) 1px,transparent 1px)";canvas.style.backgroundSize=gridPx+"px "+gridPx+"px";
+  canvas.style.width=dw+"px";canvas.style.height=dh+"px";const gridPx=cs+gp;ca.style.backgroundImage="linear-gradient(rgba(255,255,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.04) 1px,transparent 1px)";ca.style.backgroundSize=gridPx+"px "+gridPx+"px";
 
   // ftb at frame top-right corner
-  const ox=(cw-dw*scale)/2,oy=(ch-dh*scale)/2;const ftb=document.getElementById("ftb");ftb.style.right=ox+"px";ftb.style.top=Math.max(0,oy-36)+"px";ftb.style.left="auto";
+  const ox=(cw-dw*scale)/2,oy=(ch-dh*scale)/2;var _ov=document.getElementById("carea-overlay");if(_ov){var _wr=wrap.getBoundingClientRect();var _cr=ca.getBoundingClientRect();var _ox=_wr.left-_cr.left,_oy=_wr.top-_cr.top,_ow=_wr.width,_oh=_wr.height;_ov.style.clipPath="polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,"+_ox+"px "+_oy+"px,"+(_ox+_ow)+"px "+_oy+"px,"+(_ox+_ow)+"px "+(_oy+_oh)+"px,"+_ox+"px "+(_oy+_oh)+"px,"+_ox+"px "+_oy+"px)";}
+const ftb=document.getElementById("ftb");var btb=document.getElementById("btb");if(btb){var wr=wrap.getBoundingClientRect();var cr=ca.getBoundingClientRect();btb.style.left="50%";btb.style.transform="translateX(-50%)";btb.style.top=(wr.bottom-cr.top+8)+"px";}ftb.style.right=ox+"px";ftb.style.top=Math.max(0,oy-36)+"px";ftb.style.left="auto";
 
   const cpx=cs+gp;
-  canvas.style.backgroundPosition=((dw/2+panX*cpx)%gridPx+gridPx)%gridPx+"px "+((dh/2+panY*cpx)%gridPx+gridPx)%gridPx+"px";
+  ca.style.backgroundPosition=((dw/2+panX*cpx)%gridPx+gridPx)%gridPx+"px "+((dh/2+panY*cpx)%gridPx+gridPx)%gridPx+"px";
   canvas.innerHTML="";const grbox=document.createElement("div");grbox.className="grbox";grbox.id="grbox";canvas.appendChild(grbox);const grh_tl=document.createElement("div");grh_tl.className="grh";grh_tl.id="grh_tl";grh_tl.style.cursor="nw-resize";canvas.appendChild(grh_tl);const grh_tr=document.createElement("div");grh_tr.className="grh";grh_tr.id="grh_tr";grh_tr.style.cursor="ne-resize";canvas.appendChild(grh_tr);const grh_bl=document.createElement("div");grh_bl.className="grh";grh_bl.id="grh_bl";grh_bl.style.cursor="sw-resize";canvas.appendChild(grh_bl);const grh_br=document.createElement("div");grh_br.className="grh";grh_br.id="grh_br";grh_br.style.cursor="se-resize";canvas.appendChild(grh_br);
   const page=cp_();if(!page)return;
   page.keys.forEach(k=>{
@@ -657,7 +664,7 @@ function rpr(){var has=!!(selKey||selKeys.size>0);document.getElementById("rp-pr
     return;
   }
   const key=selKey?cp_()?.keys.find(k=>k.id===selKey):null;
-  if(key&&key.action==="touchpad"){document.getElementById("pc").innerHTML="<div style=\"margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border)\">"+"<label style=\"color:var(--accent);font-size:10px;text-transform:uppercase;letter-spacing:1px\">Touch Pad</label>"+"<p style=\"font-size:10px;color:var(--dim);margin:4px 0\">1 finger = move | 2 fingers = scroll</p>"+"</div>"+"<label>Label</label><input value=\""+hesc(key.label)+"\" onchange=\"upk('label',this.value)\">"+"<label>Color</label><input type=\"color\" value=\""+(key.color||"#2a3a5a")+"\" onchange=\"upk('color',this.value)\">"+"<div class=\"rw\" style=\"margin-top:8px\"><div><label>Width</label><div class=\"stepper\"><button onclick=\"upk('w',"+_snap4((key.w||4)-0.25)+")\">\u2212</button><span>"+(key.w||4).toFixed(2)+"</span><button onclick=\"upk('w',"+_snap4((key.w||4)+0.25)+")\">+</button></div></div><div><label>Height</label><div class=\"stepper\"><button onclick=\"upk('h',"+_snap4((key.h||3)-0.25)+")\">\u2212</button><span>"+(key.h||3).toFixed(2)+"</span><button onclick=\"upk('h',"+_snap4((key.h||3)+0.25)+")\">+</button></div></div></div>"+"<div class=\"br\"><button class=\"btn-del\" onclick=\"dkey()\">Delete</button></div>";return;}
+  if(key&&key.action==="touchpad"){document.getElementById("pc").innerHTML="<div style=\"margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border)\">"+"<label style=\"color:var(--accent);font-size:10px;text-transform:uppercase;letter-spacing:1px\">Touch Pad</label>"+"<p style=\"font-size:10px;color:var(--dim);margin:4px 0\">1 finger = move | 2 fingers = scroll</p>"+"</div>"+"<label>Label</label><input data-fn=\"'+p.filename+'\" value=\""+hesc(key.label)+"\" onchange=\"upk('label',this.value)\">"+"<label>Color</label><input type=\"color\" value=\""+(key.color||"#2a3a5a")+"\" onchange=\"upk('color',this.value)\">"+"<div class=\"rw\" style=\"margin-top:8px\"><div><label>Width</label><div class=\"stepper\"><button onclick=\"upk('w',"+_snap4((key.w||4)-0.25)+")\">\u2212</button><span>"+(key.w||4).toFixed(2)+"</span><button onclick=\"upk('w',"+_snap4((key.w||4)+0.25)+")\">+</button></div></div><div><label>Height</label><div class=\"stepper\"><button onclick=\"upk('h',"+_snap4((key.h||3)-0.25)+")\">\u2212</button><span>"+(key.h||3).toFixed(2)+"</span><button onclick=\"upk('h',"+_snap4((key.h||3)+0.25)+")\">+</button></div></div></div>"+"<div class=\"br\"><button class=\"btn-del\" onclick=\"dkey()\">Delete</button></div>";return;}
   if(!key){document.getElementById("pc").innerHTML='<p style="font-size:11px;color:var(--dim)">Click key to edit</p>';return}
   const kw=key.w||1,kh=key.h||1;
   document.getElementById("pc").innerHTML=
@@ -754,6 +761,12 @@ document.addEventListener("keydown",e=>{
   document.getElementById("captureHint").textContent="Captured: "+combo;
   setTimeout(()=>{document.getElementById("captureHint").textContent=""},2000);
 },{capture:true});
+function openProfileManager(){var pm=document.getElementById("profileManagerModal");pm.style.display="flex";pmRender();}
+function pmRender(){var el=document.getElementById("pmList");el.innerHTML=profiles.map(function(p,i){return"<div style=\"display:flex;align-items:center;gap:8px;padding:8px 10px;margin:3px 0;border-radius:6px;background:#272421\"><input value=\""+hesc(p.profileName)+"\" data-fn=\""+p.filename+"\" onkeydown=\"if(event.key==='Enter'){var fn=this.getAttribute('data-fn');var nm=this.value;if(fn&&nm)pmRename(fn,nm)}\" style=\"flex:1;padding:5px 8px;background:#151210;color:#e8e0d8;border:1px solid rgba(255,255,255,0.05);border-radius:4px;font-size:12px\"><button onclick=\"dp('"+p.filename+"');setTimeout(pmRender,300)\" style=\"padding:4px 10px;font-size:11px;background:#5c3028;color:#e8e0d8;border:none;border-radius:4px;cursor:pointer;font-weight:600\">X</button></div>"}).join("");}
+function pmConfirm(fn,btn){var row=btn.parentElement;var inp=row.querySelector("input");var nm=inp?inp.value:"";if(!nm||!fn)return;pmRename(fn,nm)}
+function pmConfirm(fn,btn){var row=btn.parentElement;var inp=row.querySelector("input");var nm=inp?inp.value:"";if(!nm||!fn)return;pmRename(fn,nm)}
+function pmRename(fn,nm){if(!nm)return;fetch("/api/profiles/"+encodeURIComponent(fn),{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({profileName:nm})}).then(function(r){return r.json()}).then(function(){if(fn===activeProfile&&profile)profile.profileName=nm;lpl();setTimeout(pmRender,200)})}
+function pmCreate(){var p={profileName:"New Profile",version:"1.0",device:"iPad 11\"",deviceWidth:834,deviceHeight:1210,cellSize:60,gap:0,canvasX:0,canvasY:0,defaultSound:"click",windowRules:[],pages:[{id:"main",label:"Main",keys:[]}],groups:[]};fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)}).then(function(r){return r.json()}).then(function(d){if(d.filename){lpl();renderAll();setTimeout(pmRender,200)}})}
 function delSelected(){if(!confirm("Delete "+selKeys.size+" keys?"))return;const page=cp_();if(!page)return;const before=page.keys.filter(k=>selKeys.has(k.id)).map(k=>_snapshot(k));page.keys=page.keys.filter(k=>!selKeys.has(k.id));_pushUndo(before);selKeys.clear();selKey=null;dirty=true;renderAll();}
 
 function addKeyOfType(type){
@@ -787,5 +800,6 @@ background:var(--card);color:var(--text);border:1px solid var(--border);border-r
 background:transparent;color:var(--dim);border:1px solid var(--border);border-radius:4px;cursor:pointer">Cancel</button>
 </div></div>
 
+<div id="profileManagerModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center"><div style="background:var(--panel);padding:24px;border-radius:8px;border:1px solid var(--accent);width:420px"><h3 style="margin-bottom:16px">Manage Profiles</h3><div id="pmList"></div><div style="display:flex;gap:8px;justify-content:space-between;margin-top:16px"><button onclick="pmCreate()" style="padding:8px 16px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:12px;font-weight:500">+ New Profile</button><button onclick="document.getElementById('profileManagerModal').style.display='none'" style="padding:8px 16px;background:transparent;color:var(--dim);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:12px">Close</button></div></div></div>
 <div id="macroModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center"><div style="background:var(--panel);padding:24px;border-radius:8px;border:1px solid var(--accent);width:440px"><h3>Macro Recorder</h3><p id="mkl" style="color:var(--dim);margin:8px 0"></p><div style="display:flex;gap:4px;margin:8px 0"><button id="mcb" onclick="setMM(1)" style="flex:1;padding:6px;border-radius:4px;cursor:pointer;background:var(--accent);color:#fff;border:none">Simul</button><button id="msq" onclick="setMM(2)" style="flex:1;padding:6px;border-radius:4px;cursor:pointer;background:var(--card);color:var(--text);border:1px solid var(--border)">Seq</button></div><div id="mtc" tabindex="0" onclick="this.focus()" style="min-height:44px;border:2px dashed var(--accent);outline:none;padding:8px;border-radius:4px;background:var(--bg);display:flex;flex-wrap:wrap;gap:4px;align-items:center"><span style="color:var(--dim);font-size:11px">Click here and type keys, or click modifiers...</span></div><div style="display:flex;gap:4px;margin:8px 0"><button onclick="addMT('COMMAND')" style="padding:6px 12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer">Cmd</button><button onclick="addMT('OPTION')" style="padding:6px 12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer">Opt</button><button onclick="addMT('CONTROL')" style="padding:6px 12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer">Ctrl</button><button onclick="addMT('SHIFT')" style="padding:6px 12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer">Shift</button></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button onclick="closeMM()" style="padding:8px 16px;background:transparent;color:var(--dim);border:1px solid var(--border);border-radius:4px;cursor:pointer">Cancel</button><button onclick="saveMacro()" style="padding:8px 16px;background:var(--green);color:#fff;border:none;border-radius:4px;cursor:pointer">Save</button></div></div></div>
 </body></html>

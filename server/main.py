@@ -282,10 +282,23 @@ async def get_profile(filename: str):
 async def save_profile(body: dict):
     if not body:
         raise HTTPException(400, "Empty body")
-    filename = profiles.save_profile(body)
+    forced_name = body.pop("_filename", None)
+    filename = profiles.save_profile(body, forced_name)
     return {"status": "saved", "filename": filename}
 
 
+
+@app.patch("/api/profiles/{filename:path}")
+async def update_profile_meta(filename: str, body: dict):
+    """Update profile name without renaming the file."""
+    path = profiles.dir / filename
+    if not path.exists():
+        raise HTTPException(404, f"Profile not found: {filename}")
+    profile = json.loads(path.read_text(encoding='utf-8'))
+    if "profileName" in body:
+        profile["profileName"] = body["profileName"]
+    path.write_text(json.dumps(profile, indent=2, ensure_ascii=False), encoding='utf-8')
+    return {"status": "updated", "filename": filename, "profileName": profile["profileName"]}
 
 @app.put("/api/profiles/{filename:path}/rename")
 async def rename_profile(filename: str, body: dict):
