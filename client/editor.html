@@ -93,7 +93,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
   border-radius:0 0 3px 0;z-index:2;
 }
 .ck:hover .rh,.ck.sel .rh{opacity:1;pointer-events:auto!important}
-.ck.touchpad{border:1px dashed var(--accent)!important;background:var(--bg)!important;opacity:0.85}
+.ck.touchpad{border:1px solid rgba(255,255,255,0.08)!important;background:var(--bg)!important;opacity:0.9}
 
 #carea-overlay{position:absolute;inset:0;z-index:5;pointer-events:none;background:rgba(0,0,0,0.35)}
 /* ==== Overlay Elements ==== */
@@ -422,7 +422,7 @@ const ftb=document.getElementById("ftb");var btb=document.getElementById("btb");
     const sel=(k.id===selKey||selKeys.has(k.id))?" sel":"";
     const el=document.createElement("div");el.className="ck"+sel+(k.action==="touchpad"?" touchpad":"");el.dataset.kid=k.id;
     const brPct=(k.borderRadius!==undefined?k.borderRadius:10)/100;const br=(brPct*Math.min(kw,kh))+'px';const ff=k.fontFamily||'inherit';const fs=(k.fontSize||Math.max(8,cs*0.25))+'px';let bg=k.color||'var(--card)';let fc=k.fontColor||'inherit';if(k.bgType==='gradient'&&k.bgGradient){bg=_gradCSS(k.bgGradient,k.color||'#0f3460')}else if(k.bgType==='image'&&k.bgImage){bg='var(--card) url(/'+k.bgImage+') center/cover'};el.style.cssText=`left:${x}px;top:${y}px;width:${kw}px;height:${kh}px;background:${bg};color:${fc};border-radius:${br};font-family:${ff};font-size:${fs}`;
-    el.innerHTML='<span class="kl">'+hesc(k.label)+'</span>'+(w>1||h>1?'<span class="sz">'+w.toFixed(2)+'×'+h.toFixed(2)+'</span>':'')+((selKeys.size<=1&&k.action!=='touchpad'?'<div class="rh"></div>':''));
+    el.innerHTML='<span class="kl">'+hesc(k.label)+'</span>'+(w>1||h>1?'<span class="sz">'+w.toFixed(2)+'×'+h.toFixed(2)+'</span>':'')+((selKeys.size<=1?'<div class="rh"></div>':''));
     el.addEventListener("mousedown",e=>onKeyDown(e,k.id));
     el.addEventListener("click",e=>onKeyClick(e,k.id));
     const rh=el.querySelector(".rh");if(rh)rh.addEventListener("mousedown",e=>onRS(e,k.id));
