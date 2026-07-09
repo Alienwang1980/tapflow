@@ -79,3 +79,56 @@ function _fetchAndDrawDock(canvas) {
     _drawDockGrid(canvas, d);
   }).catch(function(){});
 }
+
+function _drawMenuPanel(canvas, menus) {
+  var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.fillRect(0, 0, w, h);
+  if (!menus || !menus.length) { ctx.fillStyle = "#888"; ctx.font = "12px -apple-system,sans-serif"; ctx.textAlign = "center"; ctx.fillText("No menus", w/2, h/2); return; }
+  var totalItems = 0; menus.forEach(function(m){ totalItems += m.items.length; });
+  var rowH = Math.max(18, Math.min(30, h / totalItems));
+  ctx.font = Math.max(7, rowH * 0.4) + "px -apple-system,sans-serif";
+  ctx.textBaseline = "middle";
+  var y = 4, btnData = [];
+  menus.forEach(function(m) {
+    ctx.fillStyle = "#f59e0b"; ctx.textAlign = "left";
+    ctx.fillText(m.menu, 6, y + rowH/2);
+    y += rowH;
+    m.items.forEach(function(it) {
+      if (y + rowH > h) return;
+      btnData.push({y: y, h: rowH, title: it.title, shortcut: it.shortcut});
+      ctx.fillStyle = "rgba(255,255,255,0.05)";
+      ctx.fillRect(4, y, w-8, rowH);
+      ctx.fillStyle = "#ccc"; ctx.textAlign = "left";
+      ctx.fillText(it.title, 10, y + rowH/2);
+      if (it.shortcut) {
+        ctx.fillStyle = "#888"; ctx.textAlign = "right";
+        ctx.fillText(it.shortcut, w-8, y + rowH/2);
+      }
+      y += rowH;
+    });
+    y += 6;
+  });
+  canvas._menuBtns = btnData; canvas._menuRowH = rowH;
+}
+
+function _onMenuTap(e, canvas) {
+  e.stopPropagation();
+  var rect = canvas.getBoundingClientRect();
+  var y = ((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) * (canvas.width / rect.width);
+  var btns = canvas._menuBtns;
+  if (!btns) return;
+  for (var i = 0; i < btns.length; i++) {
+    if (y >= btns[i].y && y < btns[i].y + btns[i].h) {
+      var sc = btns[i].shortcut;
+      if (sc) fetch("/api/system/execute-shortcut", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({keys: sc})}).catch(function(){});
+      break;
+    }
+  }
+}
+
+function _fetchAndDrawMenus(canvas) {
+  fetch("/api/system/current-menus").then(function(r){return r.json()}).then(function(d){
+    _drawMenuPanel(canvas, d.menus);
+  }).catch(function(){});
+}

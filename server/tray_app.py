@@ -266,6 +266,23 @@ def run_server():
             _sp.run(["osascript", "-e", f'quit app "{name}"'])
         return {"status": "ok"}
 
+    
+    # ── Dynamic Menu ──
+
+    @app.get("/api/system/current-menus")
+    async def _sys_menus():
+        import sys as _sys, os as _os; _sys.path.insert(0, _os.environ.get("RESOURCEPATH", _os.path.dirname(_os.path.abspath(__file__)))); from ax_bridge import get_current_app_info, get_all_menus
+        name, pid = get_current_app_info()
+        menus = get_all_menus(pid)
+        return {"app": name, "menus": menus}
+
+    @app.post("/api/system/execute-shortcut")
+    async def _sys_exec(body: dict):
+        from input_engine import press_key
+        keys = body.get("keys", "")
+        if keys: press_key(keys)
+        return {"status": "ok"}
+
     _logger.info("Widget routes registered")
     
     uvicorn.run(app, host="0.0.0.0", port=8082, log_level="warning")
