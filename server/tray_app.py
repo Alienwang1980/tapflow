@@ -151,7 +151,7 @@ def run_server():
         if not os.path.exists(sw): return []
         devs = []
         for dtype, dlabel in [("output","output"),("input","input")]:
-            r2 = _sc.run([sw, "-a", "-t", dtype], capture_output=True, text=True, env={"LANG":"C","PATH":os.environ.get("PATH","")})
+            r2 = _sc.run([sw, "-a", "-t", dtype], capture_output=True, encoding="utf-8", env={"LANG":"C","PATH":os.environ.get("PATH","")})
             for line in r2.stdout.strip().splitlines():
                 ls = line.strip()
                 if not ls: continue

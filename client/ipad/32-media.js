@@ -65,3 +65,41 @@ function _toggleMute(canvas) {
     _drawMuteBtn(canvas, d.muted);
   });
 }
+
+function _drawCurrentApp(canvas, name) {
+  var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = "#888"; var fs = Math.max(9, Math.min(h*0.18, w*0.05));
+  ctx.font = fs + "px -apple-system,sans-serif";
+  ctx.textAlign = "right"; ctx.textBaseline = "middle";
+  ctx.fillText("Mac:", w*0.35, h/2);
+  ctx.fillStyle = "#fff"; var fs2 = Math.max(10, Math.min(h*0.22, w*0.06));
+  ctx.font = "bold " + fs2 + "px -apple-system,sans-serif";
+  ctx.textAlign = "left"; ctx.fillText(name || "?", w*0.4, h/2);
+}
+function _fetchAndDrawCurrentApp(canvas) {
+  fetch("/api/system/current-app").then(function(r){return r.json()}).then(function(d){
+    _drawCurrentApp(canvas, d.name);
+  }).catch(function(){_drawCurrentApp(canvas,"?")});
+}
+
+function _drawMicMuteBtn(canvas, muted) {
+  var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = muted ? "rgba(239,68,68,0.3)" : "rgba(255,255,255,0.08)";
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = muted ? "#ef4444" : "#888";
+  var r = Math.min(w, h) * 0.35;
+  ctx.beginPath(); ctx.arc(w/2, h/2, r, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = "#fff"; var fs = Math.max(14, Math.min(w, h)*0.4);
+  ctx.font = fs + "px -apple-system,sans-serif";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText("M", w/2, h/2);
+  canvas._micMuted = muted;
+}
+function _toggleMicMute(canvas) {
+  fetch("/api/system/mic-mute", {method:"POST"}).then(function(r){return r.json()}).then(function(d){
+    _drawMicMuteBtn(canvas, d.muted);
+  });
+}
