@@ -216,11 +216,11 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 <div class="main">
 <div class="carea" id="carea">
   <div class="gh" id="gh"></div>
-  <div class="ftb" id="ftb"><select id="fdev" onchange="onFDev()"><option value="iPad 11&quot;" selected>iPad 11"</option><option value="iPad 4:3">iPad 4:3</option><option value="iPad mini">iPad mini</option><option value="Android 16:10">Android 16:10</option></select><button class="btn-ori" onclick="toggleOri()" title="Toggle">↻</button><span class="ftb-sep"></span><button onclick="zoomBy(-1)">−</button><span id="zv">60</span><button onclick="zoomBy(1)">+</button></div>
+  <div class="ftb" id="ftb"><select id="fdev" onchange="onFDev()"><option value="iPad 11&quot;" selected>iPad 11"</option><option value="iPad 4:3">iPad 4:3</option><option value="iPad mini">iPad mini</option><option value="Android 16:10">Android 16:10</option></select><button class="btn-ori" onclick="toggleOri()" title="Toggle">↻</button></div>
   <div class="sr" id="sr"></div><div class="grh" id="grh_b" style="cursor:s-resize"></div><div class="grh" id="grh_l" style="cursor:w-resize"></div><div class="grh" id="grh_r" style="cursor:e-resize"></div>
   <div class="cwrap" id="cwrap"><div class="canvas" id="canvas"></div></div>
   <div id="carea-overlay"></div>
-  <div class="btb" id="btb"><button onclick="zoomBy(-1)">−</button><span id="zv">60</span><button onclick="zoomBy(1)">+</button><span class="tb-sep">|</span><button onclick="undo()" title="Undo">↩</button><button onclick="redo()" title="Redo">↪</button></div>
+  <div class="btb" id="btb"><button onclick="zoomBy(-1)">−</button><button onclick="zoomBy(1)">+</button><span class="tb-sep">|</span><button onclick="fitAll()" title="Fit to frame">Fit</button><span class="tb-sep">|</span><button onclick="undo()" title="Undo">↩</button><button onclick="redo()" title="Redo">↪</button></div>
 </div>
 <div class="rp">
     <div id="rp-profile"><div id="pl" style="display:none"></div>
@@ -381,7 +381,7 @@ function rr(){
   const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60,gp=profile.gap||0;
   const ca=document.getElementById("carea"),cw=ca.clientWidth,ch=ca.clientHeight;
   document.getElementById("tgs").value=profile.defaultSound||"none";
-  document.getElementById("zv").textContent=cs;
+  var _zv=document.getElementById("zv");if(_zv)_zv.textContent=cs;
 
   const scale=Math.min(cw*0.85/dw,ch*0.85/dh);
   const wrap=document.getElementById("cwrap");
@@ -633,6 +633,7 @@ document.addEventListener("mouseup",e=>{
 
 // ── Zoom ──
 carea.addEventListener("wheel",e=>{e.preventDefault();zoomBy(e.deltaY>0?-1:1)},{passive:false});
+function fitAll(){if(!profile)return;var page=profile.pages.find(function(p){return p.id===activePage});if(!page||!page.keys.length)return;var cs=profile.cellSize||60,gp=profile.gap||0,dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210;var cpx=cs+gp;var minC=Infinity,minR=Infinity,maxC=-Infinity,maxR=-Infinity;page.keys.forEach(function(k){var c=k.col||0,r=k.row||0,w=k.w||1,h=k.h||1;if(c<minC)minC=c;if(r<minR)minR=r;if(c+w>maxC)maxC=c+w;if(r+h>maxR)maxR=r+h});if(minC===Infinity)return;var cols=maxC-minC,rows=maxR-minR;var kw=cols*cpx-gp,kh=rows*cpx-gp;var pad=0;var scale=Math.min((dw-pad*2)/kw,(dh-pad*2)/kh,2.5);var newCs=Math.max(15,Math.floor(cs*scale));var centerC=(minC+maxC)/2,centerR=(minR+maxR)/2;profile.cellSize=newCs;profile.canvasX=-centerC;profile.canvasY=-centerR;panX=-centerC;panY=-centerR;rr();dirty=true}
 function zoomBy(d){const nv=Math.max(20,Math.min(200,(profile.cellSize||60)+d));if(nv!==profile.cellSize){profile.cellSize=nv;dirty=true;rr()}}
 function toggleOri(){const t=profile.deviceWidth;profile.deviceWidth=profile.deviceHeight;profile.deviceHeight=t;dirty=true;rr()}
 function onFDev(){const d=DEVS[document.getElementById("fdev").value];if(d&&profile){profile.device=document.getElementById("fdev").value;profile.deviceWidth=d.w;profile.deviceHeight=d.h;dirty=true;rr()}}
