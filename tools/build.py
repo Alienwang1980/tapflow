@@ -35,7 +35,7 @@ def build(target):
     
     js = "\n".join((mod_dir / m).read_text().strip() for m in modules)
     
-    html = (ROOT / "client" / f"{target}.html").read_text()
+    html = (ROOT / "client" / f"{target}.html.template").read_text()
     if '<script id="bundle"></script>' not in html:
         raise SystemExit("Template missing <script id=\"bundle\"></script>")
     html = html.replace('<script id="bundle"></script>', f"<script>\n{js}\n</script>")
