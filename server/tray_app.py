@@ -108,6 +108,47 @@ def run_server():
         except Exception as e:
             from fastapi import HTTPException; raise HTTPException(500, str(e))
     
+    # ── System Control routes ──
+    import subprocess as _sc
+
+    @app.get("/api/system/volume")
+    async def _sys_vol():
+        r = _sc.run(["osascript", "-e", "get volume settings"], capture_output=True, text=True)
+        res = {"output_volume": 75, "input_volume": 50, "output_muted": False}
+        for part in r.stdout.strip().split(","):
+            p = part.strip()
+            try:
+                if "output volume" in p:
+                    v = p.split(":")[1].strip()
+                    if v != "missing value": res["output_volume"] = int(v)
+                elif "input volume" in p:
+                    v = p.split(":")[1].strip()
+                    if v != "missing value": res["input_volume"] = int(v)
+                elif "output muted" in p:
+                    res["output_muted"] = "true" in p.split(":")[1]
+            except: pass
+        return res
+
+    @app.post("/api/system/volume")
+    async def _sys_vol_set(body: dict):
+        v = max(0, min(100, int(body.get("value", 75))))
+        _sc.run(["osascript", "-e", f"set volume output volume {v}"])
+        return {"status": "ok"}
+
+    @app.post("/api/system/mute")
+    async def _sys_mute():
+        r = _sc.run(["osascript", "-e", "get volume settings"], capture_output=True, text=True)
+        muted = "output muted:true" in r.stdout
+        _sc.run(["osascript", "-e", f"set volume output muted {str(not muted).lower()}"])
+        return {"muted": not muted}
+
+    @app.get("/api/system/current-app")
+    async def _sys_cur_app():
+        try:
+            import AppKit
+            a = AppKit.NSWorkspace.sharedWorkspace().frontmostApplication()
+            return {"name": a.localizedName() or "?", "bundle_id": a.bundleIdentifier() or ""}
+        except: return {"name": "?", "bundle_id": ""}
     _logger.info("Widget routes registered")
     
     uvicorn.run(app, host="0.0.0.0", port=8082, log_level="warning")
