@@ -211,7 +211,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
   <select id="tgs" onchange="if(profile){profile.defaultSound=this.value;dirty=true}"><option value="none">None</option><option value="click">Click</option><option value="soft">Soft</option><option value="mechanical">Mechanical</option><option value="deep">Deep</option><option value="red">Red Switch</option><option value="topre">Topre EC</option><option value="glass">Glass Tap</option><option value="bubble">Bubble Pop</option><option value="blip">8-bit Blip</option><option value="spark">Electric Spark</option></select> <button onclick="testSnd(document.getElementById('tgs').value)" style="padding:4px 8px;font-size:12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'" title="Preview">&#x25B6;</button>
   <button class="btn-save" onclick="saveProfile()">Save &amp; Sync</button>
   <button class="btn-new" onclick="saveAs()">Save As</button>
-  <button class="btn-new" onclick="resetDefault()">Reset</button><button class="btn-new" onclick="copyStyle()">&#x2398; Copy</button><button class="btn-new" onclick="pasteStyle()">&#x2399; Paste</button>
+  <button class="btn-new" onclick="resetDefault()">Reset</button><button class="btn-new" onclick="copyStyle()">&#x2398; Copy Style</button><button class="btn-new" onclick="pasteStyle()">&#x2399; Paste Style</button>
 </div>
 <div class="main">
 <div class="carea" id="carea">
@@ -231,7 +231,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
       </div>
       <div class="rp-divider"></div>
       <div class="rp-section">
-        <h3>Groups</h3>
+        <h3>Groups <button id="btnSaveGroup" onclick="saveAsGroup()" style="font-size:10px;padding:2px 8px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;float:right">+ Group</button></h3>
         <div id="grpl"><p style="font-size:10px;color:var(--dim);padding:8px 0">No groups</p></div>
       </div>
     </div>
@@ -255,7 +255,7 @@ const MAX_UNDO=200;
 const DEVS={"iPad 4:3":{w:1024,h:1366},"iPad 11\"":{w:834,h:1210},"iPad mini":{w:744,h:1133},"Android 16:10":{w:1280,h:800}};
 
 // ── Undo/Redo ──
-function _snapshot(k){return{id:k.id,col:k.col,row:k.row,w:k.w,h:k.h,label:k.label,action:k.action,value:k.value,color:k.color,sound:k.sound,groupId:k.groupId}}
+function _snapshot(k){return{id:k.id,col:k.col,row:k.row,w:k.w,h:k.h,label:k.label,action:k.action,value:k.value,color:k.color,sound:k.sound,groups:k.groups?k.groups.slice():null}}
 function _pushUndo(keysBefore){
   const page=cp_();if(!page)return;
   const after=keysBefore.map(b=>{const k=page.keys.find(x=>x.id===b.id);return k?_snapshot(k):null}).filter(Boolean);
@@ -296,18 +296,18 @@ function groupSelected(){
   const gid="g_"+Date.now();
   if(!profile.groups)profile.groups=[];
   profile.groups.push({id:gid,name:"Group "+(profile.groups.length+1)});
-  page.keys.forEach(k=>{if(selKeys.has(k.id))k.groupId=gid});
+  
   _pushUndo(before);dirty=true;rr();rpr();
 }
-function rgrp(){const groups=profile?.groups||[];document.getElementById("grpl").innerHTML=groups.length?groups.map(g=>"<div class=\"it\" onclick=\"selectGroup('"+g.id+"')\">"+hesc(g.name)+"<span class=\"x\" onclick=\"event.stopPropagation();ungroupById('"+g.id+"')\">✕</span></div>").join(""):"<p style=\"font-size:10px;color:var(--dim)\">Select keys → Save as Group</p>";}function saveAsGroup(){const name=prompt("Group name:","Group "+((profile.groups?.length||0)+1));if(!name||!name.trim())return;const gid="g_"+Date.now();if(!profile.groups)profile.groups=[];profile.groups.push({id:gid,name:name.trim()});const before=cp_().keys.filter(k=>selKeys.has(k.id)).map(k=>_snapshot(k));cp_().keys.forEach(k=>{if(selKeys.has(k.id))k.groupId=gid});_pushUndo(before);dirty=true;renderAll();}
-function selectGroup(gid){selGroup=gid;selKeys.clear();selKey=null;cp_().keys.forEach(k=>{if(k.groupId===gid)selKeys.add(k.id)});rr();rpr();rgrp();}
-let mT=[],mM=1,mTK=null;function openMM(kid){mTK=kid;mT=[];var k=cp_()?.keys.find(function(x){return x.id===kid});var lbl=document.getElementById("mkl");if(lbl)lbl.textContent="Assigning: "+(k?k.label:kid)+(k&&k.value?" (current: "+k.value+")":"");setMM(1);renderMT();document.getElementById("macroModal").style.display="flex";document.getElementById("mtc").focus()}function closeMM(){document.getElementById("macroModal").style.display="none";mT=[];mTK=null}function setMM(m){mM=m;document.getElementById("mcb").style.background=m===1?"var(--accent)":"var(--card)";document.getElementById("msq").style.background=m===2?"var(--accent)":"var(--card)";document.getElementById("mcb").style.color=m===1?"#fff":"var(--text)";document.getElementById("msq").style.color=m===2?"#fff":"var(--text)"}function addMT(key){mT.push(key);renderMT()}function renderMT(){document.getElementById("mtc").innerHTML=(mT.length===0?"<span style=color:var(--dim);font-size:11px>Click here and type keys, or click modifiers...</span>":"")+mT.map(function(k,i){return"<span data-mi="+i+" style=background:var(--card);padding:3px 8px;border-radius:3px;font-size:12px;display:inline-flex;align-items:center;gap:4px>"+k+"<span onclick=removeMT("+i+") style=cursor:pointer;color:var(--red);margin-left:4px>x</span></span>"}).join("")}function removeMT(i){mT.splice(i,1);renderMT()}function saveMacro(){var s=mM===1?"+":",";var v=mT.join(s);var k=cp_()?.keys.find(function(x){return x.id===mTK});if(k){var b=_snapshot(k);k.value=v;k.action="macro";if(JSON.stringify(b)!==JSON.stringify(_snapshot(k)))_pushUndo([b])}closeMM();dirty=true;rr();rpr()}document.addEventListener("keydown",function(e){var mm=document.getElementById("macroModal");if(!mm||mm.style.display!=="flex")return;if(["Shift","Control","Alt","Meta","Escape"].includes(e.key))return;e.preventDefault();e.stopPropagation();var KM={Enter:"ENTER",Tab:"TAB"," ":"SPACE",Backspace:"DELETE",ArrowUp:"UP",ArrowDown:"DOWN",ArrowLeft:"LEFT",ArrowRight:"RIGHT"};addMT(KM[e.key]||e.key.toUpperCase())},{capture:true});function ungroupById(gid){if(!confirm("Ungroup?"))return;const before=cp_().keys.filter(k=>k.groupId===gid).map(k=>_snapshot(k));cp_().keys.forEach(k=>{if(k.groupId===gid)k.groupId=null});profile.groups=profile.groups.filter(g=>g.id!==gid);_pushUndo(before);selKeys.clear();selKey=null;selGroup=null;dirty=true;renderAll();}
+function rgrp(){const groups=profile?.groups||[];document.getElementById("grpl").innerHTML=groups.length?groups.map(g=>"<div class=\"it\" onclick=\"selectGroup('"+g.id+"')\">"+hesc(g.name)+"<span class=\"x\" onclick=\"event.stopPropagation();ungroupById('"+g.id+"')\">✕</span></div>").join(""):"<p style=\"font-size:10px;color:var(--dim)\">Select keys → Save as Group</p>";}function saveAsGroup(){var name=prompt("Group name:","Group "+((profile.groups?.length||0)+1));if(!name||!name.trim())return;var gid="g_"+Date.now();if(!profile.groups)profile.groups=[];profile.groups.push({id:gid,name:name.trim()});var page=cp_();if(!page)return;var before=page.keys.filter(function(k){return selKeys.has(k.id)}).map(function(k){return _snapshot(k)});page.keys.forEach(function(k){if(selKeys.has(k.id)){if(!k.groups)k.groups=[];if(k.groups.indexOf(gid)<0)k.groups.push(gid)}});_pushUndo(before);dirty=true;renderAll();}
+function selectGroup(gid){selGroup=gid;selKeys.clear();selKey=null;cp_().keys.forEach(k=>{if(k.groups&&k.groups.indexOf(gid)>=0)selKeys.add(k.id)});rr();rpr();rgrp();}
+let mT=[],mM=1,mTK=null;function openMM(kid){mTK=kid;mT=[];var k=cp_()?.keys.find(function(x){return x.id===kid});var lbl=document.getElementById("mkl");if(lbl)lbl.textContent="Assigning: "+(k?k.label:kid)+(k&&k.value?" (current: "+k.value+")":"");setMM(1);renderMT();document.getElementById("macroModal").style.display="flex";document.getElementById("mtc").focus()}function closeMM(){document.getElementById("macroModal").style.display="none";mT=[];mTK=null}function setMM(m){mM=m;document.getElementById("mcb").style.background=m===1?"var(--accent)":"var(--card)";document.getElementById("msq").style.background=m===2?"var(--accent)":"var(--card)";document.getElementById("mcb").style.color=m===1?"#fff":"var(--text)";document.getElementById("msq").style.color=m===2?"#fff":"var(--text)"}function addMT(key){mT.push(key);renderMT()}function renderMT(){document.getElementById("mtc").innerHTML=(mT.length===0?"<span style=color:var(--dim);font-size:11px>Click here and type keys, or click modifiers...</span>":"")+mT.map(function(k,i){return"<span data-mi="+i+" style=background:var(--card);padding:3px 8px;border-radius:3px;font-size:12px;display:inline-flex;align-items:center;gap:4px>"+k+"<span onclick=removeMT("+i+") style=cursor:pointer;color:var(--red);margin-left:4px>x</span></span>"}).join("")}function removeMT(i){mT.splice(i,1);renderMT()}function saveMacro(){var s=mM===1?"+":",";var v=mT.join(s);var k=cp_()?.keys.find(function(x){return x.id===mTK});if(k){var b=_snapshot(k);k.value=v;k.action="macro";if(JSON.stringify(b)!==JSON.stringify(_snapshot(k)))_pushUndo([b])}closeMM();dirty=true;rr();rpr()}document.addEventListener("keydown",function(e){var mm=document.getElementById("macroModal");if(!mm||mm.style.display!=="flex")return;if(["Shift","Control","Alt","Meta","Escape"].includes(e.key))return;e.preventDefault();e.stopPropagation();var KM={Enter:"ENTER",Tab:"TAB"," ":"SPACE",Backspace:"DELETE",ArrowUp:"UP",ArrowDown:"DOWN",ArrowLeft:"LEFT",ArrowRight:"RIGHT"};addMT(KM[e.key]||e.key.toUpperCase())},{capture:true});function ungroupById(gid){if(!confirm("Ungroup?"))return;var page=cp_();if(!page)return;var before=page.keys.filter(function(k){return k.groups&&k.groups.indexOf(gid)>=0}).map(function(k){return _snapshot(k)});page.keys.forEach(function(k){if(k.groups){var idx=k.groups.indexOf(gid);if(idx>=0)k.groups.splice(idx,1);if(k.groups.length===0)k.groups=null}});var stillUsed=page.keys.some(function(k){return k.groups&&k.groups.indexOf(gid)>=0});if(!stillUsed)profile.groups=profile.groups.filter(function(g){return g.id!==gid});_pushUndo(before);selKeys.clear();selKey=null;selGroup=null;dirty=true;renderAll();}
 function ungroupSelected(){
   const page=cp_();if(!page)return;
-  const gids=new Set();selKeys.forEach(id=>{const k=page.keys.find(x=>x.id===id);if(k&&k.groupId)gids.add(k.groupId)});
+  const gids=new Set();selKeys.forEach(id=>{const k=page.keys.find(x=>x.id===id);if(k&&k.groups){for(var _gj=0;_gj<k.groups.length;_gj++)gids.add(k.groups[_gj])}});
   if(!gids.size)return;
-  const before=page.keys.filter(k=>k.groupId&&gids.has(k.groupId)).map(k=>_snapshot(k));
-  page.keys.forEach(k=>{if(gids.has(k.groupId))k.groupId=null});
+  const before=page.keys.filter(function(k){return k.groups&&k.groups.some(function(g){return gids.has(g)})}).map(k=>_snapshot(k));
+  page.keys.forEach(function(k){if(k.groups){k.groups=k.groups.filter(function(g){return !gids.has(g)});if(k.groups.length===0)k.groups=null}});
   if(profile.groups)profile.groups=profile.groups.filter(g=>!gids.has(g.id));
   _pushUndo(before);dirty=true;rr();rpr();
 }
@@ -485,11 +485,7 @@ function grResizeStart(e,corner){
 // Key click: select or Shift-toggle
 function onKeyClick(e,kid){
   e.stopPropagation();
-  if(e.shiftKey){
-    if(selKeys.has(kid)){selKeys.delete(kid)}else{selKeys.add(kid)}
-  }else{
-    selKeys.clear();selKeys.add(kid);
-  }
+  if(!e.shiftKey){selKeys.clear();selKeys.add(kid)}
   selKey=kid;rr();rpr();
 }
 
@@ -642,7 +638,7 @@ function onFDev(){const d=DEVS[document.getElementById("fdev").value];if(d&&prof
 function onDev(){} // removed — use onFDev from frame toolbar
 
 // ── Props ──
-function rpr(){var has=!!(selKey||selKeys.size>0);document.getElementById("rp-profile").style.display=has?"none":"block";document.getElementById("rp-props").style.display=has?"block":"none";
+function rpr(){var has=!!(selKey||selKeys.size>0);document.getElementById("rp-props").style.display=has?"block":"none";var _gb=document.getElementById("btnSaveGroup");if(_gb){_gb.style.opacity=selKeys.size>1?"1":"0.4";_gb.style.pointerEvents=selKeys.size>1?"auto":"none"}
   if(selKeys.size>1){
     var pg2=cp_(),firstBr2=10,commonColor="#0f3460",colorCount=0,clrs=new Set(),fcSet=new Set(),ffSet=new Set(),commonFontColor="inherit",commonFontFamily="",commonFontSize=10,fsSet=new Set(),sndSet=new Set(),commonSound="";
     for(var i=0;i<pg2.keys.length;i++){if(selKeys.has(pg2.keys[i].id)){var k2=pg2.keys[i];if(firstBr2===10)firstBr2=k2.borderRadius!==undefined?k2.borderRadius:10;var cc=k2.color||"#0f3460";commonColor=cc;clrs.add(cc);var fc2=k2.fontColor||"inherit";commonFontColor=fc2;fcSet.add(fc2);var ff2=k2.fontFamily||"";commonFontFamily=ff2;ffSet.add(ff2);var fs2=k2.fontSize||Math.max(8,(profile?.cellSize||60)*0.25);commonFontSize=fs2;fsSet.add(fs2);var snd2=k2.sound||"";commonSound=snd2;sndSet.add(snd2)}}var sndCount=sndSet.size;if(sndSet.size===1)commonSound=[...sndSet][0];colorCount=clrs.size;if(clrs.size===1)commonColor=[...clrs][0];

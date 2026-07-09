@@ -70,6 +70,9 @@ def migrate_key_positions(profile: dict) -> dict:
             if key.get("action") == "key": key["action"] = "turbo"
             key.setdefault("color", "#0f3460");
             key.setdefault("groupId", None)
+            if key.get("groupId") and not key.get("groups"):
+                key["groups"] = [key["groupId"]]
+            key.setdefault("groups", None)
     return profile
 
 
