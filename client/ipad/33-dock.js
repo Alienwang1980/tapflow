@@ -35,3 +35,47 @@ function _onWinShortcutTouch(e, canvas) {
     fetch(canvas._winBtns[idx].api, {method:"POST"}).catch(function(){});
   }
 }
+
+function _drawDockGrid(canvas, apps) {
+  var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.fillRect(0, 0, w, h);
+  if (!apps || !apps.length) { ctx.fillStyle = "#888"; ctx.font = "12px -apple-system,sans-serif"; ctx.textAlign = "center"; ctx.fillText("No apps", w/2, h/2); return; }
+  var cols = Math.max(3, Math.floor(w / 80));
+  var bw = w / cols, bh = Math.max(60, Math.min(90, h / Math.ceil(apps.length / cols)));
+  canvas._dockCols = cols; canvas._dockBw = bw; canvas._dockBh = bh; canvas._dockApps = apps;
+  ctx.font = Math.max(7, Math.min(bh*0.15, bw*0.12)) + "px -apple-system,sans-serif";
+  ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+  apps.forEach(function(a, i) {
+    var col = i % cols, row = Math.floor(i / cols);
+    var cx = col * bw + bw/2, cy = row * bh;
+    // Running indicator
+    ctx.fillStyle = a.running ? "#4ade80" : "#555";
+    ctx.beginPath(); ctx.arc(cx, cy + 12, 4, 0, Math.PI*2); ctx.fill();
+    // Name
+    ctx.fillStyle = "#ccc";
+    ctx.fillText(a.name, cx, cy + bh - 4);
+  });
+}
+
+function _onDockTap(e, canvas) {
+  e.stopPropagation();
+  var rect = canvas.getBoundingClientRect();
+  var x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+  var y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+  var sc = canvas.width / rect.width;
+  x *= sc; y *= sc;
+  var col = Math.floor(x / canvas._dockBw);
+  var row = Math.floor(y / canvas._dockBh);
+  var idx = row * canvas._dockCols + col;
+  if (canvas._dockApps && canvas._dockApps[idx]) {
+    var app = canvas._dockApps[idx];
+    fetch("/api/system/launch-app", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({path: app.path})}).catch(function(){});
+  }
+}
+
+function _fetchAndDrawDock(canvas) {
+  fetch("/api/system/dock-items").then(function(r){return r.json()}).then(function(d){
+    _drawDockGrid(canvas, d);
+  }).catch(function(){});
+}

@@ -223,6 +223,49 @@ def run_server():
     @app.post("/api/system/window/show-desktop")
     async def _wsd(): from input_engine import press_key; press_key("f11"); return {"status":"ok"}
 
+    
+    # ── Dock Panel ──
+
+    @app.get("/api/system/dock-items")
+    async def _sys_dock():
+        import plistlib as _pl, os as _os2
+        dock_plist = _os2.path.expanduser("~/Library/Preferences/com.apple.dock.plist")
+        items = []
+        try:
+            with open(dock_plist, "rb") as f:
+                dock = _pl.load(f)
+            for app in dock.get("persistent-apps", []):
+                td = app.get("tile-data", {})
+                fd = td.get("file-data", {})
+                url = fd.get("_CFURLString", "")
+                label = td.get("file-label", url.split("/")[-1].replace("%20"," ").replace(".app",""))
+                # Check if running
+                import subprocess as _sp
+                r = _sp.run(["pgrep", "-qi", label], capture_output=True)
+                items.append({
+                    "name": label,
+                    "path": url.replace("file://", ""),
+                    "running": r.returncode == 0
+                })
+        except: pass
+        return items
+
+    @app.post("/api/system/launch-app")
+    async def _sys_launch(body: dict):
+        import subprocess as _sp
+        path = body.get("path", "")
+        if path:
+            _sp.run(["open", path])
+        return {"status": "ok"}
+
+    @app.post("/api/system/quit-app")
+    async def _sys_quit(body: dict):
+        import subprocess as _sp
+        name = body.get("name", "")
+        if name:
+            _sp.run(["osascript", "-e", f'quit app "{name}"'])
+        return {"status": "ok"}
+
     _logger.info("Widget routes registered")
     
     uvicorn.run(app, host="0.0.0.0", port=8082, log_level="warning")
