@@ -110,6 +110,7 @@ def run_server():
     
     # ── System Control routes ──
     import subprocess as _sc
+    _mic_pre = None
 
     @app.get("/api/system/volume")
     async def _sys_vol():
@@ -141,6 +142,64 @@ def run_server():
         muted = "output muted:true" in r.stdout
         _sc.run(["osascript", "-e", f"set volume output muted {str(not muted).lower()}"])
         return {"muted": not muted}
+
+    
+
+    @app.get("/api/system/audio-devices")
+    async def _sys_adev():
+        sw = os.path.expanduser("~/Library/Application Support/Smart Touch Panel/bin/SwitchAudioSource")
+        if not os.path.exists(sw): return []
+        devs = []
+        for dtype, dlabel in [("output","output"),("input","input")]:
+            r2 = _sc.run([sw, "-a", "-t", dtype], capture_output=True, text=True, env={"LANG":"C","PATH":os.environ.get("PATH","")})
+            for line in r2.stdout.strip().splitlines():
+                ls = line.strip()
+                if not ls: continue
+                cur = ls.startswith("*")
+                devs.append({"name": ls.lstrip("*").strip(), "type": dlabel, "current": cur})
+        return devs
+
+    @app.post("/api/system/audio-output")
+    async def _sys_aout(body: dict):
+        sw = os.path.expanduser("~/Library/Application Support/Smart Touch Panel/bin/SwitchAudioSource")
+        if os.path.exists(sw):
+            _sc.run([sw, "-t", "output", "-i", body.get("name", "")])
+        return {"status": "ok"}
+
+    @app.post("/api/system/audio-input")
+    async def _sys_ain(body: dict):
+        sw = os.path.expanduser("~/Library/Application Support/Smart Touch Panel/bin/SwitchAudioSource")
+        if os.path.exists(sw):
+            _sc.run([sw, "-t", "input", "-i", body.get("name", "")])
+        return {"status": "ok"}
+    @app.post("/api/system/audio-output")
+    async def _sys_aout(body: dict):
+        sw = os.path.expanduser("~/Library/Application Support/Smart Touch Panel/bin/SwitchAudioSource")
+        if os.path.exists(sw):
+            _sc.run([sw, "-t", "output", "-i", body.get("name", "")])
+        return {"status": "ok"}
+
+    @app.post("/api/system/audio-input")
+    async def _sys_ain(body: dict):
+        sw = os.path.expanduser("~/Library/Application Support/Smart Touch Panel/bin/SwitchAudioSource")
+        if os.path.exists(sw):
+            _sc.run([sw, "-t", "input", "-i", body.get("name", "")])
+        return {"status": "ok"}
+    @app.post("/api/system/audio-output")
+    async def _sys_aout(body: dict):
+        import os as _os2
+        sw = _os2.path.expanduser("~/Library/Application Support/Smart Touch Panel/bin/SwitchAudioSource")
+        if _os2.path.exists(sw):
+            _sc.run([sw, "-t", "output", "-i", body.get("name", "")])
+        return {"status": "ok"}
+
+    @app.post("/api/system/audio-input")
+    async def _sys_ain(body: dict):
+        import os as _os2
+        sw = _os2.path.expanduser("~/Library/Application Support/Smart Touch Panel/bin/SwitchAudioSource")
+        if _os2.path.exists(sw):
+            _sc.run([sw, "-t", "input", "-i", body.get("name", "")])
+        return {"status": "ok"}
 
     @app.get("/api/system/current-app")
     async def _sys_cur_app():
