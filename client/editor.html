@@ -214,6 +214,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
   <button class="btn-new" onclick="resetDefault()">Reset</button><button class="btn-new" onclick="copyStyle()">&#x2398; Copy Style</button><button class="btn-new" onclick="pasteStyle()">&#x2399; Paste Style</button>
 </div>
 <div class="main">
+<div class="rp" id="lp-panel"></div>
 <div class="carea" id="carea">
   <div class="gh" id="gh"></div>
   <div class="ftb" id="ftb"><select id="fdev" onchange="onFDev()"><option value="iPad 11&quot;" selected>iPad 11"</option><option value="iPad 4:3">iPad 4:3</option><option value="iPad mini">iPad mini</option><option value="Android 16:10">Android 16:10</option></select><button class="btn-ori" onclick="toggleOri()" title="Toggle">↻</button></div>
@@ -787,7 +788,7 @@ function testSnd(nm){if(!nm||nm==="none")return;const s=SND[nm];if(!s)return;try
 function t(msg){const el=document.getElementById("toast");el.textContent=msg;el.className="toast";el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2000)}
 
 window.addEventListener("resize",()=>rr());
-cws();lpl();lp("Default.json");
+setTimeout(function(){var lp=document.getElementById("lp-panel");var rp=document.getElementById("rp-profile");if(lp&&rp){var children=rp.children;var toMove=[];for(var i=0;i<children.length;i++){var c=children[i];if(c.tagName!=="DIV"||c.id==="pl")continue;if(c.className==="rp-section"||c.className==="rp-divider")toMove.push(c)}for(var i=0;i<toMove.length;i++){lp.appendChild(toMove[i])}}},200);cws();lpl();lp("Default.json");
 </script>
 <div id="keyTypeModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
 background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center">
