@@ -97,13 +97,10 @@ function upkGroupStep(prop,delta){
   _pushUndo(before);dirty=true;rr();rpr();
 }
 function upkGroup(prop,val){const page=cp_();if(!page)return;const before=page.keys.filter(k=>selKeys.has(k.id)).map(k=>_snapshot(k));selKeys.forEach(kid=>{const k=page.keys.find(x=>x.id===kid);if(k){if(prop==="w"||prop==="h")val=Math.max(0.25,_snap4(parseFloat(val)||1));k[prop]=val}});_pushUndo(before);dirty=true;rr();rpr();}
-function buildCombo(){let v="";if(document.getElementById("cb_cmd")?.checked)v+="COMMAND+";if(document.getElementById("cb_opt")?.checked)v+="OPTION+";if(document.getElementById("cb_ctl")?.checked)v+="CONTROL+";if(document.getElementById("cb_sft")?.checked)v+="SHIFT+";v+=document.getElementById("cb_key")?.value||"";const kv=document.getElementById("kv");if(kv)kv.value=v;upk("value",v)}
+
 
 let captureMode=false;
-function startCapture(){
-  captureMode=true;
-  document.getElementById("captureHint").textContent="Press any key...";
-}
+
 document.addEventListener("keydown",e=>{
   if(!captureMode)return;
   e.preventDefault();e.stopPropagation();
@@ -123,7 +120,7 @@ document.addEventListener("keydown",e=>{
 function openProfileManager(){var pm=document.getElementById("profileManagerModal");pm.style.display="flex";pmRender();}
 function pmRender(){var el=document.getElementById("pmList");el.innerHTML=profiles.map(function(p,i){return"<div style=\"display:flex;align-items:center;gap:8px;padding:8px 10px;margin:3px 0;border-radius:6px;background:#272421\"><input value=\""+hesc(p.profileName)+"\" data-fn=\""+p.filename+"\" onkeydown=\"if(event.key==='Enter'){var fn=this.getAttribute('data-fn');var nm=this.value;if(fn&&nm)pmRename(fn,nm)}\" style=\"flex:1;padding:5px 8px;background:#151210;color:#e8e0d8;border:1px solid rgba(255,255,255,0.05);border-radius:4px;font-size:12px\"><button onclick=\"dp('"+p.filename+"');setTimeout(pmRender,300)\" style=\"padding:4px 10px;font-size:11px;background:#5c3028;color:#e8e0d8;border:none;border-radius:4px;cursor:pointer;font-weight:600\">X</button></div>"}).join("");}
 function pmConfirm(fn,btn){var row=btn.parentElement;var inp=row.querySelector("input");var nm=inp?inp.value:"";if(!nm||!fn)return;pmRename(fn,nm)}
-function pmConfirm(fn,btn){var row=btn.parentElement;var inp=row.querySelector("input");var nm=inp?inp.value:"";if(!nm||!fn)return;pmRename(fn,nm)}
+
 function pmRename(fn,nm){if(!nm)return;fetch("/api/profiles/"+encodeURIComponent(fn),{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({profileName:nm})}).then(function(r){return r.json()}).then(function(){if(fn===activeProfile&&profile)profile.profileName=nm;lpl();setTimeout(pmRender,200)})}
 function pmCreate(){var p={profileName:"New Profile",version:"1.0",device:"iPad 11\"",deviceWidth:834,deviceHeight:1210,cellSize:60,gap:0,canvasX:0,canvasY:0,defaultSound:"click",windowRules:[],pages:[{id:"main",label:"Main",keys:[]}],groups:[]};fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)}).then(function(r){return r.json()}).then(function(d){if(d.filename){lpl();renderAll();setTimeout(pmRender,200)}})}
 function copyStyle(){if(!selKey&&selKeys.size===0)return;var k;if(selKey){k=cp_()?.keys.find(function(x){return x.id===selKey})}else{var page=cp_();if(!page)return;var keys=page.keys.filter(function(k){return selKeys.has(k.id)});if(!keys.length)return;k=keys[0]}if(!k)return;copiedStyle={borderRadius:k.borderRadius,color:k.color,fontColor:k.fontColor,fontFamily:k.fontFamily,fontSize:k.fontSize,sound:k.sound};t("Style copied")}

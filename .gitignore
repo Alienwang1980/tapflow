@@ -11,3 +11,5 @@ server/venv/
 logs/
 dist/
 .eggs/
+client/index.html
+client/editor.html
