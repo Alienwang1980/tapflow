@@ -208,6 +208,21 @@ def run_server():
             a = AppKit.NSWorkspace.sharedWorkspace().frontmostApplication()
             return {"name": a.localizedName() or "?", "bundle_id": a.bundleIdentifier() or ""}
         except: return {"name": "?", "bundle_id": ""}
+    
+    # ── Window Shortcuts (keyboard only, no osascript) ──
+
+    @app.post("/api/system/window/fullscreen")
+    async def _wf(): from input_engine import press_key; press_key("ctrl+cmd+f"); return {"status":"ok"}
+
+    @app.post("/api/system/window/minimize")
+    async def _wm(): from input_engine import press_key; press_key("cmd+m"); return {"status":"ok"}
+
+    @app.post("/api/system/window/mission-control")
+    async def _wmc(): from input_engine import press_key; press_key("ctrl+up"); return {"status":"ok"}
+
+    @app.post("/api/system/window/show-desktop")
+    async def _wsd(): from input_engine import press_key; press_key("f11"); return {"status":"ok"}
+
     _logger.info("Widget routes registered")
     
     uvicorn.run(app, host="0.0.0.0", port=8082, log_level="warning")
