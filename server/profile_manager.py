@@ -8,13 +8,8 @@ from typing import Optional
 logger = logging.getLogger("stp.profile")
 
 def _get_data_dir() -> Path:
-    """Get writable data directory. Uses ~/Library/Application Support when bundled."""
-    import sys
-    # py2app sets sys.frozen
-    if getattr(sys, 'frozen', False):
-        base = Path.home() / "Library" / "Application Support" / "Smart Touch Panel"
-    else:
-        base = Path(__file__).parent
+    """Get writable data directory. Always uses App Support."""
+    base = Path.home() / "Library" / "Application Support" / "Smart Touch Panel"
     base.mkdir(parents=True, exist_ok=True)
     return base
 
