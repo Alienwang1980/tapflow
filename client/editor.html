@@ -93,10 +93,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
   border-radius:0 0 3px 0;z-index:2;
 }
 .ck:hover .rh,.ck.sel .rh{opacity:1;pointer-events:auto!important}
-.ck.touchpad{
-  border:1px dashed rgba(255,255,255,0.1)!important;
-  background:repeating-linear-gradient(45deg,rgba(255,255,255,0.008),rgba(255,255,255,0.008) 5px,rgba(255,255,255,0.02) 5px,rgba(255,255,255,0.02) 10px)!important;
-}
+.ck.touchpad{border:1px dashed var(--accent)!important;background:var(--bg)!important;opacity:0.85}
 
 #carea-overlay{position:absolute;inset:0;z-index:5;pointer-events:none;background:rgba(0,0,0,0.35)}
 /* ==== Overlay Elements ==== */
