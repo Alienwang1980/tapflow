@@ -1,53 +1,193 @@
 <!DOCTYPE html><html lang="zh-CN"><head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta charset="UTF-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Smart Touch Panel — Editor</title>
-<style>
-:root{--bg:#1a1a2e;--panel:#16213e;--card:#0f3460;--accent:#e94560;--text:#eee;--dim:#888;--border:#2a2a4a;--green:#3a7ca5;--red:#8b3a3a}
+<style>/* ==== STP Editor — Claude Warm ==== */
+:root{
+  --bg:#151210;--panel:#1e1b18;--card:#272421;--accent:#d97706;
+  --text:#e8e0d8;--dim:#8b8078;--border:rgba(255,255,255,0.05);
+  --success:#9b8c5a;--danger:#5c3028;
+}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;font-family:-apple-system,sans-serif;background:var(--bg);color:var(--text)}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text)}
 body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:none}
-.tb{display:flex;align-items:center;gap:8px;padding:4px 10px;background:var(--panel);border-bottom:1px solid var(--border);height:38px;flex-shrink:0}
-.tb h1{font-size:14px}.tb h1 span{color:var(--accent)}
-.tb .conn{font-size:10px;padding:1px 6px;border-radius:3px}
-.tb .conn.on{background:#4caf5040;color:#4caf50}.tb .conn.off{background:#f4433640;color:#f44336}
-.tb select,.tb button{padding:3px 8px;border-radius:3px;border:1px solid var(--border);cursor:pointer;font-size:11px;background:var(--card);color:var(--text)}
-.tb .btn-save{background:var(--green);color:#fff;border-color:var(--green)}
-.tb .btn-new{background:#555;color:#fff}
 
+/* ==== Toolbar ==== */
+.tb{
+  display:flex;align-items:center;gap:8px;padding:8px 16px;
+  background:var(--panel);height:44px;flex-shrink:0;z-index:20;
+}
+.tb h1{font-size:14px;font-weight:600}
+.tb h1 span{color:var(--accent);font-weight:400}
+.tb .conn{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:500}
+.tb .conn.on{background:rgba(74,222,128,0.1);color:#4ade80}
+.tb .conn.off{background:rgba(248,113,113,0.1);color:#f87171}
+.tb select,.tb button{
+  padding:5px 12px;border-radius:6px;border:1px solid var(--border);
+  cursor:pointer;font-size:11px;background:var(--card);color:var(--text);
+  font-weight:500;transition:all 0.15s;
+}
+.tb select:hover,.tb button:hover{border-color:var(--accent);background:#33302c}
+.tb .btn-save{background:var(--success);border-color:var(--success);font-weight:600}
+.tb .btn-save:hover{background:#a8955a}
+.tb .btn-new{background:var(--card)}
 
+/* ==== Layout ==== */
 .main{display:flex;flex:1;overflow:hidden}
-.side{width:200px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);overflow-y:auto}
-.side h3{font-size:10px;text-transform:uppercase;color:var(--dim);padding:8px 8px 2px;letter-spacing:1px}
-.side .it,.rp .it{padding:4px 8px;cursor:pointer;font-size:11px;border-left:3px solid transparent;display:flex;justify-content:space-between;align-items:center}
-.side .it:hover{background:#ffffff08}.side .it.ac{border-left-color:var(--accent);color:var(--accent);background:#ffffff0c}
-.side .it .x{visibility:hidden;color:var(--red);cursor:pointer;font-size:13px}.side .it:hover .x{visibility:visible}
-.side .ar{display:flex;gap:3px;padding:3px 8px}
-.side .ar input{flex:1;padding:2px 5px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:3px;font-size:10px}
-.side .ar button{padding:2px 5px;font-size:10px;background:#555;color:#fff;border:none;border-radius:3px;cursor:pointer}
-.carea{flex:1;position:relative;overflow:hidden;background:var(--bg);display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none}
-.cwrap{transform-origin:center center}
-.canvas{position:relative;border:2px solid var(--accent);box-shadow:0 0 20px rgba(233,69,96,0.3);background:rgba(0,0,0,0.15)}
-.ck{position:absolute;background:var(--card);border:2px solid transparent;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;cursor:default;transition:border-color 0.1s;user-select:none;overflow:visible}
-.ck{transition:transform 0.06s ease,box-shadow 0.06s ease,filter 0.06s ease}.ck:hover{border-color:rgba(255,255,255,0.4)}.ck:active{transform:scale(0.95);filter:brightness(1.3)}.ck.sel{border-color:var(--accent);box-shadow:0 0 8px rgba(233,69,96,0.5);cursor:default}
 
+/* ==== Canvas ==== */
+.carea{
+  flex:1;position:relative;overflow:visible;
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  user-select:none;-webkit-user-select:none;
+}
+.cwrap{transform-origin:center center;position:relative;z-index:1}
+.canvas{position:relative;background:rgba(0,0,0,0.15);border-radius:4px;box-shadow:0 0 0 9999px rgba(30,27,24,0.55)}
+
+/* ==== Frame Toolbar ==== */
+.ftb{
+  position:absolute;display:flex;align-items:center;gap:0;height:36px;
+  z-index:30;pointer-events:none;background:var(--panel);
+  border:1px solid rgba(255,255,255,0.06);border-bottom:none;
+  border-radius:8px 8px 0 0;
+}
+.ftb>*{pointer-events:auto}
+.ftb select{
+  height:36px;background:transparent;color:var(--text);
+  border:none;padding:0 12px;font-size:11px;font-weight:600;cursor:pointer;
+  min-width:90px;outline:none;
+}
+.ftb select:hover{background:rgba(255,255,255,0.03)}
+.ftb .btn-ori{
+  height:36px;background:transparent;color:var(--text);
+  border:none;border-left:1px solid var(--border);padding:0 12px;
+  font-size:14px;cursor:pointer;font-weight:600;transition:all 0.15s;
+}
+.ftb .btn-ori:hover{background:rgba(255,255,255,0.03);color:var(--accent)}
+.ftb .ftb-sep{width:1px;height:20px;background:var(--border);margin:0 4px}
+.ftb button{
+  height:36px;background:transparent;color:var(--text);
+  border:none;padding:0 10px;font-size:16px;cursor:pointer;font-weight:500;
+  transition:all 0.15s;
+}
+.ftb button:hover{color:var(--accent);background:rgba(255,255,255,0.03)}
+.ftb span{user-select:none}
+
+/* ==== Keys ==== */
+.ck{
+  position:absolute;background:var(--card);border:2px solid transparent;
+  border-radius:5px;display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:500;cursor:default;
+  transition:border-color 0.1s,transform 0.06s,box-shadow 0.06s;
+  user-select:none;overflow:visible;
+}
+.ck:hover{border-color:rgba(255,255,255,0.2)}
+.ck:active{transform:scale(0.95)}
+.ck.sel{border-color:var(--accent);box-shadow:0 0 16px rgba(217,119,6,0.3)}
 .ck .kl{pointer-events:none;text-align:center;line-height:1.2;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.ck .sz{position:absolute;top:1px;right:3px;font-size:8px;color:rgba(255,255,255,0.4);pointer-events:none}
-.ck .rh{position:absolute;bottom:-4px;right:-4px;width:28px;height:28px;cursor:se-resize;opacity:0;pointer-events:none;background:linear-gradient(135deg,transparent 50%,rgba(255,255,255,0.4) 50%);border-radius:0 0 4px 0;z-index:2}
-.ck:hover .rh,.ck.sel .rh{opacity:1;pointer-events:auto!important}.ck.touchpad{border:1px dashed rgba(255,255,255,0.2)!important;background:repeating-linear-gradient(45deg,rgba(255,255,255,0.02),rgba(255,255,255,0.02) 4px,rgba(255,255,255,0.05) 4px,rgba(255,255,255,0.05) 8px)!important}
-.gh{position:absolute;border:1px dashed rgba(255,255,255,0.3);background:rgba(255,255,255,0.05);pointer-events:none;z-index:2;display:none}.gt{position:absolute;color:rgba(255,255,255,0.5);font-size:10px;pointer-events:none;z-index:2;display:none;white-space:nowrap}.sr{position:absolute;border:1px solid var(--accent);background:rgba(233,69,96,0.15);z-index:5;pointer-events:none;display:none}.grh{position:absolute;width:10px;height:10px;background:var(--accent);border-radius:2px;z-index:6;cursor:pointer;display:none}.grbox{position:absolute;border:2px dashed rgba(233,69,96,0.6);border-radius:2px;z-index:4;pointer-events:none;display:none}
-.rp{width:260px;flex-shrink:0;background:var(--panel);border-left:1px solid var(--border);overflow-y:auto;padding:0}.rp-section{padding:10px}.rp-divider{height:1px;background:var(--border);margin:0 10px}
-.rp h3{font-size:12px;margin-bottom:8px}.rp label{display:block;font-size:10px;color:var(--dim);margin:6px 0 2px}
-.rp input,.rp select{width:100%;padding:4px 6px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:3px;font-size:11px}
-.rp input[type=color]{height:26px;padding:1px}.rp input[type=number]::-webkit-outer-spin-button,.rp input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}.rp input[type=number]{-moz-appearance:textfield}.rp .rw{display:flex;gap:4px}.rp .rw>div{flex:1}
-.rp .stepper{display:flex;align-items:center;gap:2px}
-.rp .stepper button{width:24px;height:24px;font-size:14px;line-height:1;text-align:center;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:3px;cursor:pointer}
-.rp .stepper span{width:24px;text-align:center;font-size:13px;font-weight:600}
-.rp .hint{font-size:9px;color:var(--dim);margin-top:1px}.rp .br{display:flex;gap:4px;margin-top:8px}
-.rp .br button{flex:1;padding:5px;font-size:11px;cursor:pointer;border-radius:3px}.rp .btn-del{background:var(--red);color:#fff;border:none}
-.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:6px 16px;border-radius:5px;font-size:12px;z-index:999;opacity:0;transition:opacity 0.3s}.toast.show{opacity:1}
-.ftb{position:absolute;display:flex;align-items:center;gap:4px;height:20px;z-index:10;pointer-events:none}.ftb>*{pointer-events:auto}.ftb select{background:rgba(15,52,96,0.85);color:#eee;border:1px solid var(--accent);border-radius:2px;padding:0 4px;font-size:9px;cursor:pointer}.ftb .btn-ori{background:rgba(15,52,96,0.85);color:#eee;border:1px solid var(--accent);border-radius:2px;padding:0 5px;font-size:9px;cursor:pointer;white-space:nowrap}
+.ck .sz{position:absolute;top:2px;right:4px;font-size:8px;color:rgba(255,255,255,0.2);pointer-events:none}
+.ck .rh{
+  position:absolute;bottom:-4px;right:-4px;width:24px;height:24px;
+  cursor:se-resize;opacity:0;pointer-events:none;
+  background:linear-gradient(135deg,transparent 50%,rgba(255,255,255,0.2) 50%);
+  border-radius:0 0 3px 0;z-index:2;
+}
+.ck:hover .rh,.ck.sel .rh{opacity:1;pointer-events:auto!important}
+.ck.touchpad{
+  border:1px dashed rgba(255,255,255,0.1)!important;
+  background:repeating-linear-gradient(45deg,rgba(255,255,255,0.008),rgba(255,255,255,0.008) 5px,rgba(255,255,255,0.02) 5px,rgba(255,255,255,0.02) 10px)!important;
+}
 
-.info{position:fixed;bottom:4px;left:4px;color:#fff;font-size:10px;z-index:999;background:rgba(0,0,0,0.85);padding:5px 8px;border-radius:4px;user-select:text;-webkit-user-select:text;max-width:95vw}
+/* ==== Overlay Elements ==== */
+.gh{position:absolute;border:1px dashed rgba(255,255,255,0.1);background:rgba(255,255,255,0.015);pointer-events:none;z-index:2;display:none}
+.gt{position:absolute;color:rgba(255,255,255,0.25);font-size:10px;pointer-events:none;z-index:2;display:none;white-space:nowrap}
+.sr{position:absolute;border:1px solid var(--accent);background:rgba(217,119,6,0.06);z-index:5;pointer-events:none;display:none}
+.grh{position:absolute;width:10px;height:10px;background:var(--accent);border-radius:2px;z-index:6;cursor:pointer;display:none}
+.grbox{position:absolute;border:2px dashed rgba(217,119,6,0.3);border-radius:2px;z-index:4;pointer-events:none;display:none}
+
+/* ==== Right Panel ==== */
+.rp{
+  width:270px;flex-shrink:0;background:var(--panel);z-index:15;
+  overflow-y:auto;padding:0;
+  box-shadow:-2px 0 24px rgba(0,0,0,0.5);
+}
+.rp-section{padding:12px}
+.rp-divider{height:1px;background:var(--border);margin:0 12px}
+.rp h3{font-size:12px;font-weight:600;margin-bottom:10px}
+.rp label{display:block;font-size:10px;color:var(--dim);margin:10px 0 4px;font-weight:500}
+.rp input,.rp select{
+  width:100%;padding:6px 8px;background:var(--bg);color:var(--text);
+  border:1px solid var(--border);border-radius:5px;font-size:11px;
+  transition:border-color 0.15s;
+}
+.rp input:focus,.rp select:focus{border-color:var(--accent);outline:none}
+.rp input[type=color]{height:30px;padding:2px;border-radius:5px;cursor:pointer}
+.rp input[type=number]::-webkit-outer-spin-button,
+.rp input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.rp input[type=number]{-moz-appearance:textfield}
+.rp .rw{display:flex;gap:8px}
+.rp .rw>div{flex:1}
+.rp .stepper{display:flex;align-items:center;gap:2px}
+.rp .stepper button{
+  width:28px;height:28px;font-size:16px;background:var(--card);color:var(--text);
+  border:1px solid var(--border);border-radius:5px;cursor:pointer;
+  transition:all 0.15s;font-weight:500;display:flex;align-items:center;justify-content:center;
+}
+.rp .stepper button:hover{border-color:var(--accent);background:#38332e}
+.rp .stepper span{min-width:36px;text-align:center;font-size:12px;font-weight:600}
+.rp .hint{font-size:9px;color:var(--dim);margin-top:2px}
+.rp .br{display:flex;gap:8px;margin-top:12px}
+.rp .br button{
+  flex:1;padding:7px 12px;font-size:11px;cursor:pointer;
+  border-radius:6px;font-weight:500;border:1px solid transparent;
+  transition:all 0.15s;
+}
+.rp .btn-del{background:var(--danger);color:var(--text);font-weight:600}
+.rp .btn-del:hover{background:#6d3830}
+
+/* ==== List Items (Profiles/Pages/Groups) ==== */
+.rp .it{
+  padding:7px 10px;cursor:pointer;font-size:11px;
+  display:flex;justify-content:space-between;align-items:center;
+  color:var(--dim);transition:all 0.1s;border-radius:5px;margin:1px 0;
+}
+.rp .it:hover{background:rgba(255,255,255,0.04);color:var(--text)}
+.rp .it.ac{
+  border-left:2px solid var(--accent);background:rgba(217,119,6,0.06);
+  color:var(--text);padding-left:8px;
+}
+.rp .it .x{
+  opacity:0.6;color:var(--danger);cursor:pointer;font-size:14px;
+  padding:2px 6px;border-radius:3px;transition:all 0.15s;
+}
+.rp .it .x:hover{opacity:1;background:var(--danger);color:var(--text)}
+.rp .ar{display:flex;gap:4px;padding:4px 0}
+.rp .ar input{
+  flex:1;padding:5px 8px;background:var(--bg);color:var(--text);
+  border:1px solid var(--border);border-radius:5px;font-size:10px;
+}
+.rp .ar input:focus{border-color:var(--accent);outline:none}
+.rp .ar button{
+  padding:5px 10px;font-size:10px;background:var(--card);color:var(--text);
+  border:1px solid var(--border);border-radius:5px;cursor:pointer;font-weight:500;
+}
+.rp .ar button:hover{border-color:var(--accent)}
+
+/* ==== Toast & Info ==== */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:var(--success);color:var(--text);padding:10px 24px;
+  border-radius:8px;font-size:12px;font-weight:500;z-index:999;
+  opacity:0;transition:opacity 0.3s;box-shadow:0 4px 24px rgba(0,0,0,0.5);
+}
+.toast.show{opacity:1}
+.info{
+  position:fixed;bottom:4px;left:4px;color:var(--dim);font-size:10px;
+  z-index:999;background:var(--panel);padding:4px 8px;
+  border-radius:4px;border:1px solid var(--border);
+  user-select:text;-webkit-user-select:text;max-width:95vw;
+}
+
 @font-face{font-family:"Press Start 2P";src:url("/static/fonts/PressStart2P.woff2") format("woff2")}
 @font-face{font-family:"VT323";src:url("/static/fonts/VT323.woff2") format("woff2")}
 @font-face{font-family:"Russo One";src:url("/static/fonts/RussoOne.woff2") format("woff2")}
@@ -56,10 +196,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 <div class="tb">
   <h1>Smart <span>Touch</span> Editor</h1>
   <span class="conn off" id="cs">off</span>
-  <select id="gs" onchange="if(profile){profile.defaultSound=this.value;dirty=true}" style="font-size:10px">
-    <option value="none">None</option><option value="click">Click</option><option value="soft">Soft</option>
-    <option value="mechanical">Mechanical</option><option value="deep">Deep</option>
-  </select>
+  
   <button class="btn-save" onclick="saveProfile()">Save & Sync</button>
   <button class="btn-new" onclick="resetDefault()">Reset Default</button>
   <button class="btn-new" onclick="saveAs()">Save As</button>
@@ -67,33 +204,40 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
   <button onclick="redo()" title="Redo (Ctrl+Shift+Z)">↪</button>
 </div>
 <div class="main">
-<div class="side">
-  <h3>Profiles</h3><div id="pl"></div>
-  <div class="ar"><input id="npn" placeholder="Name"><button onclick="cp()">+</button></div>
-  <h3>Pages</h3><div id="pgl"></div>
-  <div class="ar"><input id="npl" placeholder="Label"><button onclick="apg()">+</button></div>
-  <h3>Zoom</h3>
-  <div class="stepper" style="padding:4px 8px"><button onclick="zoomBy(-1)">−</button><span id="zv">60</span><button onclick="zoomBy(1)">+</button></div>
-</div>
 <div class="carea" id="carea">
-  <div class="gh" id="gh"></div><div id="gtip" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,0.4);font-size:11px;pointer-events:none;z-index:100;display:none">Double-click empty area to add key</div>
-  <div class="ftb" id="ftb"><select id="fdev" onchange="onFDev()"><option value="iPad 11&quot;">iPad 11"</option><option value="iPad 4:3">iPad 4:3</option><option value="iPad mini">iPad mini</option><option value="Android 16:10">Android 16:10</option></select><button class="btn-ori" onclick="toggleOri()" title="Toggle landscape/portrait">&#x21C4;</button></div>
+  <div class="gh" id="gh"></div>
+  <div class="ftb" id="ftb"><select id="fdev" onchange="onFDev()"><option value="iPad 11&quot;" selected>iPad 11"</option><option value="iPad 4:3">iPad 4:3</option><option value="iPad mini">iPad mini</option><option value="Android 16:10">Android 16:10</option></select><button class="btn-ori" onclick="toggleOri()" title="Toggle">↻</button><span class="ftb-sep"></span><button onclick="zoomBy(-1)">−</button><span id="zv">60</span><button onclick="zoomBy(1)">+</button></div>
   <div class="sr" id="sr"></div><div class="grh" id="grh_b" style="cursor:s-resize"></div><div class="grh" id="grh_l" style="cursor:w-resize"></div><div class="grh" id="grh_r" style="cursor:e-resize"></div>
   <div class="cwrap" id="cwrap"><div class="canvas" id="canvas"></div></div>
 </div>
 <div class="rp">
-  <div class="rp-section">
-    <h3>Groups <button onclick="saveAsGroup()" style="font-size:10px;padding:2px 8px;background:rgba(233,161,69,0.2);color:#e9a145;border:1px solid #e9a145;border-radius:3px;cursor:pointer">+ New Group</button></h3>
-    <div id="grpl"><p style="font-size:10px;color:var(--dim);padding:8px 0">Select keys, then click + New Group</p></div>
-  </div>
-  <div class="rp-divider"></div>
-  <div class="rp-section">
-    <h3>Key Properties</h3>
-    <div id="pc"><p style="font-size:11px;color:var(--dim)">Click a key to edit</p></div>
-  </div>
-</div>
-</div>
-<div class="toast" id="toast"></div>
+    <div id="rp-profile">
+      <div class="rp-section">
+        <h3>Profiles</h3>
+        <div id="pl"></div>
+        <div class="ar"><input id="npn" placeholder="Name"><button onclick="cp()">+</button></div>
+        <label style="margin-top:12px">Default Sound</label>
+        <select id="gs" onchange="if(profile){profile.defaultSound=this.value;dirty=true}"><option value="none">None</option><option value="click">Click</option><option value="soft">Soft</option><option value="mechanical">Mechanical</option><option value="deep">Deep</option><option value="red">Red Switch</option><option value="topre">Topre EC</option><option value="glass">Glass Tap</option><option value="bubble">Bubble Pop</option><option value="blip">8-bit Blip</option><option value="spark">Electric Spark</option></select>
+      </div>
+      <div class="rp-divider"></div>
+      <div class="rp-section">
+        <h3>Pages</h3>
+        <div id="pgl"></div>
+        <div class="ar"><input id="npl" placeholder="Label"><button onclick="apg()">+</button></div>
+      </div>
+      <div class="rp-divider"></div>
+      <div class="rp-section">
+        <h3>Groups</h3>
+        <div id="grpl"><p style="font-size:10px;color:var(--dim);padding:8px 0">No groups</p></div>
+      </div>
+    </div>
+    <div id="rp-props" style="display:none">
+      <div class="rp-section">
+        <h3>Properties</h3>
+        <div id="pc"><p style="font-size:11px;color:var(--dim)">Click key to edit</p></div>
+      </div>
+    </div>
+  <div class="toast" id="toast"></div>
 <div class="info" id="edinfo"></div>
 <script>
 "use strict";
@@ -242,7 +386,7 @@ function rr(){
   canvas.style.width=dw+"px";canvas.style.height=dh+"px";const gridPx=cs+gp;canvas.style.backgroundImage="linear-gradient(rgba(255,255,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.04) 1px,transparent 1px)";canvas.style.backgroundSize=gridPx+"px "+gridPx+"px";
 
   // ftb at frame top-right corner
-  const ox=(cw-dw*scale)/2,oy=(ch-dh*scale)/2;const ftb=document.getElementById("ftb");ftb.style.right=ox+"px";ftb.style.top=Math.max(0,oy-22)+"px";ftb.style.left="auto";ftb.style.width="auto";
+  const ox=(cw-dw*scale)/2,oy=(ch-dh*scale)/2;const ftb=document.getElementById("ftb");ftb.style.right=ox+"px";ftb.style.top=Math.max(0,oy-36)+"px";ftb.style.left="auto";
 
   const cpx=cs+gp;
   canvas.style.backgroundPosition=((dw/2+panX*cpx)%gridPx+gridPx)%gridPx+"px "+((dh/2+panY*cpx)%gridPx+gridPx)%gridPx+"px";
@@ -490,7 +634,7 @@ function onFDev(){const d=DEVS[document.getElementById("fdev").value];if(d&&prof
 function onDev(){} // removed — use onFDev from frame toolbar
 
 // ── Props ──
-function rpr(){
+function rpr(){var has=!!(selKey||selKeys.size>0);document.getElementById("rp-profile").style.display=has?"none":"block";document.getElementById("rp-props").style.display=has?"block":"none";
   if(selKeys.size>1){
     var pg2=cp_(),firstBr2=10,commonColor="#0f3460",colorCount=0,clrs=new Set(),fcSet=new Set(),ffSet=new Set(),commonFontColor="inherit",commonFontFamily="",commonFontSize=10,fsSet=new Set();
     for(var i=0;i<pg2.keys.length;i++){if(selKeys.has(pg2.keys[i].id)){var k2=pg2.keys[i];if(firstBr2===10)firstBr2=k2.borderRadius!==undefined?k2.borderRadius:10;var cc=k2.color||"#0f3460";commonColor=cc;clrs.add(cc);var fc2=k2.fontColor||"inherit";commonFontColor=fc2;fcSet.add(fc2);var ff2=k2.fontFamily||"";commonFontFamily=ff2;ffSet.add(ff2);var fs2=k2.fontSize||Math.max(8,(profile?.cellSize||60)*0.25);commonFontSize=fs2;fsSet.add(fs2)}}colorCount=clrs.size;if(clrs.size===1)commonColor=[...clrs][0];
