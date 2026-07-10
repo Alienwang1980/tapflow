@@ -251,6 +251,24 @@ function _onDockTouchStart(e, canvas) {
   _dockPressedIdx = Math.floor((cx + (canvas._dockScroll||0)) / (canvas._dockItemW||68));
   if (canvas._dockApps && (_dockPressedIdx < 0 || _dockPressedIdx >= canvas._dockApps.length)) _dockPressedIdx = -1;
   if (_dockPressedIdx >= 0) _drawDockGrid(canvas, canvas._dockApps);
+  // rAF poll: check elapsed time every frame while holding
+  var _cv2 = canvas, _pi2 = _dockPressedIdx;
+  function _pollLP() {
+    if (_dockTMoved || _dockPressedIdx !== _pi2) return;
+    if (Date.now() - _dockTStart >= 600) {
+      var app = _cv2._dockApps && _cv2._dockApps[_pi2];
+      if (app) {
+        var quitSnd = (_cv2._dockKey && _cv2._dockKey.quitSound) || "quit";
+        if (typeof psnd === "function") psnd(quitSnd);
+        fetch("/api/system/quit-app", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({name: app.bundle || app.name, path: app.path})}).catch(function(){});
+        _dockPressedIdx = -1;
+        if (_cv2._dockApps) _drawDockGrid(_cv2, _cv2._dockApps);
+      }
+      return;
+    }
+    requestAnimationFrame(_pollLP);
+  }
+  requestAnimationFrame(_pollLP);
 }
 function _onDockTouchMove(e, canvas) {
   e.stopPropagation();
@@ -279,7 +297,7 @@ function _onDockTouchEnd(e, canvas) {
       // Long press — quit app
       var quitSnd = (canvas._dockKey && canvas._dockKey.quitSound) || "quit";
       if (typeof psnd === "function") psnd(quitSnd);
-      fetch("/api/system/quit-app", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({name: a.name, path: a.path})}).catch(function(){});
+      fetch("/api/system/quit-app", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({name: a.bundle || a.name, path: a.path})}).catch(function(){});
     } else {
       // Short tap — launch app
       var snd = (canvas._dockKey && canvas._dockKey.sound) || (profile && profile.defaultSound) || "click";
