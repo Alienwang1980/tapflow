@@ -168,23 +168,27 @@ def run_server():
         if _mic_sampling:
             return
         _mic_sampling = True
-        import threading as _th, logging as _log
+        import threading as _th, logging as _log, struct, math, tempfile, os as _os2
         _logger = _log.getLogger("stp.mic")
         def _sample():
-            import sounddevice as _sd
-            import numpy as _np
             nonlocal _mic_level
-            try:
-                _stream = _sd.InputStream(samplerate=44100, channels=1, blocksize=1024)
-                _stream.start()
-                while _mic_sampling:
-                    data, overflowed = _stream.read(1024)
-                    if len(data) > 0:
-                        rms = float(_np.sqrt(_np.mean(data**2)))
-                        _mic_level = min(1.0, rms * 10)
-            except Exception as _e:
-                _logger.error(f"Mic sampler error: {_e}")
-                _mic_level = 0.0
+            while _mic_sampling:
+                try:
+                    _tmp = tempfile.NamedTemporaryFile(suffix=".raw", delete=False)
+                    _tmp.close()
+                    import subprocess as _sp5
+                    _sp5.run(["ffmpeg", "-y", "-f", "avfoundation", "-i", ":0",
+                        "-t", "0.3", "-ac", "1", "-ar", "22050", "-f", "s16le",
+                        _tmp.name], capture_output=True, timeout=2)
+                    with open(_tmp.name, "rb") as _f:
+                        _data = _f.read()
+                    _os2.unlink(_tmp.name)
+                    if len(_data) >= 400:
+                        _samples = struct.unpack("<" + "h" * (len(_data)//2), _data)
+                        _rms = math.sqrt(sum(_s*_s for _s in _samples) / len(_samples))
+                        _mic_level = min(1.0, _rms / 3000.0)
+                except Exception:
+                    pass
         _th.Thread(target=_sample, daemon=True).start()
 
     @app.get("/api/system/mic-level")
