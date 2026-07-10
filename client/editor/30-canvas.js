@@ -51,12 +51,18 @@ const ftb=document.getElementById("ftb");var btb=document.getElementById("btb");
     var _fs=Math.max(8,_h*0.18);_c.font=_fs+"px -apple-system,sans-serif";_c.textAlign="center";_c.textBaseline="middle";
     _c.fillStyle="#ccc";_c.fillText("Full",_bw/2,_bh/2);_c.fillText("Min",_bw*1.5,_bh/2);_c.fillText("MC",_bw/2,_bh*1.5);_c.fillText("Desk",_bw*1.5,_bh*1.5);
     el.appendChild(_cv);var _rh=document.createElement("div");_rh.className="rh";el.appendChild(_rh)}else if(k.action==="dock"){
-    var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;
-    _cv.style.borderRadius=(k.borderRadius!==undefined?k.borderRadius:10)/100*Math.min(kw-8,kh-8)+"px";
-    el.appendChild(_cv);_cv.style.borderRadius=((k.borderRadius!==undefined?k.borderRadius:10)/100*Math.min(kw,kh))+"px";
-    // Load real dock data for preview
+    // Frosted glass via CSS on container
+    var _bgo2=k.bgOpacity!==undefined?k.bgOpacity:0.15;
+    if(_bgo2>0.001&&(k.bgColor||k.color)){
+      var _hex2=(k.bgColor||k.color).replace("#","");
+      var _r2=parseInt(_hex2.substring(0,2),16),_g2=parseInt(_hex2.substring(2,4),16),_b2=parseInt(_hex2.substring(4,6),16);
+      el.style.background="rgba("+_r2+","+_g2+","+_b2+","+_bgo2+")";
+      el.style.backdropFilter="blur(8px)";el.style.webkitBackdropFilter="blur(8px)";
+    }else{el.style.background="transparent";el.style.backdropFilter="none";el.style.webkitBackdropFilter="none"}
+    var _cv=document.createElement("canvas");_cv.width=kw;_cv.height=kh;
+    el.appendChild(_cv);
     _drawEditorDock(_cv, k);
-    el.appendChild(_cv);var _rh=document.createElement("div");_rh.className="rh";el.appendChild(_rh)}else if(k.action==="app-menu"){
+    var _rh=document.createElement("div");_rh.className="rh";el.appendChild(_rh)}else if(k.action==="app-menu"){
     var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";
     var _c=_cv.getContext("2d"),_w=_cv.width,_h=_cv.height;
     _c.fillStyle="rgba(0,0,0,0.3)";_c.fillRect(0,0,_w,_h);
