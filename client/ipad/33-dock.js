@@ -99,7 +99,7 @@ function _drawDockGrid(canvas, apps) {
   }
 }
 
-var _dockTX = 0, _dockTS = 0, _dockTMoved = false, _dockPressedIdx = -1, _dockTStart = 0, _dockLongTimer = null;
+var _dockTX = 0, _dockTS = 0, _dockTMoved = false, _dockPressedIdx = -1, _dockTStart = 0, _dockLongTimer = null, _dockCooldown = false;
 function _onDockTouchStart(e, canvas) {
   e.preventDefault(); e.stopPropagation();
   touchUsed = true;
@@ -142,7 +142,7 @@ function _onDockTouchEnd(e, canvas) {
   if (_dockLongTimer) { clearTimeout(_dockLongTimer); _dockLongTimer = null; }
   var pressedIdx = _dockPressedIdx;
   _dockPressedIdx = -1;
-  if (_dockTMoved || pressedIdx === -2) { _drawDockGrid(canvas, canvas._dockApps); return; }
+  if (_dockTMoved || pressedIdx === -2 || _dockCooldown) { _drawDockGrid(canvas, canvas._dockApps); return; }
   // Redraw to clear highlight
   _drawDockGrid(canvas, canvas._dockApps);
   var t = e.touches ? e.changedTouches[0] : e;
