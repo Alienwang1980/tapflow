@@ -1,6 +1,6 @@
 function render(){
   const pg=profile?.pages.find(p=>p.id===activePage);if(!pg)return;document.body.style.background=pg.bgColor||"#1a1a2e";var _pi=_patIMG(pg.bgPattern);var _tl=document.getElementById("tl");if(_pi){_tl.style.display="block";_tl.style.backgroundColor=pg.bgPatternColor||"#ffffff";_tl.style.webkitMaskImage='url("/uploads/'+_pi.img+'")';_tl.style.maskImage='url("/uploads/'+_pi.img+'")';var _sz4=(pg.bgPatternSize||_pi.size)+"px";_tl.style.webkitMaskSize=_sz4+" "+_sz4;_tl.style.maskSize=_sz4+" "+_sz4;document.body.style.backgroundImage="";document.body.style.backgroundSize=""}else{_tl.style.display="block";_tl.style.backgroundImage=_patBG2(pg.bgPattern,pg.bgPatternColor||"#ffffff");_tl.style.backgroundSize=(pg.bgPatternSize||60)+"px "+(pg.bgPatternSize||60)+"px";_tl.style.backgroundColor="transparent";_tl.style.webkitMaskImage="";_tl.style.maskImage=""}
-  const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60;
+  const dw=window.innerWidth,dh=window.innerHeight,cs=profile.cellSize||60;
   const cx=profile.canvasX||0,cy=profile.canvasY||0;
   const vw=window.innerWidth,vh=window.innerHeight;
 
