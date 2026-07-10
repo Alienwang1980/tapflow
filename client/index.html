@@ -362,7 +362,7 @@ function render(){
   const scale=Math.min(vw/dw,vh/dh);
   const wrap=document.getElementById("wrap");
   wrap.style.width=dw+"px";wrap.style.height=dh+"px";
-  wrap.style.transform=`scale(${scale})`;
+  wrap.style.zoom=scale;
   // no translate — flexbox on body handles centering
 
   // Set canvas size
@@ -390,7 +390,7 @@ function render(){
         var _hex2=_dc2.replace("#","");
         var _r2=parseInt(_hex2.substring(0,2),16),_g2=parseInt(_hex2.substring(2,4),16),_b2=parseInt(_hex2.substring(4,6),16);
         el.style.background="rgba("+_r2+","+_g2+","+_b2+","+_bgo2+")";
-      }else{el.style.background="rgba(0,0,0,0.01)"}
+      }else{el.style.background="transparent"}
       el.style.backdropFilter="blur(12px)";el.style.webkitBackdropFilter="blur(12px)";
       // Safari fix: overflow:hidden + border-radius disables backdrop-filter
       el.style.webkitMaskImage="none";el.style.isolation="isolate";
