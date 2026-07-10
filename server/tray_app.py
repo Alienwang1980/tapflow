@@ -142,7 +142,23 @@ def run_server():
         _sc.run(["osascript", "-e", f"set volume output muted {str(_state['muted']).lower()}"])
         return {"muted": _state["muted"]}
 
-    
+    @app.post("/api/system/mic-mute")
+    async def _sys_mic_mute():
+        r = _sc.run(["osascript", "-e", "get volume settings"], capture_output=True, text=True)
+        cur_vol = 50
+        for part in r.stdout.strip().split(","):
+            if "input volume" in part:
+                cur_vol = int(part.split(":")[1].strip())
+                break
+        if cur_vol > 0:
+            _state["mic_pre"] = cur_vol
+            _sc.run(["osascript", "-e", "set volume input volume 0"])
+            _state["mic_muted"] = True
+        else:
+            restore = _state.get("mic_pre", 50)
+            _sc.run(["osascript", "-e", f"set volume input volume {restore}"])
+            _state["mic_muted"] = False
+        return {"muted": _state.get("mic_muted", False)}
 
     @app.get("/api/system/audio-devices")
     async def _sys_adev():
