@@ -233,7 +233,7 @@ def run_server():
         try:
             with open(dock_plist, "rb") as f:
                 dock = _pl.load(f)
-            # Get running app bundle paths (accurate, no pgrep substring issues)
+            # Get running app bundle paths
             _running_paths = set()
             try:
                 from Cocoa import NSWorkspace as _NSW2
@@ -244,19 +244,33 @@ def run_server():
                         if _rp: _running_paths.add(_rp)
             except Exception:
                 pass
+            def _check_running(bundle_path):
+                _p = bundle_path.replace("file://","").replace("%20"," ").rstrip("/").lower()
+                return any(_p in rp or rp.endswith(_p) for rp in _running_paths)
+            def _make_item(label, url):
+                _path = url.replace("file://", "").replace("%20"," ").rstrip("/")
+                _bundle = url.rstrip("/").split("/")[-1].replace("%20"," ").replace(".app","")
+                return {"name": label, "path": _path, "bundle": _bundle, "running": _check_running(url)}
+            # 1. Finder (always in Dock, not in plist)
+            finder_url = "file:///System/Library/CoreServices/Finder.app/"
+            items.append(_make_item("Finder", finder_url))
+            # 2. Pinned apps (persistent-apps)
             for app in dock.get("persistent-apps", []):
                 td = app.get("tile-data", {})
                 fd = td.get("file-data", {})
                 url = fd.get("_CFURLString", "")
                 label = td.get("file-label", url.split("/")[-1].replace("%20"," ").replace(".app",""))
-                _path = url.replace("file://", "").replace("%20"," ").rstrip("/")
-                _is_running = any(_path.lower() in rp or rp.endswith(_path.lower()) for rp in _running_paths)
-                items.append({
-                    "name": label,
-                    "path": _path,
-                    "bundle": url.rstrip("/").split("/")[-1].replace("%20"," ").replace(".app",""),
-                    "running": _is_running
-                })
+                items.append(_make_item(label, url))
+            # 3. Recent apps (running but not pinned)
+            for app in dock.get("recent-apps", []):
+                td = app.get("tile-data", {})
+                fd = td.get("file-data", {})
+                url = fd.get("_CFURLString", "")
+                label = td.get("file-label", url.split("/")[-1].replace("%20"," ").replace(".app",""))
+                # Skip if already in the list (check by bundle)
+                _b = url.rstrip("/").split("/")[-1].replace("%20"," ").replace(".app","")
+                if not any(it["bundle"] == _b for it in items):
+                    items.append(_make_item(label, url))
         except: pass
         return items
 
