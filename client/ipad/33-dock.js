@@ -40,7 +40,7 @@ function _onWinShortcutTouch(e, canvas) {
 function _drawDockGrid(canvas, apps) {
   var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
   ctx.clearRect(0, 0, w, h);
-  // Translucent background - canvas is transparent, shows texture beneath
+  // Frosted glass background
   var _bgKey = canvas._dockKey;
   if (_bgKey) {
     var _bgHex = (_bgKey.bgColor || _bgKey.color || "").replace("#","");
@@ -49,7 +49,17 @@ function _drawDockGrid(canvas, apps) {
       var _r=parseInt(_bgHex.substring(0,2),16)||0;
       var _g=parseInt(_bgHex.substring(2,4),16)||0;
       var _b=parseInt(_bgHex.substring(4,6),16)||0;
+      // Main tint
       ctx.fillStyle = "rgba("+_r+","+_g+","+_b+","+_bgOp+")";
+      ctx.fillRect(0, 0, w, h);
+      // Subtle frosted edge: thin lighter border on top, darker on bottom
+      var _edgeH = Math.min(8, h*0.3);
+      var _gr = ctx.createLinearGradient(0, 0, 0, h);
+      _gr.addColorStop(0, "rgba(255,255,255,"+(_bgOp*0.4)+")");
+      _gr.addColorStop(0.3, "rgba(255,255,255,0)");
+      _gr.addColorStop(0.7, "rgba(0,0,0,0)");
+      _gr.addColorStop(1, "rgba(0,0,0,"+(_bgOp*0.2)+")");
+      ctx.fillStyle = _gr;
       ctx.fillRect(0, 0, w, h);
     }
   }

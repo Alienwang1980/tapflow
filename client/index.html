@@ -19,7 +19,7 @@ body{display:flex;align-items:center;justify-content:center}
 .info{display:none;position:fixed;bottom:4px;left:4px;color:#fff;font-size:10px;z-index:99;background:rgba(0,0,0,0.7);padding:4px 6px;border-radius:3px;user-select:text;-webkit-user-select:text}
 </style></head>
 <body>
-<div id="tl" style="position:fixed;inset:0;pointer-events:none;z-index:-1"></div><div class="canvas-wrap" id="wrap"><div class="canvas" id="canvas"></div></div>
+<div id="tl" style="position:fixed;inset:0;pointer-events:none;z-index:0"></div><div class="canvas-wrap" id="wrap"><div class="canvas" id="canvas"></div></div>
 <div id="info" class="info"></div>
 <script>
 "use strict";
@@ -180,7 +180,7 @@ function _onWinShortcutTouch(e, canvas) {
 function _drawDockGrid(canvas, apps) {
   var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
   ctx.clearRect(0, 0, w, h);
-  // Translucent background - canvas is transparent, shows texture beneath
+  // Frosted glass background
   var _bgKey = canvas._dockKey;
   if (_bgKey) {
     var _bgHex = (_bgKey.bgColor || _bgKey.color || "").replace("#","");
@@ -189,7 +189,17 @@ function _drawDockGrid(canvas, apps) {
       var _r=parseInt(_bgHex.substring(0,2),16)||0;
       var _g=parseInt(_bgHex.substring(2,4),16)||0;
       var _b=parseInt(_bgHex.substring(4,6),16)||0;
+      // Main tint
       ctx.fillStyle = "rgba("+_r+","+_g+","+_b+","+_bgOp+")";
+      ctx.fillRect(0, 0, w, h);
+      // Subtle frosted edge: thin lighter border on top, darker on bottom
+      var _edgeH = Math.min(8, h*0.3);
+      var _gr = ctx.createLinearGradient(0, 0, 0, h);
+      _gr.addColorStop(0, "rgba(255,255,255,"+(_bgOp*0.4)+")");
+      _gr.addColorStop(0.3, "rgba(255,255,255,0)");
+      _gr.addColorStop(0.7, "rgba(0,0,0,0)");
+      _gr.addColorStop(1, "rgba(0,0,0,"+(_bgOp*0.2)+")");
+      ctx.fillStyle = _gr;
       ctx.fillRect(0, 0, w, h);
     }
   }
@@ -375,7 +385,7 @@ function render(){
   const scale=Math.min(vw/dw,vh/dh);
   const wrap=document.getElementById("wrap");
   wrap.style.width=dw+"px";wrap.style.height=dh+"px";
-  wrap.style.transform=`scale(${scale})`;wrap.style.backdropFilter="blur(12px)";wrap.style.webkitBackdropFilter="blur(12px)";
+  wrap.style.transform=`scale(${scale})`;
   // no translate — flexbox on body handles centering
 
   // Set canvas size
