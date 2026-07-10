@@ -99,12 +99,12 @@ function _drawDockGrid(canvas, apps) {
   }
 }
 
-var _dockTX = 0, _dockTS = 0, _dockTMoved = false, _dockPressedIdx = -1, _dockTStart = 0, _dockLongTimer = null;
+var _dockTX = 0, _dockTS = 0, _dockTMoved = false, _dockPressedIdx = -1, _dockTStart = 0, _dockLongTimer = null, _dockDidQuit = false;
 function _onDockTouchStart(e, canvas) {
   e.stopPropagation();
   touchUsed = true;
   var t = e.touches ? e.touches[0] : e;
-  _dockTX = t.clientX; _dockTS = canvas._dockScroll || 0; _dockTMoved = false; _dockTStart = e.timeStamp || Date.now();
+  _dockTX = t.clientX; _dockTS = canvas._dockScroll || 0; _dockTMoved = false; _dockTStart = e.timeStamp || Date.now(); _dockDidQuit = false;
   // Detect which icon was pressed
   var rect = canvas.getBoundingClientRect();
   var cx = (t.clientX - rect.left) * (canvas.width / rect.width);
@@ -119,7 +119,7 @@ function _onDockTouchStart(e, canvas) {
     _dockLongTimer = setTimeout(function(){
       if (!_dockTMoved && _dockPressedIdx >= 0) {
         var quitSnd = (_cv._dockKey && _cv._dockKey.quitSound) || "quit";
-        if (typeof psnd === "function") psnd(quitSnd);
+        _dockDidQuit = true; if (typeof psnd === "function") psnd(quitSnd);
         fetch("/api/system/quit-app", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({name: _pressedApp.name, path: _pressedApp.path})}).catch(function(){});
         _dockPressedIdx = -1;
         if (_cv._dockApps) _drawDockGrid(_cv, _cv._dockApps);
@@ -142,7 +142,7 @@ function _onDockTouchEnd(e, canvas) {
   if (_dockLongTimer) { clearTimeout(_dockLongTimer); _dockLongTimer = null; }
   var pressedIdx = _dockPressedIdx;
   _dockPressedIdx = -1;
-  if (_dockTMoved) { _drawDockGrid(canvas, canvas._dockApps); return; }
+  if (_dockTMoved || _dockDidQuit) { _drawDockGrid(canvas, canvas._dockApps); return; }
   // Redraw to clear highlight
   _drawDockGrid(canvas, canvas._dockApps);
   var t = e.touches ? e.changedTouches[0] : e;
