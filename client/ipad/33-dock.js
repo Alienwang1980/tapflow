@@ -151,10 +151,16 @@ function _onDockTouchEnd(e, canvas) {
   var idx = Math.floor((x + (canvas._dockScroll||0)) / (canvas._dockItemW||68));
   if (canvas._dockApps && idx >= 0 && idx < canvas._dockApps.length) {
     var a = canvas._dockApps[idx];
-    // Tap only — long press already triggered by timer
-    var snd = (canvas._dockKey && canvas._dockKey.sound) || (profile && profile.defaultSound) || "click";
-    if (typeof psnd === "function") psnd(snd);
-    fetch("/api/system/launch-app", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({path: a.path, name: a.name})}).catch(function(){});
+    // Defer launch by 400ms — if quit fires in that window, cooldown blocks it
+    var _app = a, _cv2 = canvas;
+    var _deferred = setTimeout(function(){
+      if (_dockCooldown) return;
+      var snd = (_cv2._dockKey && _cv2._dockKey.sound) || (profile && profile.defaultSound) || "click";
+      if (typeof psnd === "function") psnd(snd);
+      fetch("/api/system/launch-app", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({path: _app.path, name: _app.name})}).catch(function(){});
+    }, 400);
+    // Store so long-press timer can cancel it
+    if (_dockLongTimer) _dockLongTimer._deferredLaunch = _deferred;
   }
 }
 function _fetchAndDrawDock(canvas) {
