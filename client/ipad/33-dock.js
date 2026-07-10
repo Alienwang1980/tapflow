@@ -287,3 +287,90 @@ function _fetchAndDrawLayouts(canvas) {
     _drawLayoutPresets(canvas, d);
   }).catch(function(){});
 }
+
+// ── Dynamic Collection: Audio Devices ──
+
+function _drawAudioDevices(canvas, devices, type) {
+  var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.fillRect(0, 0, w, h);
+  
+  if (!devices || !devices.length) {
+    ctx.fillStyle = "#888";
+    ctx.font = Math.max(10, h * 0.12) + "px -apple-system,sans-serif";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText("No devices", w/2, h/2);
+    canvas._adevDevices = []; canvas._adevScroll = 0;
+    return;
+  }
+  
+  var rowH = Math.max(24, Math.min(36, h / 4));
+  canvas._adevRowH = rowH; canvas._adevDevices = devices; canvas._adevType = type;
+  canvas._adevMaxScroll = Math.max(0, devices.length * rowH - h);
+  if (!canvas._adevScroll) canvas._adevScroll = 0;
+  if (canvas._adevScroll > canvas._adevMaxScroll) canvas._adevScroll = canvas._adevMaxScroll;
+  
+  ctx.save();
+  ctx.beginPath(); ctx.rect(0, 0, w, h); ctx.clip();
+  
+  var scrollY = canvas._adevScroll;
+  var fs = Math.max(8, Math.min(rowH * 0.4, w * 0.04));
+  ctx.font = fs + "px -apple-system,sans-serif";
+  ctx.textBaseline = "middle";
+  
+  for (var i = 0; i < devices.length; i++) {
+    var y = i * rowH - scrollY;
+    if (y + rowH < 0 || y > h) continue;
+    var d = devices[i];
+    ctx.fillStyle = "rgba(255,255,255,0.03)";
+    ctx.fillRect(0, y, w, rowH);
+    
+    var dotX = 10, dotY = y + rowH/2;
+    ctx.fillStyle = d.current ? "#4ade80" : "rgba(255,255,255,0.15)";
+    ctx.beginPath(); ctx.arc(dotX, dotY, 4, 0, Math.PI*2); ctx.fill();
+    
+    ctx.fillStyle = d.current ? "#e8e0d8" : "#8b8078";
+    ctx.textAlign = "left";
+    ctx.fillText(d.name, 22, dotY);
+  }
+  ctx.restore();
+}
+
+var _adevTouchStartY = 0, _adevTouchStartScroll = 0, _adevTouchMoved = false;
+
+function _onAudioDevTouchStart(e, canvas) {
+  var t = e.touches ? e.touches[0] : e;
+  _adevTouchStartY = t.clientY;
+  _adevTouchStartScroll = canvas._adevScroll || 0;
+  _adevTouchMoved = false;
+}
+
+function _onAudioDevTouchMove(e, canvas) {
+  if (!canvas._adevMaxScroll) return;
+  var t = e.touches ? e.touches[0] : e;
+  var dy = _adevTouchStartY - t.clientY;
+  if (Math.abs(dy) > 3) _adevTouchMoved = true;
+  canvas._adevScroll = Math.max(0, Math.min(canvas._adevMaxScroll, _adevTouchStartScroll + dy));
+  _drawAudioDevices(canvas, canvas._adevDevices, canvas._adevType);
+}
+
+function _onAudioDevTouchEnd(e, canvas) {
+  if (_adevTouchMoved) return;
+  var rect = canvas.getBoundingClientRect();
+  var y = ((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) * (canvas.width / rect.width);
+  var idx = Math.floor((y + canvas._adevScroll) / canvas._adevRowH);
+  var devs = canvas._adevDevices;
+  if (devs && idx >= 0 && idx < devs.length && !devs[idx].current) {
+    var ep = canvas._adevType === "input" ? "/api/system/audio-input" : "/api/system/audio-output";
+    fetch(ep, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({name: devs[idx].name})})
+      .then(function(){ _fetchAndDrawAudioDevs(canvas, canvas._adevType); });
+  }
+}
+
+function _fetchAndDrawAudioDevs(canvas, type) {
+  canvas._adevType = type;
+  fetch("/api/system/audio-devices").then(function(r){return r.json()}).then(function(d){
+    var filtered = d.filter(function(dev){ return dev.type === type; });
+    _drawAudioDevices(canvas, filtered, type);
+  }).catch(function(){});
+}

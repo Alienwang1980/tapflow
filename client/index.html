@@ -427,6 +427,93 @@ function _fetchAndDrawLayouts(canvas) {
     _drawLayoutPresets(canvas, d);
   }).catch(function(){});
 }
+
+// ── Dynamic Collection: Audio Devices ──
+
+function _drawAudioDevices(canvas, devices, type) {
+  var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.fillRect(0, 0, w, h);
+  
+  if (!devices || !devices.length) {
+    ctx.fillStyle = "#888";
+    ctx.font = Math.max(10, h * 0.12) + "px -apple-system,sans-serif";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText("No devices", w/2, h/2);
+    canvas._adevDevices = []; canvas._adevScroll = 0;
+    return;
+  }
+  
+  var rowH = Math.max(24, Math.min(36, h / 4));
+  canvas._adevRowH = rowH; canvas._adevDevices = devices; canvas._adevType = type;
+  canvas._adevMaxScroll = Math.max(0, devices.length * rowH - h);
+  if (!canvas._adevScroll) canvas._adevScroll = 0;
+  if (canvas._adevScroll > canvas._adevMaxScroll) canvas._adevScroll = canvas._adevMaxScroll;
+  
+  ctx.save();
+  ctx.beginPath(); ctx.rect(0, 0, w, h); ctx.clip();
+  
+  var scrollY = canvas._adevScroll;
+  var fs = Math.max(8, Math.min(rowH * 0.4, w * 0.04));
+  ctx.font = fs + "px -apple-system,sans-serif";
+  ctx.textBaseline = "middle";
+  
+  for (var i = 0; i < devices.length; i++) {
+    var y = i * rowH - scrollY;
+    if (y + rowH < 0 || y > h) continue;
+    var d = devices[i];
+    ctx.fillStyle = "rgba(255,255,255,0.03)";
+    ctx.fillRect(0, y, w, rowH);
+    
+    var dotX = 10, dotY = y + rowH/2;
+    ctx.fillStyle = d.current ? "#4ade80" : "rgba(255,255,255,0.15)";
+    ctx.beginPath(); ctx.arc(dotX, dotY, 4, 0, Math.PI*2); ctx.fill();
+    
+    ctx.fillStyle = d.current ? "#e8e0d8" : "#8b8078";
+    ctx.textAlign = "left";
+    ctx.fillText(d.name, 22, dotY);
+  }
+  ctx.restore();
+}
+
+var _adevTouchStartY = 0, _adevTouchStartScroll = 0, _adevTouchMoved = false;
+
+function _onAudioDevTouchStart(e, canvas) {
+  var t = e.touches ? e.touches[0] : e;
+  _adevTouchStartY = t.clientY;
+  _adevTouchStartScroll = canvas._adevScroll || 0;
+  _adevTouchMoved = false;
+}
+
+function _onAudioDevTouchMove(e, canvas) {
+  if (!canvas._adevMaxScroll) return;
+  var t = e.touches ? e.touches[0] : e;
+  var dy = _adevTouchStartY - t.clientY;
+  if (Math.abs(dy) > 3) _adevTouchMoved = true;
+  canvas._adevScroll = Math.max(0, Math.min(canvas._adevMaxScroll, _adevTouchStartScroll + dy));
+  _drawAudioDevices(canvas, canvas._adevDevices, canvas._adevType);
+}
+
+function _onAudioDevTouchEnd(e, canvas) {
+  if (_adevTouchMoved) return;
+  var rect = canvas.getBoundingClientRect();
+  var y = ((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) * (canvas.width / rect.width);
+  var idx = Math.floor((y + canvas._adevScroll) / canvas._adevRowH);
+  var devs = canvas._adevDevices;
+  if (devs && idx >= 0 && idx < devs.length && !devs[idx].current) {
+    var ep = canvas._adevType === "input" ? "/api/system/audio-input" : "/api/system/audio-output";
+    fetch(ep, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({name: devs[idx].name})})
+      .then(function(){ _fetchAndDrawAudioDevs(canvas, canvas._adevType); });
+  }
+}
+
+function _fetchAndDrawAudioDevs(canvas, type) {
+  canvas._adevType = type;
+  fetch("/api/system/audio-devices").then(function(r){return r.json()}).then(function(d){
+    var filtered = d.filter(function(dev){ return dev.type === type; });
+    _drawAudioDevices(canvas, filtered, type);
+  }).catch(function(){});
+}
 function conn(){
   const p=location.protocol==="https:"?"wss:":"ws:";
   ws=new WebSocket(p+"//"+location.hostname+":8082/ws");
@@ -475,7 +562,7 @@ function render(){
     if(x+kw>0&&y+kh>0&&x<dw&&y<dh)vis++;
     const el=document.createElement("div");el.className="key-btn"+(k.action==="touchpad"?" touchpad":k.action==="visualizer"?" visualizer":k.action==="balance"?" balance":k.action==="volume"?" volume":k.action==="mute"?" mute":k.action==="mic-mute"?" micmute":k.action==="active-app"?" activeapp":"");el.dataset.keyId=k.id;
     const brPct=(k.borderRadius!==undefined?k.borderRadius:10)/100;const br=(brPct*Math.min(kw,kh))+'px';const ff=k.fontFamily||'inherit';const fs=(k.fontSize||Math.max(8,cs*0.25))+'px';let bg=k.color||'#0f3460';let fc=k.fontColor||'inherit';if(k.bgType==='gradient'&&k.bgGradient){const c=k.color||'#0f3460';const m={'top-down':'linear-gradient(180deg,'+c+' 0%,rgba(0,0,0,0.6) 100%)','left-right':'linear-gradient(90deg,'+c+' 0%,rgba(0,0,0,0.6) 100%)','diagonal-tl':'linear-gradient(135deg,'+c+' 0%,rgba(0,0,0,0.6) 100%)','diagonal-tr':'linear-gradient(225deg,'+c+' 0%,rgba(0,0,0,0.6) 100%)','radial':'radial-gradient(circle,'+c+' 0%,rgba(0,0,0,0.6) 100%)'};bg=m[k.bgGradient]||c}else if(k.bgType==='image'&&k.bgImage){bg='#0f3460 url(/'+k.bgImage+') center/cover'};el.style.cssText=`left:${x}px;top:${y}px;width:${kw}px;height:${kh}px;background:${bg};color:${fc};border-radius:${br};font-family:${ff};font-size:${fs}`;
-    if(k.action==="win-tile"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_drawWinShortcuts(_cv);_cv.addEventListener("touchstart",function(e){_onWinShortcutTouch(e,_cv)})}else if(k.action==="layout-preset"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_fetchAndDrawLayouts(_cv);_cv.addEventListener("touchstart",function(e){_onLayoutTap(e,_cv)})}else if(k.action==="app-menu"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_fetchAndDrawMenus(_cv);_cv.addEventListener("touchstart",function(e){_onMenuTap(e,_cv)});setInterval(function(){_fetchAndDrawMenus(_cv)},5000)}else if(k.action==="dock"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_fetchAndDrawDock(_cv);_cv.addEventListener("touchstart",function(e){_onDockTouchStart(e,_cv)});_cv.addEventListener("touchmove",function(e){e.preventDefault();_onDockTouchMove(e,_cv)});_cv.addEventListener("touchend",function(e){_onDockTouchEnd(e,_cv)});setInterval(function(){_fetchAndDrawDock(_cv)},10000)}else if(k.action==="win-shortcuts"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_drawWinShortcuts(_cv);_cv.addEventListener("touchstart",function(e){_onWinShortcutTouch(e,_cv)})}else if(k.action==="active-app"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_fetchAndDrawCurrentApp(_cv);setInterval(function(){_fetchAndDrawCurrentApp(_cv)},5000)}else if(k.action==="volume"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_fetchAndDrawVolume(_cv);_cv.addEventListener("touchstart",function(e){_onVolumeTouch(e,_cv)});_cv.addEventListener("touchmove",function(e){_onVolumeTouch(e,_cv)})}else if(k.action==="mic-mute"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_drawMicMuteBtn(_cv,false);_cv.addEventListener("touchstart",function(e){e.stopPropagation();_toggleMicMute(_cv)})}else if(k.action==="mute"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_drawMuteBtn(_cv,false);_cv.addEventListener("touchstart",function(e){e.stopPropagation();_toggleMute(_cv)})}else if(k.action==="visualizer"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_drawSpectrum(_cv,[])}else if(k.action==="balance"){var _apiKey=k.apiKey||"";var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="4px";el.appendChild(_cv);_drawBalance(_cv,{total_balance:"0",granted_balance:"0",topped_up_balance:"0",currency:"CNY"},"Loading...",k.showFlags);if(_apiKey){_fetchBalanceCanvas(_cv,_apiKey,k.showFlags);setInterval(function(){_fetchBalanceCanvas(_cv,_apiKey,k.showFlags)},30000)}else{_drawBalance(_cv,null,"No API key",k.showFlags)}}else{el.textContent=k.label}canvas.appendChild(el);
+    if(k.action==="win-tile"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_drawWinShortcuts(_cv);_cv.addEventListener("touchstart",function(e){_onWinShortcutTouch(e,_cv)})}else if(k.action==="layout-preset"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_fetchAndDrawLayouts(_cv);_cv.addEventListener("touchstart",function(e){_onLayoutTap(e,_cv)})}else if(k.action==="app-menu"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_fetchAndDrawMenus(_cv);_cv.addEventListener("touchstart",function(e){_onMenuTap(e,_cv)});setInterval(function(){_fetchAndDrawMenus(_cv)},5000)}else if(k.action==="audio-out"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_fetchAndDrawAudioDevs(_cv,"output");_cv.addEventListener("touchstart",function(e){_onAudioDevTouchStart(e,_cv)});_cv.addEventListener("touchmove",function(e){e.preventDefault();_onAudioDevTouchMove(e,_cv)});_cv.addEventListener("touchend",function(e){_onAudioDevTouchEnd(e,_cv)});setInterval(function(){_fetchAndDrawAudioDevs(_cv,_canvas._adevType||"output")},30000)}else if(k.action==="audio-in"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_fetchAndDrawAudioDevs(_cv,"input");_cv.addEventListener("touchstart",function(e){_onAudioDevTouchStart(e,_cv)});_cv.addEventListener("touchmove",function(e){e.preventDefault();_onAudioDevTouchMove(e,_cv)});_cv.addEventListener("touchend",function(e){_onAudioDevTouchEnd(e,_cv)});setInterval(function(){_fetchAndDrawAudioDevs(_cv,"input")},30000)}else if(k.action==="dock"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_fetchAndDrawDock(_cv);_cv.addEventListener("touchstart",function(e){_onDockTouchStart(e,_cv)});_cv.addEventListener("touchmove",function(e){e.preventDefault();_onDockTouchMove(e,_cv)});_cv.addEventListener("touchend",function(e){_onDockTouchEnd(e,_cv)});setInterval(function(){_fetchAndDrawDock(_cv)},10000)}else if(k.action==="win-shortcuts"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_drawWinShortcuts(_cv);_cv.addEventListener("touchstart",function(e){_onWinShortcutTouch(e,_cv)})}else if(k.action==="active-app"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_fetchAndDrawCurrentApp(_cv);setInterval(function(){_fetchAndDrawCurrentApp(_cv)},5000)}else if(k.action==="volume"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_fetchAndDrawVolume(_cv);_cv.addEventListener("touchstart",function(e){_onVolumeTouch(e,_cv)});_cv.addEventListener("touchmove",function(e){_onVolumeTouch(e,_cv)})}else if(k.action==="mic-mute"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_drawMicMuteBtn(_cv,false);_cv.addEventListener("touchstart",function(e){e.stopPropagation();_toggleMicMute(_cv)})}else if(k.action==="mute"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_drawMuteBtn(_cv,false);_cv.addEventListener("touchstart",function(e){e.stopPropagation();_toggleMute(_cv)})}else if(k.action==="visualizer"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_drawSpectrum(_cv,[])}else if(k.action==="balance"){var _apiKey=k.apiKey||"";var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="4px";el.appendChild(_cv);_drawBalance(_cv,{total_balance:"0",granted_balance:"0",topped_up_balance:"0",currency:"CNY"},"Loading...",k.showFlags);if(_apiKey){_fetchBalanceCanvas(_cv,_apiKey,k.showFlags);setInterval(function(){_fetchBalanceCanvas(_cv,_apiKey,k.showFlags)},30000)}else{_drawBalance(_cv,null,"No API key",k.showFlags)}}else{el.textContent=k.label}canvas.appendChild(el);
   });
   document.getElementById("info").textContent=`keys ${vis}/${pg.keys.length} | ${dw}×${dh} cs${cs} gap${gp} | vw${vw}×${vh}h | scale ${scale.toFixed(3)} | cx${cx.toFixed(1)} cy${cy.toFixed(1)}`;
 }
