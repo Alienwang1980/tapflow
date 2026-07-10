@@ -40,6 +40,15 @@ function _onWinShortcutTouch(e, canvas) {
 function _drawDockGrid(canvas, apps) {
   var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
   ctx.clearRect(0, 0, w, h);
+  // Background from key config
+  var bgColor = (canvas._dockKey && canvas._dockKey.bgColor) || null;
+  var bgOpacity = (canvas._dockKey && canvas._dockKey.bgOpacity !== undefined) ? canvas._dockKey.bgOpacity : 0.3;
+  if (bgColor) {
+    ctx.fillStyle = bgColor;
+    ctx.globalAlpha = bgOpacity;
+    ctx.fillRect(0, 0, w, h);
+    ctx.globalAlpha = 1;
+  }
   if (!apps || !apps.length) return;
   var iconSize = Math.max(40, Math.min(56, h * 0.65));
   var gap = 6, itemW = iconSize + gap * 2;
@@ -58,10 +67,20 @@ function _drawDockGrid(canvas, apps) {
     var iconY = (h - iconSize - fs - 6) / 2;
     // Pressed state highlight
     var pressed = (_dockPressedIdx === i);
+    var launching = (_dockLaunching && _dockLaunching.name === a.name);
     if (pressed) {
       ctx.fillStyle = "rgba(255,255,255,0.2)";
       ctx.fillRect(x - 3, iconY - 5, iconSize + 6, iconSize + 18);
       ctx.strokeStyle = "rgba(255,255,255,0.6)";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x - 3, iconY - 5, iconSize + 6, iconSize + 18);
+    }
+    if (launching) {
+      // Pulsing glow while waiting for app to open
+      var pulse = 0.4 + 0.3 * Math.sin(Date.now() / 200);
+      ctx.fillStyle = "rgba(100,200,255," + pulse + ")";
+      ctx.fillRect(x - 3, iconY - 5, iconSize + 6, iconSize + 18);
+      ctx.strokeStyle = "rgba(100,200,255,0.8)";
       ctx.lineWidth = 2;
       ctx.strokeRect(x - 3, iconY - 5, iconSize + 6, iconSize + 18);
     }
@@ -99,7 +118,7 @@ function _drawDockGrid(canvas, apps) {
   }
 }
 
-var _dockTX = 0, _dockTS = 0, _dockTMoved = false, _dockPressedIdx = -1, _dockTStart = 0;
+var _dockTX = 0, _dockTS = 0, _dockTMoved = false, _dockPressedIdx = -1, _dockTStart = 0, _dockLaunching = null;
 function _onDockTouchStart(e, canvas) {
   e.preventDefault(); e.stopPropagation();
   touchUsed = true;
@@ -162,7 +181,7 @@ function _onDockTouchEnd(e, canvas) {
       // Short tap — launch app
       var snd = (canvas._dockKey && canvas._dockKey.sound) || (profile && profile.defaultSound) || "click";
       if (typeof psnd === "function") psnd(snd);
-      fetch("/api/system/launch-app", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({path: a.path, name: a.name})}).catch(function(){});
+      _dockLaunching = {name: a.name, start: Date.now()}; fetch("/api/system/launch-app", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({path: a.path, name: a.name})}).catch(function(){});
     }
   }
 }
@@ -171,7 +190,7 @@ function _fetchAndDrawDock(canvas) {
   if (canvas._dockTimer) { clearTimeout(canvas._dockTimer); canvas._dockTimer = null; }
   function _doFetch() {
     fetch("/api/system/dock-items").then(function(r){return r.json()}).then(function(d){
-      if (d && d.length > 0) { if (!canvas._dockIcons) canvas._dockIcons = {}; _drawDockGrid(canvas, d); }
+      if (d && d.length > 0) { if (!canvas._dockIcons) canvas._dockIcons = {}; if (_dockLaunching) { var _launched = d.find(function(x){return x.name === _dockLaunching.name && x.running}); if (_launched) _dockLaunching = null; } _drawDockGrid(canvas, d); }
     }).catch(function(e){ console.log("dock err:",e); })
     .finally(function(){ canvas._dockTimer = setTimeout(_doFetch, 2000); });
   }
