@@ -7,13 +7,13 @@
 @font-face{font-family:"VT323";src:url("/static/fonts/VT323.woff2") format("woff2")}
 @font-face{font-family:"Russo One";src:url("/static/fonts/RussoOne.woff2") format("woff2")}
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100%;overflow:hidden;background:#1a1a2e;font-family:-apple-system,sans-serif;color:#eee;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:clip;background:#1a1a2e;font-family:-apple-system,sans-serif;color:#eee;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 /* Flexbox centering — body is the centering container */
 body{display:flex;align-items:center;justify-content:center}
 /* Canvas container — scaled to fit viewport, centered by flexbox */
 .canvas-wrap{flex-shrink:0;transform-origin:center center}
 /* Fixed-size canvas at device dimensions */
-.canvas{position:relative;overflow:hidden}
+.canvas{position:relative}
 .key-btn{position:absolute;border:none;border-radius:5px;display:flex;align-items:center;justify-content:center;font-weight:500;transition:transform 0.04s;overflow:hidden}
 .key-btn{transition:transform 0.08s ease,box-shadow 0.08s ease,filter 0.08s ease}.key-btn:active,.key-btn.active{transform:scale(0.93);filter:brightness(1.4);box-shadow:0 2px 8px rgba(255,255,255,0.3)}.key-btn.touchpad{border:1px solid rgba(255,255,255,0.06);opacity:0.9}.key-btn.touchpad:active,.key-btn.dock:active{transform:none!important;filter:none!important;box-shadow:none!important}.key-btn.touchpad.active,.key-btn.dock.active{transform:none!important;filter:none!important;box-shadow:none!important}
 .info{display:none;position:fixed;bottom:4px;left:4px;color:#fff;font-size:10px;z-index:99;background:rgba(0,0,0,0.7);padding:4px 6px;border-radius:3px;user-select:text;-webkit-user-select:text}
