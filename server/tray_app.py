@@ -372,6 +372,29 @@ def run_server():
                 if _os4.path.exists(cp):
                     from fastapi.responses import FileResponse
                     return FileResponse(cp, media_type="image/png")
+            # Fallback: use NSWorkspace for apps with Assets.car (no .icns)
+            try:
+                from Cocoa import NSWorkspace as _NSW, NSImage as _NSI, NSBitmapImageRep as _NSB
+                _icon = _NSW.sharedWorkspace().iconForFile_(ap)
+                if _icon:
+                    _sz = (64.0, 64.0)
+                    _new = _NSI.alloc().initWithSize_(_sz)
+                    _new.lockFocus()
+                    _src = _icon.size()
+                    _icon.drawInRect_fromRect_operation_fraction_(
+                        ((0.0, 0.0), _sz), ((0.0, 0.0), _src), 2, 1.0)
+                    _new.unlockFocus()
+                    _tiff = _new.TIFFRepresentation()
+                    if _tiff:
+                        _bm = _NSB.imageRepWithData_(_tiff)
+                        if _bm:
+                            _png = _bm.representationUsingType_properties_(4, None)
+                            _png.writeToFile_atomically_(cp, True)
+                            if _os4.path.exists(cp):
+                                from fastapi.responses import FileResponse
+                                return FileResponse(cp, media_type="image/png")
+            except Exception:
+                pass
         return {"error": "icon not found"}
 
     _logger.info("Widget routes registered")
