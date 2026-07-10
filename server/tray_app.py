@@ -238,9 +238,10 @@ def run_server():
                 fd = td.get("file-data", {})
                 url = fd.get("_CFURLString", "")
                 label = td.get("file-label", url.split("/")[-1].replace("%20"," ").replace(".app",""))
-                # Check if running
+                # Check if running (use bundle name, not localized label)
                 import subprocess as _sp
-                r = _sp.run(["pgrep", "-qi", label], capture_output=True)
+                _bundle = url.rstrip("/").split("/")[-1].replace("%20"," ").replace(".app","")
+                r = _sp.run(["pgrep", "-qi", _bundle], capture_output=True)
                 items.append({
                     "name": label,
                     "path": url.replace("file://", ""),
