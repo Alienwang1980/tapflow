@@ -37,6 +37,7 @@ OPTIONS = {
         "NSHighResolutionCapable": True,
         "LSUIElement": True,
         "NSAppleEventsUsageDescription": "Smart Touch Panel needs Accessibility access to simulate keyboard input.",
+        "NSMicrophoneUsageDescription": "Smart Touch Panel needs Microphone access to show input audio levels.",
     },
     "site_packages": True,
     "strip": False,

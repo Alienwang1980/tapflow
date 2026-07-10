@@ -513,6 +513,38 @@ def on_quit(icon, item):
     icon.stop()
 
 
+def request_mic_permission():
+    """Request microphone permission via AVFoundation."""
+    try:
+        from AVFoundation import AVCaptureDevice, AVMediaTypeAudio
+        status = AVCaptureDevice.authorizationStatusForMediaType_(AVMediaTypeAudio)
+        if status == 0:
+            AVCaptureDevice.requestAccessForMediaType_completionHandler_(AVMediaTypeAudio, lambda granted: None)
+            logger.info("Mic permission requested")
+        elif status == 3:
+            logger.info("Mic permission: already granted")
+        else:
+            import subprocess as _sp3
+            _sp3.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone"])
+    except Exception as e:
+        logger.error(f"Mic permission request failed: {e}")
+
+def request_accessibility_permission():
+    """Check/request accessibility permission."""
+    try:
+        from ApplicationServices import AXIsProcessTrustedWithOptions
+        opts = {"AXTrustedCheckOptionPrompt": True}
+        trusted = AXIsProcessTrustedWithOptions(opts, None)
+        if not trusted:
+            import subprocess as _sp4
+            _sp4.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"])
+            logger.info("Opened Accessibility privacy settings")
+        else:
+            logger.info("Accessibility: already granted")
+    except Exception as e:
+        logger.error(f"Accessibility check failed: {e}")
+
+
 def run_tray():
     """Create and run the system tray icon."""
     ip = get_local_ip()
@@ -520,6 +552,11 @@ def run_tray():
 
     menu = pystray.Menu(
         pystray.MenuItem("✏️ Open Editor", on_open_editor, default=True),
+        pystray.Menu.SEPARATOR,
+        pystray.MenuItem("🔐 Permissions", pystray.Menu(
+            pystray.MenuItem("🎤 Request Microphone", lambda icon, item: request_mic_permission()),
+            pystray.MenuItem("⌨️ Request Accessibility", lambda icon, item: request_accessibility_permission()),
+        )),
         pystray.MenuItem(f"🔗 {url}", on_show_qr),
         pystray.MenuItem("📋 Health", on_show_health),
         pystray.Menu.SEPARATOR,
