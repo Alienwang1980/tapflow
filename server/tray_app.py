@@ -233,20 +233,29 @@ def run_server():
         try:
             with open(dock_plist, "rb") as f:
                 dock = _pl.load(f)
+            # Get running app bundle paths (accurate, no pgrep substring issues)
+            _running_paths = set()
+            try:
+                from Cocoa import NSWorkspace as _NSW2
+                for _ra in _NSW2.sharedWorkspace().runningApplications():
+                    _rurl = _ra.bundleURL()
+                    if _rurl:
+                        _rp = str(_rurl.path() or "").lower().rstrip("/")
+                        if _rp: _running_paths.add(_rp)
+            except Exception:
+                pass
             for app in dock.get("persistent-apps", []):
                 td = app.get("tile-data", {})
                 fd = td.get("file-data", {})
                 url = fd.get("_CFURLString", "")
                 label = td.get("file-label", url.split("/")[-1].replace("%20"," ").replace(".app",""))
-                # Check if running (use bundle name, not localized label)
-                import subprocess as _sp
-                _bundle = url.rstrip("/").split("/")[-1].replace("%20"," ").replace(".app","")
-                r = _sp.run(["pgrep", "-qi", _bundle], capture_output=True)
+                _path = url.replace("file://", "").replace("%20"," ").rstrip("/")
+                _is_running = any(_path.lower() in rp or rp.endswith(_path.lower()) for rp in _running_paths)
                 items.append({
                     "name": label,
-                    "path": url.replace("file://", ""),
+                    "path": _path,
                     "bundle": url.rstrip("/").split("/")[-1].replace("%20"," ").replace(".app",""),
-                    "running": r.returncode == 0
+                    "running": _is_running
                 })
         except: pass
         return items
