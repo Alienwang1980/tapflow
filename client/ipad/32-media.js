@@ -3,7 +3,7 @@
 function _drawVolume(canvas, value, muted) {
   var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = "transparent"; ctx.fillRect(0, 0, w, h);
   if (muted) value = 0;
   var margin = w * 0.08, barH = Math.max(8, h * 0.25);
   var barY = (h - barH) / 2, barW = w - margin * 2;
@@ -69,7 +69,7 @@ function _toggleMute(canvas) {
 function _drawCurrentApp(canvas, name) {
   var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = "transparent"; ctx.fillRect(0, 0, w, h);
   ctx.fillStyle = "#888"; var fs = Math.max(9, Math.min(h*0.18, w*0.05));
   ctx.font = fs + "px -apple-system,sans-serif";
   ctx.textAlign = "right"; ctx.textBaseline = "middle";
