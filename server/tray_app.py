@@ -383,7 +383,7 @@ def run_server():
             return FileResponse(cp, media_type="image/png")
         # Find app bundle
         ap = None
-        for b in ["/Applications","/System/Applications","/System/Applications/Utilities","/System/Volumes/Preboot/Cryptexes/App/System/Applications"]:
+        for b in ["/Applications","/System/Applications","/System/Applications/Utilities","/System/Library/CoreServices","/System/Volumes/Preboot/Cryptexes/App/System/Applications"]:
             t = _os4.path.join(b, name+".app")
             if _os4.path.exists(t): ap = t; break
         if ap:
