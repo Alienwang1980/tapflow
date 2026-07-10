@@ -284,6 +284,7 @@ async def save_profile(body: dict):
         raise HTTPException(400, "Empty body")
     forced_name = body.pop("_filename", None)
     filename = profiles.save_profile(body, forced_name)
+    await broadcast_profile_update(filename)
     return {"status": "saved", "filename": filename}
 
 
