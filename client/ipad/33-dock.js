@@ -76,17 +76,23 @@ function _drawDockGrid(canvas, apps) {
       ctx.strokeRect(x - 3, iconY - 5, iconSize + 6, iconSize + 18);
     }
     if (a.running || pending) {
-      var showDot = a.running;
+      var alpha = 1;
       if (pending) {
-        // Blink green dot: visible every other 400ms phase
-        showDot = (Math.floor(Date.now() / 400) % 2 === 0);
-        // If launching, blink ON (we want dot to appear)
-        // If quitting, blink OFF (we want dot to disappear)
-        if (_dockPending.action === "quit") showDot = !showDot;
+        // Gradual sin-wave blink: ~300ms cycle
+        var wave = Math.sin(Date.now() / 150);
+        if (_dockPending.action === "launch") {
+          // Off→On: blink between dim and bright
+          alpha = 0.2 + 0.8 * (wave * 0.5 + 0.5);
+        } else {
+          // On→Off: blink between bright and dim
+          alpha = 0.2 + 0.8 * (1 - (wave * 0.5 + 0.5));
+        }
       }
-      if (showDot) {
+      if (a.running || pending) {
+        ctx.globalAlpha = alpha;
         ctx.fillStyle = "#4ade80";
         ctx.beginPath(); ctx.arc(x + iconSize/2, iconY - 4, 4, 0, Math.PI*2); ctx.fill();
+        ctx.globalAlpha = 1;
       }
     }
     if (!canvas._dockIcons) canvas._dockIcons = {};
@@ -191,7 +197,7 @@ function _fetchAndDrawDock(canvas) {
   if (canvas._dockTimer) { clearTimeout(canvas._dockTimer); canvas._dockTimer = null; }
   function _doFetch() {
     fetch("/api/system/dock-items").then(function(r){return r.json()}).then(function(d){
-      if (d && d.length > 0) { if (!canvas._dockIcons) canvas._dockIcons = {}; if (_dockPending) { var _p = d.find(function(x){return x.name === _dockPending.name}); if (_p && ((_dockPending.action === "launch" && _p.running) || (_dockPending.action === "quit" && !_p.running))) _dockPending = null; } _drawDockGrid(canvas, d); }
+      if (d && d.length > 0) { if (!canvas._dockIcons) canvas._dockIcons = {}; if (_dockPending) { var _p = d.find(function(x){return x.name === _dockPending.name}); if (!_p || (_dockPending.action === "launch" && _p.running) || (_dockPending.action === "quit" && !_p.running)) _dockPending = null; } _drawDockGrid(canvas, d); }
     }).catch(function(e){ console.log("dock err:",e); })
     .finally(function(){ canvas._dockTimer = setTimeout(_doFetch, 2000); });
   }
