@@ -28,8 +28,57 @@ const ftb=document.getElementById("ftb");var btb=document.getElementById("btb");
     const sel=(k.id===selKey||selKeys.has(k.id))?" sel":"";
     const el=document.createElement("div");el.className="ck"+sel+(k.action==="touchpad"?" touchpad":k.action==="visualizer"?" visualizer":k.action==="balance"?" balance":"");el.dataset.kid=k.id;
     const brPct=(k.borderRadius!==undefined?k.borderRadius:10)/100;const br=(brPct*Math.min(kw,kh))+'px';const ff=k.fontFamily||'inherit';const fs=(k.fontSize||Math.max(8,cs*0.25))+'px';let bg=k.color||'var(--card)';let fc=k.fontColor||'inherit';if(k.bgType==='gradient'&&k.bgGradient){bg=_gradCSS(k.bgGradient,k.color||'#0f3460')}else if(k.bgType==='image'&&k.bgImage){bg='var(--card) url(/'+k.bgImage+') center/cover'};el.style.cssText=`left:${x}px;top:${y}px;width:${kw}px;height:${kh}px;background:${bg};color:${fc};border-radius:${br};font-family:${ff};font-size:${fs}`;
-    if(k.action==='balance'){var _pv=document.createElement('canvas');_pv.width=kw-8;_pv.height=kh-8;_pv.style.borderRadius='3px';var _pctx=_pv.getContext('2d'),_pw=_pv.width,_ph=_pv.height;_pctx.fillStyle='rgba(0,0,0,0.3)';_pctx.fillRect(0,0,_pw,_ph);_pctx.fillStyle='#f59e0b';var _pfs=Math.max(8,Math.min(_ph*0.18,_pw*0.04));_pctx.font='bold '+_pfs+'px -apple-system,sans-serif';_pctx.textAlign='left';_pctx.textBaseline='top';_pctx.fillText('Deepseek',_pw*0.04,_ph*0.08);_pctx.fillStyle='#e8e0d8';var _pfs2=Math.max(10,Math.min(_ph*0.32,_pw*0.06));_pctx.font='bold '+_pfs2+'px -apple-system,sans-serif';_pctx.fillText(k.apiKey?'¥ ---.--':'Set API Key',_pw*0.04,_ph*0.35);_pctx.fillStyle='#8b8078';var _pfs3=Math.max(6,_ph*0.08);_pctx.font=_pfs3+'px -apple-system,sans-serif';_pctx.fillText('total balance',_pw*0.04,_ph*0.35+_pfs2+2);var _ply=_ph*0.7,_plh=Math.max(6,_ph*0.1);_pctx.font=Math.max(7,_ph*0.1)+'px -apple-system,sans-serif';_pctx.textBaseline='middle';_pctx.fillStyle='#f59e0b';_pctx.fillText('Topped up',_pw*0.04,_ply);_pctx.fillStyle='#e8e0d8';_pctx.textAlign='right';_pctx.fillText(k.apiKey?'---.--':'---.--',_pw*0.96,_ply);_ply+=_ph*0.15;_pctx.textAlign='left';_pctx.fillStyle='#8b8078';_pctx.fillText('Granted',_pw*0.04,_ply);_pctx.textAlign='right';_pctx.fillText(k.apiKey?'0.00':'0.00',_pw*0.96,_ply);el.appendChild(_pv);var _rh=document.createElement('div');_rh.className='rh';el.appendChild(_rh)}else{el.innerHTML='<span class="kl">'+hesc(k.label)+'</span>'+(w>1||h>1?'<span class="sz">'+w.toFixed(2)+'×'+h.toFixed(2)+'</span>':'')+((selKeys.size<=1?'<div class="rh"></div>':''))}
-    el.addEventListener("mousedown",e=>onKeyDown(e,k.id));
+    if(k.action==='balance'){var _pv=document.createElement('canvas');_pv.width=kw-8;_pv.height=kh-8;_pv.style.borderRadius='3px';var _pctx=_pv.getContext('2d'),_pw=_pv.width,_ph=_pv.height;_pctx.fillStyle='rgba(0,0,0,0.3)';_pctx.fillRect(0,0,_pw,_ph);_pctx.fillStyle='#f59e0b';var _pfs=Math.max(8,Math.min(_ph*0.18,_pw*0.04));_pctx.font='bold '+_pfs+'px -apple-system,sans-serif';_pctx.textAlign='left';_pctx.textBaseline='top';_pctx.fillText('Deepseek',_pw*0.04,_ph*0.08);_pctx.fillStyle='#e8e0d8';var _pfs2=Math.max(10,Math.min(_ph*0.32,_pw*0.06));_pctx.font='bold '+_pfs2+'px -apple-system,sans-serif';_pctx.fillText(k.apiKey?'¥ ---.--':'Set API Key',_pw*0.04,_ph*0.35);_pctx.fillStyle='#8b8078';var _pfs3=Math.max(6,_ph*0.08);_pctx.font=_pfs3+'px -apple-system,sans-serif';_pctx.fillText('total balance',_pw*0.04,_ph*0.35+_pfs2+2);var _ply=_ph*0.7,_plh=Math.max(6,_ph*0.1);_pctx.font=Math.max(7,_ph*0.1)+'px -apple-system,sans-serif';_pctx.textBaseline='middle';_pctx.fillStyle='#f59e0b';_pctx.fillText('Topped up',_pw*0.04,_ply);_pctx.fillStyle='#e8e0d8';_pctx.textAlign='right';_pctx.fillText(k.apiKey?'---.--':'---.--',_pw*0.96,_ply);_ply+=_ph*0.15;_pctx.textAlign='left';_pctx.fillStyle='#8b8078';_pctx.fillText('Granted',_pw*0.04,_ply);_pctx.textAlign='right';_pctx.fillText(k.apiKey?'0.00':'0.00',_pw*0.96,_ply);el.appendChild(_pv);var _rh=document.createElement('div');_rh.className='rh';el.appendChild(_rh)}else if(k.action==="volume"){
+    var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";
+    var _c=_cv.getContext("2d"),_w=_cv.width,_h=_cv.height;
+    _c.fillStyle="rgba(0,0,0,0.3)";_c.fillRect(0,0,_w,_h);
+    var _by=_h*0.4,_bh=_h*0.2,_mx=_w*0.1,_bw=_w-_mx*2;
+    _c.fillStyle="rgba(255,255,255,0.1)";_c.fillRect(_mx,_by,_bw,_bh);
+    _c.fillStyle="#4ade80";_c.fillRect(_mx,_by,_bw*0.7,_bh);
+    _c.fillStyle="#fff";_c.beginPath();_c.arc(_mx+_bw*0.7,_by+_bh/2,_bh*0.7,0,Math.PI*2);_c.fill();
+    _c.fillStyle="#fff";var _fs=Math.max(10,_h*0.25);_c.font="bold "+_fs+"px -apple-system,sans-serif";_c.textAlign="left";_c.fillText("VOL",_mx,_by-_fs/2);
+    el.appendChild(_cv);var _rh=document.createElement("div");_rh.className="rh";el.appendChild(_rh)}else if(k.action==="mute"||k.action==="mic-mute"){
+    var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";
+    var _c=_cv.getContext("2d"),_w=_cv.width,_h=_cv.height;
+    _c.fillStyle="rgba(0,0,0,0.3)";_c.fillRect(0,0,_w,_h);
+    _c.fillStyle="#888";_c.beginPath();_c.arc(_w/2,_h/2,Math.min(_w,_h)*0.35,0,Math.PI*2);_c.fill();
+    _c.fillStyle="#fff";var _fs=Math.max(14,_h*0.4);_c.font=_fs+"px -apple-system,sans-serif";_c.textAlign="center";_c.textBaseline="middle";_c.fillText(k.action==="mute"?"M":"Mic",_w/2,_h/2);
+    el.appendChild(_cv);var _rh=document.createElement("div");_rh.className="rh";el.appendChild(_rh)}else if(k.action==="win-shortcuts"){
+    var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";
+    var _c=_cv.getContext("2d"),_w=_cv.width,_h=_cv.height,_bw=_w/2,_bh=_h/2;
+    _c.fillStyle="rgba(0,0,0,0.3)";_c.fillRect(0,0,_w,_h);
+    for(var _r=0;_r<2;_r++)for(var _cc=0;_cc<2;_cc++){_c.fillStyle="rgba(255,255,255,0.1)";_c.fillRect(_cc*_bw+2,_r*_bh+2,_bw-4,_bh-4)}
+    var _fs=Math.max(8,_h*0.18);_c.font=_fs+"px -apple-system,sans-serif";_c.textAlign="center";_c.textBaseline="middle";
+    _c.fillStyle="#ccc";_c.fillText("Full",_bw/2,_bh/2);_c.fillText("Min",_bw*1.5,_bh/2);_c.fillText("MC",_bw/2,_bh*1.5);_c.fillText("Desk",_bw*1.5,_bh*1.5);
+    el.appendChild(_cv);var _rh=document.createElement("div");_rh.className="rh";el.appendChild(_rh)}else if(k.action==="dock"){
+    var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";
+    var _c=_cv.getContext("2d"),_w=_cv.width,_h=_cv.height;
+    _c.fillStyle="rgba(0,0,0,0.3)";_c.fillRect(0,0,_w,_h);
+    var _rhh=Math.max(12,_h/6);
+    for(var _i=0;_i<Math.min(5,Math.floor(_h/_rhh));_i++){var _y=_i*_rhh+4;_c.fillStyle=_i<2?"#4ade80":"#555";_c.beginPath();_c.arc(10,_y+_rhh/2,4,0,Math.PI*2);_c.fill();_c.fillStyle=_i<2?"#e8e0d8":"#8b8078";var _fs=Math.max(7,_rhh*0.4);_c.font=_fs+"px -apple-system,sans-serif";_c.textAlign="left";_c.fillText("App "+(_i+1),22,_y+_rhh/2+_fs*0.3)}
+    el.appendChild(_cv);var _rh=document.createElement("div");_rh.className="rh";el.appendChild(_rh)}else if(k.action==="app-menu"){
+    var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";
+    var _c=_cv.getContext("2d"),_w=_cv.width,_h=_cv.height;
+    _c.fillStyle="rgba(0,0,0,0.3)";_c.fillRect(0,0,_w,_h);
+    var _fs=Math.max(7,_h*0.12);_c.font=_fs+"px -apple-system,sans-serif";_c.textAlign="left";
+    _c.fillStyle="#f59e0b";_c.fillText("File",8,_fs+2);
+    _c.fillStyle="#ccc";_c.fillText("New Window",14,_fs*2.5+2);_c.fillText("Open...",14,_fs*3.5+2);
+    _c.fillStyle="#888";_c.textAlign="right";_c.fillText("cmd+n",_w-4,_fs*2.5+2);_c.fillText("cmd+o",_w-4,_fs*3.5+2);
+    el.appendChild(_cv);var _rh=document.createElement("div");_rh.className="rh";el.appendChild(_rh)}else if(k.action==="layout-preset"){
+    var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";
+    var _c=_cv.getContext("2d"),_w=_cv.width,_h=_cv.height;
+    _c.fillStyle="rgba(0,0,0,0.3)";_c.fillRect(0,0,_w,_h);
+    var _rhh=Math.max(14,_h/4);
+    for(var _i=0;_i<Math.min(3,Math.floor(_h/_rhh));_i++){var _y=_i*_rhh+4;_c.fillStyle="rgba(255,255,255,0.05)";_c.fillRect(2,_y,_w-4,_rhh-2);
+      _c.fillStyle="#ccc";var _fs=Math.max(7,_rhh*0.4);_c.font=_fs+"px -apple-system,sans-serif";_c.textAlign="left";_c.fillText("Preset "+(_i+1),8,_y+_rhh/2+_fs*0.3);
+      _c.fillStyle="#4ade80";_c.textAlign="right";_c.fillText("Apply",_w-8,_y+_rhh/2+_fs*0.3)}
+    el.appendChild(_cv);var _rh=document.createElement("div");_rh.className="rh";el.appendChild(_rh)}else if(k.action==="active-app"){
+    var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";
+    var _c=_cv.getContext("2d"),_w=_cv.width,_h=_cv.height;
+    _c.fillStyle="rgba(0,0,0,0.3)";_c.fillRect(0,0,_w,_h);
+    _c.fillStyle="#888";var _fs=Math.max(9,_h*0.3);_c.font=_fs+"px -apple-system,sans-serif";_c.textAlign="right";_c.textBaseline="middle";_c.fillText("Mac:",_w*0.4,_h/2);
+    _c.fillStyle="#fff";_c.textAlign="left";_c.fillText("App",_w*0.45,_h/2);
+    el.appendChild(_cv);var _rh=document.createElement("div");_rh.className="rh";el.appendChild(_rh)}else{el.innerHTML='<span class="kl">'+hesc(k.label)+'</span>'+(w>1||h>1?'<span class="sz">'+w.toFixed(2)+'×'+h.toFixed(2)+'</span>':'')+((selKeys.size<=1?'<div class="rh"></div>':''))}    el.addEventListener("mousedown",e=>onKeyDown(e,k.id));
     el.addEventListener("click",e=>onKeyClick(e,k.id));
     const rh=el.querySelector(".rh");if(rh)rh.addEventListener("mousedown",e=>onRS(e,k.id));
     canvas.appendChild(el);
