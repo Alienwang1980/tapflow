@@ -101,7 +101,7 @@ function _drawDockGrid(canvas, apps) {
 
 var _dockTX = 0, _dockTS = 0, _dockTMoved = false, _dockPressedIdx = -1, _dockTStart = 0, _dockLongTimer = null;
 function _onDockTouchStart(e, canvas) {
-  e.stopPropagation();
+  e.preventDefault(); e.stopPropagation();
   touchUsed = true;
   var t = e.touches ? e.touches[0] : e;
   _dockTX = t.clientX; _dockTS = canvas._dockScroll || 0; _dockTMoved = false; _dockTStart = e.timeStamp || Date.now();
@@ -137,7 +137,7 @@ function _onDockTouchMove(e, canvas) {
   _drawDockGrid(canvas, canvas._dockApps);
 }
 function _onDockTouchEnd(e, canvas) {
-  e.preventDefault(); e.stopPropagation();
+  e.stopPropagation();
   // Clear long-press timer (quit already handled by timer if threshold reached)
   if (_dockLongTimer) { clearTimeout(_dockLongTimer); _dockLongTimer = null; }
   var pressedIdx = _dockPressedIdx;
