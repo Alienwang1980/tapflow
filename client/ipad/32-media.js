@@ -84,11 +84,13 @@ function _fetchAndDrawCurrentApp(canvas) {
   }).catch(function(){_drawCurrentApp(canvas,"?")});
 }
 
-function _drawMicMuteBtn(canvas, muted) {
+function _drawMicMuteBtn(canvas, muted, level) {
   var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
   ctx.clearRect(0, 0, w, h);
+  // Mute button area (left 60%)
+  var btnW = h > w * 0.5 ? w : Math.floor(w * 0.55);
   ctx.fillStyle = muted ? "rgba(239,68,68,0.3)" : "rgba(255,255,255,0.08)";
-  ctx.fillRect(0, 0, w, h);
+  ctx.fillRect(0, 0, btnW, h);
   ctx.fillStyle = muted ? "#ef4444" : "#888";
   var r = Math.min(w, h) * 0.35;
   ctx.beginPath(); ctx.arc(w/2, h/2, r, 0, Math.PI*2); ctx.fill();
@@ -100,6 +102,12 @@ function _drawMicMuteBtn(canvas, muted) {
 }
 function _toggleMicMute(canvas) {
   fetch("/api/system/mic-mute", {method:"POST"}).then(function(r){return r.json()}).then(function(d){
-    _drawMicMuteBtn(canvas, d.muted);
+    _drawMicMuteBtn(canvas, d.muted, canvas._micLevel||0);
   });
+}
+function _pollMicLevel(canvas) {
+  fetch("/api/system/mic-level").then(function(r){return r.json()}).then(function(d){
+    canvas._micLevel = d.level;
+    _drawMicMuteBtn(canvas, canvas._micMuted||false, d.level);
+  }).catch(function(){});
 }

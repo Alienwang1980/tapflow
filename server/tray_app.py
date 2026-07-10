@@ -159,6 +159,36 @@ def run_server():
             _sc.run(["osascript", "-e", f"set volume input volume {restore}"])
             _state["mic_muted"] = False
         return {"muted": _state.get("mic_muted", False)}
+    # ── Mic Level Sampler ──
+    _mic_level = 0.0
+    _mic_sampling = False
+
+    def _start_mic_sampler():
+        nonlocal _mic_sampling
+        if _mic_sampling:
+            return
+        _mic_sampling = True
+        import threading as _th
+        def _sample():
+            import sounddevice as _sd
+            import numpy as _np
+            nonlocal _mic_level
+            while _mic_sampling:
+                try:
+                    rec = _sd.rec(1024, samplerate=44100, channels=1, blocking=True)
+                    rms = float(_np.sqrt(_np.mean(rec**2)))
+                    _mic_level = min(1.0, rms * 10)
+                except Exception:
+                    _mic_level = 0.0
+        _th.Thread(target=_sample, daemon=True).start()
+
+    @app.get("/api/system/mic-level")
+    async def _sys_mic_level():
+        nonlocal _mic_sampling
+        if not _mic_sampling:
+            _start_mic_sampler()
+        return {"level": round(_mic_level, 3)}
+
 
     @app.get("/api/system/audio-devices")
     async def _sys_adev():
