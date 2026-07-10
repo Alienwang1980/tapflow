@@ -1,5 +1,5 @@
 function render(){
-  const pg=profile?.pages.find(p=>p.id===activePage);if(!pg)return;document.body.style.background=pg.bgColor||"#1a1a2e";var _pi=_patIMG(pg.bgPattern);var _tl=document.getElementById("tl");if(_pi){_tl.style.display="block";_tl.style.backgroundColor=pg.bgPatternColor||"#ffffff";_tl.style.webkitMaskImage='url("/uploads/'+_pi.img+'")';_tl.style.maskImage='url("/uploads/'+_pi.img+'")';var _sz4=(pg.bgPatternSize||_pi.size)+"px";_tl.style.webkitMaskSize=_sz4+" "+_sz4;_tl.style.maskSize=_sz4+" "+_sz4;document.body.style.backgroundImage="";document.body.style.backgroundSize=""}else{_tl.style.display="block";_tl.style.backgroundColor=pg.bgPatternColor||"#ffffff";_tl.style.backgroundImage=_patBG(pg.bgPattern,pg.bgPatternColor||"#ffffff");_tl.style.backgroundSize=(pg.bgPatternSize||60)+"px "+(pg.bgPatternSize||60)+"px";_tl.style.webkitMaskImage="";_tl.style.maskImage="";document.body.style.backgroundImage="";document.body.style.backgroundSize=""}
+  const pg=profile?.pages.find(p=>p.id===activePage);if(!pg)return;document.body.style.background=pg.bgColor||"#1a1a2e";var _pi=_patIMG(pg.bgPattern);var _tl=document.getElementById("tl");if(_pi){_tl.style.display="block";_tl.style.backgroundColor=pg.bgPatternColor||"#ffffff";_tl.style.webkitMaskImage='url("/uploads/'+_pi.img+'")';_tl.style.maskImage='url("/uploads/'+_pi.img+'")';var _sz4=(pg.bgPatternSize||_pi.size)+"px";_tl.style.webkitMaskSize=_sz4+" "+_sz4;_tl.style.maskSize=_sz4+" "+_sz4;document.body.style.backgroundImage="";document.body.style.backgroundSize=""}else{_tl.style.display="none";var _patCss=_patCSS(pg.bgPattern,pg.bgPatternColor||"#ffffff",pg.bgPatternSize||60);document.body.style.cssText+=_patCss;document.getElementById("glass-bg").style.cssText+=_patCss}
   const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60;
   const cx=profile.canvasX||0,cy=profile.canvasY||0;
   const vw=window.innerWidth,vh=window.innerHeight;
@@ -35,7 +35,7 @@ function render(){
       var _gb = document.getElementById('glass-bg');
       if (!_gb._dockBlur) {
         _gb._dockBlur = document.createElement('div');
-        _gb._dockBlur.style.cssText = 'position:absolute;pointer-events:none;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:'+br+';z-index:-1';
+        _gb._dockBlur.style.cssText = 'position:absolute;pointer-events:none;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:'+br;
         _gb.insertBefore(_gb._dockBlur, _gb.firstChild);
       }
       // Convert canvas coords to viewport coords
