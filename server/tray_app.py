@@ -168,18 +168,23 @@ def run_server():
         if _mic_sampling:
             return
         _mic_sampling = True
-        import threading as _th
+        import threading as _th, logging as _log
+        _logger = _log.getLogger("stp.mic")
         def _sample():
             import sounddevice as _sd
             import numpy as _np
             nonlocal _mic_level
-            while _mic_sampling:
-                try:
-                    rec = _sd.rec(1024, samplerate=44100, channels=1, blocking=True)
-                    rms = float(_np.sqrt(_np.mean(rec**2)))
-                    _mic_level = min(1.0, rms * 10)
-                except Exception:
-                    _mic_level = 0.0
+            try:
+                _stream = _sd.InputStream(samplerate=44100, channels=1, blocksize=1024)
+                _stream.start()
+                while _mic_sampling:
+                    data, overflowed = _stream.read(1024)
+                    if len(data) > 0:
+                        rms = float(_np.sqrt(_np.mean(data**2)))
+                        _mic_level = min(1.0, rms * 10)
+            except Exception as _e:
+                _logger.error(f"Mic sampler error: {_e}")
+                _mic_level = 0.0
         _th.Thread(target=_sample, daemon=True).start()
 
     @app.get("/api/system/mic-level")
