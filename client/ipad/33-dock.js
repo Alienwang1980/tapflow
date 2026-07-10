@@ -67,7 +67,7 @@ function _drawDockGrid(canvas, apps) {
     var iconY = (h - iconSize - fs - 6) / 2;
     // Pressed state highlight
     var pressed = (_dockPressedIdx === i);
-    var launching = (_dockLaunching && _dockLaunching.name === a.name);
+    var pending = (_dockPending && _dockPending.name === a.name);
     if (pressed) {
       ctx.fillStyle = "rgba(255,255,255,0.2)";
       ctx.fillRect(x - 3, iconY - 5, iconSize + 6, iconSize + 18);
@@ -75,18 +75,19 @@ function _drawDockGrid(canvas, apps) {
       ctx.lineWidth = 2;
       ctx.strokeRect(x - 3, iconY - 5, iconSize + 6, iconSize + 18);
     }
-    if (launching) {
-      // Pulsing glow while waiting for app to open
-      var pulse = 0.4 + 0.3 * Math.sin(Date.now() / 200);
-      ctx.fillStyle = "rgba(100,200,255," + pulse + ")";
-      ctx.fillRect(x - 3, iconY - 5, iconSize + 6, iconSize + 18);
-      ctx.strokeStyle = "rgba(100,200,255,0.8)";
-      ctx.lineWidth = 2;
-      ctx.strokeRect(x - 3, iconY - 5, iconSize + 6, iconSize + 18);
-    }
-    if (a.running) {
-      ctx.fillStyle = "#4ade80";
-      ctx.beginPath(); ctx.arc(x + iconSize/2, iconY - 4, 4, 0, Math.PI*2); ctx.fill();
+    if (a.running || pending) {
+      var showDot = a.running;
+      if (pending) {
+        // Blink green dot: visible every other 400ms phase
+        showDot = (Math.floor(Date.now() / 400) % 2 === 0);
+        // If launching, blink ON (we want dot to appear)
+        // If quitting, blink OFF (we want dot to disappear)
+        if (_dockPending.action === "quit") showDot = !showDot;
+      }
+      if (showDot) {
+        ctx.fillStyle = "#4ade80";
+        ctx.beginPath(); ctx.arc(x + iconSize/2, iconY - 4, 4, 0, Math.PI*2); ctx.fill();
+      }
     }
     if (!canvas._dockIcons) canvas._dockIcons = {};
     var img = canvas._dockIcons[a.name];
@@ -118,7 +119,7 @@ function _drawDockGrid(canvas, apps) {
   }
 }
 
-var _dockTX = 0, _dockTS = 0, _dockTMoved = false, _dockPressedIdx = -1, _dockTStart = 0, _dockLaunching = null;
+var _dockTX = 0, _dockTS = 0, _dockTMoved = false, _dockPressedIdx = -1, _dockTStart = 0, _dockPending = null;
 function _onDockTouchStart(e, canvas) {
   e.preventDefault(); e.stopPropagation();
   touchUsed = true;
@@ -140,7 +141,7 @@ function _onDockTouchStart(e, canvas) {
         var quitSnd = (_cv2._dockKey && _cv2._dockKey.quitSound) || "quit";
         if (typeof psnd === "function") psnd(quitSnd);
         fetch("/api/system/quit-app", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({name: app.bundle || app.name, path: app.path})}).catch(function(){});
-        _dockPressedIdx = -1;
+        _dockPressedIdx = -1; _dockPending = {name: app.name, action: "quit"};
         if (_cv2._dockApps) _drawDockGrid(_cv2, _cv2._dockApps);
       }
       return;
@@ -176,12 +177,12 @@ function _onDockTouchEnd(e, canvas) {
       // Long press — quit app
       var quitSnd = (canvas._dockKey && canvas._dockKey.quitSound) || "quit";
       if (typeof psnd === "function") psnd(quitSnd);
-      fetch("/api/system/quit-app", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({name: a.bundle || a.name, path: a.path})}).catch(function(){});
+      _dockPending = {name: a.name, action: "quit"}; _drawDockGrid(canvas, canvas._dockApps); fetch("/api/system/quit-app", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({name: a.bundle || a.name, path: a.path})}).catch(function(){});
     } else {
       // Short tap — launch app
       var snd = (canvas._dockKey && canvas._dockKey.sound) || (profile && profile.defaultSound) || "click";
       if (typeof psnd === "function") psnd(snd);
-      _dockLaunching = {name: a.name, start: Date.now()}; fetch("/api/system/launch-app", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({path: a.path, name: a.name})}).catch(function(){});
+      _dockPending = {name: a.name, action: "launch"}; _drawDockGrid(canvas, canvas._dockApps); fetch("/api/system/launch-app", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({path: a.path, name: a.name})}).catch(function(){});
     }
   }
 }
@@ -190,7 +191,7 @@ function _fetchAndDrawDock(canvas) {
   if (canvas._dockTimer) { clearTimeout(canvas._dockTimer); canvas._dockTimer = null; }
   function _doFetch() {
     fetch("/api/system/dock-items").then(function(r){return r.json()}).then(function(d){
-      if (d && d.length > 0) { if (!canvas._dockIcons) canvas._dockIcons = {}; if (_dockLaunching) { var _launched = d.find(function(x){return x.name === _dockLaunching.name && x.running}); if (_launched) _dockLaunching = null; } _drawDockGrid(canvas, d); }
+      if (d && d.length > 0) { if (!canvas._dockIcons) canvas._dockIcons = {}; if (_dockPending) { var _p = d.find(function(x){return x.name === _dockPending.name}); if (_p && ((_dockPending.action === "launch" && _p.running) || (_dockPending.action === "quit" && !_p.running))) _dockPending = null; } _drawDockGrid(canvas, d); }
     }).catch(function(e){ console.log("dock err:",e); })
     .finally(function(){ canvas._dockTimer = setTimeout(_doFetch, 2000); });
   }
