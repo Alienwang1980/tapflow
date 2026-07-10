@@ -89,23 +89,26 @@ function _drawDockGrid(canvas, apps) {
 
 var _dockTX = 0, _dockTS = 0, _dockTMoved = false;
 function _onDockTouchStart(e, canvas) {
+  e.stopPropagation();
   var t = e.touches ? e.touches[0] : e;
   _dockTX = t.clientX; _dockTS = canvas._dockScroll || 0; _dockTMoved = false;
 }
 function _onDockTouchMove(e, canvas) {
+  e.stopPropagation();
   if (!canvas._dockMaxScroll) return;
   var t = e.touches ? e.touches[0] : e;
   var dx = _dockTX - t.clientX;
-  if (Math.abs(dx) > 4) _dockTMoved = true;
+  if (Math.abs(dx) > 8) _dockTMoved = true;
   canvas._dockScroll = Math.max(0, Math.min(canvas._dockMaxScroll, _dockTS + dx));
   _drawDockGrid(canvas, canvas._dockApps);
 }
 function _onDockTouchEnd(e, canvas) {
+  e.stopPropagation();
   if (_dockTMoved) return;
   var t = e.touches ? e.changedTouches[0] : e;
   var rect = canvas.getBoundingClientRect();
   var x = (t.clientX - rect.left) * (canvas.width / rect.width);
-  var idx = Math.floor((x + canvas._dockScroll) / canvas._dockItemW);
+  var idx = Math.floor((x + (canvas._dockScroll||0)) / (canvas._dockItemW||68));
   if (canvas._dockApps && idx >= 0 && idx < canvas._dockApps.length) {
     var a = canvas._dockApps[idx];
     fetch("/api/system/launch-app", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({path: a.path, name: a.name})}).catch(function(){});
