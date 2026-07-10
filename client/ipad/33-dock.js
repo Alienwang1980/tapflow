@@ -137,7 +137,7 @@ function _onDockTouchMove(e, canvas) {
   _drawDockGrid(canvas, canvas._dockApps);
 }
 function _onDockTouchEnd(e, canvas) {
-  e.stopPropagation();
+  e.preventDefault(); e.stopPropagation();
   // Clear long-press timer (quit already handled by timer if threshold reached)
   if (_dockLongTimer) { clearTimeout(_dockLongTimer); _dockLongTimer = null; }
   var pressedIdx = _dockPressedIdx;
