@@ -3,29 +3,40 @@
 function _drawVolume(canvas, value, muted) {
   var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
   ctx.clearRect(0, 0, w, h);
-  // Mute button area (right 20%)
-  var muteW = Math.min(h - 4, w * 0.2);
-  var muteX = w - muteW - 4;
-  var sliderW = w - muteW - 8;
-  // Mute button
-  var muteR = Math.min(muteW, h) * 0.32;
-  ctx.beginPath();
-  ctx.arc(muteX + muteW/2, h/2, muteR, 0, Math.PI*2);
-  ctx.fillStyle = muted ? "rgba(239,68,68,0.4)" : "rgba(255,255,255,0.08)";
-  ctx.fill();
-  ctx.strokeStyle = muted ? "#ef4444" : "rgba(255,255,255,0.25)";
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-  ctx.fillStyle = muted ? "#ef4444" : "#888";
-  ctx.font = "bold " + Math.max(6, muteR*0.7) + "px -apple-system,sans-serif";
+  // Mute button area (right side, square)
+  var muteW = h - 4;
+  var muteX = w - muteW - 2;
+  var muteY = 2;
+  var sliderW = muteX - 4;
+  // Separator line
+  ctx.strokeStyle = "rgba(255,255,255,0.1)";
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(muteX - 1, 4); ctx.lineTo(muteX - 1, h - 4); ctx.stroke();
+  // Mute icon
+  var icx = muteX + muteW/2, icy = h/2;
+  if (muted) {
+    ctx.fillStyle = "rgba(239,68,68,0.2)";
+    ctx.fillRect(muteX, muteY, muteW, muteW);
+    ctx.fillStyle = "#ef4444";
+  } else {
+    ctx.fillStyle = "rgba(255,255,255,0.05)";
+    ctx.fillRect(muteX, muteY, muteW, muteW);
+    ctx.fillStyle = "#888";
+  }
+  ctx.font = Math.max(8, muteW*0.35) + "px -apple-system,sans-serif";
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.fillText(muted ? "X" : "M", muteX + muteW/2, h/2);
-  // Store mute button bounds for touch detection
+  ctx.fillText(muted ? "M" : "M", icx, icy);
+  if (muted) {
+    ctx.strokeStyle = "#ef4444";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(icx-8, icy-8); ctx.lineTo(icx+8, icy+8); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(icx+8, icy-8); ctx.lineTo(icx-8, icy+8); ctx.stroke();
+  }
   canvas._muteX = muteX; canvas._muteW = muteW;
-  // Slider track
+  // Slider
   if (muted) value = 0;
-  var margin = 4, barH = Math.max(8, h * 0.25);
-  var barY = (h - barH) / 2, barW = sliderW - margin * 2;
+  var barH = Math.max(8, h * 0.3);
+  var barY = (h - barH) / 2, barW = sliderW - 8;
   ctx.fillStyle = "rgba(255,255,255,0.1)";
   ctx.fillRect(margin, barY, barW, barH);
   var fillW = barW * (value / 100);
