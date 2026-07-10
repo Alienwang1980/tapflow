@@ -343,6 +343,36 @@ def run_server():
         except: pass
         return {"status": "ok"}
 
+    
+    # ── App Icon ──
+
+    @app.get("/api/system/app-icon")
+    async def _sys_icon(name: str = ""):
+        import os as _os4
+        if not name: return {"error": "missing name"}
+        cache_dir = _os4.path.expanduser("~/Library/Application Support/Smart Touch Panel/icon_cache")
+        _os4.makedirs(cache_dir, exist_ok=True)
+        cp = _os4.path.join(cache_dir, name.replace("/","_") + ".png")
+        if _os4.path.exists(cp):
+            from fastapi.responses import FileResponse
+            return FileResponse(cp, media_type="image/png")
+        # Find app bundle
+        ap = None
+        for b in ["/Applications","/System/Applications","/System/Volumes/Preboot/Cryptexes/App/System/Applications"]:
+            t = _os4.path.join(b, name+".app")
+            if _os4.path.exists(t): ap = t; break
+        if ap:
+            ic = None
+            for fn in ["AppIcon.icns","app.icns","icon.icns"]:
+                t = _os4.path.join(ap,"Contents/Resources",fn)
+                if _os4.path.exists(t): ic = t; break
+            if ic:
+                _sc.run(["sips","-s","format","png",ic,"--out",cp,"-Z","64"], capture_output=True)
+                if _os4.path.exists(cp):
+                    from fastapi.responses import FileResponse
+                    return FileResponse(cp, media_type="image/png")
+        return {"error": "icon not found"}
+
     _logger.info("Widget routes registered")
     
     uvicorn.run(app, host="0.0.0.0", port=8082, log_level="warning")
