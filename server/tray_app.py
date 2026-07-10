@@ -514,10 +514,26 @@ def on_quit(icon, item):
 
 
 def request_mic_permission():
-    """Open Microphone privacy settings."""
-    import subprocess as _sp3
-    _sp3.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone"])
-    logger.info("Opened Microphone privacy settings")
+    """Request microphone permission via AVFoundation."""
+    try:
+        import objc
+        objc.loadBundle('AVFoundation', globals(), bundle_path=objc.pathForFramework('/System/Library/Frameworks/AVFoundation.framework'))
+        from AVFoundation import AVCaptureDevice, AVMediaTypeAudio
+        status = AVCaptureDevice.authorizationStatusForMediaType_(AVMediaTypeAudio)
+        if status == 0:  # NotDetermined
+            AVCaptureDevice.requestAccessForMediaType_completionHandler_(AVMediaTypeAudio, lambda granted: logger.info(f"Mic permission: {'granted' if granted else 'denied'}"))
+            logger.info("Mic permission dialog requested")
+        elif status == 3:  # Authorized
+            logger.info("Mic permission: already authorized")
+        else:  # Denied/Restricted
+            import subprocess as _sp3
+            _sp3.run(["tccutil", "reset", "Microphone"], capture_output=True)
+            AVCaptureDevice.requestAccessForMediaType_completionHandler_(AVMediaTypeAudio, lambda granted: logger.info(f"Mic permission: {'granted' if granted else 'denied'}"))
+            logger.info("Mic permission reset and re-requested")
+    except Exception as e:
+        logger.error(f"Mic permission request failed: {e}")
+        import subprocess as _sp4
+        _sp4.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone"])
 
 def request_accessibility_permission():
     """Open Accessibility privacy settings."""
