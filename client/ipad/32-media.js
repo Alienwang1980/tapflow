@@ -3,10 +3,29 @@
 function _drawVolume(canvas, value, muted) {
   var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = "transparent"; ctx.fillRect(0, 0, w, h);
+  // Mute button area (right 20%)
+  var muteW = Math.min(h - 4, w * 0.2);
+  var muteX = w - muteW - 4;
+  var sliderW = w - muteW - 8;
+  // Mute button
+  var muteR = Math.min(muteW, h) * 0.32;
+  ctx.beginPath();
+  ctx.arc(muteX + muteW/2, h/2, muteR, 0, Math.PI*2);
+  ctx.fillStyle = muted ? "rgba(239,68,68,0.4)" : "rgba(255,255,255,0.08)";
+  ctx.fill();
+  ctx.strokeStyle = muted ? "#ef4444" : "rgba(255,255,255,0.25)";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.fillStyle = muted ? "#ef4444" : "#888";
+  ctx.font = "bold " + Math.max(6, muteR*0.7) + "px -apple-system,sans-serif";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText(muted ? "X" : "M", muteX + muteW/2, h/2);
+  // Store mute button bounds for touch detection
+  canvas._muteX = muteX; canvas._muteW = muteW;
+  // Slider track
   if (muted) value = 0;
-  var margin = w * 0.08, barH = Math.max(8, h * 0.25);
-  var barY = (h - barH) / 2, barW = w - margin * 2;
+  var margin = 4, barH = Math.max(8, h * 0.25);
+  var barY = (h - barH) / 2, barW = sliderW - margin * 2;
   ctx.fillStyle = "rgba(255,255,255,0.1)";
   ctx.fillRect(margin, barY, barW, barH);
   var fillW = barW * (value / 100);
@@ -33,14 +52,27 @@ function _onVolumeTouch(e, canvas) {
   var x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
   var scale = canvas.width / rect.width;
   x *= scale;
+  // Check if touching mute button area
+  if (x >= (canvas._muteX || 999)) {
+    // Toggle mute
+    fetch("/api/system/mute", {method:"POST"}).then(function(r){return r.json()}).then(function(d){
+      var curVal = canvas._volValue || 50;
+      _drawVolume(canvas, curVal, d.muted);
+      canvas._volMuted = d.muted;
+    });
+    return;
+  }
+  // Slider
   var v = Math.round(((x - canvas._volMargin) / canvas._volBarW) * 100);
   v = Math.max(0, Math.min(100, v));
+  canvas._volValue = v;
   _drawVolume(canvas, v, false);
-  fetch("/api/system/volume", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ value: v }) }).catch(function () { });
+  fetch("/api/system/volume", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({value:v})}).catch(function(){});
 }
 
 function _fetchAndDrawVolume(canvas) {
   fetch("/api/system/volume").then(function (r) { return r.json(); }).then(function (d) {
+    canvas._volValue = d.output_volume;
     _drawVolume(canvas, d.output_volume, d.output_muted);
   }).catch(function () { _drawVolume(canvas, 75, false); });
 }
