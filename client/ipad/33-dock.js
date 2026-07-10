@@ -56,6 +56,15 @@ function _drawDockGrid(canvas, apps) {
     if (x + iconSize < -10 || x > w + 10) continue;
     var a = apps[i];
     var iconY = (h - iconSize - fs - 6) / 2;
+    // Pressed state highlight
+    var pressed = (_dockPressedIdx === i);
+    if (pressed) {
+      ctx.fillStyle = "rgba(255,255,255,0.2)";
+      ctx.fillRect(x - 3, iconY - 5, iconSize + 6, iconSize + 18);
+      ctx.strokeStyle = "rgba(255,255,255,0.6)";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x - 3, iconY - 5, iconSize + 6, iconSize + 18);
+    }
     if (a.running) {
       ctx.fillStyle = "#4ade80";
       ctx.beginPath(); ctx.arc(x + iconSize/2, iconY - 4, 4, 0, Math.PI*2); ctx.fill();
@@ -63,7 +72,10 @@ function _drawDockGrid(canvas, apps) {
     if (!canvas._dockIcons) canvas._dockIcons = {};
     var img = canvas._dockIcons[a.name];
     if (img && img.complete && img.naturalWidth > 0) {
+      ctx.save();
+      if (pressed) { ctx.translate(x + iconSize/2, iconY + iconSize/2); ctx.scale(1.1, 1.1); ctx.translate(-(x + iconSize/2), -(iconY + iconSize/2)); }
       ctx.drawImage(img, x, iconY, iconSize, iconSize);
+      ctx.restore();
     } else {
       ctx.fillStyle = "#3a3a3a";
       ctx.fillRect(x, iconY, iconSize, iconSize);
@@ -87,24 +99,34 @@ function _drawDockGrid(canvas, apps) {
   }
 }
 
-var _dockTX = 0, _dockTS = 0, _dockTMoved = false;
+var _dockTX = 0, _dockTS = 0, _dockTMoved = false, _dockPressedIdx = -1;
 function _onDockTouchStart(e, canvas) {
   e.stopPropagation();
   var t = e.touches ? e.touches[0] : e;
   _dockTX = t.clientX; _dockTS = canvas._dockScroll || 0; _dockTMoved = false;
+  // Detect which icon was pressed
+  var rect = canvas.getBoundingClientRect();
+  var cx = (t.clientX - rect.left) * (canvas.width / rect.width);
+  _dockPressedIdx = Math.floor((cx + (canvas._dockScroll||0)) / (canvas._dockItemW||68));
+  if (canvas._dockApps && (_dockPressedIdx < 0 || _dockPressedIdx >= canvas._dockApps.length)) _dockPressedIdx = -1;
+  if (_dockPressedIdx >= 0) _drawDockGrid(canvas, canvas._dockApps);
 }
 function _onDockTouchMove(e, canvas) {
   e.stopPropagation();
   if (!canvas._dockMaxScroll) return;
   var t = e.touches ? e.touches[0] : e;
   var dx = _dockTX - t.clientX;
-  if (Math.abs(dx) > 8) _dockTMoved = true;
+  if (Math.abs(dx) > 8) { _dockTMoved = true; _dockPressedIdx = -1; }
   canvas._dockScroll = Math.max(0, Math.min(canvas._dockMaxScroll, _dockTS + dx));
   _drawDockGrid(canvas, canvas._dockApps);
 }
 function _onDockTouchEnd(e, canvas) {
   e.stopPropagation();
-  if (_dockTMoved) return;
+  var pressedIdx = _dockPressedIdx;
+  _dockPressedIdx = -1;
+  if (_dockTMoved) { _drawDockGrid(canvas, canvas._dockApps); return; }
+  // Redraw to clear highlight
+  _drawDockGrid(canvas, canvas._dockApps);
   var t = e.touches ? e.changedTouches[0] : e;
   var rect = canvas.getBoundingClientRect();
   var x = (t.clientX - rect.left) * (canvas.width / rect.width);
