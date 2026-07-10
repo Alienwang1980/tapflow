@@ -102,6 +102,7 @@ function _drawDockGrid(canvas, apps) {
 var _dockTX = 0, _dockTS = 0, _dockTMoved = false, _dockPressedIdx = -1;
 function _onDockTouchStart(e, canvas) {
   e.stopPropagation();
+  touchUsed = true;
   var t = e.touches ? e.touches[0] : e;
   _dockTX = t.clientX; _dockTS = canvas._dockScroll || 0; _dockTMoved = false;
   // Detect which icon was pressed
