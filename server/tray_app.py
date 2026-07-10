@@ -244,6 +244,7 @@ def run_server():
                 items.append({
                     "name": label,
                     "path": url.replace("file://", ""),
+                    "bundle": bundle_name if bundle_name else label,
                     "running": r.returncode == 0
                 })
         except: pass

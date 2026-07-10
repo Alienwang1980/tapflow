@@ -76,7 +76,7 @@ function _drawDockGrid(canvas, apps) {
         var capName = a.name;
         img2.onload = function(n) { return function() { canvas._dockIcons[n] = this; _drawDockGrid(canvas, canvas._dockApps); }; }(capName);
         img2.onerror = function() { canvas._dockIcons[capName] = {complete:true, naturalWidth:0}; };
-        img2.src = "/api/system/app-icon?name=" + encodeURIComponent(a.name);
+        img2.src = "/api/system/app-icon?path=" + encodeURIComponent(a.path || "");
         canvas._dockIcons[a.name] = img2;
       }
     }
