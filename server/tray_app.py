@@ -110,7 +110,7 @@ def run_server():
     
     # ── System Control routes ──
     import subprocess as _sc
-    _mic_pre = None
+    _state = {"muted": False, "mic_pre": None}
 
     @app.get("/api/system/volume")
     async def _sys_vol():
@@ -126,9 +126,9 @@ def run_server():
                     v = p.split(":")[1].strip()
                     if v != "missing value": res["input_volume"] = int(v)
                 elif "output muted" in p:
-                    res["output_muted"] = "true" in p.split(":")[1]
+                    pass
             except: pass
-        return res
+        res["output_muted"] = _state["muted"]; return res
 
     @app.post("/api/system/volume")
     async def _sys_vol_set(body: dict):
@@ -138,10 +138,9 @@ def run_server():
 
     @app.post("/api/system/mute")
     async def _sys_mute():
-        r = _sc.run(["osascript", "-e", "get volume settings"], capture_output=True, text=True)
-        muted = "output muted:true" in r.stdout
-        _sc.run(["osascript", "-e", f"set volume output muted {str(not muted).lower()}"])
-        return {"muted": not muted}
+        _state["muted"] = not _state["muted"]
+        _sc.run(["osascript", "-e", f"set volume output muted {str(_state['muted']).lower()}"])
+        return {"muted": _state["muted"]}
 
     
 
