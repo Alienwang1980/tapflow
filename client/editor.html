@@ -516,7 +516,7 @@ const ftb=document.getElementById("ftb");var btb=document.getElementById("btb");
     el.appendChild(_cv);var _rh=document.createElement("div");_rh.className="rh";el.appendChild(_rh)}else if(k.action==="dock"){
     var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;
     _cv.style.borderRadius=(k.borderRadius!==undefined?k.borderRadius:10)/100*Math.min(kw-8,kh-8)+"px";
-    el.appendChild(_cv);
+    el.appendChild(_cv);_cv.style.borderRadius=((k.borderRadius!==undefined?k.borderRadius:10)/100*Math.min(kw,kh))+"px";
     // Load real dock data for preview
     _drawEditorDock(_cv, k);
     el.appendChild(_cv);var _rh=document.createElement("div");_rh.className="rh";el.appendChild(_rh)}else if(k.action==="app-menu"){
