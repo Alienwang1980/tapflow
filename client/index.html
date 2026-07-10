@@ -205,7 +205,7 @@ function _drawDockGrid(canvas, apps) {
       // Start loading
       if (!canvas._dockIcons[a.name]) {
         var img2 = new Image();
-        img2.onload = function() { canvas._dockIcons[a.name] = img2; _drawDockGrid(canvas, apps); };
+        img2.onload = function() { canvas._dockIcons[a.name] = img2; if(canvas._dockApps) _drawDockGrid(canvas, canvas._dockApps); };
         img2.src = "/api/system/app-icon?name=" + encodeURIComponent(a.name);
         canvas._dockIcons[a.name] = img2;
       }
