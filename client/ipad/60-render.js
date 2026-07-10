@@ -8,7 +8,7 @@ function render(){
   const scale=Math.min(vw/dw,vh/dh);
   const wrap=document.getElementById("wrap");
   wrap.style.width=dw+"px";wrap.style.height=dh+"px";
-  wrap.style.transform=`scale(${scale})`;
+  wrap.style.transform=`scale(${scale})`;wrap.style.backdropFilter="blur(12px)";wrap.style.webkitBackdropFilter="blur(12px)";
   // no translate — flexbox on body handles centering
 
   // Set canvas size
