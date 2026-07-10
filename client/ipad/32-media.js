@@ -35,7 +35,7 @@ function _drawVolume(canvas, value, muted) {
   canvas._muteX = muteX; canvas._muteW = muteW;
   // Slider
   if (muted) value = 0;
-  var barH = Math.max(8, h * 0.3);
+  var margin = 4, barH = Math.max(8, h * 0.3);
   var barY = (h - barH) / 2, barW = sliderW - 8;
   ctx.fillStyle = "rgba(255,255,255,0.1)";
   ctx.fillRect(margin, barY, barW, barH);
