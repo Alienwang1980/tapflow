@@ -112,11 +112,13 @@ function _onDockTouchEnd(e, canvas) {
   }
 }
 function _fetchAndDrawDock(canvas) {
-  fetch("/api/system/dock-items").then(function(r){return r.json()}).then(function(d){
-    if (d && d.length > 0) { if (!canvas._dockIcons) canvas._dockIcons = {}; _drawDockGrid(canvas, d); }
-  }).catch(function(){});
-  // Redraw periodically to pick up loaded icons
-  if (!canvas._dockRedrawTimer) canvas._dockRedrawTimer = setInterval(function(){
-    if (canvas._dockApps && canvas._dockApps.length) _drawDockGrid(canvas, canvas._dockApps);
-  }, 2000);
+  // Clear any existing timer on this canvas
+  if (canvas._dockTimer) { clearInterval(canvas._dockTimer); canvas._dockTimer = null; }
+  function _doFetch() {
+    fetch("/api/system/dock-items").then(function(r){return r.json()}).then(function(d){
+      if (d && d.length > 0) { if (!canvas._dockIcons) canvas._dockIcons = {}; _drawDockGrid(canvas, d); }
+    }).catch(function(e){ console.log("dock fetch err:",e); });
+  }
+  _doFetch();
+  canvas._dockTimer = setInterval(_doFetch, 2000);
 }
