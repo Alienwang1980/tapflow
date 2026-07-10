@@ -244,7 +244,7 @@ function _onDockTouchStart(e, canvas) {
   e.preventDefault(); e.stopPropagation();
   touchUsed = true;
   var t = e.touches ? e.touches[0] : e;
-  _dockTX = t.clientX; _dockTS = canvas._dockScroll || 0; _dockTMoved = false; _dockTStart = e.timeStamp || Date.now();
+  _dockTX = t.clientX; _dockTS = canvas._dockScroll || 0; _dockTMoved = false; _dockTStart = Date.now();
   // Detect which icon was pressed
   var rect = canvas.getBoundingClientRect();
   var cx = (t.clientX - rect.left) * (canvas.width / rect.width);
@@ -292,7 +292,7 @@ function _onDockTouchEnd(e, canvas) {
   var idx = Math.floor((x + (canvas._dockScroll||0)) / (canvas._dockItemW||68));
   if (canvas._dockApps && idx >= 0 && idx < canvas._dockApps.length) {
     var a = canvas._dockApps[idx];
-    var elapsed = (e.timeStamp || Date.now()) - _dockTStart;
+    var elapsed = (Date.now()) - _dockTStart;
     if (elapsed >= 600) {
       // Long press — quit app
       var quitSnd = (canvas._dockKey && canvas._dockKey.quitSound) || "quit";
