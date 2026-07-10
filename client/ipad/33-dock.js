@@ -3,7 +3,7 @@
 function _drawDockGrid(canvas, apps) {
   var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.fillRect(0, 0, w, h);
+  // transparent background
   
   if (!apps || !apps.length) {
     ctx.fillStyle = "#888";
@@ -115,6 +115,7 @@ function _onDockTouchEnd(e, canvas) {
 
 function _fetchAndDrawDock(canvas) {
   fetch("/api/system/dock-items").then(function(r){return r.json()}).then(function(d){
+    if (!d || !d.length) { if(canvas._dockApps && canvas._dockApps.length) return; }
     if (!canvas._dockIcons) canvas._dockIcons = {};
     _drawDockGrid(canvas, d);
   }).catch(function(){});
@@ -125,7 +126,7 @@ function _fetchAndDrawDock(canvas) {
 function _drawWinShortcuts(canvas) {
   var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.fillRect(0, 0, w, h);
+  // transparent background
   var btns = [{label:"Full",api:"/api/system/window/fullscreen"},{label:"Min",api:"/api/system/window/minimize"},{label:"MC",api:"/api/system/window/mission-control"},{label:"Desktop",api:"/api/system/window/show-desktop"}];
   canvas._winBtns = btns;
   var cols = 2, rows = 2;
@@ -185,7 +186,7 @@ function _fetchAndDrawDock(canvas) {
 function _drawMenuPanel(canvas, menus) {
   var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.fillRect(0, 0, w, h);
+  // transparent background
   if (!menus || !menus.length) { ctx.fillStyle = "#888"; ctx.font = "12px -apple-system,sans-serif"; ctx.textAlign = "center"; ctx.fillText("No menus", w/2, h/2); return; }
   var totalItems = 0; menus.forEach(function(m){ totalItems += m.items.length; });
   var rowH = Math.max(18, Math.min(30, h / totalItems));
@@ -238,7 +239,7 @@ function _fetchAndDrawMenus(canvas) {
 function _drawLayoutPresets(canvas, layouts) {
   var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.fillRect(0, 0, w, h);
+  // transparent background
   if (!layouts || !layouts.length) { ctx.fillStyle = "#888"; ctx.font = "12px -apple-system,sans-serif"; ctx.textAlign = "center"; ctx.fillText("No presets - tap + in editor", w/2, h/2); return; }
   var rowH = Math.max(24, Math.min(40, h / Math.max(1, layouts.length)));
   ctx.font = Math.max(8, rowH * 0.35) + "px -apple-system,sans-serif";
@@ -285,7 +286,7 @@ function _fetchAndDrawLayouts(canvas) {
 function _drawAudioDevices(canvas, devices, type) {
   var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.fillRect(0, 0, w, h);
+  // transparent background
   
   if (!devices || !devices.length) {
     ctx.fillStyle = "#888";
@@ -372,7 +373,7 @@ function _fetchAndDrawAudioDevs(canvas, type) {
 function _drawLayoutPresets(canvas, layouts) {
   var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.fillRect(0, 0, w, h);
+  // transparent background
   
   if (!layouts || !layouts.length) {
     ctx.fillStyle = "#888";
