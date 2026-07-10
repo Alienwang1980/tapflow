@@ -9,7 +9,7 @@
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;overflow:hidden;background:#1a1a2e;font-family:-apple-system,sans-serif;color:#eee;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 /* Flexbox centering — body is the centering container */
-body{display:flex;align-items:center;justify-content:center}
+body{display:flex;align-items:center;justify-content:center;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
 /* Canvas container — scaled to fit viewport, centered by flexbox */
 .canvas-wrap{flex-shrink:0;transform-origin:center center}
 /* Fixed-size canvas at device dimensions */
@@ -361,7 +361,7 @@ function render(){
   // Scale canvas to fit viewport (flexbox handles centering)
   const scale=Math.min(vw/dw,vh/dh);
   const wrap=document.getElementById("wrap");
-  wrap.style.width=dw+"px";wrap.style.height=dh+"px";var _sbH=window.innerHeight-(window.visualViewport||window).height;if(_sbH>0){document.body.style.alignItems="flex-start";document.body.style.paddingTop=_sbH+"px";}
+  wrap.style.width=dw+"px";wrap.style.height=dh+"px";
   wrap.style.transform=`scale(${scale})`;
   // no translate — flexbox on body handles centering
 
