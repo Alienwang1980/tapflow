@@ -142,7 +142,7 @@ function _onDockTouchEnd(e, canvas) {
   if (_dockLongTimer) { clearTimeout(_dockLongTimer); _dockLongTimer = null; }
   var pressedIdx = _dockPressedIdx;
   _dockPressedIdx = -1;
-  if (_dockTMoved || _dockPressedIdx === -2) { if (_dockPressedIdx === -2) _dockPressedIdx = -1; _drawDockGrid(canvas, canvas._dockApps); return; }
+  if (_dockTMoved || pressedIdx === -2) { _drawDockGrid(canvas, canvas._dockApps); return; }
   // Redraw to clear highlight
   _drawDockGrid(canvas, canvas._dockApps);
   var t = e.touches ? e.changedTouches[0] : e;
