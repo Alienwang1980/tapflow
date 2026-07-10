@@ -101,13 +101,14 @@ function _onVolumeTouch(e, canvas) {
   var v = Math.round(((x - canvas._volMargin) / canvas._volBarW) * 100);
   v = Math.max(0, Math.min(100, v));
   canvas._volValue = v;
-  _drawVolume(canvas, v, false);
+  // Show slider position but keep current mute visual
+  _drawVolume(canvas, v, !!canvas._volMuted);
   fetch("/api/system/volume", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({value:v})}).catch(function(){});
 }
 
 function _fetchAndDrawVolume(canvas) {
   fetch("/api/system/volume").then(function (r) { return r.json(); }).then(function (d) {
-    canvas._volValue = d.output_volume;
+    canvas._volValue = d.output_volume; canvas._volMuted = d.output_muted;
     _drawVolume(canvas, d.output_volume, d.output_muted);
   }).catch(function () { _drawVolume(canvas, 75, false); });
 }
