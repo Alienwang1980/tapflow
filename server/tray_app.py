@@ -359,12 +359,12 @@ def run_server():
             return FileResponse(cp, media_type="image/png")
         # Find app bundle
         ap = None
-        for b in ["/Applications","/System/Applications","/System/Volumes/Preboot/Cryptexes/App/System/Applications"]:
+        for b in ["/Applications","/System/Applications","/System/Applications/Utilities","/System/Volumes/Preboot/Cryptexes/App/System/Applications"]:
             t = _os4.path.join(b, name+".app")
             if _os4.path.exists(t): ap = t; break
         if ap:
             ic = None
-            for fn in ["AppIcon.icns","app.icns","icon.icns"]:
+            for fn in ["AppIcon.icns","ApplicationIcon.icns","app.icns","icon.icns", name+".icns"]:
                 t = _os4.path.join(ap,"Contents/Resources",fn)
                 if _os4.path.exists(t): ic = t; break
             if ic:
