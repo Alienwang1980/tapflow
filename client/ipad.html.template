@@ -19,6 +19,6 @@ body{display:flex;align-items:center;justify-content:center}
 .info{display:none;position:fixed;bottom:4px;left:4px;color:#fff;font-size:10px;z-index:99;background:rgba(0,0,0,0.7);padding:4px 6px;border-radius:3px;user-select:text;-webkit-user-select:text}
 </style></head>
 <body>
-<div id="tl" style="position:fixed;inset:0;pointer-events:none;z-index:0"></div><div id="glass-bg" style=""><div class="canvas-wrap" id="wrap"><div class="canvas" id="canvas"></div></div></div>
+<div id="tl" style="position:fixed;inset:0;pointer-events:none;z-index:-2"></div><div id="glass-bg" style=""><div class="canvas-wrap" id="wrap"><div class="canvas" id="canvas"></div></div></div>
 <div id="info" class="info"></div>
 <script id="bundle"></script></body></html>
