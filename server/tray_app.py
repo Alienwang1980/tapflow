@@ -514,35 +514,16 @@ def on_quit(icon, item):
 
 
 def request_mic_permission():
-    """Request microphone permission via AVFoundation."""
-    try:
-        from AVFoundation import AVCaptureDevice, AVMediaTypeAudio
-        status = AVCaptureDevice.authorizationStatusForMediaType_(AVMediaTypeAudio)
-        if status == 0:
-            AVCaptureDevice.requestAccessForMediaType_completionHandler_(AVMediaTypeAudio, lambda granted: None)
-            logger.info("Mic permission requested")
-        elif status == 3:
-            logger.info("Mic permission: already granted")
-        else:
-            import subprocess as _sp3
-            _sp3.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone"])
-    except Exception as e:
-        logger.error(f"Mic permission request failed: {e}")
+    """Open Microphone privacy settings."""
+    import subprocess as _sp3
+    _sp3.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone"])
+    logger.info("Opened Microphone privacy settings")
 
 def request_accessibility_permission():
-    """Check/request accessibility permission."""
-    try:
-        from ApplicationServices import AXIsProcessTrustedWithOptions
-        opts = {"AXTrustedCheckOptionPrompt": True}
-        trusted = AXIsProcessTrustedWithOptions(opts, None)
-        if not trusted:
-            import subprocess as _sp4
-            _sp4.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"])
-            logger.info("Opened Accessibility privacy settings")
-        else:
-            logger.info("Accessibility: already granted")
-    except Exception as e:
-        logger.error(f"Accessibility check failed: {e}")
+    """Open Accessibility privacy settings."""
+    import subprocess as _sp4
+    _sp4.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"])
+    logger.info("Opened Accessibility privacy settings")
 
 
 def run_tray():
