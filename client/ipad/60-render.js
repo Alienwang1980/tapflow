@@ -7,7 +7,7 @@ function render(){
   // Scale canvas to fit viewport (flexbox handles centering)
   const scale=Math.min(vw/dw,vh/dh);
   const wrap=document.getElementById("wrap");
-  wrap.style.width=dw+"px";wrap.style.height=dh+"px";
+  wrap.style.width=dw+"px";wrap.style.height=dh+"px";var _sbH=window.innerHeight-(window.visualViewport||window).height;if(_sbH>0){document.body.style.alignItems="flex-start";document.body.style.paddingTop=_sbH+"px";}
   wrap.style.transform=`scale(${scale})`;
   // no translate — flexbox on body handles centering
 
