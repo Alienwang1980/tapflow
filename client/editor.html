@@ -752,15 +752,6 @@ function _drawEditorDock(canvas, key) {
   var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
   function _render(apps) {
     ctx.clearRect(0, 0, w, h);
-    // Background from key config
-    var bgColor = key.bgColor || key.color || null;
-    var bgOpacity = key.bgOpacity !== undefined ? key.bgOpacity : 0.15;
-    if (bgColor && bgOpacity > 0.001) {
-      ctx.fillStyle = bgColor;
-      ctx.globalAlpha = bgOpacity;
-      ctx.fillRect(0, 0, w, h);
-      ctx.globalAlpha = 1;
-    }
     if (!apps || !apps.length) { ctx.fillText("No dock items", w/2, h/2); return; }
     var iconSize = Math.max(16, Math.min(40, h * 0.55));
     var gap = 4, itemW = iconSize + gap * 2;
