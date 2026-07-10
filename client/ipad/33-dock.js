@@ -99,7 +99,7 @@ function _drawDockGrid(canvas, apps) {
   }
 }
 
-var _dockTX = 0, _dockTS = 0, _dockTMoved = false, _dockPressedIdx = -1, _dockTStart = 0;
+var _dockTX = 0, _dockTS = 0, _dockTMoved = false, _dockPressedIdx = -1, _dockTStart = 0, _dockLongTimer = null;
 function _onDockTouchStart(e, canvas) {
   e.stopPropagation();
   touchUsed = true;
@@ -111,18 +111,35 @@ function _onDockTouchStart(e, canvas) {
   _dockPressedIdx = Math.floor((cx + (canvas._dockScroll||0)) / (canvas._dockItemW||68));
   if (canvas._dockApps && (_dockPressedIdx < 0 || _dockPressedIdx >= canvas._dockApps.length)) _dockPressedIdx = -1;
   if (_dockPressedIdx >= 0) _drawDockGrid(canvas, canvas._dockApps);
+  // Long-press timer: quit app after 600ms while still holding
+  if (_dockLongTimer) clearTimeout(_dockLongTimer);
+  if (_dockPressedIdx >= 0 && canvas._dockApps) {
+    var _pressedApp = canvas._dockApps[_dockPressedIdx];
+    var _cv = canvas;
+    _dockLongTimer = setTimeout(function(){
+      if (!_dockTMoved && _dockPressedIdx >= 0) {
+        var quitSnd = (_cv._dockKey && _cv._dockKey.quitSound) || "quit";
+        if (typeof psnd === "function") psnd(quitSnd);
+        fetch("/api/system/quit-app", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({name: _pressedApp.name, path: _pressedApp.path})}).catch(function(){});
+        _dockPressedIdx = -1;
+        if (_cv._dockApps) _drawDockGrid(_cv, _cv._dockApps);
+      }
+    }, 600);
+  }
 }
 function _onDockTouchMove(e, canvas) {
   e.stopPropagation();
   if (!canvas._dockMaxScroll) return;
   var t = e.touches ? e.touches[0] : e;
   var dx = _dockTX - t.clientX;
-  if (Math.abs(dx) > 8) { _dockTMoved = true; _dockPressedIdx = -1; }
+  if (Math.abs(dx) > 8) { _dockTMoved = true; _dockPressedIdx = -1; if (_dockLongTimer) { clearTimeout(_dockLongTimer); _dockLongTimer = null; } }
   canvas._dockScroll = Math.max(0, Math.min(canvas._dockMaxScroll, _dockTS + dx));
   _drawDockGrid(canvas, canvas._dockApps);
 }
 function _onDockTouchEnd(e, canvas) {
   e.stopPropagation();
+  // Clear long-press timer (quit already handled by timer if threshold reached)
+  if (_dockLongTimer) { clearTimeout(_dockLongTimer); _dockLongTimer = null; }
   var pressedIdx = _dockPressedIdx;
   _dockPressedIdx = -1;
   if (_dockTMoved) { _drawDockGrid(canvas, canvas._dockApps); return; }
@@ -134,16 +151,10 @@ function _onDockTouchEnd(e, canvas) {
   var idx = Math.floor((x + (canvas._dockScroll||0)) / (canvas._dockItemW||68));
   if (canvas._dockApps && idx >= 0 && idx < canvas._dockApps.length) {
     var a = canvas._dockApps[idx];
-    var duration = (e.timeStamp || Date.now()) - _dockTStart;
-    if (duration >= 600) {
-      // Long press — quit app
-      fetch("/api/system/quit-app", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({name: a.name, path: a.path})}).catch(function(){});
-    } else {
-      // Tap — launch app + sound
-      var snd = (profile && profile.defaultSound) || "click";
-      if (typeof psnd === "function") psnd(snd);
-      fetch("/api/system/launch-app", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({path: a.path, name: a.name})}).catch(function(){});
-    }
+    // Tap only — long press already triggered by timer
+    var snd = (canvas._dockKey && canvas._dockKey.sound) || (profile && profile.defaultSound) || "click";
+    if (typeof psnd === "function") psnd(snd);
+    fetch("/api/system/launch-app", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({path: a.path, name: a.name})}).catch(function(){});
   }
 }
 function _fetchAndDrawDock(canvas) {

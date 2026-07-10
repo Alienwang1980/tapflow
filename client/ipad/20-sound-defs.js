@@ -1,2 +1,2 @@
-const SND={none:null,click:[800,0.06,"square",0.3],soft:[400,0.08,"sine",0.2],mechanical:[1200,0.04,"square",0.4],deep:[200,0.1,"triangle",0.5],red:[300,0.04,"sine",0.15],topre:[500,0.07,"sine",0.18,900,0.008],glass:[2400,0.05,"sine",0.12],bubble:[600,0.06,"sine",0.22,"sweep"],blip:[440,0.05,"square",0.2,"sweep"],spark:[3000,0.02,"sawtooth",0.1,0.4]};
+const SND={none:null,click:[800,0.06,"square",0.3],soft:[400,0.08,"sine",0.2],mechanical:[1200,0.04,"square",0.4],deep:[200,0.1,"triangle",0.5],red:[300,0.04,"sine",0.15],topre:[500,0.07,"sine",0.18,900,0.008],glass:[2400,0.05,"sine",0.12],bubble:[600,0.06,"sine",0.22,"sweep"],blip:[440,0.05,"square",0.2,"sweep"],spark:[3000,0.02,"sawtooth",0.1,0.4],quit:[600,0.18,"sawtooth",0.22,300,0.1]};
 let ctx=null;
