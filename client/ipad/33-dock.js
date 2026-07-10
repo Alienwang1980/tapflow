@@ -1,4 +1,114 @@
-// ── System Widgets (Window, Dock, Menu, Layout) ──
+// ── Dynamic Collection: Dock Panel ──
+
+function _drawDockGrid(canvas, apps) {
+  var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.fillRect(0, 0, w, h);
+  
+  if (!apps || !apps.length) {
+    ctx.fillStyle = "#888";
+    ctx.font = Math.max(10, h * 0.12) + "px -apple-system,sans-serif";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText("No apps", w/2, h/2);
+    canvas._dockApps = []; canvas._dockScroll = 0; canvas._dockMaxScroll = 0;
+    return;
+  }
+  
+  var rowH = Math.max(28, Math.min(44, h / 5));
+  var visibleRows = Math.floor(h / rowH);
+  var totalH = apps.length * rowH;
+  canvas._dockMaxScroll = Math.max(0, totalH - h);
+  canvas._dockRowH = rowH;
+  canvas._dockApps = apps;
+  
+  // Clamp scroll
+  if (!canvas._dockScroll) canvas._dockScroll = 0;
+  if (canvas._dockScroll > canvas._dockMaxScroll) canvas._dockScroll = canvas._dockMaxScroll;
+  if (canvas._dockScroll < 0) canvas._dockScroll = 0;
+  
+  // Save context for clipping to visible area
+  ctx.save();
+  ctx.beginPath(); ctx.rect(0, 0, w, h); ctx.clip();
+  
+  var scrollY = canvas._dockScroll;
+  var fs = Math.max(9, Math.min(rowH * 0.4, w * 0.04));
+  ctx.font = fs + "px -apple-system,sans-serif";
+  ctx.textBaseline = "middle";
+  
+  for (var i = 0; i < apps.length; i++) {
+    var y = i * rowH - scrollY;
+    if (y + rowH < 0 || y > h) continue; // Skip off-screen rows
+    
+    var a = apps[i];
+    // Row background
+    ctx.fillStyle = "rgba(255,255,255,0.03)";
+    ctx.fillRect(0, y, w, rowH);
+    
+    // Running indicator dot
+    var dotX = 12, dotY = y + rowH/2;
+    ctx.fillStyle = a.running ? "#4ade80" : "#555";
+    ctx.beginPath(); ctx.arc(dotX, dotY, 5, 0, Math.PI * 2); ctx.fill();
+    
+    // App name
+    ctx.fillStyle = a.running ? "#e8e0d8" : "#8b8078";
+    ctx.textAlign = "left";
+    ctx.fillText(a.name, 26, dotY);
+  }
+  
+  ctx.restore();
+}
+
+function _onDockTap(e, canvas) {
+  var rect = canvas.getBoundingClientRect();
+  var x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+  var y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+  var sc = canvas.width / rect.width;
+  x *= sc; y *= sc;
+  
+  var apps = canvas._dockApps;
+  if (!apps || !apps.length) return;
+  
+  var rowH = canvas._dockRowH || 30;
+  var idx = Math.floor((y + canvas._dockScroll) / rowH);
+  if (idx >= 0 && idx < apps.length) {
+    var app = apps[idx];
+    fetch("/api/system/launch-app", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({path: app.path, name: app.name})
+    }).catch(function(){});
+  }
+}
+
+var _dockTouchStartY = 0, _dockTouchStartScroll = 0, _dockTouchMoved = false;
+
+function _onDockTouchStart(e, canvas) {
+  var t = e.touches ? e.touches[0] : e;
+  _dockTouchStartY = t.clientY;
+  _dockTouchStartScroll = canvas._dockScroll || 0;
+  _dockTouchMoved = false;
+}
+
+function _onDockTouchMove(e, canvas) {
+  if (!canvas._dockMaxScroll) return;
+  var t = e.touches ? e.touches[0] : e;
+  var dy = _dockTouchStartY - t.clientY;
+  if (Math.abs(dy) > 5) _dockTouchMoved = true;
+  canvas._dockScroll = Math.max(0, Math.min(canvas._dockMaxScroll, _dockTouchStartScroll + dy));
+  _drawDockGrid(canvas, canvas._dockApps);
+}
+
+function _onDockTouchEnd(e, canvas) {
+  if (!_dockTouchMoved) {
+    _onDockTap(e, canvas);
+  }
+}
+
+function _fetchAndDrawDock(canvas) {
+  fetch("/api/system/dock-items").then(function(r){return r.json()}).then(function(d){
+    _drawDockGrid(canvas, d);
+  }).catch(function(){});
+}
 
 function _drawWinShortcuts(canvas) {
   var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
