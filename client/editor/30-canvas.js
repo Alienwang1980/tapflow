@@ -282,35 +282,27 @@ function onFDev(){const d=DEVS[document.getElementById("fdev").value];if(d&&prof
 
 
 function onDev(){} // removed — use onFDev from frame toolbar
-// ── Editor dock preview (fetches real data) ──
+// ── Editor dock preview (caches dock data, re-renders instantly) ──
 var _editorDockCache = {};
+var _editorDockApps = null;
 function _drawEditorDock(canvas, key) {
   var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
-  // Draw background from key config
-  ctx.clearRect(0, 0, w, h);
-  var bgColor = key.bgColor || key.color || null;
-  var bgOpacity = key.bgOpacity !== undefined ? key.bgOpacity : 0.15;
-  if (bgColor) {
-    ctx.fillStyle = bgColor;
-    ctx.globalAlpha = bgOpacity;
-    ctx.fillRect(0, 0, w, h);
-    ctx.globalAlpha = 1;
-  }
-  // Loading text
-  ctx.fillStyle = "#888";
-  ctx.font = Math.max(8, h*0.3) + "px -apple-system,sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText("Loading...", w/2, h/2);
-  // Fetch real dock data
-  fetch("/api/system/dock-items").then(function(r){return r.json()}).then(function(apps){
-    if (!apps || !apps.length) { ctx.clearRect(0,0,w,h); ctx.fillText("No dock items", w/2, h/2); return; }
+  function _render(apps) {
+    ctx.clearRect(0, 0, w, h);
+    // Background from key config
+    var bgColor = key.bgColor || key.color || null;
+    var bgOpacity = key.bgOpacity !== undefined ? key.bgOpacity : 0.15;
+    if (bgColor) {
+      ctx.fillStyle = bgColor;
+      ctx.globalAlpha = bgOpacity;
+      ctx.fillRect(0, 0, w, h);
+      ctx.globalAlpha = 1;
+    }
+    if (!apps || !apps.length) { ctx.fillText("No dock items", w/2, h/2); return; }
     var iconSize = Math.max(16, Math.min(40, h * 0.55));
     var gap = 4, itemW = iconSize + gap * 2;
     var maxScroll = Math.max(0, apps.length * itemW - w);
-    // Fit all if needed
-    if (maxScroll > 0) { var scale = w / (apps.length * itemW); iconSize *= scale; gap *= scale; itemW *= scale; }
-    ctx.clearRect(0, 0, w, h);
-    if (bgColor) { ctx.fillStyle = bgColor; ctx.globalAlpha = bgOpacity; ctx.fillRect(0,0,w,h); ctx.globalAlpha = 1; }
+    if (maxScroll > 0) { var s = w / (apps.length * itemW); iconSize *= s; gap *= s; itemW *= s; }
     var fs = Math.max(6, iconSize * 0.18);
     ctx.font = fs + "px -apple-system,sans-serif";
     ctx.textAlign = "center";
@@ -319,21 +311,19 @@ function _drawEditorDock(canvas, key) {
       if (x + iconSize > w) break;
       var a = apps[i];
       var iconY = (h - iconSize - fs - 4) / 2;
-      // Running dot
       if (a.running) {
         ctx.fillStyle = "#4ade80";
         ctx.beginPath(); ctx.arc(x + iconSize/2, iconY - 2, 3, 0, Math.PI*2); ctx.fill();
       }
-      // Icon
       var cacheKey = a.bundle || a.name;
       if (!_editorDockCache[cacheKey]) {
         var img = new Image();
         img.src = "/api/system/app-icon?name=" + encodeURIComponent(cacheKey);
         _editorDockCache[cacheKey] = img;
       }
-      var cachedImg = _editorDockCache[cacheKey];
-      if (cachedImg && cachedImg.complete && cachedImg.naturalWidth > 0) {
-        ctx.drawImage(cachedImg, x, iconY, iconSize, iconSize);
+      var ci = _editorDockCache[cacheKey];
+      if (ci && ci.complete && ci.naturalWidth > 0) {
+        ctx.drawImage(ci, x, iconY, iconSize, iconSize);
       } else {
         ctx.fillStyle = "#3a3a3a";
         ctx.fillRect(x, iconY, iconSize, iconSize);
@@ -342,24 +332,31 @@ function _drawEditorDock(canvas, key) {
         ctx.fillStyle = "#888"; ctx.textBaseline = "middle";
         ctx.fillText(a.name.charAt(0).toUpperCase(), x + iconSize/2, iconY + iconSize/2);
       }
-      // Label
       ctx.fillStyle = "#aaa"; ctx.font = fs + "px -apple-system,sans-serif";
       ctx.textBaseline = "top";
       var label = a.name.length > 8 ? a.name.substring(0,7)+".." : a.name;
       ctx.fillText(label, x + iconSize/2, iconY + iconSize + 1);
     }
-    // Redraw when icons load
-    if (!canvas._edDockRetry) {
-      canvas._edDockRetry = setInterval(function(){
-        var allLoaded = true;
-        for (var j = 0; j < apps.length; j++) {
-          var ck = apps[j].bundle || apps[j].name;
-          var ci = _editorDockCache[ck];
-          if (!ci || !ci.complete || ci.naturalWidth <= 0) { allLoaded = false; break; }
-        }
-        _drawEditorDock(canvas, key);
-        if (allLoaded && canvas._edDockRetry) { clearInterval(canvas._edDockRetry); canvas._edDockRetry = null; }
-      }, 2000);
+  }
+  // Use cached data if available, otherwise fetch
+  if (_editorDockApps) {
+    _render(_editorDockApps);
+    return;
+  }
+  ctx.fillStyle = "#888";
+  ctx.font = Math.max(8, h*0.3) + "px -apple-system,sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("Loading...", w/2, h/2);
+  fetch("/api/system/dock-items").then(function(r){return r.json()}).then(function(apps){
+    _editorDockApps = apps;
+    _render(apps);
+    // Poll for running status updates
+    if (!canvas._edDockPoll) {
+      canvas._edDockPoll = setInterval(function(){
+        fetch("/api/system/dock-items").then(function(r){return r.json()}).then(function(d){
+          _editorDockApps = d; _render(d);
+        }).catch(function(){});
+      }, 3000);
     }
   }).catch(function(){ ctx.clearRect(0,0,w,h); ctx.fillText("Dock unavailable", w/2, h/2); });
 }
