@@ -99,12 +99,12 @@ function _drawDockGrid(canvas, apps) {
   }
 }
 
-var _dockTX = 0, _dockTS = 0, _dockTMoved = false, _dockPressedIdx = -1;
+var _dockTX = 0, _dockTS = 0, _dockTMoved = false, _dockPressedIdx = -1, _dockTStart = 0;
 function _onDockTouchStart(e, canvas) {
   e.stopPropagation();
   touchUsed = true;
   var t = e.touches ? e.touches[0] : e;
-  _dockTX = t.clientX; _dockTS = canvas._dockScroll || 0; _dockTMoved = false;
+  _dockTX = t.clientX; _dockTS = canvas._dockScroll || 0; _dockTMoved = false; _dockTStart = e.timeStamp || Date.now();
   // Detect which icon was pressed
   var rect = canvas.getBoundingClientRect();
   var cx = (t.clientX - rect.left) * (canvas.width / rect.width);
@@ -134,7 +134,16 @@ function _onDockTouchEnd(e, canvas) {
   var idx = Math.floor((x + (canvas._dockScroll||0)) / (canvas._dockItemW||68));
   if (canvas._dockApps && idx >= 0 && idx < canvas._dockApps.length) {
     var a = canvas._dockApps[idx];
-    fetch("/api/system/launch-app", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({path: a.path, name: a.name})}).catch(function(){});
+    var duration = (e.timeStamp || Date.now()) - _dockTStart;
+    if (duration >= 600) {
+      // Long press — quit app
+      fetch("/api/system/quit-app", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({name: a.name, path: a.path})}).catch(function(){});
+    } else {
+      // Tap — launch app + sound
+      var snd = (profile && profile.defaultSound) || "click";
+      if (typeof psnd === "function") psnd(snd);
+      fetch("/api/system/launch-app", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({path: a.path, name: a.name})}).catch(function(){});
+    }
   }
 }
 function _fetchAndDrawDock(canvas) {
