@@ -52,9 +52,10 @@ const ftb=document.getElementById("ftb");var btb=document.getElementById("btb");
     _c.fillStyle="#ccc";_c.fillText("Full",_bw/2,_bh/2);_c.fillText("Min",_bw*1.5,_bh/2);_c.fillText("MC",_bw/2,_bh*1.5);_c.fillText("Desk",_bw*1.5,_bh*1.5);
     el.appendChild(_cv);var _rh=document.createElement("div");_rh.className="rh";el.appendChild(_rh)}else if(k.action==="dock"){
     // Frosted glass via CSS on container
+    var _dc2=k.bgColor||k.color||null;
     var _bgo2=k.bgOpacity!==undefined?k.bgOpacity:0.15;
-    if(_bgo2>0.001&&(k.bgColor||k.color)){
-      var _hex2=(k.bgColor||k.color).replace("#","");
+    if(_bgo2>0.001&&_dc2){
+      var _hex2=_dc2.replace("#","");
       var _r2=parseInt(_hex2.substring(0,2),16),_g2=parseInt(_hex2.substring(2,4),16),_b2=parseInt(_hex2.substring(4,6),16);
       el.style.background="rgba("+_r2+","+_g2+","+_b2+","+_bgo2+")";
       el.style.backdropFilter="blur(8px)";el.style.webkitBackdropFilter="blur(8px)";
