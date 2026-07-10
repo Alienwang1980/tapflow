@@ -83,10 +83,15 @@ function _onVolumeTouch(e, canvas) {
 }
 
 function _fetchAndDrawVolume(canvas) {
+  // Set defaults immediately so touch works before fetch completes
+  canvas._volValue = canvas._volValue || 50;
+  canvas._volMuted = canvas._volMuted || false;
+  canvas._volMargin = 4; canvas._volBarW = canvas.width - 8;
+  _drawVolume(canvas, canvas._volValue, canvas._volMuted);
   fetch("/api/system/volume").then(function (r) { return r.json(); }).then(function (d) {
     canvas._volValue = d.output_volume; canvas._volMuted = d.output_muted;
     _drawVolume(canvas, d.output_volume, d.output_muted);
-  }).catch(function () { _drawVolume(canvas, 75, false); });
+  }).catch(function () { _drawVolume(canvas, canvas._volValue, canvas._volMuted); });
 }
 
 function _drawMuteBtn(canvas, muted) {
