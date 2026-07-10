@@ -6,114 +6,88 @@
 <title>Frosted Glass Test</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#1a1a2e;font-family:-apple-system,sans-serif;color:#eee;padding:20px;min-height:100vh}
-h2{font-size:14px;margin:16px 0 8px;color:#aaa}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
-.card{position:relative;height:120px;border-radius:12px;overflow:hidden}
-.label{position:absolute;bottom:4px;left:6px;font-size:9px;color:#fff;background:rgba(0,0,0,0.5);padding:2px 6px;border-radius:3px;z-index:2}
-/* Background pattern behind all cards */
+body{background:#1a1a2e;font-family:-apple-system,sans-serif;color:#eee;padding:16px;min-height:100vh}
+h2{font-size:14px;margin:18px 0 10px;color:#aaa}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.card{position:relative;height:110px;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.label{position:absolute;bottom:3px;left:5px;font-size:8px;color:#fff;background:rgba(0,0,0,0.6);padding:2px 5px;border-radius:3px;max-width:95%;line-height:1.2}
+.hero{font-size:28px;z-index:1}
 .bg-pattern{position:fixed;inset:0;z-index:-1;pointer-events:none;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cline x1='0' y1='20' x2='40' y2='20' stroke='%23ffffff' stroke-width='0.8' opacity='0.25'/%3E%3Cline x1='20' y1='0' x2='20' y2='40' stroke='%23ffffff' stroke-width='0.8' opacity='0.25'/%3E%3C/svg%3E");
   background-size:30px 30px}
-/* Card backgrounds */
-.hero{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:24px;z-index:1}
-/* 1. Standard backdrop-filter */
-.g1{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:rgba(255,255,255,0.1)}
-/* 2. backdrop-filter + isolation */
-.g2{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:rgba(255,255,255,0.1);isolation:isolate}
-/* 3. Inside transform parent */
-.g3-wrap{transform:scale(1)}.g3{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:rgba(255,255,255,0.1)}
-/* 4. CSS filter blur on pseudo-element */
-.g4{background:transparent}.g4::before{content:'';position:absolute;inset:0;background:inherit;filter:blur(8px);-webkit-filter:blur(8px)}
-/* 5. backdrop-filter + opacity < 1 */
-.g5{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:rgba(255,255,255,0.1);opacity:0.99}
-/* 6. rgba only (no blur) */
-.g6{background:rgba(255,255,255,0.15)}
-/* 7. Canvas-based blur */
-.g7{background:transparent}.g7 canvas{position:absolute;inset:0;width:100%;height:100%}
-/* 8. backdrop-filter on fixed element behind */
-.g8-bg{position:fixed;z-index:-1;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:rgba(255,255,255,0.05)}
-.g8{z-index:auto;position:relative}
-/* 9. Colored tint variants */
-.g9{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:rgba(68,68,68,0.5)}
-.g10{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:rgba(30,60,120,0.4)}
+
+/* ── Blur radius variants (white tint 15%) ── */
+.b4{backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);background:rgba(255,255,255,0.15)}
+.b6{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);background:rgba(255,255,255,0.15)}
+.b8{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:rgba(255,255,255,0.15)}
+.b12{backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);background:rgba(255,255,255,0.15)}
+.b20{backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);background:rgba(255,255,255,0.15)}
+
+/* ── Opacity variants (blur 8px) ── */
+.o05{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:rgba(255,255,255,0.05)}
+.o10{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:rgba(255,255,255,0.10)}
+.o20{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:rgba(255,255,255,0.20)}
+.o35{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:rgba(255,255,255,0.35)}
+.o50{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:rgba(255,255,255,0.50)}
+
+/* ── Dark tint variants (blur 8px) ── */
+.d10{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:rgba(0,0,0,0.10)}
+.d20{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:rgba(0,0,0,0.20)}
+.d35{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:rgba(0,0,0,0.35)}
+.d50{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:rgba(0,0,0,0.50)}
+
+/* ── Colored tint (blur 8px) ── */
+.blue{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:rgba(30,60,140,0.25)}
+.warm{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:rgba(140,80,30,0.25)}
+
+/* ── combo: dark + moderate blur ── */
+.c1{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);background:rgba(0,0,0,0.20)}
+.c2{backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);background:rgba(0,0,0,0.25)}
+.c3{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:rgba(0,0,0,0.15)}
+
+/* ── No-blur controls ── */
+.nb1{background:rgba(255,255,255,0.15)}
+.nb2{background:rgba(0,0,0,0.25)}
 </style>
 </head>
 <body>
 <div class="bg-pattern"></div>
 
-<h2>Frosted Glass — 7 Techniques (iPad Safari)</h2>
-
+<h2>Blur Radius (white 15%)</h2>
 <div class="grid">
-  <div class="card g1"><span class="label">1: backdrop-filter standard</span><span class="hero">🔍</span></div>
-  <div class="card g2"><span class="label">2: +isolation:isolate</span><span class="hero">🔍</span></div>
-  <div class="card g3-wrap"><div class="card g3"><span class="label">3: inside transform:scale(1)</span><span class="hero">❌</span></div></div>
-  <div class="card g4"><span class="label">4: CSS filter blur</span><span class="hero">🔍</span></div>
-  <div class="card g5"><span class="label">5: +opacity:0.99</span><span class="hero">🔍</span></div>
-  <div class="card g6"><span class="label">6: rgba only (no blur)</span><span class="hero">👀</span></div>
-  <div class="card g7" id="g7"><span class="label">7: Canvas ctx.filter blur</span></div>
-  <div class="card g8"><span class="label">8: blur on bg element</span><span class="hero">🔍</span></div>
-  <div class="card g9"><span class="label">9: dark tint (50%)</span><span class="hero">🌙</span></div>
-  <div class="card g10"><span class="label">10: blue tint (40%)</span><span class="hero">💧</span></div>
+  <div class="card b4"><span class="label">blur:4px</span><span class="hero">🔍</span></div>
+  <div class="card b6"><span class="label">blur:6px</span><span class="hero">🔍</span></div>
+  <div class="card b8"><span class="label">blur:8px</span><span class="hero">🔍</span></div>
+  <div class="card b12"><span class="label">blur:12px</span><span class="hero">🔍</span></div>
+  <div class="card b20"><span class="label">blur:20px</span><span class="hero">🔍</span></div>
 </div>
 
-<div class="g8-bg" id="g8bg" style="display:none"></div>
+<h2>Opacity — White Tint (blur 8px)</h2>
+<div class="grid">
+  <div class="card o05"><span class="label">white 5%</span><span class="hero">👻</span></div>
+  <div class="card o10"><span class="label">white 10%</span><span class="hero">👻</span></div>
+  <div class="card o20"><span class="label">white 20%</span><span class="hero">👻</span></div>
+  <div class="card o35"><span class="label">white 35%</span><span class="hero">👻</span></div>
+  <div class="card o50"><span class="label">white 50%</span><span class="hero">👻</span></div>
+</div>
 
-<script>
-// 7: Canvas-based blur — capture bg pattern to canvas, blur, overlay
-(function(){
-  var card = document.getElementById('g7');
-  var cv = document.createElement('canvas');
-  card.appendChild(cv);
+<h2>Opacity — Dark Tint (blur 8px)</h2>
+<div class="grid">
+  <div class="card d10"><span class="label">dark 10%</span><span class="hero">🌙</span></div>
+  <div class="card d20"><span class="label">dark 20%</span><span class="hero">🌙</span></div>
+  <div class="card d35"><span class="label">dark 35%</span><span class="hero">🌙</span></div>
+  <div class="card d50"><span class="label">dark 50%</span><span class="hero">🌙</span></div>
+</div>
 
-  function draw(){
-    var rect = card.getBoundingClientRect();
-    cv.width = rect.width * 2;
-    cv.height = rect.height * 2;
-    cv.style.width = rect.width + 'px';
-    cv.style.height = rect.height + 'px';
-
-    var ctx = cv.getContext('2d');
-    // Fill with tint (simulates semi-transparent glass)
-    ctx.fillStyle = 'rgba(255,255,255,0.1)';
-    ctx.fillRect(0, 0, cv.width, cv.height);
-    // Apply blur filter (if supported)
-    if (typeof ctx.filter !== 'undefined') {
-      ctx.filter = 'blur(16px)';
-      // Re-fill to apply blur to the fill
-      ctx.fillStyle = 'rgba(255,255,255,0.08)';
-      ctx.fillRect(0, 0, cv.width, cv.height);
-      ctx.filter = 'none';
-    }
-    // Draw icon
-    ctx.fillStyle = '#fff';
-    ctx.font = '24px -apple-system';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('🎨', cv.width/2, cv.height/2);
-  }
-  draw();
-  window.addEventListener('resize', draw);
-})();
-
-// 8: Backdrop-filter on a separate fixed bg element
-(function(){
-  var bg = document.getElementById('g8bg');
-  // Position the bg behind card 8 (simplified — just show the concept)
-  var card8 = document.querySelector('.g8');
-  function updateBg(){
-    var r = card8.getBoundingClientRect();
-    bg.style.left = r.left + 'px';
-    bg.style.top = r.top + 'px';
-    bg.style.width = r.width + 'px';
-    bg.style.height = r.height + 'px';
-    bg.style.display = 'block';
-    bg.style.borderRadius = '12px';
-  }
-  updateBg();
-  window.addEventListener('resize', updateBg);
-  window.addEventListener('scroll', updateBg);
-})();
-</script>
+<h2>Combos + Color + Controls</h2>
+<div class="grid">
+  <div class="card c1"><span class="label">blur:6 dark20%</span><span class="hero">🌟</span></div>
+  <div class="card c2"><span class="label">blur:10 dark25%</span><span class="hero">🌟</span></div>
+  <div class="card c3"><span class="label">blur:8 dark15%</span><span class="hero">🌟</span></div>
+  <div class="card blue"><span class="label">blue tint 25%</span><span class="hero">💧</span></div>
+  <div class="card warm"><span class="label">warm tint 25%</span><span class="hero">🔥</span></div>
+  <div class="card nb1"><span class="label">NO BLUR white15%</span><span class="hero">🚫</span></div>
+  <div class="card nb2"><span class="label">NO BLUR dark25%</span><span class="hero">🚫</span></div>
+</div>
 </body>
 </html>
