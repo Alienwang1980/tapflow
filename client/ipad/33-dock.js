@@ -43,7 +43,7 @@ function _drawDockGrid(canvas, apps) {
   // Background from key config
   var bgColor = (canvas._dockKey && (canvas._dockKey.bgColor || canvas._dockKey.color)) || null;
   var bgOpacity = (canvas._dockKey && canvas._dockKey.bgOpacity !== undefined) ? canvas._dockKey.bgOpacity : 0.15;
-  if (bgColor) {
+  if (bgColor && bgOpacity > 0.001) {
     ctx.fillStyle = bgColor;
     ctx.globalAlpha = bgOpacity;
     ctx.fillRect(0, 0, w, h);

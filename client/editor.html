@@ -755,7 +755,7 @@ function _drawEditorDock(canvas, key) {
     // Background from key config
     var bgColor = key.bgColor || key.color || null;
     var bgOpacity = key.bgOpacity !== undefined ? key.bgOpacity : 0.15;
-    if (bgColor) {
+    if (bgColor && bgOpacity > 0.001) {
       ctx.fillStyle = bgColor;
       ctx.globalAlpha = bgOpacity;
       ctx.fillRect(0, 0, w, h);
