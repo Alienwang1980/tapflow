@@ -41,8 +41,8 @@ function _drawDockGrid(canvas, apps) {
   var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
   ctx.clearRect(0, 0, w, h);
   // Background from key config
-  var bgColor = (canvas._dockKey && canvas._dockKey.bgColor) || null;
-  var bgOpacity = (canvas._dockKey && canvas._dockKey.bgOpacity !== undefined) ? canvas._dockKey.bgOpacity : 0.3;
+  var bgColor = (canvas._dockKey && (canvas._dockKey.bgColor || canvas._dockKey.color)) || null;
+  var bgOpacity = (canvas._dockKey && canvas._dockKey.bgOpacity !== undefined) ? canvas._dockKey.bgOpacity : 0.15;
   if (bgColor) {
     ctx.fillStyle = bgColor;
     ctx.globalAlpha = bgOpacity;
