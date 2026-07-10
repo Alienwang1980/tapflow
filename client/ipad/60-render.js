@@ -31,12 +31,12 @@ function render(){
     if(k.action==="dock"){
       el.style.background="transparent";
       el.style.webkitMaskImage="radial-gradient(circle,black 100%,black 100%)";
-      // Frosted glass: position a blur div at dock's viewport coordinates
+      // Frosted glass: blur layer BEHIND canvas content
       var _gb = document.getElementById('glass-bg');
       if (!_gb._dockBlur) {
         _gb._dockBlur = document.createElement('div');
-        _gb._dockBlur.style.cssText = 'position:absolute;pointer-events:none;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:'+br+';z-index:0';
-        _gb.appendChild(_gb._dockBlur);
+        _gb._dockBlur.style.cssText = 'position:absolute;pointer-events:none;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:'+br+';z-index:-1';
+        _gb.insertBefore(_gb._dockBlur, _gb.firstChild);
       }
       // Convert canvas coords to viewport coords
       var _vr = document.getElementById('wrap').getBoundingClientRect();
