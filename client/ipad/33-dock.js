@@ -113,12 +113,12 @@ function _onDockTouchEnd(e, canvas) {
 }
 function _fetchAndDrawDock(canvas) {
   // Clear any existing timer on this canvas
-  if (canvas._dockTimer) { clearInterval(canvas._dockTimer); canvas._dockTimer = null; }
+  if (canvas._dockTimer) { clearTimeout(canvas._dockTimer); canvas._dockTimer = null; }
   function _doFetch() {
     fetch("/api/system/dock-items").then(function(r){return r.json()}).then(function(d){
       if (d && d.length > 0) { if (!canvas._dockIcons) canvas._dockIcons = {}; _drawDockGrid(canvas, d); }
-    }).catch(function(e){ console.log("dock fetch err:",e); });
+    }).catch(function(e){ console.log("dock err:",e); })
+    .finally(function(){ canvas._dockTimer = setTimeout(_doFetch, 2000); });
   }
   _doFetch();
-  canvas._dockTimer = setInterval(_doFetch, 2000);
 }
