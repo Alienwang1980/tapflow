@@ -374,3 +374,91 @@ function _fetchAndDrawAudioDevs(canvas, type) {
     _drawAudioDevices(canvas, filtered, type);
   }).catch(function(){});
 }
+
+// ── Dynamic Collection: Layout Presets ──
+
+function _drawLayoutPresets(canvas, layouts) {
+  var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.fillRect(0, 0, w, h);
+  
+  if (!layouts || !layouts.length) {
+    ctx.fillStyle = "#888";
+    ctx.font = Math.max(10, h * 0.12) + "px -apple-system,sans-serif";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText("No presets", w/2, h/2);
+    canvas._lyItems = []; canvas._lyScroll = 0;
+    return;
+  }
+  
+  var rowH = Math.max(28, Math.min(40, h / 5));
+  canvas._lyRowH = rowH; canvas._lyItems = layouts;
+  canvas._lyMaxScroll = Math.max(0, layouts.length * rowH - h);
+  if (!canvas._lyScroll) canvas._lyScroll = 0;
+  if (canvas._lyScroll > canvas._lyMaxScroll) canvas._lyScroll = canvas._lyMaxScroll;
+  
+  ctx.save();
+  ctx.beginPath(); ctx.rect(0, 0, w, h); ctx.clip();
+  
+  var scrollY = canvas._lyScroll;
+  var fs = Math.max(8, Math.min(rowH * 0.38, w * 0.04));
+  ctx.font = fs + "px -apple-system,sans-serif";
+  ctx.textBaseline = "middle";
+  
+  for (var i = 0; i < layouts.length; i++) {
+    var y = i * rowH - scrollY;
+    if (y + rowH < 0 || y > h) continue;
+    var l = layouts[i];
+    ctx.fillStyle = "rgba(255,255,255,0.04)";
+    ctx.fillRect(0, y, w, rowH);
+    
+    ctx.fillStyle = "#ccc"; ctx.textAlign = "left";
+    ctx.fillText(l.name, 8, y + rowH/2);
+    
+    // Apply button
+    var bw = w * 0.25, bh = rowH * 0.7, bx = w - bw - 8, by = y + (rowH - bh)/2;
+    ctx.fillStyle = "rgba(74,222,128,0.15)";
+    ctx.fillRect(bx, by, bw, bh);
+    ctx.fillStyle = "#4ade80"; ctx.textAlign = "center";
+    ctx.fillText("Apply", bx + bw/2, by + bh/2);
+  }
+  ctx.restore();
+}
+
+function _onLayoutTap(e, canvas) {
+  var rect = canvas.getBoundingClientRect();
+  var y = ((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) * (canvas.width / rect.width);
+  var idx = Math.floor((y + canvas._lyScroll) / canvas._lyRowH);
+  var items = canvas._lyItems;
+  if (items && idx >= 0 && idx < items.length) {
+    fetch("/api/system/layouts/apply", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({name: items[idx].name})}).catch(function(){});
+  }
+}
+
+var _lyTouchStartY = 0, _lyTouchStartScroll = 0, _lyTouchMoved = false;
+
+function _onLayoutTouchStart(e, canvas) {
+  var t = e.touches ? e.touches[0] : e;
+  _lyTouchStartY = t.clientY;
+  _lyTouchStartScroll = canvas._lyScroll || 0;
+  _lyTouchMoved = false;
+}
+
+function _onLayoutTouchMove(e, canvas) {
+  if (!canvas._lyMaxScroll) return;
+  var t = e.touches ? e.touches[0] : e;
+  var dy = _lyTouchStartY - t.clientY;
+  if (Math.abs(dy) > 3) _lyTouchMoved = true;
+  canvas._lyScroll = Math.max(0, Math.min(canvas._lyMaxScroll, _lyTouchStartScroll + dy));
+  _drawLayoutPresets(canvas, canvas._lyItems);
+}
+
+function _onLayoutTouchEnd(e, canvas) {
+  if (!_lyTouchMoved) _onLayoutTap(e, canvas);
+}
+
+function _fetchAndDrawLayouts(canvas) {
+  fetch("/api/system/layouts").then(function(r){return r.json()}).then(function(d){
+    _drawLayoutPresets(canvas, d);
+  }).catch(function(){});
+}
