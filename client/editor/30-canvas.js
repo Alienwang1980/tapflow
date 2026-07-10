@@ -51,11 +51,11 @@ const ftb=document.getElementById("ftb");var btb=document.getElementById("btb");
     var _fs=Math.max(8,_h*0.18);_c.font=_fs+"px -apple-system,sans-serif";_c.textAlign="center";_c.textBaseline="middle";
     _c.fillStyle="#ccc";_c.fillText("Full",_bw/2,_bh/2);_c.fillText("Min",_bw*1.5,_bh/2);_c.fillText("MC",_bw/2,_bh*1.5);_c.fillText("Desk",_bw*1.5,_bh*1.5);
     el.appendChild(_cv);var _rh=document.createElement("div");_rh.className="rh";el.appendChild(_rh)}else if(k.action==="dock"){
-    var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";
-    var _c=_cv.getContext("2d"),_w=_cv.width,_h=_cv.height;
-    _c.fillStyle="rgba(0,0,0,0.3)";_c.fillRect(0,0,_w,_h);
-    var _rhh=Math.max(12,_h/6);
-    for(var _i=0;_i<Math.min(5,Math.floor(_h/_rhh));_i++){var _y=_i*_rhh+4;_c.fillStyle=_i<2?"#4ade80":"#555";_c.beginPath();_c.arc(10,_y+_rhh/2,4,0,Math.PI*2);_c.fill();_c.fillStyle=_i<2?"#e8e0d8":"#8b8078";var _fs=Math.max(7,_rhh*0.4);_c.font=_fs+"px -apple-system,sans-serif";_c.textAlign="left";_c.fillText("App "+(_i+1),22,_y+_rhh/2+_fs*0.3)}
+    var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;
+    _cv.style.borderRadius=(k.borderRadius!==undefined?k.borderRadius:10)/100*Math.min(kw-8,kh-8)+"px";
+    el.appendChild(_cv);
+    // Load real dock data for preview
+    _drawEditorDock(_cv, k);
     el.appendChild(_cv);var _rh=document.createElement("div");_rh.className="rh";el.appendChild(_rh)}else if(k.action==="app-menu"){
     var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";
     var _c=_cv.getContext("2d"),_w=_cv.width,_h=_cv.height;
@@ -282,3 +282,84 @@ function onFDev(){const d=DEVS[document.getElementById("fdev").value];if(d&&prof
 
 
 function onDev(){} // removed — use onFDev from frame toolbar
+// ── Editor dock preview (fetches real data) ──
+var _editorDockCache = {};
+function _drawEditorDock(canvas, key) {
+  var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
+  // Draw background from key config
+  ctx.clearRect(0, 0, w, h);
+  var bgColor = key.bgColor || key.color || null;
+  var bgOpacity = key.bgOpacity !== undefined ? key.bgOpacity : 0.15;
+  if (bgColor) {
+    ctx.fillStyle = bgColor;
+    ctx.globalAlpha = bgOpacity;
+    ctx.fillRect(0, 0, w, h);
+    ctx.globalAlpha = 1;
+  }
+  // Loading text
+  ctx.fillStyle = "#888";
+  ctx.font = Math.max(8, h*0.3) + "px -apple-system,sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("Loading...", w/2, h/2);
+  // Fetch real dock data
+  fetch("/api/system/dock-items").then(function(r){return r.json()}).then(function(apps){
+    if (!apps || !apps.length) { ctx.clearRect(0,0,w,h); ctx.fillText("No dock items", w/2, h/2); return; }
+    var iconSize = Math.max(16, Math.min(40, h * 0.55));
+    var gap = 4, itemW = iconSize + gap * 2;
+    var maxScroll = Math.max(0, apps.length * itemW - w);
+    // Fit all if needed
+    if (maxScroll > 0) { var scale = w / (apps.length * itemW); iconSize *= scale; gap *= scale; itemW *= scale; }
+    ctx.clearRect(0, 0, w, h);
+    if (bgColor) { ctx.fillStyle = bgColor; ctx.globalAlpha = bgOpacity; ctx.fillRect(0,0,w,h); ctx.globalAlpha = 1; }
+    var fs = Math.max(6, iconSize * 0.18);
+    ctx.font = fs + "px -apple-system,sans-serif";
+    ctx.textAlign = "center";
+    for (var i = 0; i < apps.length; i++) {
+      var x = i * itemW + gap;
+      if (x + iconSize > w) break;
+      var a = apps[i];
+      var iconY = (h - iconSize - fs - 4) / 2;
+      // Running dot
+      if (a.running) {
+        ctx.fillStyle = "#4ade80";
+        ctx.beginPath(); ctx.arc(x + iconSize/2, iconY - 2, 3, 0, Math.PI*2); ctx.fill();
+      }
+      // Icon
+      var cacheKey = a.bundle || a.name;
+      if (!_editorDockCache[cacheKey]) {
+        var img = new Image();
+        img.src = "/api/system/app-icon?name=" + encodeURIComponent(cacheKey);
+        _editorDockCache[cacheKey] = img;
+      }
+      var cachedImg = _editorDockCache[cacheKey];
+      if (cachedImg && cachedImg.complete && cachedImg.naturalWidth > 0) {
+        ctx.drawImage(cachedImg, x, iconY, iconSize, iconSize);
+      } else {
+        ctx.fillStyle = "#3a3a3a";
+        ctx.fillRect(x, iconY, iconSize, iconSize);
+        var initFs = Math.max(10, iconSize * 0.45);
+        ctx.font = "bold " + initFs + "px -apple-system,sans-serif";
+        ctx.fillStyle = "#888"; ctx.textBaseline = "middle";
+        ctx.fillText(a.name.charAt(0).toUpperCase(), x + iconSize/2, iconY + iconSize/2);
+      }
+      // Label
+      ctx.fillStyle = "#aaa"; ctx.font = fs + "px -apple-system,sans-serif";
+      ctx.textBaseline = "top";
+      var label = a.name.length > 8 ? a.name.substring(0,7)+".." : a.name;
+      ctx.fillText(label, x + iconSize/2, iconY + iconSize + 1);
+    }
+    // Redraw when icons load
+    if (!canvas._edDockRetry) {
+      canvas._edDockRetry = setInterval(function(){
+        var allLoaded = true;
+        for (var j = 0; j < apps.length; j++) {
+          var ck = apps[j].bundle || apps[j].name;
+          var ci = _editorDockCache[ck];
+          if (!ci || !ci.complete || ci.naturalWidth <= 0) { allLoaded = false; break; }
+        }
+        _drawEditorDock(canvas, key);
+        if (allLoaded && canvas._edDockRetry) { clearInterval(canvas._edDockRetry); canvas._edDockRetry = null; }
+      }, 2000);
+    }
+  }).catch(function(){ ctx.clearRect(0,0,w,h); ctx.fillText("Dock unavailable", w/2, h/2); });
+}
