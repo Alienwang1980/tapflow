@@ -90,9 +90,101 @@ function _drawMuteIcon(canvas, muted) {
   canvas._volMuted = muted;
 }
 
+// ── Volume Slider + Mute (combined widget) ──
+
 function _drawVolume(canvas, value, muted) {
-  _drawVolumeSlider(canvas, value, muted);
-  _drawMuteIcon(canvas, muted);
+  var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  // Mute button area (right side, square)
+  var muteW = h - 4;
+  var muteX = w - muteW - 2;
+  canvas._muteX = muteX; canvas._muteW = muteW;
+  // Separator
+  ctx.strokeStyle = "rgba(255,255,255,0.12)"; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(muteX - 1, 4); ctx.lineTo(muteX - 1, h - 4); ctx.stroke();
+  // Mute icon
+  var icx = muteX + muteW/2, icy = h/2;
+  ctx.fillStyle = muted ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.05)";
+  ctx.fillRect(muteX, 2, muteW, h - 4);
+  ctx.fillStyle = muted ? "#ef4444" : "#888";
+  ctx.font = Math.max(8, muteW*0.35) + "px -apple-system,sans-serif";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText("M", icx, icy);
+  if (muted) {
+    ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(icx-6, icy-6); ctx.lineTo(icx+6, icy+6); ctx.stroke();
+  }
+  // Slider
+  var displayVal = muted ? 0 : value;
+  var margin = 4, barH = Math.max(8, h * 0.35);
+  var barY = (h - barH) / 2, barW = muteX - margin - 4;
+  ctx.fillStyle = "rgba(255,255,255,0.1)";
+  ctx.fillRect(margin, barY, barW, barH);
+  var fillW = barW * (displayVal / 100);
+  var g = ctx.createLinearGradient(margin, 0, margin + barW, 0);
+  g.addColorStop(0, "#4ade80"); g.addColorStop(1, "#22c55e");
+  ctx.fillStyle = muted ? "rgba(239,68,68,0.3)" : g;
+  ctx.fillRect(margin, barY, fillW, barH);
+  ctx.fillStyle = "#fff"; ctx.beginPath();
+  ctx.arc(margin + fillW, barY + barH/2, barH * 0.6, 0, Math.PI*2); ctx.fill();
+  var fs = Math.max(9, h * 0.3);
+  ctx.fillStyle = muted ? "#ef4444" : "#aaa";
+  ctx.font = "bold " + fs + "px -apple-system,sans-serif";
+  ctx.textAlign = "left"; ctx.textBaseline = "bottom";
+  ctx.fillText(muted ? "MUTED" : Math.round(value) + "%", margin, barY - 2);
+  // Store state
+  canvas._volValue = value; canvas._volMuted = muted;
+  canvas._volMargin = margin; canvas._volBarW = barW;
+}
+
+function _onVolumeTouchStart(e, canvas) {
+  e.stopPropagation();
+  var rect = canvas.getBoundingClientRect();
+  var x = ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) * (canvas.width / rect.width);
+  // Mute button area
+  if (x >= (canvas._muteX || 999)) {
+    fetch("/api/system/mute", {method:"POST"}).then(function(r){return r.json()}).then(function(d){
+      _drawVolume(canvas, canvas._volValue || 50, d.muted);
+    }).catch(function(){});
+    return;
+  }
+  // Slider
+  canvas._volDragging = true;
+  var v = Math.round(((x - canvas._volMargin) / canvas._volBarW) * 100);
+  v = Math.max(0, Math.min(100, v));
+  canvas._volValue = v;
+  _drawVolume(canvas, v, false);
+  fetch("/api/system/volume", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({value:v})}).catch(function(){});
+}
+
+function _onVolumeTouchMove(e, canvas) {
+  e.stopPropagation();
+  if (!canvas._volDragging) return;
+  var rect = canvas.getBoundingClientRect();
+  var x = ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) * (canvas.width / rect.width);
+  var v = Math.round(((x - canvas._volMargin) / canvas._volBarW) * 100);
+  v = Math.max(0, Math.min(100, v));
+  canvas._volValue = v;
+  _drawVolume(canvas, v, false);
+  fetch("/api/system/volume", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({value:v})}).catch(function(){});
+}
+
+function _onVolumeTouchEnd(e, canvas) {
+  canvas._volDragging = false;
+}
+
+function _fetchAndDrawVolume(canvas) {
+  // Defaults so touch works immediately
+  canvas._volValue = canvas._volValue || 50;
+  canvas._volMargin = 4; canvas._volBarW = canvas.width - canvas._muteX - 8 || canvas.width * 0.7;
+  canvas._muteX = canvas._muteX || (canvas.width - canvas.height + 2);
+  canvas._muteW = canvas._muteW || (canvas.height - 4);
+  _drawVolume(canvas, canvas._volValue, false);
+  // Fetch actual state from system
+  fetch("/api/system/volume").then(function(r){return r.json()}).then(function(d){
+    canvas._volValue = d.output_volume; canvas._volMuted = d.output_muted;
+    _drawVolume(canvas, d.output_volume, d.output_muted);
+  }).catch(function(){ _drawVolume(canvas, canvas._volValue, false); });
 }
 
 function _onVolumeTouchStart(e, canvas) {
