@@ -218,7 +218,14 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
   <button class="btn-new" onclick="resetDefault()">Reset</button><button class="btn-new" onclick="copyStyle()">&#x2398; Copy Style</button><button class="btn-new" onclick="pasteStyle()">&#x2399; Paste Style</button>
 </div>
 <div class="main">
-<div class="rp" id="lp-panel"></div>
+<div class="rp" id="lp-panel">
+    <div id="rp-clipboard" class="rp-section">
+        <h3>Clipboard</h3>
+        <p style="font-size:10px;color:var(--dim);margin-bottom:8px">Copy keys then drag to canvas</p>
+        <div class="clip-preview" style="min-height:48px;background:var(--card);border-radius:6px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;margin-bottom:8px;transition:all 0.15s"></div>
+        <button onclick="_copyToClipboard()" style="width:100%;padding:6px 12px;border-radius:6px;border:1px solid var(--accent);background:rgba(217,119,6,0.15);color:var(--accent);cursor:pointer;font-size:11px;font-weight:600">Copy Selected</button>
+    </div>
+</div>
 <div class="carea" id="carea"><div id="tl" style="position:absolute;inset:0;pointer-events:none;z-index:0;display:none"></div>
   <div class="gh" id="gh"></div>
   <div class="ftb" id="ftb"><select id="fdev" onchange="onFDev()"><option value="iPad 11&quot;" selected>iPad 11"</option><option value="iPad 4:3">iPad 4:3</option><option value="iPad mini">iPad mini</option><option value="Android 16:10">Android 16:10</option></select><button class="btn-ori" onclick="toggleOri()" title="Toggle"><svg width="16" height="16" viewBox="0 0 48 48" fill="none" style="vertical-align:middle"><path d="M4 24C4 35.0457 12.9543 44 24 44L19 39" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M44 24C44 12.9543 35.0457 4 24 4L29 9" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M30 41L7 18L18 7L41 30L30 41Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
@@ -240,10 +247,11 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
       <div class="rp-section">
         <h3>Groups <button id="btnSaveGroup" onclick="saveAsGroup()" style="font-size:10px;padding:2px 8px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;float:right">+ Group</button></h3>
         <div id="grpl"><p style="font-size:10px;color:var(--dim);padding:8px 0">No groups</p></div>
+      </div>
       <div class="rp-divider"></div>
-      <div class="rp-section" id="rp-clipboard-section">
+      <div id="rp-clipboard-section" class="rp-section">
         <h3>Clipboard</h3>
-        <p style="font-size:10px;color:var(--dim);margin-bottom:8px">Select keys → Copy</p>
+        <p style="font-size:10px;color:var(--dim);margin-bottom:8px">Select keys and click Copy</p>
         <div class="clip-preview" style="aspect-ratio:1;max-width:180px;background:var(--card);border-radius:6px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;margin-bottom:8px;transition:all 0.15s"></div>
         <button onclick="_copyToClipboard()" style="width:100%;padding:6px 12px;border-radius:6px;border:1px solid var(--accent);background:rgba(217,119,6,0.15);color:var(--accent);cursor:pointer;font-size:11px;font-weight:600">Copy Selected</button>
       </div>
