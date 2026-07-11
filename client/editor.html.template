@@ -82,7 +82,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
   user-select:none;overflow:visible;
 }
 .ck:hover{border-color:rgba(255,255,255,0.2)}
-.ck:active{transform:scale(0.95)}
+.ck:active{}
 .ck.sel{border-color:var(--accent)!important;box-shadow:0 0 16px rgba(217,119,6,0.3)}
 .ck .kl{pointer-events:none;text-align:center;line-height:1.2;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .ck .sz{position:absolute;top:2px;right:4px;font-size:8px;color:rgba(255,255,255,0.2);pointer-events:none}
