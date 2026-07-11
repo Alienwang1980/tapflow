@@ -134,15 +134,38 @@ def press_key(key_combo: str):
 
 
 def press_key_down(key_combo: str):
-    """Press key down (hold)."""
-    key_code, flags = _parse_key_combo(key_combo)
-    _post_key_event(key_code, True, flags)
+    """Press key down (hold) — supports multi-key simul."""
+    parts = [p.strip() for p in key_combo.upper().split('+')]
+    mods, keys = [], []
+    for p in parts:
+        if p in MODIFIER_FLAGS: mods.append(p)
+        else: keys.append(p)
+    flags = 0
+    for mod in mods:
+        flags |= MODIFIER_FLAGS.get(mod, 0)
+        mod_code = KEYCODE_MAP.get(mod)
+        if mod_code: _post_key_event(mod_code, True, 0)
+    for k in keys:
+        kc = KEYCODE_MAP.get(k)
+        if kc: _post_key_event(kc, True, flags)
 
 
 def release_key(key_combo: str):
-    """Release key."""
-    key_code, flags = _parse_key_combo(key_combo)
-    _post_key_event(key_code, False, flags)
+    """Release key — supports multi-key simul."""
+    parts = [p.strip() for p in key_combo.upper().split('+')]
+    mods, keys = [], []
+    for p in parts:
+        if p in MODIFIER_FLAGS: mods.append(p)
+        else: keys.append(p)
+    flags = 0
+    for mod in mods:
+        flags |= MODIFIER_FLAGS.get(mod, 0)
+    for k in reversed(keys):
+        kc = KEYCODE_MAP.get(k)
+        if kc: _post_key_event(kc, False, flags)
+    for mod in reversed(mods):
+        mod_code = KEYCODE_MAP.get(mod)
+        if mod_code: _post_key_event(mod_code, False, 0)
 
 
 def _post_key_event(key_code: int, down: bool, flags: int = 0):
