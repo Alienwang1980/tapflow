@@ -200,6 +200,12 @@ def handle_key_action(action: dict) -> str:
                         _post_key_event(kc, True, flags)
                     time.sleep(0.02)
             else:
+                # Release all modifiers first to clear any stuck state
+                from input_engine import _MOD_NAMES as _MN2
+                for mn in ['LCOMMAND','RCOMMAND','LSHIFT','RSHIFT','LCONTROL','RCONTROL','LOPTION','ROPTION','FN']:
+                    try: release_key(mn)
+                    except: pass
+                time.sleep(0.03)
                 for p in parts:
                     press_key_down(p)
                     time.sleep(0.02)

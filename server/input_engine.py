@@ -122,6 +122,7 @@ def press_key(key: str):
                 time.sleep(0.02)
     else:
         press_key_down(key)
+        import time; time.sleep(0.02)
         release_key(key)
 
 
