@@ -9,7 +9,6 @@ logger = logging.getLogger("stp.input")
 try:
     from Quartz.CoreGraphics import (
         CGEventCreateKeyboardEvent, CGEventPost, CGEventSetFlags,
-        kCGHIDEventTap,
     )
     HAVE_QUARTZ = True
 except ImportError:
@@ -153,7 +152,7 @@ def _post_key_event(key_code: int, down: bool, flags: int = 0):
     event = CGEventCreateKeyboardEvent(None, key_code, down)
     if flags:
         CGEventSetFlags(event, flags)
-    CGEventPost(kCGHIDEventTap, event)
+    CGEventPost(0, event)
 
 
 def is_accessibility_enabled() -> bool:
@@ -184,7 +183,7 @@ def move_mouse(dx, dy, drag=False):
     # Post move/drag event so apps see real-time selection updates
     evt_type = kCGEventLeftMouseDragged if drag else kCGEventMouseMoved
     event = CGEventCreateMouseEvent(None, evt_type, (new_x, new_y), kCGMouseButtonLeft)
-    CGEventPost(kCGHIDEventTap, event)
+    CGEventPost(0, event)
 
 
 def mouse_down(button="left"):
@@ -203,7 +202,7 @@ def mouse_down(button="left"):
     btn = kCGMouseButtonRight if button == "right" else kCGMouseButtonLeft
     evt_type = kCGEventRightMouseDown if button == "right" else kCGEventLeftMouseDown
     event = CGEventCreateMouseEvent(None, evt_type, pos, btn)
-    CGEventPost(kCGHIDEventTap, event)
+    CGEventPost(0, event)
 
 def mouse_up(button="left"):
     """Release mouse button."""
@@ -221,7 +220,7 @@ def mouse_up(button="left"):
     btn = kCGMouseButtonRight if button == "right" else kCGMouseButtonLeft
     evt_type = kCGEventRightMouseUp if button == "right" else kCGEventLeftMouseUp
     event = CGEventCreateMouseEvent(None, evt_type, pos, btn)
-    CGEventPost(kCGHIDEventTap, event)
+    CGEventPost(0, event)
 
 def click_mouse(button="left"):
     """Click mouse button at current position (left or right)."""
@@ -259,7 +258,7 @@ def scroll_mouse(dx, dy):
         return
     from Quartz.CoreGraphics import CGEventCreateScrollWheelEvent
     event = CGEventCreateScrollWheelEvent(None, 0, 1, int(dy))
-    CGEventPost(kCGHIDEventTap, event)
+    CGEventPost(0, event)
 
 
 def type_text(text: str):
