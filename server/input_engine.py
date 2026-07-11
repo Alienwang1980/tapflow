@@ -115,14 +115,18 @@ def press_key(key_combo: str):
         flags |= MODIFIER_FLAGS.get(mod, 0)
     
     # Press all main keys (with full modifier flags), then release in reverse
+    # Tiny delay between events prevents CGEvent coalescing
+    import time as _time
     for k in keys:
         kc = KEYCODE_MAP.get(k)
         if kc:
             _post_key_event(kc, True, flags)
+            _time.sleep(0.005)  # 5ms between key-down events
     for k in reversed(keys):
         kc = KEYCODE_MAP.get(k)
         if kc:
             _post_key_event(kc, False, flags)
+            _time.sleep(0.005)
     
     # Release modifiers in reverse
     for mod in reversed(mods):
