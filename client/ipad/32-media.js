@@ -7,8 +7,23 @@ function _onVolumeTouchStart(e,canvas){e.stopPropagation();var rect=canvas.getBo
 function _onVolumeTouchMove(e,canvas){e.stopPropagation();if(!canvas._volDragging)return;var rect=canvas.getBoundingClientRect();var tx=((e.touches?e.touches[0].clientX:e.clientX)-rect.left)*(canvas.width/rect.width);var ty=((e.touches?e.touches[0].clientY:e.clientY)-rect.top)*(canvas.height/rect.height);var isVert3=canvas._volLayout==="vertical";var pos=isVert3?ty:tx;var v=Math.round((1-(isVert3?pos/canvas._volBarLen:pos/canvas._volBarLen))*100);v=Math.max(0,Math.min(100,v));canvas._volValue=v;_drawVolumeWidget(canvas,v,false,canvas._volLayout)}
 function _onVolumeTouchEnd(e,canvas){if(canvas._volDragging){canvas._volDragging=false;fetch("/api/system/volume",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({value:canvas._volValue||50})}).catch(function(){})}}
 function _fetchAndDrawVolume(canvas){canvas._volValue=canvas._volValue||50;var layout=canvas._volLayout||"horizontal";_drawVolumeWidget(canvas,canvas._volValue,false,layout);fetch("/api/system/volume").then(function(r){return r.json()}).then(function(d){canvas._volValue=d.output_volume;_drawVolumeWidget(canvas,d.output_volume,d.output_muted,layout)}).catch(function(){_drawVolumeWidget(canvas,canvas._volValue,false,layout)})}
+// ── Volume Widget — full-surface progress bar, mute on left, H/V layout ──
+function _drawVolumeWidget(canvas,value,muted,layout){var ctx=canvas.getContext("2d"),w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);var isVert=layout==="vertical";var pad=Math.max(5,isVert?w*0.08:h*0.06);var muteR=Math.min(isVert?w*0.25:h*0.28,isVert?w*0.11:h*0.12);muteR=Math.max(14,Math.min(muteR,34));var pct=muted?0:Math.round(value);ctx.fillStyle="rgba(255,255,255,0.04)";ctx.fillRect(0,0,w,h);if(isVert){var muteCX=w/2;var muteCY=h-pad-muteR;canvas._muteCX=muteCX;canvas._muteCY=muteCY;canvas._muteR=muteR;var fillH=muted?0:h*(pct/100);var g=ctx.createLinearGradient(0,h,0,0);g.addColorStop(0,"rgba(74,222,128,0.30)");g.addColorStop(1,"rgba(34,197,94,0.22)");if(fillH>0){ctx.fillStyle=g;ctx.fillRect(0,h-fillH,w,fillH)}var numFs=Math.max(20,Math.min(h*0.40,w*0.18));ctx.fillStyle=muted?"rgba(239,68,68,0.7)":"rgba(255,255,255,0.9)";ctx.font="bold "+numFs+"px -apple-system,sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(pct+"%",w/2,h*0.38);var labelFs=Math.max(7,Math.min(h*0.09,w*0.05));ctx.fillStyle="rgba(255,255,255,0.3)";ctx.font=labelFs+"px -apple-system,sans-serif";ctx.textBaseline="top";ctx.fillText("VOL",w/2,h*0.38+numFs*0.5+3)}else{var muteCX=pad+muteR;var muteCY=h/2;canvas._muteCX=muteCX;canvas._muteCY=muteCY;canvas._muteR=muteR;var fillW=muted?0:w*(pct/100);if(fillW>0){var g2=ctx.createLinearGradient(0,0,w,0);g2.addColorStop(0,"rgba(74,222,128,0.30)");g2.addColorStop(1,"rgba(34,197,94,0.22)");ctx.fillStyle=g2;ctx.fillRect(0,0,fillW,h)}var numFs2=Math.max(22,Math.min(h*0.48,w*0.16));ctx.fillStyle=muted?"rgba(239,68,68,0.7)":"rgba(255,255,255,0.9)";ctx.font="bold "+numFs2+"px -apple-system,sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(pct+"%",w/2,h*0.40);var labelFs2=Math.max(8,Math.min(h*0.10,w*0.04));ctx.fillStyle="rgba(255,255,255,0.3)";ctx.font=labelFs2+"px -apple-system,sans-serif";ctx.textBaseline="top";ctx.fillText("VOLUME",w/2,h*0.40+numFs2*0.5+4)}ctx.beginPath();ctx.arc(muteCX,muteCY,muteR,0,Math.PI*2);ctx.fillStyle=muted?"rgba(239,68,68,0.25)":"rgba(255,255,255,0.06)";ctx.fill();ctx.beginPath();ctx.arc(muteCX,muteCY,muteR,0,Math.PI*2);ctx.strokeStyle=muted?"rgba(239,68,68,0.45)":"rgba(255,255,255,0.14)";ctx.lineWidth=1.2;ctx.stroke();var isz=muteR*1.15;_drawSpeakerIcon(ctx,muteCX-isz/2,muteCY-isz/2,isz,muted);canvas._volPad=0;canvas._volBarLen=isVert?h:w;canvas._volLayout=layout||"horizontal";canvas._volValue=value;canvas._volMuted=muted}
+function _drawSpeakerIcon(ctx,x,y,sz,muted){var s=sz;ctx.fillStyle=muted?"#ef4444":"#999";ctx.fillRect(x+s*0.10,y+s*0.28,s*0.20,s*0.44);ctx.beginPath();ctx.moveTo(x+s*0.30,y+s*0.20);ctx.lineTo(x+s*0.55,y+s*0.08);ctx.lineTo(x+s*0.55,y+s*0.92);ctx.lineTo(x+s*0.30,y+s*0.80);ctx.closePath();ctx.fill();if(!muted){ctx.strokeStyle="#999";ctx.lineWidth=Math.max(1,s*0.05);ctx.beginPath();ctx.arc(x+s*0.52,y+s*0.5,s*0.20,-0.40,0.40);ctx.stroke();ctx.beginPath();ctx.arc(x+s*0.52,y+s*0.5,s*0.32,-0.40,0.40);ctx.stroke()}if(muted){ctx.strokeStyle="#ef4444";ctx.lineWidth=Math.max(1.2,s*0.07);ctx.beginPath();ctx.moveTo(x+s*0.48,y+s*0.24);ctx.lineTo(x+s*0.68,y+s*0.78);ctx.moveTo(x+s*0.68,y+s*0.24);ctx.lineTo(x+s*0.48,y+s*0.78);ctx.stroke()}}
+function _onVolumeTouchStart(e,canvas){e.stopPropagation();var rect=canvas.getBoundingClientRect();var tx=((e.touches?e.touches[0].clientX:e.clientX)-rect.left)*(canvas.width/rect.width);var ty=((e.touches?e.touches[0].clientY:e.clientY)-rect.top)*(canvas.height/rect.height);var dcx=tx-canvas._muteCX,dcy=ty-canvas._muteCY;if(Math.sqrt(dcx*dcx+dcy*dcy)<canvas._muteR+6){fetch("/api/system/mute",{method:"POST"}).then(function(r){return r.json()}).then(function(d){_drawVolumeWidget(canvas,canvas._volValue||50,d.muted,canvas._volLayout)}).catch(function(){});return}canvas._volDragging=true;var isVert2=canvas._volLayout==="vertical";var pos=isVert2?ty:tx;var v=Math.round((1-(isVert2?pos/canvas._volBarLen:pos/canvas._volBarLen))*100);v=Math.max(0,Math.min(100,v));canvas._volValue=v;_drawVolumeWidget(canvas,v,false,canvas._volLayout)}
+function _onVolumeTouchMove(e,canvas){e.stopPropagation();if(!canvas._volDragging)return;var rect=canvas.getBoundingClientRect();var tx=((e.touches?e.touches[0].clientX:e.clientX)-rect.left)*(canvas.width/rect.width);var ty=((e.touches?e.touches[0].clientY:e.clientY)-rect.top)*(canvas.height/rect.height);var isVert3=canvas._volLayout==="vertical";var pos=isVert3?ty:tx;var v=Math.round((1-(isVert3?pos/canvas._volBarLen:pos/canvas._volBarLen))*100);v=Math.max(0,Math.min(100,v));canvas._volValue=v;_drawVolumeWidget(canvas,v,false,canvas._volLayout)}
+function _onVolumeTouchEnd(e,canvas){if(canvas._volDragging){canvas._volDragging=false;fetch("/api/system/volume",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({value:canvas._volValue||50})}).catch(function(){})}}
+function _fetchAndDrawVolume(canvas){canvas._volValue=canvas._volValue||50;var layout=canvas._volLayout||"horizontal";_drawVolumeWidget(canvas,canvas._volValue,false,layout);fetch("/api/system/volume").then(function(r){return r.json()}).then(function(d){canvas._volValue=d.output_volume;_drawVolumeWidget(canvas,d.output_volume,d.output_muted,layout)}).catch(function(){_drawVolumeWidget(canvas,canvas._volValue,false,layout)})}
 function _drawMuteBtn(canvas,muted){var ctx=canvas.getContext("2d"),w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);var r=Math.min(w,h)*0.40;r=Math.max(20,Math.min(r,50));ctx.beginPath();ctx.arc(w/2,h/2,r,0,Math.PI*2);ctx.fillStyle=muted?"rgba(239,68,68,0.25)":"rgba(255,255,255,0.06)";ctx.fill();ctx.beginPath();ctx.arc(w/2,h/2,r,0,Math.PI*2);ctx.strokeStyle=muted?"rgba(239,68,68,0.45)":"rgba(255,255,255,0.14)";ctx.lineWidth=1.2;ctx.stroke();var isz=r*1.15;_drawSpeakerIcon(ctx,w/2-isz/2,h/2-isz/2,isz,muted);canvas._muted=muted}
 function _toggleMute(canvas){fetch("/api/system/mute",{method:"POST"}).then(function(r){return r.json()}).then(function(d){_drawMuteBtn(canvas,d.muted)})}
+// ── Mic Mute Widget — circular with expanding rings, mic icon, animated level ──
+function _drawMicIcon(ctx,cx,cy,sz,muted){var s=sz;var c=muted?"#ef4444":"#999";ctx.fillStyle=c;var rw=s*0.16,rh=s*0.48;var rx=cx-rw/2,ry=cy-rh*0.55;ctx.beginPath();ctx.moveTo(rx+rw/2,ry);ctx.arcTo(rx+rw,ry,rx+rw,ry+rw/2,rw/2);ctx.lineTo(rx+rw,ry+rh-rw/2);ctx.arcTo(rx+rw,ry+rh,rx+rw/2,ry+rh,rw/2);ctx.lineTo(rx,ry+rh);ctx.arcTo(rx-rw/2,ry+rh,rx-rw/2,ry+rh-rw/2,rw/2);ctx.lineTo(rx-rw/2,ry+rw/2);ctx.arcTo(rx-rw/2,ry,rx,ry,rw/2);ctx.closePath();ctx.fill();ctx.strokeStyle=c;ctx.lineWidth=Math.max(1,s*0.04);for(var i=0;i<3;i++){var ly=ry+rh*0.25+i*rh*0.23;ctx.beginPath();ctx.moveTo(cx-rw*0.35,ly);ctx.lineTo(cx+rw*0.35,ly);ctx.stroke()}ctx.beginPath();ctx.arc(cx,ry+rh+s*0.08,s*0.20,Math.PI*0.15,Math.PI*0.85);ctx.strokeStyle=c;ctx.lineWidth=Math.max(1.2,s*0.05);ctx.stroke();if(muted){ctx.strokeStyle="#ef4444";ctx.lineWidth=Math.max(1.5,s*0.07);ctx.beginPath();ctx.moveTo(cx-s*0.25,cy-s*0.42);ctx.lineTo(cx+s*0.25,cy+s*0.45);ctx.moveTo(cx+s*0.25,cy-s*0.42);ctx.lineTo(cx-s*0.25,cy+s*0.45);ctx.stroke()}}
+function _hexToRgba(hex,a){if(!hex||hex==="inherit")return null;var h=hex.replace("#","");var r=parseInt(h.substring(0,2),16),g=parseInt(h.substring(2,4),16),b=parseInt(h.substring(4,6),16);return"rgba("+r+","+g+","+b+","+a+")"}
+function _tintIcon(img,w,h,color){var c=document.createElement("canvas");c.width=w;c.height=h;var cx=c.getContext("2d");cx.drawImage(img,0,0,w,h);cx.globalCompositeOperation="source-in";cx.fillStyle=color;cx.fillRect(0,0,w,h);return c}
+function _drawMicMuteBtn(canvas,muted,level){var ctx=canvas.getContext("2d"),w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);var kc=canvas._keyColor||"#1a2a2a";ctx.fillStyle=kc;ctx.fillRect(0,0,w,h);var cx=w/2,cy=h/2;var baseR=Math.min(w,h)*0.32;var raw=level||0;var lvl=Math.min(1,raw);var mc=canvas._micColor||"#999999";var lc=canvas._micLevelColor||"#4ade80";if(muted){lc="#ef4444";mc="#ef4444"}for(var ring=0;ring<3;ring++){var threshold=ring*0.30;var ringAlpha=Math.max(0,Math.min(1,(lvl-threshold)/0.30));if(ringAlpha>0.01){var ringR=baseR+4+ring*8+ringAlpha*6;ctx.beginPath();ctx.arc(cx,cy,ringR,0,Math.PI*2);ctx.strokeStyle=_hexToRgba(lc,0.15+ringAlpha*0.4)||"rgba(74,222,128,"+(0.15+ringAlpha*0.4)+")";ctx.lineWidth=2+ringAlpha*1.5;ctx.stroke()}}ctx.beginPath();ctx.arc(cx,cy,baseR,0,Math.PI*2);ctx.fillStyle=_hexToRgba(mc,0.30)||"rgba(153,153,153,0.30)";ctx.fill();ctx.beginPath();ctx.arc(cx,cy,baseR,0,Math.PI*2);ctx.strokeStyle=_hexToRgba(mc,0.30)||"rgba(153,153,153,0.30)";ctx.lineWidth=1.5;ctx.stroke();var isz=baseR*1.3;if(!canvas._micOnImg){canvas._micOnImg=new Image();canvas._micOnImg.src="/static/voice.svg";canvas._micOffImg=new Image();canvas._micOffImg.src="/static/voice-off.svg"}var img=muted?canvas._micOffImg:canvas._micOnImg;if(img&&img.complete&&img.naturalWidth>0){var tinted=_tintIcon(img,isz,isz,mc);ctx.drawImage(tinted,cx-isz/2,cy-isz/2)}else{_drawMicIcon(ctx,cx,cy,isz,muted)}canvas._micMuted=muted;canvas._micLevel=raw}
+function _toggleMicMute(canvas){fetch("/api/system/mic-mute",{method:"POST"}).then(function(r){return r.json()}).then(function(d){canvas._micTarget=0;canvas._micAnimating=false;_drawMicMuteBtn(canvas,d.muted,canvas._micLevel||0)})}
+function _pollMicLevel(canvas){fetch("/api/system/mic-level").then(function(r){return r.json()}).then(function(d){canvas._micTarget=d.level;if(!canvas._micAnimating){canvas._micAnimating=true;canvas._micDisplay=canvas._micDisplay||0;_micAnimLoop(canvas)}}).catch(function(){})}
+function _micAnimLoop(canvas){if(!canvas._micAnimating)return;var spd=0.30;canvas._micDisplay=canvas._micDisplay+(canvas._micTarget-canvas._micDisplay)*spd;if(Math.abs(canvas._micTarget-canvas._micDisplay)<0.001)canvas._micDisplay=canvas._micTarget;_drawMicMuteBtn(canvas,canvas._micMuted||false,canvas._micDisplay);if(canvas._micDisplay!==canvas._micTarget||(canvas._micTarget||0)>0.005){requestAnimationFrame(function(){_micAnimLoop(canvas)})}else{canvas._micAnimating=false}}
 
 function _drawCurrentApp(canvas, name) {
   var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
@@ -28,55 +43,3 @@ function _fetchAndDrawCurrentApp(canvas) {
   }).catch(function(){_drawCurrentApp(canvas,"?")});
 }
 
-function _drawMicMuteBtn(canvas, muted, level) {
-  var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
-  ctx.clearRect(0, 0, w, h);
-  var cx = w/2, cy = h/2;
-  var baseR = Math.min(w, h) * 0.32; // base button radius
-  var lvl = level || 0;
-
-  // Expanding halo rings (up to 3 rings based on level)
-  for (var ring = 0; ring < 3; ring++) {
-    var threshold = ring * 0.33;
-    var ringAlpha = Math.max(0, Math.min(1, (lvl - threshold) / 0.33));
-    if (ringAlpha > 0.01) {
-      var ringR = baseR + 4 + ring * 8 + ringAlpha * 6;
-      ctx.beginPath();
-      ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
-      ctx.strokeStyle = muted ? "rgba(239,68,68," + (0.15 + ringAlpha * 0.4) + ")" : "rgba(74,222,128," + (0.15 + ringAlpha * 0.4) + ")";
-      ctx.lineWidth = 2 + ringAlpha * 1.5;
-      ctx.stroke();
-    }
-  }
-
-  // Button background circle
-  ctx.beginPath();
-  ctx.arc(cx, cy, baseR, 0, Math.PI * 2);
-  ctx.fillStyle = muted ? "rgba(239,68,68,0.35)" : "rgba(255,255,255,0.1)";
-  ctx.fill();
-
-  // Button border
-  ctx.beginPath();
-  ctx.arc(cx, cy, baseR, 0, Math.PI * 2);
-  ctx.strokeStyle = muted ? "rgba(239,68,68,0.6)" : "rgba(255,255,255,0.25)";
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-  var r = Math.min(w, h) * 0.35;
-  ctx.beginPath(); ctx.arc(w/2, h/2, r, 0, Math.PI*2); ctx.fill();
-  ctx.fillStyle = "#fff"; var fs = Math.max(14, Math.min(w, h)*0.4);
-  ctx.font = fs + "px -apple-system,sans-serif";
-  ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.fillText("M", w/2, h/2);
-  canvas._micMuted = muted;
-}
-function _toggleMicMute(canvas) {
-  fetch("/api/system/mic-mute", {method:"POST"}).then(function(r){return r.json()}).then(function(d){
-    _drawMicMuteBtn(canvas, d.muted, canvas._micLevel||0);
-  });
-}
-function _pollMicLevel(canvas) {
-  fetch("/api/system/mic-level").then(function(r){return r.json()}).then(function(d){
-    canvas._micLevel = d.level;
-    _drawMicMuteBtn(canvas, canvas._micMuted||false, d.level);
-  }).catch(function(){});
-}
