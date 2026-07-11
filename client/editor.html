@@ -219,12 +219,6 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 </div>
 <div class="main">
 <div class="rp" id="lp-panel">
-    <div id="rp-clipboard" class="rp-section">
-        <h3>Clipboard</h3>
-        <p style="font-size:10px;color:var(--dim);margin-bottom:8px">Copy keys then drag to canvas</p>
-        <div class="clip-preview" style="min-height:48px;background:var(--card);border-radius:6px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;margin-bottom:8px;transition:all 0.15s"></div>
-        <button onclick="_copyToClipboard()" style="width:100%;padding:6px 12px;border-radius:6px;border:1px solid var(--accent);background:rgba(217,119,6,0.15);color:var(--accent);cursor:pointer;font-size:11px;font-weight:600">Copy Selected</button>
-    </div>
 </div>
 <div class="carea" id="carea"><div id="tl" style="position:absolute;inset:0;pointer-events:none;z-index:0;display:none"></div>
   <div class="gh" id="gh"></div>
@@ -249,7 +243,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
         <div id="grpl"><p style="font-size:10px;color:var(--dim);padding:8px 0">No groups</p></div>
       </div>
       <div class="rp-divider"></div>
-      <div id="rp-clipboard-section" class="rp-section">
+      <div id="rp-clipboard" class="rp-section">
         <h3>Clipboard</h3>
         <p style="font-size:10px;color:var(--dim);margin-bottom:8px">Select keys and click Copy</p>
         <div class="clip-preview" style="aspect-ratio:1;max-width:180px;background:var(--card);border-radius:6px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;margin-bottom:8px;transition:all 0.15s"></div>
@@ -839,7 +833,7 @@ function _drawEditorDock(canvas, key) {
 // ── Clipboard Panel ──
 
 function _updateClipboardPanel() {
-  var panel = document.getElementById("rp-clipboard-section");
+  var panel = document.getElementById("rp-clipboard");
   if (!panel) return;
   var data = _getClipboard();
   var preview = panel.querySelector(".clip-preview");

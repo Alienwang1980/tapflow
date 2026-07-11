@@ -1,7 +1,7 @@
 // ── Clipboard Panel ──
 
 function _updateClipboardPanel() {
-  var panel = document.getElementById("rp-clipboard-section");
+  var panel = document.getElementById("rp-clipboard");
   if (!panel) return;
   var data = _getClipboard();
   var preview = panel.querySelector(".clip-preview");
