@@ -68,35 +68,12 @@ function _drawVolume(canvas, value, muted) {
   canvas._volValue = value; canvas._volMuted = muted;
 }
 
-function _drawMuteIcon(canvas, muted) {
-  var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
-  var muteW = h - 4;
-  var muteX = w - muteW - 2;
-  canvas._muteX = muteX; canvas._muteW = muteW;
-  // Clear mute area + separator
-  ctx.clearRect(muteX - 2, 0, muteW + 4, h);
-  ctx.strokeStyle = "rgba(255,255,255,0.12)"; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(muteX - 1, 4); ctx.lineTo(muteX - 1, h - 4); ctx.stroke();
-  // Icon
-  var icx = muteX + muteW/2, icy = h/2;
-  ctx.fillStyle = muted ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.05)";
-  ctx.fillRect(muteX, 2, muteW, h - 4);
-  ctx.fillStyle = muted ? "#ef4444" : "#888";
-  ctx.font = Math.max(8, muteW*0.35) + "px -apple-system,sans-serif";
-  ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.fillText("M", icx, icy);
-  if (muted) {
-    ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(icx-6, icy-6); ctx.lineTo(icx+6, icy+6); ctx.stroke();
-  }
-}
+
 
 function _drawVolBar(canvas, value, muted) {
   var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
   var muteX = canvas._muteX || (w - h + 2);
-  // Clear slider area only
   ctx.clearRect(0, 0, muteX - 2, h);
-  // Slider
   var displayVal = muted ? 0 : value;
   var margin = 4, barH = Math.max(8, h * 0.35);
   var barY = (h - barH) / 2, barW = muteX - margin - 4;
@@ -121,19 +98,17 @@ function _onVolumeTouchStart(e, canvas) {
   e.stopPropagation();
   var rect = canvas.getBoundingClientRect();
   var x = ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) * (canvas.width / rect.width);
-  // Mute button area
   if (x >= (canvas._muteX || 999)) {
     fetch("/api/system/mute", {method:"POST"}).then(function(r){return r.json()}).then(function(d){
       _drawVolume(canvas, canvas._volValue || 50, d.muted);
     }).catch(function(){});
     return;
   }
-  // Slider
   canvas._volDragging = true;
   var v = Math.round(((x - canvas._volMargin) / canvas._volBarW) * 100);
   v = Math.max(0, Math.min(100, v));
   canvas._volValue = v;
-  canvas._lastMuted = null; // Force mute redraw on next _drawVolume
+  canvas._lastMuted = null;
   _drawVolume(canvas, v, false);
 }
 
@@ -145,106 +120,28 @@ function _onVolumeTouchMove(e, canvas) {
   var v = Math.round(((x - canvas._volMargin) / canvas._volBarW) * 100);
   v = Math.max(0, Math.min(100, v));
   canvas._volValue = v;
-  // Only redraw slider bar, never touch mute icon during drag
   _drawVolBar(canvas, v, false);
 }
 
 function _onVolumeTouchEnd(e, canvas) {
   if (canvas._volDragging) {
     canvas._volDragging = false;
-    // Send final volume once on release
-    var finalVal = canvas._volValue || 50;
-    fetch("/api/system/volume", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({value:finalVal})}).catch(function(){});
+    fetch("/api/system/volume", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({value:canvas._volValue||50})}).catch(function(){});
   }
 }
 
 function _fetchAndDrawVolume(canvas) {
-  // Defaults so touch works immediately
   canvas._volValue = canvas._volValue || 50;
-  canvas._volMargin = 4; canvas._volBarW = canvas.width - canvas._muteX - 8 || canvas.width * 0.7;
   canvas._muteX = canvas._muteX || (canvas.width - canvas.height + 2);
   canvas._muteW = canvas._muteW || (canvas.height - 4);
+  canvas._lastMuted = null;
   _drawVolume(canvas, canvas._volValue, false);
-  // Fetch actual state from system
   fetch("/api/system/volume").then(function(r){return r.json()}).then(function(d){
     canvas._volValue = d.output_volume; canvas._volMuted = d.output_muted;
+    canvas._lastMuted = null;
     _drawVolume(canvas, d.output_volume, d.output_muted);
   }).catch(function(){ _drawVolume(canvas, canvas._volValue, false); });
 }
-
-function _onVolumeTouchStart(e, canvas) {
-  e.stopPropagation();
-  var rect = canvas.getBoundingClientRect();
-  var x = ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) * (canvas.width / rect.width);
-  var y = ((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) * (canvas.height / rect.height);
-  // Device selector area
-  if (canvas._devBtns && y >= (canvas._devY || 999)) {
-    for (var di = 0; di < canvas._devBtns.length; di++) {
-      var db = canvas._devBtns[di];
-      if (db && x >= db.x && x <= db.x + db.w && y >= db.y && y <= db.y + db.h) {
-        fetch("/api/system/audio-output", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({name:db.name})}).catch(function(){});
-        return;
-      }
-    }
-    return;
-  }
-  // Mute button
-  if (x >= (canvas._muteX || 999) && y < (canvas._devY || 999)) {
-    fetch("/api/system/mute", {method:"POST"}).then(function(r){return r.json()}).then(function(d){
-      canvas._volMuted = d.muted;
-      _drawVolume(canvas, canvas._volValue || 50, d.muted, canvas._adevs, canvas._curDev);
-    }).catch(function(){});
-    return;
-  }
-  // Slider drag start
-  canvas._volDragging = true;
-  var v = Math.round(((x - canvas._volMargin) / canvas._volBarW) * 100);
-  v = Math.max(0, Math.min(100, v));
-  canvas._volValue = v;
-  _drawVolumeSlider(canvas, v, !!canvas._volMuted);
-  fetch("/api/system/volume", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({value:v})}).catch(function(){});
-}
-
-function _onVolumeTouchMove(e, canvas) {
-  e.stopPropagation();
-  if (!canvas._volDragging) return;
-  var rect = canvas.getBoundingClientRect();
-  var x = ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) * (canvas.width / rect.width);
-  var v = Math.round(((x - canvas._volMargin) / canvas._volBarW) * 100);
-  v = Math.max(0, Math.min(100, v));
-  canvas._volValue = v;
-  _drawVolumeSlider(canvas, v, !!canvas._volMuted);
-  fetch("/api/system/volume", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({value:v})}).catch(function(){});
-}
-
-function _onVolumeTouchEnd(e, canvas) {
-  if (canvas._volDragging) {
-    canvas._volDragging = false;
-    // Send final volume once on release
-    var finalVal = canvas._volValue || 50;
-    fetch("/api/system/volume", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({value:finalVal})}).catch(function(){});
-  }
-}
-
-function _fetchAndDrawVolume(canvas) {
-  canvas._volValue = canvas._volValue || 50;
-  canvas._volMuted = canvas._volMuted || false;
-  canvas._volMargin = 4; canvas._volBarW = canvas.width - 8;
-  _drawVolume(canvas, canvas._volValue, canvas._volMuted, canvas._adevs, canvas._curDev);
-  // Fetch volume
-  fetch("/api/system/volume").then(function(r){return r.json()}).then(function(d){
-    canvas._volValue = d.output_volume; canvas._volMuted = d.output_muted;
-    _drawVolume(canvas, d.output_volume, d.output_muted, canvas._adevs, canvas._curDev);
-  }).catch(function(){});
-  // Fetch audio devices
-  fetch("/api/system/audio-devices").then(function(r){return r.json()}).then(function(devs){
-    canvas._adevs = devs;
-    var cur = devs.find(function(d){return d.current && d.type==="output"});
-    canvas._curDev = cur ? cur.name : "";
-    _drawVolume(canvas, canvas._volValue, canvas._volMuted, devs, canvas._curDev);
-  }).catch(function(){});
-}
-
 function _drawMuteBtn(canvas, muted) {
   var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
   ctx.clearRect(0, 0, w, h);
