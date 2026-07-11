@@ -94,7 +94,6 @@ def press_key(key_combo: str):
     """Press and release a key (or combo)."""
     key_code, flags = _parse_key_combo(key_combo)
     
-    # Press modifier keys first (for combos like COMMAND+TAB)
     parts = key_combo.upper().split('+')
     mods_pressed = []
     for mod in parts[:-1]:
@@ -105,9 +104,14 @@ def press_key(key_combo: str):
                 _post_key_event(mod_code, True, 0)
                 mods_pressed.append(mod_code)
     
-    # Press and release main key
-    _post_key_event(key_code, True, flags)
-    _post_key_event(key_code, False, flags)
+    key_name = parts[-1].strip()
+    # If the "main key" is itself a modifier, just press it (no extra flags)
+    if key_name in MODIFIER_FLAGS:
+        _post_key_event(key_code, True, 0)
+        _post_key_event(key_code, False, 0)
+    else:
+        _post_key_event(key_code, True, flags)
+        _post_key_event(key_code, False, flags)
     
     # Release modifier keys
     for mod_code in reversed(mods_pressed):
