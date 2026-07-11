@@ -180,16 +180,19 @@ def handle_key_action(action: dict) -> str:
         return "no_key"
     try:
         if action_type in ("press", "key"):
+            logger.info(f"KEY_EVENT press: {key}")
             press_key(key)
             return "ok"
         elif action_type == "text":
             type_text(key)
             return "ok"
         elif action_type == "down":
+            logger.info(f"KEY_EVENT down: {key}")
             from input_engine import press_key_down
             press_key_down(key)
             return "ok_down"
         elif action_type == "up":
+            logger.info(f"KEY_EVENT up: {key}")
             from input_engine import release_key
             release_key(key)
             return "ok_up"
