@@ -1,60 +1,63 @@
 // ── Media Control Widgets (volume, mute, mic-mute, audio devices) ──
 
-function _drawVolume(canvas, value, muted) {
+function _drawVolumeSlider(canvas, value, muted) {
   var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
-  ctx.clearRect(0, 0, w, h);
-  // Mute button area (right side, square)
-  var muteW = h - 4;
-  var muteX = w - muteW - 2;
-  var muteY = 2;
+  // Only clear slider area (left portion), leave mute area intact
+  var muteX = canvas._muteX || (w - h + 2);
+  ctx.clearRect(0, 0, muteX - 2, h);
   var sliderW = muteX - 4;
-  // Separator line
-  ctx.strokeStyle = "rgba(255,255,255,0.1)";
-  ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(muteX - 1, 4); ctx.lineTo(muteX - 1, h - 4); ctx.stroke();
-  // Mute icon
-  var icx = muteX + muteW/2, icy = h/2;
-  if (muted) {
-    ctx.fillStyle = "rgba(239,68,68,0.2)";
-    ctx.fillRect(muteX, muteY, muteW, muteW);
-    ctx.fillStyle = "#ef4444";
-  } else {
-    ctx.fillStyle = "rgba(255,255,255,0.05)";
-    ctx.fillRect(muteX, muteY, muteW, muteW);
-    ctx.fillStyle = "#888";
-  }
-  ctx.font = Math.max(8, muteW*0.35) + "px -apple-system,sans-serif";
-  ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.fillText(muted ? "M" : "M", icx, icy);
-  if (muted) {
-    ctx.strokeStyle = "#ef4444";
-    ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(icx-8, icy-8); ctx.lineTo(icx+8, icy+8); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(icx+8, icy-8); ctx.lineTo(icx-8, icy+8); ctx.stroke();
-  }
-  canvas._muteX = muteX; canvas._muteW = muteW;
-  // Slider
-  if (muted) value = 0;
-  var margin = 4, barH = Math.max(8, h * 0.3);
+  var margin = 4, barH = Math.max(8, h * 0.35);
   var barY = (h - barH) / 2, barW = sliderW - 8;
+  var displayVal = muted ? 0 : value;
+  // Background track
   ctx.fillStyle = "rgba(255,255,255,0.1)";
   ctx.fillRect(margin, barY, barW, barH);
-  var fillW = barW * (value / 100);
+  // Fill
+  var fillW = barW * (displayVal / 100);
   var g = ctx.createLinearGradient(margin, 0, margin + barW, 0);
   g.addColorStop(0, "#4ade80"); g.addColorStop(1, "#22c55e");
-  ctx.fillStyle = muted ? "#ef4444" : g;
+  ctx.fillStyle = muted ? "rgba(239,68,68,0.3)" : g;
   ctx.fillRect(margin, barY, fillW, barH);
-  var hx = margin + fillW, hy = barY + barH / 2;
+  // Knob
   ctx.fillStyle = "#fff"; ctx.beginPath();
-  ctx.arc(hx, hy, barH * 0.6, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = "#fff"; var fs = Math.max(10, h * 0.3);
+  ctx.arc(margin + fillW, barY + barH/2, barH * 0.6, 0, Math.PI*2); ctx.fill();
+  // Label
+  var fs = Math.max(9, h * 0.3);
+  ctx.fillStyle = muted ? "#ef4444" : "#aaa";
   ctx.font = "bold " + fs + "px -apple-system,sans-serif";
-  ctx.textAlign = "left"; ctx.textBaseline = "top";
-  ctx.fillText(muted ? "MUTED" : Math.round(value) + "%", margin, barY - fs - 4);
-  ctx.font = fs * 0.8 + "px -apple-system,sans-serif";
-  ctx.textAlign = "right"; ctx.fillText(muted ? "MUTE" : "VOL", w - margin, barY - fs - 4);
-  canvas._volValue = value; canvas._volMuted = muted;
-  canvas._volMargin = margin; canvas._volBarW = barW;
+  ctx.textAlign = "left"; ctx.textBaseline = "bottom";
+  ctx.fillText(muted ? "MUTED" : Math.round(value) + "%", margin, barY - 2);
+  canvas._volValue = value; canvas._volMargin = margin; canvas._volBarW = barW;
+}
+
+function _drawMuteIcon(canvas, muted) {
+  var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
+  var muteW = h - 4;
+  var muteX = w - muteW - 2;
+  canvas._muteX = muteX; canvas._muteW = muteW;
+  ctx.clearRect(muteX - 2, 0, muteW + 4, h);
+  // Separator
+  ctx.strokeStyle = "rgba(255,255,255,0.12)"; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(muteX - 1, 4); ctx.lineTo(muteX - 1, h - 4); ctx.stroke();
+  // Icon bg
+  ctx.fillStyle = muted ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.05)";
+  ctx.fillRect(muteX, 2, muteW, h - 4);
+  // Icon text
+  var icx = muteX + muteW/2, icy = h/2;
+  ctx.fillStyle = muted ? "#ef4444" : "#888";
+  ctx.font = Math.max(8, muteW*0.35) + "px -apple-system,sans-serif";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText("M", icx, icy);
+  if (muted) {
+    ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(icx-6, icy-6); ctx.lineTo(icx+6, icy+6); ctx.stroke();
+  }
+  canvas._volMuted = muted;
+}
+
+function _drawVolume(canvas, value, muted) {
+  _drawVolumeSlider(canvas, value, muted);
+  _drawMuteIcon(canvas, muted);
 }
 
 function _onVolumeTouchStart(e, canvas) {
@@ -86,7 +89,7 @@ function _onVolumeTouchStart(e, canvas) {
   var v = Math.round(((x - canvas._volMargin) / canvas._volBarW) * 100);
   v = Math.max(0, Math.min(100, v));
   canvas._volValue = v;
-  _drawVolume(canvas, v, !!canvas._volMuted, canvas._adevs, canvas._curDev);
+  _drawVolumeSlider(canvas, v, !!canvas._volMuted);
   fetch("/api/system/volume", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({value:v})}).catch(function(){});
 }
 
@@ -98,7 +101,7 @@ function _onVolumeTouchMove(e, canvas) {
   var v = Math.round(((x - canvas._volMargin) / canvas._volBarW) * 100);
   v = Math.max(0, Math.min(100, v));
   canvas._volValue = v;
-  _drawVolume(canvas, v, !!canvas._volMuted, canvas._adevs, canvas._curDev);
+  _drawVolumeSlider(canvas, v, !!canvas._volMuted);
   fetch("/api/system/volume", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({value:v})}).catch(function(){});
 }
 
