@@ -145,7 +145,7 @@ def press_key_down(key_combo: str):
     for mod in mods:
         flags |= MODIFIER_FLAGS.get(mod, 0)
         mod_code = KEYCODE_MAP.get(mod)
-        if mod_code: _post_key_event(mod_code, True, 0)
+        if mod_code: _set_modifier_state(mod_code, True)
     for k in keys:
         kc = KEYCODE_MAP.get(k)
         if kc: _post_key_event(kc, True, flags)
@@ -166,7 +166,7 @@ def release_key(key_combo: str):
         if kc: _post_key_event(kc, False, flags)
     for mod in reversed(mods):
         mod_code = KEYCODE_MAP.get(mod)
-        if mod_code: _post_key_event(mod_code, False, 0)
+        if mod_code: _set_modifier_state(mod_code, False)
 
 
 
