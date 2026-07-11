@@ -64,8 +64,8 @@ def migrate_key_positions(profile: dict) -> dict:
             key.setdefault("w", 1)
             key.setdefault("h", 1)
             key.setdefault("sound", "");
-            key.setdefault("action", "turbo");
-            if key.get("action") == "key": key["action"] = "turbo"
+            key.setdefault("action", "hold");
+            if key.get("action") == "key": key["action"] = "hold"
             key.setdefault("color", "#0f3460");
             key.setdefault("groupId", None)
             if key.get("groupId") and not key.get("groups"):

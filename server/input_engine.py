@@ -103,11 +103,11 @@ def press_key(key_combo: str):
         else:
             keys.append(p)
     
-    # Press all modifiers first
+    # Press all modifiers first (with their own flag)
     for mod in mods:
         mod_code = KEYCODE_MAP.get(mod)
         if mod_code:
-            _post_key_event(mod_code, True, 0)
+            _post_key_event(mod_code, True, MODIFIER_FLAGS.get(mod, 0))
     
     # Build flags from all modifiers
     flags = 0
@@ -128,7 +128,7 @@ def press_key(key_combo: str):
     for mod in reversed(mods):
         mod_code = KEYCODE_MAP.get(mod)
         if mod_code:
-            _post_key_event(mod_code, False, 0)
+            _post_key_event(mod_code, False, MODIFIER_FLAGS.get(mod, 0))
     
     logger.debug(f"Key pressed: {key_combo}")
 
