@@ -41,144 +41,22 @@ KEYCODE_MAP = {
     '-': 0x1B, '=': 0x18, '[': 0x21, ']': 0x1E, '\\': 0x2A,
     ';': 0x29, '\'': 0x27, ',': 0x2B, '.': 0x2F, '/': 0x2C,
     '`': 0x32,
+    # Aliases for tray_app shortcuts
+    'CMD': 0x37, 'CTRL': 0x3B,
 }
 
-MODIFIER_FLAGS = {
+# Modifier flag values for CGEventSetFlags (used when combo has regular keys)
+_MOD_FLAGS = {
     'LSHIFT': 0x00020000, 'RSHIFT': 0x00020000, 'SHIFT': 0x00020000,
     'LCONTROL': 0x00040000, 'RCONTROL': 0x00040000, 'CONTROL': 0x00040000,
     'LOPTION': 0x00080000, 'ROPTION': 0x00080000, 'OPTION': 0x00080000,
     'LCOMMAND': 0x00100000, 'RCOMMAND': 0x00100000, 'COMMAND': 0x00100000,
-    'FN': 0x00800000,
-    'CAPSLOCK': 0x00010000,
+    'FN': 0x00800000, 'CAPSLOCK': 0x00010000,
+    'CMD': 0x00100000, 'CTRL': 0x00040000,
 }
 
-SHIFT_MAP = {
-    '!': '1', '@': '2', '#': '3', '$': '4', '%': '5',
-    '^': '6', '&': '7', '*': '8', '(': '9', ')': '0',
-    '_': '-', '+': '=', '{': '[', '}': ']', '|': '\\',
-    ':': ';', '"': '\'', '<': ',', '>': '.', '?': '/',
-    '~': '`',
-}
+_MOD_NAMES = set(_MOD_FLAGS.keys())
 
-
-def _parse_key_combo(combo: str) -> tuple[int, int]:
-    """Parse key combo string → (keycode, modifier_flags)."""
-    parts = combo.upper().split('+')
-    flags = 0
-    key_name = parts[-1].strip()
-
-    for mod in parts[:-1]:
-        mod = mod.strip()
-        if mod in MODIFIER_FLAGS:
-            flags |= MODIFIER_FLAGS[mod]
-
-    key_code = KEYCODE_MAP.get(key_name)
-    if key_code is None and len(combo) == 1:
-        # Single char: check shift map
-        if combo in SHIFT_MAP:
-            key_code = KEYCODE_MAP.get(SHIFT_MAP[combo].upper())
-            flags |= MODIFIER_FLAGS['SHIFT']
-        elif combo.isupper():
-            key_code = KEYCODE_MAP.get(combo.upper())
-            flags |= MODIFIER_FLAGS['SHIFT']
-        elif combo.islower():
-            key_code = KEYCODE_MAP.get(combo.upper())
-
-    if key_code is None:
-        raise ValueError(f"Unknown key: {combo} (parsed as '{key_name}')")
-
-    return key_code, flags
-
-
-def press_key(key_combo: str):
-    """Press and release a key (or combo). Supports multi-key simul (K+P+L)."""
-    parts = [p.strip() for p in key_combo.upper().split('+')]
-    
-    # Separate modifiers from main keys
-    mods = []
-    keys = []
-    for p in parts:
-        if p in MODIFIER_FLAGS:
-            mods.append(p)
-        else:
-            keys.append(p)
-    
-    # Press modifiers via CGEventSourceKeyState (direct state manipulation)
-    for mod in mods:
-        mod_code = KEYCODE_MAP.get(mod)
-        if mod_code:
-            _set_modifier_state(mod_code, True)
-    
-    # Build flags from all modifiers
-    flags = 0
-    for mod in mods:
-        flags |= MODIFIER_FLAGS.get(mod, 0)
-    
-    # Press all main keys simultaneously, release in reverse
-    for k in keys:
-        kc = KEYCODE_MAP.get(k)
-        if kc:
-            _post_key_event(kc, True, flags)
-    for k in reversed(keys):
-        kc = KEYCODE_MAP.get(k)
-        if kc:
-            _post_key_event(kc, False, flags)
-    
-    # Release modifiers in reverse
-    for mod in reversed(mods):
-        mod_code = KEYCODE_MAP.get(mod)
-        if mod_code:
-            _set_modifier_state(mod_code, False)
-
-    
-    logger.debug(f"Key pressed: {key_combo}")
-
-
-def press_key_down(key_combo: str):
-    """Press key down (hold) — supports multi-key simul."""
-    parts = [p.strip() for p in key_combo.upper().split('+')]
-    mods, keys = [], []
-    for p in parts:
-        if p in MODIFIER_FLAGS: mods.append(p)
-        else: keys.append(p)
-    flags = 0
-    for mod in mods:
-        flags |= MODIFIER_FLAGS.get(mod, 0)
-        mod_code = KEYCODE_MAP.get(mod)
-        if mod_code: _set_modifier_state(mod_code, True)
-    for k in keys:
-        kc = KEYCODE_MAP.get(k)
-        if kc: _post_key_event(kc, True, flags)
-
-
-def release_key(key_combo: str):
-    """Release key — supports multi-key simul."""
-    parts = [p.strip() for p in key_combo.upper().split('+')]
-    mods, keys = [], []
-    for p in parts:
-        if p in MODIFIER_FLAGS: mods.append(p)
-        else: keys.append(p)
-    flags = 0
-    for mod in mods:
-        flags |= MODIFIER_FLAGS.get(mod, 0)
-    for k in reversed(keys):
-        kc = KEYCODE_MAP.get(k)
-        if kc: _post_key_event(kc, False, flags)
-    for mod in reversed(mods):
-        mod_code = KEYCODE_MAP.get(mod)
-        if mod_code: _set_modifier_state(mod_code, False)
-
-
-
-def _set_modifier_state(key_code: int, down: bool):
-    """Set modifier key state directly via CGEventSourceKeyState."""
-    try:
-        from Quartz.CoreGraphics import CGEventSourceKeyState, kCGEventSourceStateHIDSystemState
-        CGEventSourceKeyState(kCGEventSourceStateHIDSystemState, key_code, down)
-    except Exception:
-        # Fallback: post CGEvent
-        event = CGEventCreateKeyboardEvent(None, key_code, down)
-        CGEventPost(kCGHIDEventTap, event)
 
 def _post_key_event(key_code: int, down: bool, flags: int = 0):
     if not HAVE_QUARTZ:
@@ -189,6 +67,62 @@ def _post_key_event(key_code: int, down: bool, flags: int = 0):
     if flags:
         CGEventSetFlags(event, flags)
     CGEventPost(kCGHIDEventTap, event)
+
+
+def press_key_down(key: str):
+    """Press a single key down."""
+    kc = KEYCODE_MAP.get(key.upper().strip())
+    if kc is None:
+        raise ValueError(f"Unknown key: {key}")
+    _post_key_event(kc, True, 0)
+
+
+def release_key(key: str):
+    """Release a single key."""
+    kc = KEYCODE_MAP.get(key.upper().strip())
+    if kc is None:
+        raise ValueError(f"Unknown key: {key}")
+    _post_key_event(kc, False, 0)
+
+
+def press_key(key: str):
+    """Press and release a key or combo.
+    Combos with regular keys use CGEventSetFlags (reliable).
+    Modifier-only combos use split-with-delay (avoids stuck modifiers)."""
+    if '+' in key:
+        import time
+        parts = [p.strip() for p in key.upper().split('+')]
+        mods = [p for p in parts if p in _MOD_NAMES]
+        keys = [p for p in parts if p not in _MOD_NAMES]
+        if keys:
+            flags = 0
+            for mod in mods:
+                flags |= _MOD_FLAGS.get(mod, 0)
+                press_key_down(mod)
+                time.sleep(0.02)
+            for k in keys:
+                kc = KEYCODE_MAP.get(k)
+                if kc:
+                    _post_key_event(kc, True, flags)
+                    time.sleep(0.02)
+            for k in reversed(keys):
+                kc = KEYCODE_MAP.get(k)
+                if kc:
+                    _post_key_event(kc, False, 0)
+                    time.sleep(0.02)
+            for mod in reversed(mods):
+                release_key(mod)
+                time.sleep(0.02)
+        else:
+            for p in parts:
+                press_key_down(p)
+                time.sleep(0.02)
+            for p in reversed(parts):
+                release_key(p)
+                time.sleep(0.02)
+    else:
+        press_key_down(key)
+        release_key(key)
 
 
 def is_accessibility_enabled() -> bool:
@@ -209,14 +143,11 @@ def move_mouse(dx, dy, drag=False):
     from Quartz.CoreGraphics import CGEventCreate, CGEventGetLocation, CGWarpMouseCursorPosition
     from Quartz.CoreGraphics import CGEventCreateMouseEvent, CGEventPost, kCGHIDEventTap
     from Quartz.CoreGraphics import kCGEventLeftMouseDragged, kCGEventMouseMoved, kCGMouseButtonLeft
-    # CGEventCreateMouseEvent takes absolute coords, not delta.
-    # Get current position, add delta, warp to new absolute position.
     null_event = CGEventCreate(None)
     loc = CGEventGetLocation(null_event)
     new_x = loc.x + dx
     new_y = loc.y + dy
     CGWarpMouseCursorPosition((new_x, new_y))
-    # Post move/drag event so apps see real-time selection updates
     evt_type = kCGEventLeftMouseDragged if drag else kCGEventMouseMoved
     event = CGEventCreateMouseEvent(None, evt_type, (new_x, new_y), kCGMouseButtonLeft)
     CGEventPost(0, event)

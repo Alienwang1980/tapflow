@@ -18,7 +18,7 @@ if _server_dir not in sys.path:
     sys.path.insert(0, _server_dir)
 
 from connection_manager import manager
-from input_engine import press_key, type_text, is_accessibility_enabled, HAVE_QUARTZ
+from input_engine import press_key, press_key_down, release_key, _post_key_event, type_text, is_accessibility_enabled, HAVE_QUARTZ
 from profile_manager import profile_manager as profiles
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelname)s %(message)s")
@@ -178,6 +178,50 @@ def handle_key_action(action: dict) -> str:
     key = action.get("key", "")
     if not key:
         return "no_key"
+    # "+" combo: split into individual keys
+    #   Has regular key → CGEventSetFlags (reliable, like original)
+    #   Modifier-only   → simple split with delay (avoids stuck modifiers)
+    if '+' in key:
+        import time
+        from input_engine import _MOD_NAMES, _MOD_FLAGS, KEYCODE_MAP as _KCM
+        parts = [p.strip() for p in key.upper().split('+')]
+        mods = [p for p in parts if p in _MOD_NAMES]
+        keys = [p for p in parts if p not in _MOD_NAMES]
+        if action_type == "down":
+            if keys:
+                flags = 0
+                for mod in mods:
+                    flags |= _MOD_FLAGS.get(mod, 0)
+                    press_key_down(mod)
+                    time.sleep(0.02)
+                for k in keys:
+                    kc = _KCM.get(k)
+                    if kc:
+                        _post_key_event(kc, True, flags)
+                    time.sleep(0.02)
+            else:
+                for p in parts:
+                    press_key_down(p)
+                    time.sleep(0.02)
+            return "ok_down"
+        elif action_type == "up":
+            if keys:
+                for k in reversed(keys):
+                    kc = _KCM.get(k)
+                    if kc:
+                        _post_key_event(kc, False, 0)
+                    time.sleep(0.02)
+                for mod in reversed(mods):
+                    release_key(mod)
+                    time.sleep(0.02)
+            else:
+                for p in reversed(parts):
+                    release_key(p)
+                    time.sleep(0.02)
+            return "ok_up"
+        else:
+            press_key(key)
+            return "ok"
     try:
         if action_type in ("press", "key"):
             logger.info(f"KEY_EVENT press: {key}")
@@ -188,12 +232,10 @@ def handle_key_action(action: dict) -> str:
             return "ok"
         elif action_type == "down":
             logger.info(f"KEY_EVENT down: {key}")
-            from input_engine import press_key_down
             press_key_down(key)
             return "ok_down"
         elif action_type == "up":
             logger.info(f"KEY_EVENT up: {key}")
-            from input_engine import release_key
             release_key(key)
             return "ok_up"
         else:
