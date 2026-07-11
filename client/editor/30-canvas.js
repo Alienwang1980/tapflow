@@ -196,13 +196,7 @@ rr();rpr();
     document.removeEventListener("mousemove",mm);document.removeEventListener("mouseup",mu);
     const now=cp_()?.keys.filter(kk=>selKeys.has(kk.id)).map(kk=>_snapshot(kk))||[];
     if(!undoStack.length||JSON.stringify(undoStack[undoStack.length-1].before)!==JSON.stringify(now)){if(JSON.stringify(before)!==JSON.stringify(now)){_pushUndo(before)}}
-    if(selKeys.size===1){
-      const el=document.elementFromPoint(ev.clientX,ev.clientY),tk=el?.closest?.(".ck");
-      if(tk&&tk.dataset.kid!==kid){
-        const a=cp_()?.keys.find(x=>x.id===kid),b=cp_()?.keys.find(x=>x.id===tk.dataset.kid);
-        if(a&&b){const sb=[_snapshot(a),_snapshot(b)];const ac=a.col,ar=a.row,aw=a.w,ah=a.h;a.col=b.col;a.row=b.row;a.w=b.w;a.h=b.h;b.col=ac;b.row=ar;b.w=aw;b.h=ah;_pushUndo(sb);dirty=true;rr();selKey=kid}
-      }
-    }
+
   }
   document.addEventListener("mousemove",mm);document.addEventListener("mouseup",mu);
 }
