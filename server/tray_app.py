@@ -96,7 +96,8 @@ def run_server():
     
     @app.get("/api/deepseek/balance")
     async def _get_balance(api_key: str = ""):
-        import urllib.request
+        import urllib.request, logging as _log2
+        _log2.getLogger("stp.widgets").info(f"Balance API called, key={api_key[:12] if api_key else 'NONE'}...")
         if not api_key:
             from fastapi import HTTPException; raise HTTPException(400, "Missing api_key")
         try:
@@ -104,8 +105,11 @@ def run_server():
                 "https://api.deepseek.com/user/balance",
                 headers={"Authorization": f"Bearer {api_key}", "Accept": "application/json"})
             body = urllib.request.urlopen(req, timeout=10).read()
-            return _json.loads(body)
+            result = _json.loads(body)
+            _log2.getLogger("stp.widgets").info(f"Balance API success: {result}")
+            return result
         except Exception as e:
+            _log2.getLogger("stp.widgets").error(f"Balance API failed: {e}")
             from fastapi import HTTPException; raise HTTPException(500, str(e))
     
     # ── System Control routes ──
