@@ -1,28 +1,46 @@
 // ── Clipboard Panel ──
 
 function _updateClipboardPanel() {
-  var panel = document.getElementById("rp-clipboard");
+  var panel = document.getElementById("rp-clipboard-section");
   if (!panel) return;
   var data = _getClipboard();
   var preview = panel.querySelector(".clip-preview");
   if (!data || !data.keys || !data.keys.length) {
-    preview.innerHTML = '<div style="color:var(--dim);font-size:11px;text-align:center;padding:20px 0">Select keys and click Copy</div>';
+    preview.innerHTML = '<div style="color:var(--dim);font-size:11px;text-align:center;padding:30px 0">Empty</div>';
     preview.style.cursor = "default";
     preview.draggable = false;
+    delete preview.dataset.clipboard;
     return;
   }
   var k = data.keys[0];
   var count = data.keys.length;
-  var label = count > 1 ? (count + " keys") : (k.label || "Key");
-  // Draw a mini preview canvas
+  // Draw actual button preview to scale
+  var size = Math.min(preview.clientWidth || 180, preview.clientHeight || 180);
   var cv = document.createElement("canvas");
-  cv.width = preview.clientWidth || 180;
-  cv.height = 48;
-  cv.style.width = "100%";
-  cv.style.borderRadius = "4px";
+  cv.width = size * 2; cv.height = size * 2; // 2x for retina
+  cv.style.width = size + "px"; cv.style.height = size + "px";
+  cv.style.borderRadius = "6px";
   var ctx = cv.getContext("2d");
-  ctx.fillStyle = k.color || "#0f3460";
-  _drawKeyPreview(ctx, cv.width, cv.height, k, count);
+  ctx.scale(2, 2);
+  // Render like actual key button
+  var brPct = (k.borderRadius !== undefined ? k.borderRadius : 10) / 100;
+  var br = brPct * size;
+  var bg = k.color || "#0f3460";
+  ctx.fillStyle = bg;
+  ctx.beginPath();
+  ctx.moveTo(br, 0); ctx.lineTo(size - br, 0);
+  ctx.arcTo(size, 0, size, br, br);
+  ctx.lineTo(size, size - br); ctx.arcTo(size, size, size - br, size, br);
+  ctx.lineTo(br, size); ctx.arcTo(0, size, 0, size - br, br);
+  ctx.lineTo(0, br); ctx.arcTo(0, 0, br, 0, br);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = k.fontColor || "#fff";
+  var fs = Math.max(8, size * 0.2);
+  ctx.font = "bold " + fs + "px -apple-system,sans-serif";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  var label = k.label || k.action || "?";
+  if (label.length > 4) label = label.substring(0,4);
+  ctx.fillText(label, size/2, size/2);
   preview.innerHTML = "";
   preview.appendChild(cv);
   preview.style.cursor = "grab";
@@ -30,24 +48,6 @@ function _updateClipboardPanel() {
   preview.dataset.clipboard = "1";
 }
 
-function _drawKeyPreview(ctx, w, h, k, count) {
-  var br = ((k.borderRadius !== undefined ? k.borderRadius : 10) / 100) * Math.min(w, h);
-  // Rounded rect background
-  ctx.fillStyle = k.color || "#0f3460";
-  ctx.beginPath();
-  ctx.moveTo(br, 0); ctx.lineTo(w - br, 0);
-  ctx.arcTo(w, 0, w, br, br);
-  ctx.lineTo(w, h - br); ctx.arcTo(w, h, w - br, h, br);
-  ctx.lineTo(br, h); ctx.arcTo(0, h, 0, h - br, br);
-  ctx.lineTo(0, br); ctx.arcTo(0, 0, br, 0, br);
-  ctx.closePath(); ctx.fill();
-  // Label
-  ctx.fillStyle = k.fontColor || "#fff";
-  var fs = Math.max(8, h * 0.3);
-  ctx.font = "bold " + fs + "px -apple-system,sans-serif";
-  ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.fillText(count > 1 ? (count + " keys") : (k.label || k.action || "Key"), w/2, h/2);
-}
 
 function _getClipboard() {
   try {
@@ -110,7 +110,7 @@ setTimeout(_updateClipboardPanel, 500);
 
 // Add clipboard drag support
 document.addEventListener("DOMContentLoaded", function() {
-  var preview = document.querySelector("#rp-clipboard .clip-preview");
+  var preview = document.querySelector("#rp-clipboard-section .clip-preview");
   if (preview) {
     preview.addEventListener("dragstart", function(e) {
       if (!preview.dataset.clipboard) { e.preventDefault(); return; }

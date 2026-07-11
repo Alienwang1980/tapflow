@@ -11,7 +11,7 @@ const MAX_UNDO=200;
 const DEVS={"iPad 4:3":{w:1024,h:1366},"iPad 11\"":{w:834,h:1210},"iPad mini":{w:744,h:1133},"Android 16:10":{w:1280,h:800}};
 
 // ── Undo/Redo ──
-function _snapshot(k){return{id:k.id,col:k.col,row:k.row,w:k.w,h:k.h,label:k.label,action:k.action,value:k.value,color:k.color,sound:k.sound,groups:k.groups?k.groups.slice():null}}
+function _snapshot(k){return JSON.parse(JSON.stringify(k))}
 function _pushUndo(keysBefore){
   const page=cp_();if(!page)return;
   const after=keysBefore.map(b=>{const k=page.keys.find(x=>x.id===b.id);return k?_snapshot(k):null}).filter(Boolean);
