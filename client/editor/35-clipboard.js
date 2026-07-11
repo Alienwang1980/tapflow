@@ -46,6 +46,14 @@ function _updateClipboardPanel() {
   preview.style.cursor = "grab";
   preview.draggable = true;
   preview.dataset.clipboard = "1";
+  // Attach drag handler
+  if (!preview._hasDrag) {
+    preview._hasDrag = true;
+    preview.addEventListener("dragstart", function(e) {
+      e.dataTransfer.setData("text/plain", "__clipboard__");
+      e.dataTransfer.effectAllowed = "copy";
+    });
+  }
 }
 
 
@@ -92,6 +100,7 @@ function _pasteFromClipboard(col, row) {
   var pasted = [];
   data.keys.forEach(function(k, i) {
     var clone = JSON.parse(JSON.stringify(k));
+    delete clone._originalId;
     clone.id = "k_" + Date.now() + "_" + i;
     clone.col = col + (i % 3) * 0.5;
     clone.row = row + Math.floor(i / 3) * 0.5;
@@ -108,14 +117,3 @@ function _pasteFromClipboard(col, row) {
 // Update panel on init
 setTimeout(_updateClipboardPanel, 500);
 
-// Add clipboard drag support
-document.addEventListener("DOMContentLoaded", function() {
-  var preview = document.querySelector("#rp-clipboard-section .clip-preview");
-  if (preview) {
-    preview.addEventListener("dragstart", function(e) {
-      if (!preview.dataset.clipboard) { e.preventDefault(); return; }
-      e.dataTransfer.setData("text/plain", "__clipboard__");
-      e.dataTransfer.effectAllowed = "copy";
-    });
-  }
-});
