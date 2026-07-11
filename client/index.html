@@ -35,168 +35,15 @@ function _drawBalance(canvas,data,label,showFlags){var ctx=canvas.getContext("2d
 function psnd(n){if(!n||n==="none")return;const s=SND[n];if(!s)return;try{if(!ctx)ctx=new(window.AudioContext||window.webkitAudioContext)();const o=ctx.createOscillator(),g=ctx.createGain();o.type=s[2];if(s[4]==="sweep"){o.frequency.setValueAtTime(s[0]*1.5,ctx.currentTime);o.frequency.exponentialRampToValueAtTime(s[0]*0.5,ctx.currentTime+s[1])}else{o.frequency.setValueAtTime(s[0],ctx.currentTime)}g.gain.setValueAtTime(s[3],ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+s[1]);o.connect(g);g.connect(ctx.destination);o.start();o.stop(ctx.currentTime+s[1]);if(s.length===6){const o2=ctx.createOscillator(),g2=ctx.createGain();o2.type="square";o2.frequency.setValueAtTime(s[4],ctx.currentTime+0.003);g2.gain.setValueAtTime(s[3]*0.5,ctx.currentTime+0.003);g2.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+s[5]);o2.connect(g2);g2.connect(ctx.destination);o2.start(ctx.currentTime+0.003);o2.stop(ctx.currentTime+s[5])}if(s.length===5&&typeof s[4]==="number"){const bs=ctx.sampleRate*s[1],buf=ctx.createBuffer(1,bs,ctx.sampleRate),d=buf.getChannelData(0);for(let i=0;i<bs;i++)d[i]=(Math.random()*2-1)*s[4];const ns=ctx.createBufferSource(),gn=ctx.createGain();ns.buffer=buf;gn.gain.setValueAtTime(s[3]*0.3,ctx.currentTime);gn.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+s[1]*0.5);ns.connect(gn);gn.connect(ctx.destination);ns.start(ctx.currentTime)}}catch(e){}}
 // ── Media Control Widgets (volume, mute, mic-mute, audio devices) ──
 
-function _drawVolumeSlider(canvas, value, muted) {
-  var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
-  // Only clear slider area (left portion), leave mute area intact
-  var muteX = canvas._muteX || (w - h + 2);
-  ctx.clearRect(0, 0, muteX - 2, h);
-  var sliderW = muteX - 4;
-  var margin = 4, barH = Math.max(8, h * 0.35);
-  var barY = (h - barH) / 2, barW = sliderW - 8;
-  var displayVal = muted ? 0 : value;
-  // Background track
-  ctx.fillStyle = "rgba(255,255,255,0.1)";
-  ctx.fillRect(margin, barY, barW, barH);
-  // Fill
-  var fillW = barW * (displayVal / 100);
-  var g = ctx.createLinearGradient(margin, 0, margin + barW, 0);
-  g.addColorStop(0, "#4ade80"); g.addColorStop(1, "#22c55e");
-  ctx.fillStyle = muted ? "rgba(239,68,68,0.3)" : g;
-  ctx.fillRect(margin, barY, fillW, barH);
-  // Knob
-  ctx.fillStyle = "#fff"; ctx.beginPath();
-  ctx.arc(margin + fillW, barY + barH/2, barH * 0.6, 0, Math.PI*2); ctx.fill();
-  // Label
-  var fs = Math.max(9, h * 0.3);
-  ctx.fillStyle = muted ? "#ef4444" : "#aaa";
-  ctx.font = "bold " + fs + "px -apple-system,sans-serif";
-  ctx.textAlign = "left"; ctx.textBaseline = "bottom";
-  ctx.fillText(muted ? "MUTED" : Math.round(value) + "%", margin, barY - 2);
-  canvas._volValue = value; canvas._volMargin = margin; canvas._volBarW = barW;
-}
-
-function _drawMuteIcon(canvas, muted) {
-  var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
-  var muteW = h - 4;
-  var muteX = w - muteW - 2;
-  canvas._muteX = muteX; canvas._muteW = muteW;
-  ctx.clearRect(muteX - 2, 0, muteW + 4, h);
-  // Separator
-  ctx.strokeStyle = "rgba(255,255,255,0.12)"; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(muteX - 1, 4); ctx.lineTo(muteX - 1, h - 4); ctx.stroke();
-  // Icon bg
-  ctx.fillStyle = muted ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.05)";
-  ctx.fillRect(muteX, 2, muteW, h - 4);
-  // Icon text
-  var icx = muteX + muteW/2, icy = h/2;
-  ctx.fillStyle = muted ? "#ef4444" : "#888";
-  ctx.font = Math.max(8, muteW*0.35) + "px -apple-system,sans-serif";
-  ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.fillText("M", icx, icy);
-  if (muted) {
-    ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(icx-6, icy-6); ctx.lineTo(icx+6, icy+6); ctx.stroke();
-  }
-  canvas._volMuted = muted;
-}
-
-// ── Volume Slider + Mute (combined widget) ──
-
-function _drawVolume(canvas, value, muted) {
-  // Draw mute icon once, only update when mute state changes
-  if (canvas._lastMuted !== muted) {
-    _drawMuteIcon(canvas, muted);
-    canvas._lastMuted = muted;
-  }
-  // Always draw slider
-  _drawVolBar(canvas, value, muted);
-  canvas._volValue = value; canvas._volMuted = muted;
-}
-
-
-
-function _drawVolBar(canvas, value, muted) {
-  var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
-  var muteX = canvas._muteX || (w - h + 2);
-  ctx.clearRect(0, 0, muteX - 2, h);
-  var displayVal = muted ? 0 : value;
-  var margin = 4, barH = Math.max(8, h * 0.35);
-  var barY = (h - barH) / 2, barW = muteX - margin - 4;
-  canvas._volMargin = margin; canvas._volBarW = barW;
-  ctx.fillStyle = "rgba(255,255,255,0.1)";
-  ctx.fillRect(margin, barY, barW, barH);
-  var fillW = barW * (displayVal / 100);
-  var g = ctx.createLinearGradient(margin, 0, margin + barW, 0);
-  g.addColorStop(0, "#4ade80"); g.addColorStop(1, "#22c55e");
-  ctx.fillStyle = muted ? "rgba(239,68,68,0.3)" : g;
-  ctx.fillRect(margin, barY, fillW, barH);
-  ctx.fillStyle = "#fff"; ctx.beginPath();
-  ctx.arc(margin + fillW, barY + barH/2, barH * 0.6, 0, Math.PI*2); ctx.fill();
-  var fs = Math.max(9, h * 0.3);
-  ctx.fillStyle = muted ? "#ef4444" : "#aaa";
-  ctx.font = "bold " + fs + "px -apple-system,sans-serif";
-  ctx.textAlign = "left"; ctx.textBaseline = "bottom";
-  ctx.fillText(muted ? "MUTED" : Math.round(value) + "%", margin, barY - 2);
-}
-
-function _onVolumeTouchStart(e, canvas) {
-  e.stopPropagation();
-  var rect = canvas.getBoundingClientRect();
-  var x = ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) * (canvas.width / rect.width);
-  if (x >= (canvas._muteX || 999)) {
-    fetch("/api/system/mute", {method:"POST"}).then(function(r){return r.json()}).then(function(d){
-      _drawVolume(canvas, canvas._volValue || 50, d.muted);
-    }).catch(function(){});
-    return;
-  }
-  canvas._volDragging = true;
-  var v = Math.round(((x - canvas._volMargin) / canvas._volBarW) * 100);
-  v = Math.max(0, Math.min(100, v));
-  canvas._volValue = v;
-  canvas._lastMuted = null;
-  _drawVolume(canvas, v, false);
-}
-
-function _onVolumeTouchMove(e, canvas) {
-  e.stopPropagation();
-  if (!canvas._volDragging) return;
-  var rect = canvas.getBoundingClientRect();
-  var x = ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) * (canvas.width / rect.width);
-  var v = Math.round(((x - canvas._volMargin) / canvas._volBarW) * 100);
-  v = Math.max(0, Math.min(100, v));
-  canvas._volValue = v;
-  _drawVolBar(canvas, v, false);
-}
-
-function _onVolumeTouchEnd(e, canvas) {
-  if (canvas._volDragging) {
-    canvas._volDragging = false;
-    fetch("/api/system/volume", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({value:canvas._volValue||50})}).catch(function(){});
-  }
-}
-
-function _fetchAndDrawVolume(canvas) {
-  canvas._volValue = canvas._volValue || 50;
-  canvas._muteX = canvas._muteX || (canvas.width - canvas.height + 2);
-  canvas._muteW = canvas._muteW || (canvas.height - 4);
-  canvas._lastMuted = null;
-  _drawVolume(canvas, canvas._volValue, false);
-  fetch("/api/system/volume").then(function(r){return r.json()}).then(function(d){
-    canvas._volValue = d.output_volume; canvas._volMuted = d.output_muted;
-    canvas._lastMuted = null;
-    _drawVolume(canvas, d.output_volume, d.output_muted);
-  }).catch(function(){ _drawVolume(canvas, canvas._volValue, false); });
-}
-function _drawMuteBtn(canvas, muted) {
-  var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
-  ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = muted ? "rgba(239,68,68,0.3)" : "rgba(255,255,255,0.08)";
-  ctx.fillRect(0, 0, w, h);
-  ctx.fillStyle = muted ? "#ef4444" : "#888";
-  var r = Math.min(w, h) * 0.35;
-  ctx.beginPath(); ctx.arc(w / 2, h / 2, r, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = "#fff"; var fs = Math.max(14, Math.min(w, h) * 0.4);
-  ctx.font = fs + "px -apple-system,sans-serif";
-  ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.fillText("M", w / 2, h / 2);
-  canvas._muted = muted;
-}
-
-function _toggleMute(canvas) {
-  fetch("/api/system/mute", { method: "POST" }).then(function (r) { return r.json(); }).then(function (d) {
-    _drawMuteBtn(canvas, d.muted);
-  });
-}
+// ── Volume Widget — full-surface progress bar, mute on left, H/V layout ──
+function _drawVolumeWidget(canvas,value,muted,layout){var ctx=canvas.getContext("2d"),w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);var isVert=layout==="vertical";var pad=Math.max(5,isVert?w*0.08:h*0.06);var muteR=Math.min(isVert?w*0.25:h*0.28,isVert?w*0.11:h*0.12);muteR=Math.max(14,Math.min(muteR,34));var pct=muted?0:Math.round(value);ctx.fillStyle="rgba(255,255,255,0.04)";ctx.fillRect(0,0,w,h);if(isVert){var muteCX=w/2;var muteCY=h-pad-muteR;canvas._muteCX=muteCX;canvas._muteCY=muteCY;canvas._muteR=muteR;var fillH=muted?0:h*(pct/100);var g=ctx.createLinearGradient(0,h,0,0);g.addColorStop(0,"rgba(74,222,128,0.30)");g.addColorStop(1,"rgba(34,197,94,0.22)");if(fillH>0){ctx.fillStyle=g;ctx.fillRect(0,h-fillH,w,fillH)}var numFs=Math.max(20,Math.min(h*0.40,w*0.18));ctx.fillStyle=muted?"rgba(239,68,68,0.7)":"rgba(255,255,255,0.9)";ctx.font="bold "+numFs+"px -apple-system,sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(pct+"%",w/2,h*0.38);var labelFs=Math.max(7,Math.min(h*0.09,w*0.05));ctx.fillStyle="rgba(255,255,255,0.3)";ctx.font=labelFs+"px -apple-system,sans-serif";ctx.textBaseline="top";ctx.fillText("VOL",w/2,h*0.38+numFs*0.5+3)}else{var muteCX=pad+muteR;var muteCY=h/2;canvas._muteCX=muteCX;canvas._muteCY=muteCY;canvas._muteR=muteR;var fillW=muted?0:w*(pct/100);if(fillW>0){var g2=ctx.createLinearGradient(0,0,w,0);g2.addColorStop(0,"rgba(74,222,128,0.30)");g2.addColorStop(1,"rgba(34,197,94,0.22)");ctx.fillStyle=g2;ctx.fillRect(0,0,fillW,h)}var numFs2=Math.max(22,Math.min(h*0.48,w*0.16));ctx.fillStyle=muted?"rgba(239,68,68,0.7)":"rgba(255,255,255,0.9)";ctx.font="bold "+numFs2+"px -apple-system,sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(pct+"%",w/2,h*0.40);var labelFs2=Math.max(8,Math.min(h*0.10,w*0.04));ctx.fillStyle="rgba(255,255,255,0.3)";ctx.font=labelFs2+"px -apple-system,sans-serif";ctx.textBaseline="top";ctx.fillText("VOLUME",w/2,h*0.40+numFs2*0.5+4)}ctx.beginPath();ctx.arc(muteCX,muteCY,muteR,0,Math.PI*2);ctx.fillStyle=muted?"rgba(239,68,68,0.25)":"rgba(255,255,255,0.06)";ctx.fill();ctx.beginPath();ctx.arc(muteCX,muteCY,muteR,0,Math.PI*2);ctx.strokeStyle=muted?"rgba(239,68,68,0.45)":"rgba(255,255,255,0.14)";ctx.lineWidth=1.2;ctx.stroke();var isz=muteR*1.15;_drawSpeakerIcon(ctx,muteCX-isz/2,muteCY-isz/2,isz,muted);canvas._volPad=0;canvas._volBarLen=isVert?h:w;canvas._volLayout=layout||"horizontal";canvas._volValue=value;canvas._volMuted=muted}
+function _drawSpeakerIcon(ctx,x,y,sz,muted){var s=sz;ctx.fillStyle=muted?"#ef4444":"#999";ctx.fillRect(x+s*0.10,y+s*0.28,s*0.20,s*0.44);ctx.beginPath();ctx.moveTo(x+s*0.30,y+s*0.20);ctx.lineTo(x+s*0.55,y+s*0.08);ctx.lineTo(x+s*0.55,y+s*0.92);ctx.lineTo(x+s*0.30,y+s*0.80);ctx.closePath();ctx.fill();if(!muted){ctx.strokeStyle="#999";ctx.lineWidth=Math.max(1,s*0.05);ctx.beginPath();ctx.arc(x+s*0.52,y+s*0.5,s*0.20,-0.40,0.40);ctx.stroke();ctx.beginPath();ctx.arc(x+s*0.52,y+s*0.5,s*0.32,-0.40,0.40);ctx.stroke()}if(muted){ctx.strokeStyle="#ef4444";ctx.lineWidth=Math.max(1.2,s*0.07);ctx.beginPath();ctx.moveTo(x+s*0.48,y+s*0.24);ctx.lineTo(x+s*0.68,y+s*0.78);ctx.moveTo(x+s*0.68,y+s*0.24);ctx.lineTo(x+s*0.48,y+s*0.78);ctx.stroke()}}
+function _onVolumeTouchStart(e,canvas){e.stopPropagation();var rect=canvas.getBoundingClientRect();var tx=((e.touches?e.touches[0].clientX:e.clientX)-rect.left)*(canvas.width/rect.width);var ty=((e.touches?e.touches[0].clientY:e.clientY)-rect.top)*(canvas.height/rect.height);var dcx=tx-canvas._muteCX,dcy=ty-canvas._muteCY;if(Math.sqrt(dcx*dcx+dcy*dcy)<canvas._muteR+6){fetch("/api/system/mute",{method:"POST"}).then(function(r){return r.json()}).then(function(d){_drawVolumeWidget(canvas,canvas._volValue||50,d.muted,canvas._volLayout)}).catch(function(){});return}canvas._volDragging=true;var isVert2=canvas._volLayout==="vertical";var pos=isVert2?ty:tx;var v=Math.round((1-(isVert2?pos/canvas._volBarLen:pos/canvas._volBarLen))*100);v=Math.max(0,Math.min(100,v));canvas._volValue=v;_drawVolumeWidget(canvas,v,false,canvas._volLayout)}
+function _onVolumeTouchMove(e,canvas){e.stopPropagation();if(!canvas._volDragging)return;var rect=canvas.getBoundingClientRect();var tx=((e.touches?e.touches[0].clientX:e.clientX)-rect.left)*(canvas.width/rect.width);var ty=((e.touches?e.touches[0].clientY:e.clientY)-rect.top)*(canvas.height/rect.height);var isVert3=canvas._volLayout==="vertical";var pos=isVert3?ty:tx;var v=Math.round((1-(isVert3?pos/canvas._volBarLen:pos/canvas._volBarLen))*100);v=Math.max(0,Math.min(100,v));canvas._volValue=v;_drawVolumeWidget(canvas,v,false,canvas._volLayout)}
+function _onVolumeTouchEnd(e,canvas){if(canvas._volDragging){canvas._volDragging=false;fetch("/api/system/volume",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({value:canvas._volValue||50})}).catch(function(){})}}
+function _fetchAndDrawVolume(canvas){canvas._volValue=canvas._volValue||50;var layout=canvas._volLayout||"horizontal";_drawVolumeWidget(canvas,canvas._volValue,false,layout);fetch("/api/system/volume").then(function(r){return r.json()}).then(function(d){canvas._volValue=d.output_volume;_drawVolumeWidget(canvas,d.output_volume,d.output_muted,layout)}).catch(function(){_drawVolumeWidget(canvas,canvas._volValue,false,layout)})}
+function _drawMuteBtn(canvas,muted){var ctx=canvas.getContext("2d"),w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);var r=Math.min(w,h)*0.40;r=Math.max(20,Math.min(r,50));ctx.beginPath();ctx.arc(w/2,h/2,r,0,Math.PI*2);ctx.fillStyle=muted?"rgba(239,68,68,0.25)":"rgba(255,255,255,0.06)";ctx.fill();ctx.beginPath();ctx.arc(w/2,h/2,r,0,Math.PI*2);ctx.strokeStyle=muted?"rgba(239,68,68,0.45)":"rgba(255,255,255,0.14)";ctx.lineWidth=1.2;ctx.stroke();var isz=r*1.15;_drawSpeakerIcon(ctx,w/2-isz/2,h/2-isz/2,isz,muted);canvas._muted=muted}
+function _toggleMute(canvas){fetch("/api/system/mute",{method:"POST"}).then(function(r){return r.json()}).then(function(d){_drawMuteBtn(canvas,d.muted)})}
 
 function _drawCurrentApp(canvas, name) {
   var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
@@ -522,7 +369,7 @@ function render(){
       }else{el.style.background="rgba(0,0,0,0.15)"}
       el.style.backdropFilter="blur(2px)";el.style.webkitBackdropFilter="blur(2px)";
     }
-    if(k.action==="volume"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_fetchAndDrawVolume(_cv);_cv.addEventListener("touchstart",function(e){e.stopPropagation();_onVolumeTouchStart(e,_cv)});_cv.addEventListener("touchmove",function(e){e.stopPropagation();_onVolumeTouchMove(e,_cv)});_cv.addEventListener("touchend",function(e){_onVolumeTouchEnd(e,_cv)})}else if(k.action==="mic-mute"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_drawMicMuteBtn(_cv,false,0);_cv._micMuted=false;_cv.addEventListener("touchstart",function(e){e.stopPropagation();_toggleMicMute(_cv)});_pollMicLevel(_cv);setInterval(function(){_pollMicLevel(_cv)},200)}else if(k.action==="mute"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_drawMuteBtn(_cv,false);_cv.addEventListener("touchstart",function(e){e.stopPropagation();_toggleMute(_cv)})}else if(k.action==="active-app"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_fetchAndDrawCurrentApp(_cv);setInterval(function(){_fetchAndDrawCurrentApp(_cv)},5000)}else if(k.action==="win-shortcuts"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_drawWinShortcuts(_cv);_cv.addEventListener("touchstart",function(e){_onWinShortcutTouch(e,_cv)})}else if(k.action==="dock"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;el.appendChild(_cv);_cv.style.borderRadius=((k.borderRadius!==undefined?k.borderRadius:10)/100*Math.min(kw,kh))+"px";_cv._dockKey=k;_fetchAndDrawDock(_cv);_cv.addEventListener("touchstart",function(e){_onDockTouchStart(e,_cv)},{passive:false});_cv.addEventListener("touchmove",function(e){e.preventDefault();_onDockTouchMove(e,_cv)},{passive:false});_cv.addEventListener("touchend",function(e){_onDockTouchEnd(e,_cv)},{passive:false});_cv.addEventListener("click",function(e){e.stopPropagation();e.preventDefault()})}else if(k.action==="app-menu"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_fetchAndDrawMenus(_cv);_cv.addEventListener("touchstart",function(e){_onMenuTouchStart(e,_cv)});_cv.addEventListener("touchmove",function(e){_onMenuTouchMove(e,_cv)});_cv.addEventListener("touchend",function(e){_onMenuTouchEnd(e,_cv)});setInterval(function(){_fetchAndDrawMenus(_cv)},5000)}else if(k.action==="layout-preset"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_fetchAndDrawLayouts(_cv);_cv.addEventListener("touchstart",function(e){_onLayoutTouchStart(e,_cv)});_cv.addEventListener("touchmove",function(e){e.preventDefault();_onLayoutTouchMove(e,_cv)});_cv.addEventListener("touchend",function(e){_onLayoutTouchEnd(e,_cv)})}else if(k.action==="audio-out"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_fetchAndDrawAudioDevs(_cv,"output");_cv.addEventListener("touchstart",function(e){_onAudioDevTouchStart(e,_cv)});_cv.addEventListener("touchmove",function(e){e.preventDefault();_onAudioDevTouchMove(e,_cv)});_cv.addEventListener("touchend",function(e){_onAudioDevTouchEnd(e,_cv)});setInterval(function(){_fetchAndDrawAudioDevs(_cv,_canvas._adevType||"output")},30000)}else if(k.action==="audio-in"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_fetchAndDrawAudioDevs(_cv,"input");_cv.addEventListener("touchstart",function(e){_onAudioDevTouchStart(e,_cv)});_cv.addEventListener("touchmove",function(e){e.preventDefault();_onAudioDevTouchMove(e,_cv)});_cv.addEventListener("touchend",function(e){_onAudioDevTouchEnd(e,_cv)});setInterval(function(){_fetchAndDrawAudioDevs(_cv,"input")},30000)}else if(k.action==="visualizer"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_drawSpectrum(_cv,[])}else if(k.action==="balance"){var _apiKey=k.apiKey||"";var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="4px";el.appendChild(_cv);_drawBalance(_cv,{total_balance:"0",granted_balance:"0",topped_up_balance:"0",currency:"CNY"},"Loading...",k.showFlags);if(_apiKey){_fetchBalanceCanvas(_cv,_apiKey,k.showFlags);setInterval(function(){_fetchBalanceCanvas(_cv,_apiKey,k.showFlags)},30000)}else{_drawBalance(_cv,null,"No API key",k.showFlags)}}else{el.textContent=k.label}canvas.appendChild(el);
+    if(k.action==="volume"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";_cv._volLayout=k.layout||"horizontal";el.appendChild(_cv);_fetchAndDrawVolume(_cv);_cv.addEventListener("touchstart",function(e){e.stopPropagation();_onVolumeTouchStart(e,_cv)});_cv.addEventListener("touchmove",function(e){e.stopPropagation();_onVolumeTouchMove(e,_cv)});_cv.addEventListener("touchend",function(e){_onVolumeTouchEnd(e,_cv)})}else if(k.action==="mic-mute"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_drawMicMuteBtn(_cv,false,0);_cv._micMuted=false;_cv.addEventListener("touchstart",function(e){e.stopPropagation();_toggleMicMute(_cv)});_pollMicLevel(_cv);setInterval(function(){_pollMicLevel(_cv)},200)}else if(k.action==="mute"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_drawMuteBtn(_cv,false);_cv.addEventListener("touchstart",function(e){e.stopPropagation();_toggleMute(_cv)})}else if(k.action==="active-app"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_fetchAndDrawCurrentApp(_cv);setInterval(function(){_fetchAndDrawCurrentApp(_cv)},5000)}else if(k.action==="win-shortcuts"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_drawWinShortcuts(_cv);_cv.addEventListener("touchstart",function(e){_onWinShortcutTouch(e,_cv)})}else if(k.action==="dock"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;el.appendChild(_cv);_cv.style.borderRadius=((k.borderRadius!==undefined?k.borderRadius:10)/100*Math.min(kw,kh))+"px";_cv._dockKey=k;_fetchAndDrawDock(_cv);_cv.addEventListener("touchstart",function(e){_onDockTouchStart(e,_cv)},{passive:false});_cv.addEventListener("touchmove",function(e){e.preventDefault();_onDockTouchMove(e,_cv)},{passive:false});_cv.addEventListener("touchend",function(e){_onDockTouchEnd(e,_cv)},{passive:false});_cv.addEventListener("click",function(e){e.stopPropagation();e.preventDefault()})}else if(k.action==="app-menu"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_fetchAndDrawMenus(_cv);_cv.addEventListener("touchstart",function(e){_onMenuTouchStart(e,_cv)});_cv.addEventListener("touchmove",function(e){_onMenuTouchMove(e,_cv)});_cv.addEventListener("touchend",function(e){_onMenuTouchEnd(e,_cv)});setInterval(function(){_fetchAndDrawMenus(_cv)},5000)}else if(k.action==="layout-preset"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_fetchAndDrawLayouts(_cv);_cv.addEventListener("touchstart",function(e){_onLayoutTouchStart(e,_cv)});_cv.addEventListener("touchmove",function(e){e.preventDefault();_onLayoutTouchMove(e,_cv)});_cv.addEventListener("touchend",function(e){_onLayoutTouchEnd(e,_cv)})}else if(k.action==="audio-out"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_fetchAndDrawAudioDevs(_cv,"output");_cv.addEventListener("touchstart",function(e){_onAudioDevTouchStart(e,_cv)});_cv.addEventListener("touchmove",function(e){e.preventDefault();_onAudioDevTouchMove(e,_cv)});_cv.addEventListener("touchend",function(e){_onAudioDevTouchEnd(e,_cv)});setInterval(function(){_fetchAndDrawAudioDevs(_cv,_canvas._adevType||"output")},30000)}else if(k.action==="audio-in"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_fetchAndDrawAudioDevs(_cv,"input");_cv.addEventListener("touchstart",function(e){_onAudioDevTouchStart(e,_cv)});_cv.addEventListener("touchmove",function(e){e.preventDefault();_onAudioDevTouchMove(e,_cv)});_cv.addEventListener("touchend",function(e){_onAudioDevTouchEnd(e,_cv)});setInterval(function(){_fetchAndDrawAudioDevs(_cv,"input")},30000)}else if(k.action==="visualizer"){var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";el.appendChild(_cv);_drawSpectrum(_cv,[])}else if(k.action==="balance"){var _apiKey=k.apiKey||"";var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="4px";el.appendChild(_cv);_drawBalance(_cv,{total_balance:"0",granted_balance:"0",topped_up_balance:"0",currency:"CNY"},"Loading...",k.showFlags);if(_apiKey){_fetchBalanceCanvas(_cv,_apiKey,k.showFlags);setInterval(function(){_fetchBalanceCanvas(_cv,_apiKey,k.showFlags)},30000)}else{_drawBalance(_cv,null,"No API key",k.showFlags)}}else{el.textContent=k.label}canvas.appendChild(el);
   });
   document.getElementById("info").textContent=`keys ${vis}/${pg.keys.length} | ${dw}×${dh} cs${cs} gap${gp} | vw${vw}×${vh}h | scale ${scale.toFixed(3)} | cx${cx.toFixed(1)} cy${cy.toFixed(1)}`;
 }
