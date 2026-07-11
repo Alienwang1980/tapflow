@@ -93,16 +93,26 @@ function _drawMuteIcon(canvas, muted) {
 // ── Volume Slider + Mute (combined widget) ──
 
 function _drawVolume(canvas, value, muted) {
+  // Draw mute icon once, only update when mute state changes
+  if (canvas._lastMuted !== muted) {
+    _drawMuteIcon(canvas, muted);
+    canvas._lastMuted = muted;
+  }
+  // Always draw slider
+  _drawVolBar(canvas, value, muted);
+  canvas._volValue = value; canvas._volMuted = muted;
+}
+
+function _drawMuteIcon(canvas, muted) {
   var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
-  ctx.clearRect(0, 0, w, h);
-  // Mute button area (right side, square)
   var muteW = h - 4;
   var muteX = w - muteW - 2;
   canvas._muteX = muteX; canvas._muteW = muteW;
-  // Separator
+  // Clear mute area + separator
+  ctx.clearRect(muteX - 2, 0, muteW + 4, h);
   ctx.strokeStyle = "rgba(255,255,255,0.12)"; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(muteX - 1, 4); ctx.lineTo(muteX - 1, h - 4); ctx.stroke();
-  // Mute icon
+  // Icon
   var icx = muteX + muteW/2, icy = h/2;
   ctx.fillStyle = muted ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.05)";
   ctx.fillRect(muteX, 2, muteW, h - 4);
@@ -114,10 +124,18 @@ function _drawVolume(canvas, value, muted) {
     ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.moveTo(icx-6, icy-6); ctx.lineTo(icx+6, icy+6); ctx.stroke();
   }
+}
+
+function _drawVolBar(canvas, value, muted) {
+  var ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
+  var muteX = canvas._muteX || (w - h + 2);
+  // Clear slider area only
+  ctx.clearRect(0, 0, muteX - 2, h);
   // Slider
   var displayVal = muted ? 0 : value;
   var margin = 4, barH = Math.max(8, h * 0.35);
   var barY = (h - barH) / 2, barW = muteX - margin - 4;
+  canvas._volMargin = margin; canvas._volBarW = barW;
   ctx.fillStyle = "rgba(255,255,255,0.1)";
   ctx.fillRect(margin, barY, barW, barH);
   var fillW = barW * (displayVal / 100);
@@ -132,9 +150,6 @@ function _drawVolume(canvas, value, muted) {
   ctx.font = "bold " + fs + "px -apple-system,sans-serif";
   ctx.textAlign = "left"; ctx.textBaseline = "bottom";
   ctx.fillText(muted ? "MUTED" : Math.round(value) + "%", margin, barY - 2);
-  // Store state
-  canvas._volValue = value; canvas._volMuted = muted;
-  canvas._volMargin = margin; canvas._volBarW = barW;
 }
 
 function _onVolumeTouchStart(e, canvas) {
@@ -153,6 +168,7 @@ function _onVolumeTouchStart(e, canvas) {
   var v = Math.round(((x - canvas._volMargin) / canvas._volBarW) * 100);
   v = Math.max(0, Math.min(100, v));
   canvas._volValue = v;
+  canvas._lastMuted = null; // Force mute redraw on next _drawVolume
   _drawVolume(canvas, v, false);
   fetch("/api/system/volume", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({value:v})}).catch(function(){});
 }
@@ -165,7 +181,8 @@ function _onVolumeTouchMove(e, canvas) {
   var v = Math.round(((x - canvas._volMargin) / canvas._volBarW) * 100);
   v = Math.max(0, Math.min(100, v));
   canvas._volValue = v;
-  _drawVolume(canvas, v, false);
+  // Only redraw slider bar, never touch mute icon during drag
+  _drawVolBar(canvas, v, false);
   fetch("/api/system/volume", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({value:v})}).catch(function(){});
 }
 
