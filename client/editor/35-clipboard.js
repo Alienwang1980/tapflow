@@ -12,41 +12,78 @@ function _updateClipboardPanel() {
     delete preview.dataset.clipboard;
     return;
   }
-  var k = data.keys[0];
-  var count = data.keys.length;
-  // Draw actual button preview to scale
-  var size = Math.min(preview.clientWidth || 180, preview.clientHeight || 180);
+  var keys = data.keys;
+  // Calculate bounding box in grid units (col, row, w, h)
+  var minC = Infinity, minR = Infinity, maxC = -Infinity, maxR = -Infinity;
+  keys.forEach(function(k) {
+    var kc = k.col != null ? k.col : 0;
+    var kr = k.row != null ? k.row : 0;
+    var kw = k.w || 1;
+    var kh = k.h || 1;
+    if (kc < minC) minC = kc;
+    if (kr < minR) minR = kr;
+    if (kc + kw > maxC) maxC = kc + kw;
+    if (kr + kh > maxR) maxR = kr + kh;
+  });
+  var bw = maxC - minC; // total width in grid units
+  var bh = maxR - minR; // total height in grid units
+  // Square preview size
+  var size = Math.min(preview.clientWidth || 180, preview.clientHeight || 180, 160);
+  var pad = 8; // padding inside preview
+  var drawW = size - pad * 2;
+  var drawH = size - pad * 2;
+  // Scale to fit within the square, preserving aspect ratio
+  var cellPx = 60; // approximate pixels per grid unit
+  var scale = Math.min(drawW / (bw * cellPx), drawH / (bh * cellPx), 1.5);
+  var keyPx = cellPx * scale;
+  var ox = pad + (drawW - bw * keyPx) / 2;
+  var oy = pad + (drawH - bh * keyPx) / 2;
+  // Draw to retina canvas
   var cv = document.createElement("canvas");
-  cv.width = size * 2; cv.height = size * 2; // 2x for retina
+  cv.width = size * 2; cv.height = size * 2;
   cv.style.width = size + "px"; cv.style.height = size + "px";
   cv.style.borderRadius = "6px";
   var ctx = cv.getContext("2d");
   ctx.scale(2, 2);
-  // Render like actual key button
-  var brPct = (k.borderRadius !== undefined ? k.borderRadius : 10) / 100;
-  var br = brPct * size;
-  var bg = k.color || "#0f3460";
-  ctx.fillStyle = bg;
-  ctx.beginPath();
-  ctx.moveTo(br, 0); ctx.lineTo(size - br, 0);
-  ctx.arcTo(size, 0, size, br, br);
-  ctx.lineTo(size, size - br); ctx.arcTo(size, size, size - br, size, br);
-  ctx.lineTo(br, size); ctx.arcTo(0, size, 0, size - br, br);
-  ctx.lineTo(0, br); ctx.arcTo(0, 0, br, 0, br);
-  ctx.closePath(); ctx.fill();
-  ctx.fillStyle = k.fontColor || "#fff";
-  var fs = Math.max(8, size * 0.2);
-  ctx.font = "bold " + fs + "px -apple-system,sans-serif";
-  ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  var label = k.label || k.action || "?";
-  if (label.length > 4) label = label.substring(0,4);
-  ctx.fillText(label, size/2, size/2);
+  // Background
+  ctx.fillStyle = "rgba(0,0,0,0.2)";
+  ctx.fillRect(0, 0, size, size);
+  // Draw each key
+  keys.forEach(function(k) {
+    var kx = ox + ((k.col != null ? k.col : 0) - minC) * keyPx;
+    var ky = oy + ((k.row != null ? k.row : 0) - minR) * keyPx;
+    var kw = (k.w || 1) * keyPx;
+    var kh = (k.h || 1) * keyPx;
+    var gap = 2 * scale;
+    kx += gap; ky += gap; kw -= gap * 2; kh -= gap * 2;
+    if (kw < 4 || kh < 4) return;
+    // Border radius
+    var brPct = (k.borderRadius !== undefined ? k.borderRadius : 10) / 100;
+    var br = brPct * Math.min(kw, kh);
+    // Key background
+    var bg = k.color || "#0f3460";
+    ctx.fillStyle = bg;
+    ctx.beginPath();
+    ctx.moveTo(kx + br, ky); ctx.lineTo(kx + kw - br, ky);
+    ctx.arcTo(kx + kw, ky, kx + kw, ky + br, Math.min(br, kw/2));
+    ctx.lineTo(kx + kw, ky + kh - br); ctx.arcTo(kx + kw, ky + kh, kx + kw - br, ky + kh, Math.min(br, kh/2));
+    ctx.lineTo(kx + br, ky + kh); ctx.arcTo(kx, ky + kh, kx, ky + kh - br, Math.min(br, kh/2));
+    ctx.lineTo(kx, ky + br); ctx.arcTo(kx, ky, kx + br, ky, Math.min(br, kw/2));
+    ctx.closePath(); ctx.fill();
+    // Label
+    ctx.fillStyle = k.fontColor || "#fff";
+    var fs = Math.max(6, Math.min(kh * 0.3, kw * 0.15));
+    ctx.font = "bold " + fs + "px -apple-system,sans-serif";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    var lbl = k.label || "";
+    if (lbl.length > 6) lbl = lbl.substring(0,5);
+    ctx.fillText(lbl, kx + kw/2, ky + kh/2);
+  });
   preview.innerHTML = "";
   preview.appendChild(cv);
   preview.style.cursor = "grab";
   preview.draggable = true;
   preview.dataset.clipboard = "1";
-  // Attach drag handler
   if (!preview._hasDrag) {
     preview._hasDrag = true;
     preview.addEventListener("dragstart", function(e) {
