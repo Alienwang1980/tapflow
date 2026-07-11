@@ -103,13 +103,11 @@ def press_key(key_combo: str):
         else:
             keys.append(p)
     
-    # Press all modifiers first (no flags — macOS tracks state from events)
-    import time as _t
+    # Press modifiers via CGEventSourceKeyState (direct state manipulation)
     for mod in mods:
         mod_code = KEYCODE_MAP.get(mod)
         if mod_code:
-            _post_key_event(mod_code, True, 0)
-            _t.sleep(0.001)
+            _set_modifier_state(mod_code, True)
     
     # Build flags from all modifiers
     flags = 0
@@ -130,11 +128,8 @@ def press_key(key_combo: str):
     for mod in reversed(mods):
         mod_code = KEYCODE_MAP.get(mod)
         if mod_code:
-            _post_key_event(mod_code, False, 0)
-            _t.sleep(0.001)
-    # Small delay to let CGEvent process modifier release
-    if mods:
-        _t.sleep(0.01)
+            _set_modifier_state(mod_code, False)
+
     
     logger.debug(f"Key pressed: {key_combo}")
 
@@ -173,6 +168,17 @@ def release_key(key_combo: str):
         mod_code = KEYCODE_MAP.get(mod)
         if mod_code: _post_key_event(mod_code, False, 0)
 
+
+
+def _set_modifier_state(key_code: int, down: bool):
+    """Set modifier key state directly via CGEventSourceKeyState."""
+    try:
+        from Quartz.CoreGraphics import CGEventSourceKeyState, kCGEventSourceStateHIDSystemState
+        CGEventSourceKeyState(kCGEventSourceStateHIDSystemState, key_code, down)
+    except Exception:
+        # Fallback: post CGEvent
+        event = CGEventCreateKeyboardEvent(None, key_code, down)
+        CGEventPost(kCGHIDEventTap, event)
 
 def _post_key_event(key_code: int, down: bool, flags: int = 0):
     if not HAVE_QUARTZ:
