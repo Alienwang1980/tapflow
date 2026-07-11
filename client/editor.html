@@ -630,6 +630,10 @@ function grResizeStart(e,corner){
 }
 
   document.getElementById("edinfo").textContent=`sel=${selKeys.size} cw=${cw}x${ch} dw=${dw}x${dh} cs=${cs} gap=${gp} s=${scale.toFixed(3)} pan=(${panX.toFixed(1)},${panY.toFixed(1)})`;
+  // Elevate selected keys to top
+  canvas.querySelectorAll(".ck").forEach(function(el) {
+    el.style.zIndex = (selKey && el.dataset.kid === selKey) || selKeys.has(el.dataset.kid) ? "999" : "";
+  });
 }
 
 // Key click: select or Shift-toggle
