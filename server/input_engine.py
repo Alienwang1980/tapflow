@@ -9,6 +9,7 @@ logger = logging.getLogger("stp.input")
 try:
     from Quartz.CoreGraphics import (
         CGEventCreateKeyboardEvent, CGEventPost, CGEventSetFlags,
+        kCGHIDEventTap,
     )
     HAVE_QUARTZ = True
 except ImportError:
@@ -152,7 +153,7 @@ def _post_key_event(key_code: int, down: bool, flags: int = 0):
     event = CGEventCreateKeyboardEvent(None, key_code, down)
     if flags:
         CGEventSetFlags(event, flags)
-    CGEventPost(0, event)
+    CGEventPost(kCGHIDEventTap, event)
 
 
 def is_accessibility_enabled() -> bool:
