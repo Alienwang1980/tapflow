@@ -7,7 +7,7 @@ var sndOpts="";var _sounds=[["","Inherit"],["none","None"],["click","Click"],["s
     document.getElementById("pc").innerHTML=
       "<p style=\"font-size:11px;color:var(--dim);margin-bottom:6px\">"+selKeys.size+" keys selected</p>"+
       "<label>Label <small style=\"color:var(--dim)\">(inactive)</small></label><input disabled style=\"opacity:0.4;width:100%;padding:4px 6px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:3px;font-size:11px\">"+
-      "<label>Action (all)</label><select onchange=\"upkGroup('action',this.value)\"><option value=\"hold\">Hold (long press)</option><option value=\"turbo\">Turbo (rapid fire)</option></select>"+
+      "<label>Action (all)</label><select onchange=\"upkGroup('action',this.value)\"><option value=\"hold\">Hold (long press)</option></select>"+
       "<label>Color (all)</label>"+
       (colorCount>1?"<span style=\"display:inline-block;width:26px;height:26px;background:linear-gradient(90deg,red,orange,yellow,green,blue,violet);border:1px solid rgba(255,255,255,0.3);border-radius:3px;cursor:pointer;vertical-align:middle\" onclick=\"this.nextElementSibling.click()\" title=\"Multiple colors\"></span><input type=color value=\"#0f3460\" onchange=\"upkGroup('color',this.value)\" style=\"position:absolute;opacity:0;pointer-events:none\">":"<input type=color value="+commonColor+" onchange=\"upkGroup('color',this.value)\">")+
       "<label>&#x24D0; Font Color</label>"+
@@ -37,7 +37,7 @@ var sndOpts="";var _sounds=[["","Inherit"],["none","None"],["click","Click"],["s
     '<div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border)">'+
     '<label style="color:var(--accent);font-size:10px;text-transform:uppercase;letter-spacing:1px">Function</label>'+
     '<label>&#x25C6; Label</label><input value="'+hesc(key.label)+'" onchange="upk(\'label\',this.value)">'+
-    '<label>&#x2699; Action</label><select onchange="upk(\'action\',this.value)"><option value="hold"'+(key.action==="hold"||key.action==="key"?" selected":"")+'>Hold (long press)</option><option value="turbo"'+(key.action==="turbo"?" selected":"")+'>Turbo (rapid fire)</option></select>'+
+    '<label>&#x2699; Action</label><select onchange="upk(\'action\',this.value)"><option value="hold"'+(key.action==="hold"||key.action==="key"?" selected":"")+'>Hold (long press)</option></select>'+
     '<button onclick="openMM(' + "'" + selKey + "'" + ')" style="width:100%;padding:5px;margin-top:4px;font-size:11px;cursor:pointer;background:rgba(233,69,96,0.2);color:var(--accent);border:1px solid var(--accent);border-radius:3px">Assign Key / Macro</button>'+
     '</div>'+
     '<div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border)">'+
