@@ -132,6 +132,9 @@ def press_key(key_combo: str):
         if mod_code:
             _post_key_event(mod_code, False, 0)
             _t.sleep(0.001)
+    # Small delay to let CGEvent process modifier release
+    if mods:
+        _t.sleep(0.01)
     
     logger.debug(f"Key pressed: {key_combo}")
 
