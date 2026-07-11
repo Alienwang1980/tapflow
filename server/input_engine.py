@@ -104,10 +104,12 @@ def press_key(key_combo: str):
             keys.append(p)
     
     # Press all modifiers first (no flags — macOS tracks state from events)
+    import time as _t
     for mod in mods:
         mod_code = KEYCODE_MAP.get(mod)
         if mod_code:
             _post_key_event(mod_code, True, 0)
+            _t.sleep(0.001)
     
     # Build flags from all modifiers
     flags = 0
@@ -129,6 +131,7 @@ def press_key(key_combo: str):
         mod_code = KEYCODE_MAP.get(mod)
         if mod_code:
             _post_key_event(mod_code, False, 0)
+            _t.sleep(0.001)
     
     logger.debug(f"Key pressed: {key_combo}")
 
