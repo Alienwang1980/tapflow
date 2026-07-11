@@ -83,15 +83,22 @@ function _onVolumeTouch(e, canvas) {
 }
 
 function _fetchAndDrawVolume(canvas) {
-  // Set defaults immediately so touch works before fetch completes
   canvas._volValue = canvas._volValue || 50;
   canvas._volMuted = canvas._volMuted || false;
   canvas._volMargin = 4; canvas._volBarW = canvas.width - 8;
-  _drawVolume(canvas, canvas._volValue, canvas._volMuted);
-  fetch("/api/system/volume").then(function (r) { return r.json(); }).then(function (d) {
+  _drawVolume(canvas, canvas._volValue, canvas._volMuted, canvas._adevs, canvas._curDev);
+  // Fetch volume
+  fetch("/api/system/volume").then(function(r){return r.json()}).then(function(d){
     canvas._volValue = d.output_volume; canvas._volMuted = d.output_muted;
-    _drawVolume(canvas, d.output_volume, d.output_muted);
-  }).catch(function () { _drawVolume(canvas, canvas._volValue, canvas._volMuted); });
+    _drawVolume(canvas, d.output_volume, d.output_muted, canvas._adevs, canvas._curDev);
+  }).catch(function(){});
+  // Fetch audio devices
+  fetch("/api/system/audio-devices").then(function(r){return r.json()}).then(function(devs){
+    canvas._adevs = devs;
+    var cur = devs.find(function(d){return d.current && d.type==="output"});
+    canvas._curDev = cur ? cur.name : "";
+    _drawVolume(canvas, canvas._volValue, canvas._volMuted, devs, canvas._curDev);
+  }).catch(function(){});
 }
 
 function _drawMuteBtn(canvas, muted) {
