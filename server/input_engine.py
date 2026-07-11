@@ -91,33 +91,46 @@ def _parse_key_combo(combo: str) -> tuple[int, int]:
 
 
 def press_key(key_combo: str):
-    """Press and release a key (or combo)."""
-    key_code, flags = _parse_key_combo(key_combo)
+    """Press and release a key (or combo). Supports multi-key simul (K+P+L)."""
+    parts = [p.strip() for p in key_combo.upper().split('+')]
     
-    parts = key_combo.upper().split('+')
-    mods_pressed = []
-    for mod in parts[:-1]:
-        mod = mod.strip()
-        if mod in MODIFIER_FLAGS:
-            mod_code = KEYCODE_MAP.get(mod)
-            if mod_code:
-                _post_key_event(mod_code, True, 0)
-                mods_pressed.append(mod_code)
+    # Separate modifiers from main keys
+    mods = []
+    keys = []
+    for p in parts:
+        if p in MODIFIER_FLAGS:
+            mods.append(p)
+        else:
+            keys.append(p)
     
-    key_name = parts[-1].strip()
-    # If the "main key" is itself a modifier, just press it (no extra flags)
-    if key_name in MODIFIER_FLAGS:
-        _post_key_event(key_code, True, 0)
-        _post_key_event(key_code, False, 0)
-    else:
-        _post_key_event(key_code, True, flags)
-        _post_key_event(key_code, False, flags)
+    # Press all modifiers first
+    for mod in mods:
+        mod_code = KEYCODE_MAP.get(mod)
+        if mod_code:
+            _post_key_event(mod_code, True, 0)
     
-    # Release modifier keys
-    for mod_code in reversed(mods_pressed):
-        _post_key_event(mod_code, False, 0)
+    # Build flags from all modifiers
+    flags = 0
+    for mod in mods:
+        flags |= MODIFIER_FLAGS.get(mod, 0)
     
-    logger.debug(f"Key pressed: {key_combo} (code=0x{key_code:02X}, flags=0x{flags:08X})")
+    # Press all main keys (with full modifier flags), then release in reverse
+    for k in keys:
+        kc = KEYCODE_MAP.get(k)
+        if kc:
+            _post_key_event(kc, True, flags)
+    for k in reversed(keys):
+        kc = KEYCODE_MAP.get(k)
+        if kc:
+            _post_key_event(kc, False, flags)
+    
+    # Release modifiers in reverse
+    for mod in reversed(mods):
+        mod_code = KEYCODE_MAP.get(mod)
+        if mod_code:
+            _post_key_event(mod_code, False, 0)
+    
+    logger.debug(f"Key pressed: {key_combo}")
 
 
 def press_key_down(key_combo: str):
