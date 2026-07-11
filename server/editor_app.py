@@ -8,9 +8,9 @@ EDITOR_URL = "http://localhost:8082/editor"
 
 
 def open_editor():
-    """Open the editor in the default web browser."""
+    """Open the editor in Safari (uses macOS native color picker)."""
     try:
-        webbrowser.open(EDITOR_URL)
-        logger.info(f"Editor opened in browser: {EDITOR_URL}")
+        webbrowser.get('safari').open(EDITOR_URL)
+        logger.info(f"Editor opened in Safari: {EDITOR_URL}")
     except Exception as e:
         logger.error(f"Failed to open editor: {e}")
