@@ -64,11 +64,14 @@ function _getClipboard() {
 }
 
 function _setClipboard(keys) {
-  // Store with new IDs for paste uniqueness
+  // Store with new IDs for paste uniqueness, preserve col/row for relative positioning
   var stored = keys.map(function(k) {
     var clone = JSON.parse(JSON.stringify(k));
+    // Ensure col/row are stored (may be missing for unsaved keys)
+    if (clone.col == null) clone.col = 0;
+    if (clone.row == null) clone.row = 0;
     clone._originalId = clone.id;
-    delete clone.id; // Will get new ID on paste
+    delete clone.id;
     return clone;
   });
   localStorage.setItem("stp_clipboard", JSON.stringify({keys: stored, count: stored.length, ts: Date.now()}));
@@ -97,13 +100,22 @@ function _pasteFromClipboard(col, row) {
   if (!data || !data.keys || !data.keys.length) return null;
   var page = cp_();
   if (!page) return null;
+  // Calculate relative offsets from bounding box origin
+  var minCol = Infinity, minRow = Infinity;
+  data.keys.forEach(function(k) {
+    var kc = k.col != null ? k.col : 0;
+    var kr = k.row != null ? k.row : 0;
+    if (kc < minCol) minCol = kc;
+    if (kr < minRow) minRow = kr;
+  });
   var pasted = [];
   data.keys.forEach(function(k, i) {
     var clone = JSON.parse(JSON.stringify(k));
     delete clone._originalId;
     clone.id = "k_" + Date.now() + "_" + i;
-    clone.col = col + (i % 3) * 0.5;
-    clone.row = row + Math.floor(i / 3) * 0.5;
+    // Preserve relative position from bounding box origin
+    clone.col = col + ((k.col != null ? k.col : 0) - minCol);
+    clone.row = row + ((k.row != null ? k.row : 0) - minRow);
     if (clone.groups) clone.groups = clone.groups.slice();
     page.keys.push(clone);
     pasted.push(clone);
