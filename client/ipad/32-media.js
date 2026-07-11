@@ -135,7 +135,6 @@ function _onVolumeTouchStart(e, canvas) {
   canvas._volValue = v;
   canvas._lastMuted = null; // Force mute redraw on next _drawVolume
   _drawVolume(canvas, v, false);
-  fetch("/api/system/volume", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({value:v})}).catch(function(){});
 }
 
 function _onVolumeTouchMove(e, canvas) {
@@ -148,11 +147,15 @@ function _onVolumeTouchMove(e, canvas) {
   canvas._volValue = v;
   // Only redraw slider bar, never touch mute icon during drag
   _drawVolBar(canvas, v, false);
-  fetch("/api/system/volume", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({value:v})}).catch(function(){});
 }
 
 function _onVolumeTouchEnd(e, canvas) {
-  canvas._volDragging = false;
+  if (canvas._volDragging) {
+    canvas._volDragging = false;
+    // Send final volume once on release
+    var finalVal = canvas._volValue || 50;
+    fetch("/api/system/volume", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({value:finalVal})}).catch(function(){});
+  }
 }
 
 function _fetchAndDrawVolume(canvas) {
@@ -215,7 +218,12 @@ function _onVolumeTouchMove(e, canvas) {
 }
 
 function _onVolumeTouchEnd(e, canvas) {
-  canvas._volDragging = false;
+  if (canvas._volDragging) {
+    canvas._volDragging = false;
+    // Send final volume once on release
+    var finalVal = canvas._volValue || 50;
+    fetch("/api/system/volume", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({value:finalVal})}).catch(function(){});
+  }
 }
 
 function _fetchAndDrawVolume(canvas) {
