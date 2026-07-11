@@ -109,7 +109,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
   overflow-y:auto;padding:0;
   box-shadow:-2px 0 24px rgba(0,0,0,0.5);
 }
-.rp-section{padding:12px}
+.rp-section{padding:12px}.clip-preview:hover{border-color:var(--accent)!important;background:#33302c}.clip-preview:active{cursor:grabbing}
 .rp-divider{height:1px;background:var(--border);margin:0 12px}
 .rp h3{font-size:12px;font-weight:600;margin-bottom:10px}
 .rp label{display:block;font-size:10px;color:var(--dim);margin:10px 0 4px;font-weight:500}
@@ -242,6 +242,13 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
         <div id="grpl"><p style="font-size:10px;color:var(--dim);padding:8px 0">No groups</p></div>
       </div>
     </div>
+        <div id="rp-clipboard" class="rp-section">
+        <h3>Clipboard</h3>
+        <p style="font-size:10px;color:var(--dim);margin-bottom:8px">Copy keys then drag to canvas</p>
+        <div class="clip-preview" style="min-height:48px;background:var(--card);border-radius:6px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;margin-bottom:8px;transition:all 0.15s"></div>
+        <button onclick="_copyToClipboard()" style="width:100%;padding:6px 12px;border-radius:6px;border:1px solid var(--accent);background:rgba(217,119,6,0.15);color:var(--accent);cursor:pointer;font-size:11px;font-weight:600">Copy Selected</button>
+    </div>
+
     <div id="rp-library" class="rp-section">
         <h3>Button Library</h3>
         <p style="font-size:10px;color:var(--dim);margin-bottom:10px">Drag to canvas</p>
@@ -821,8 +828,129 @@ function _drawEditorDock(canvas, key) {
     }
   }).catch(function(){ ctx.clearRect(0,0,w,h); ctx.fillText("Dock unavailable", w/2, h/2); });
 }
+// ── Clipboard Panel ──
+
+function _updateClipboardPanel() {
+  var panel = document.getElementById("rp-clipboard");
+  if (!panel) return;
+  var data = _getClipboard();
+  var preview = panel.querySelector(".clip-preview");
+  if (!data || !data.keys || !data.keys.length) {
+    preview.innerHTML = '<div style="color:var(--dim);font-size:11px;text-align:center;padding:20px 0">Select keys and click Copy</div>';
+    preview.style.cursor = "default";
+    preview.draggable = false;
+    return;
+  }
+  var k = data.keys[0];
+  var count = data.keys.length;
+  var label = count > 1 ? (count + " keys") : (k.label || "Key");
+  // Draw a mini preview canvas
+  var cv = document.createElement("canvas");
+  cv.width = preview.clientWidth || 180;
+  cv.height = 48;
+  cv.style.width = "100%";
+  cv.style.borderRadius = "4px";
+  var ctx = cv.getContext("2d");
+  ctx.fillStyle = k.color || "#0f3460";
+  _drawKeyPreview(ctx, cv.width, cv.height, k, count);
+  preview.innerHTML = "";
+  preview.appendChild(cv);
+  preview.style.cursor = "grab";
+  preview.draggable = true;
+  preview.dataset.clipboard = "1";
+}
+
+function _drawKeyPreview(ctx, w, h, k, count) {
+  var br = ((k.borderRadius !== undefined ? k.borderRadius : 10) / 100) * Math.min(w, h);
+  // Rounded rect background
+  ctx.fillStyle = k.color || "#0f3460";
+  ctx.beginPath();
+  ctx.moveTo(br, 0); ctx.lineTo(w - br, 0);
+  ctx.arcTo(w, 0, w, br, br);
+  ctx.lineTo(w, h - br); ctx.arcTo(w, h, w - br, h, br);
+  ctx.lineTo(br, h); ctx.arcTo(0, h, 0, h - br, br);
+  ctx.lineTo(0, br); ctx.arcTo(0, 0, br, 0, br);
+  ctx.closePath(); ctx.fill();
+  // Label
+  ctx.fillStyle = k.fontColor || "#fff";
+  var fs = Math.max(8, h * 0.3);
+  ctx.font = "bold " + fs + "px -apple-system,sans-serif";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText(count > 1 ? (count + " keys") : (k.label || k.action || "Key"), w/2, h/2);
+}
+
+function _getClipboard() {
+  try {
+    return JSON.parse(localStorage.getItem("stp_clipboard") || "null");
+  } catch(e) { return null; }
+}
+
+function _setClipboard(keys) {
+  // Store with new IDs for paste uniqueness
+  var stored = keys.map(function(k) {
+    var clone = JSON.parse(JSON.stringify(k));
+    clone._originalId = clone.id;
+    delete clone.id; // Will get new ID on paste
+    return clone;
+  });
+  localStorage.setItem("stp_clipboard", JSON.stringify({keys: stored, count: stored.length, ts: Date.now()}));
+  _updateClipboardPanel();
+}
+
+function _copyToClipboard() {
+  var page = cp_();
+  if (!page) return;
+  var selected = [];
+  if (selKeys.size > 0) {
+    page.keys.forEach(function(k) {
+      if (selKeys.has(k.id)) selected.push(_snapshot(k));
+    });
+  } else if (selKey) {
+    var k = page.keys.find(function(x) { return x.id === selKey; });
+    if (k) selected.push(_snapshot(k));
+  }
+  if (!selected.length) return;
+  _setClipboard(selected);
+  t("Copied " + selected.length + " key" + (selected.length > 1 ? "s" : ""));
+}
+
+function _pasteFromClipboard(col, row) {
+  var data = _getClipboard();
+  if (!data || !data.keys || !data.keys.length) return null;
+  var page = cp_();
+  if (!page) return null;
+  var pasted = [];
+  data.keys.forEach(function(k, i) {
+    var clone = JSON.parse(JSON.stringify(k));
+    clone.id = "k_" + Date.now() + "_" + i;
+    clone.col = col + (i % 3) * 0.5;
+    clone.row = row + Math.floor(i / 3) * 0.5;
+    if (clone.groups) clone.groups = clone.groups.slice();
+    page.keys.push(clone);
+    pasted.push(clone);
+  });
+  dirty = true;
+  rr(); rpr();
+  t("Pasted " + pasted.length + " key" + (pasted.length > 1 ? "s" : ""));
+  return pasted;
+}
+
+// Update panel on init
+setTimeout(_updateClipboardPanel, 500);
+
+// Add clipboard drag support
+document.addEventListener("DOMContentLoaded", function() {
+  var preview = document.querySelector("#rp-clipboard .clip-preview");
+  if (preview) {
+    preview.addEventListener("dragstart", function(e) {
+      if (!preview.dataset.clipboard) { e.preventDefault(); return; }
+      e.dataTransfer.setData("text/plain", "__clipboard__");
+      e.dataTransfer.effectAllowed = "copy";
+    });
+  }
+});
 // ── Props ──
-function rpr(){var has=!!(selKey||selKeys.size>0);document.getElementById("rp-library").style.display=has?"none":"block";document.getElementById("rp-props").style.display=has?"block":"none";var _gb=document.getElementById("btnSaveGroup");if(_gb){_gb.style.opacity=selKeys.size>1?"1":"0.4";_gb.style.pointerEvents=selKeys.size>1?"auto":"none"}
+function rpr(){var has=!!(selKey||selKeys.size>0);document.getElementById("rp-library").style.display=has?"none":"block";document.getElementById("rp-clipboard").style.display=has?"none":"block";document.getElementById("rp-clipboard").style.display=has?"none":"block";document.getElementById("rp-props").style.display=has?"block":"none";_updateClipboardPanel();var _gb=document.getElementById("btnSaveGroup");if(_gb){_gb.style.opacity=selKeys.size>1?"1":"0.4";_gb.style.pointerEvents=selKeys.size>1?"auto":"none"}
   if(selKeys.size>1){
     var pg2=cp_(),firstBr2=10,commonColor="#0f3460",colorCount=0,clrs=new Set(),fcSet=new Set(),ffSet=new Set(),commonFontColor="inherit",commonFontFamily="",commonFontSize=10,fsSet=new Set(),sndSet=new Set(),commonSound="";
     for(var i=0;i<pg2.keys.length;i++){if(selKeys.has(pg2.keys[i].id)){var k2=pg2.keys[i];if(firstBr2===10)firstBr2=k2.borderRadius!==undefined?k2.borderRadius:10;var cc=k2.color||"#0f3460";commonColor=cc;clrs.add(cc);var fc2=k2.fontColor||"inherit";commonFontColor=fc2;fcSet.add(fc2);var ff2=k2.fontFamily||"";commonFontFamily=ff2;ffSet.add(ff2);var fs2=k2.fontSize||Math.max(8,(profile?.cellSize||60)*0.25);commonFontSize=fs2;fsSet.add(fs2);var snd2=k2.sound||"";commonSound=snd2;sndSet.add(snd2)}}var sndCount=sndSet.size;if(sndSet.size===1)commonSound=[...sndSet][0];colorCount=clrs.size;if(clrs.size===1)commonColor=[...clrs][0];
