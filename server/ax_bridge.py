@@ -563,6 +563,28 @@ def focus_item(pid, item, bundle_id=""):
 
     # Activate the app (bring to front + switch spaces)
     if bundle_id:
+        # For CG items (fullscreen/other-Space windows): temporarily minimize
+        # desktop windows to force macOS to switch to the fullscreen Space.
+        # macOS naturally switches to another Space when the current one has
+        # no visible windows of the target app.
+        minimized_wins = []
+        if is_cg:
+            try:
+                elem = _as.AXUIElementCreateApplication(pid)
+                wv = _get_attr(elem, "AXWindows")
+                if wv:
+                    cnt = _cf.CFArrayGetCount(wv)
+                    for i in range(cnt):
+                        w = _cf.CFArrayGetValueAtIndex(wv, i)
+                        if w and not _cfbool(_get_attr(w, "AXMinimized")):
+                            # Minimize to dock
+                            k_min = _cfstr("AXMinimize")
+                            _as.AXUIElementPerformAction(w, k_min)
+                            _cf.CFRelease(k_min)
+                            minimized_wins.append(i)
+                    _cf.CFRelease(wv)
+            except: pass
+
         try:
             subprocess.run(["open", "-b", bundle_id], capture_output=True, timeout=3)
         except: pass
@@ -573,6 +595,32 @@ def focus_item(pid, item, bundle_id=""):
                 ns_app.unhide()
                 ns_app.activateWithOptions_(1 | 2)
         except: pass
+
+        # Restore minimized desktop windows
+        if minimized_wins:
+            import time as _time2
+            _time2.sleep(0.3)
+            try:
+                elem2 = _as.AXUIElementCreateApplication(pid)
+                wv2 = _get_attr(elem2, "AXWindows")
+                if wv2:
+                    cnt2 = _cf.CFArrayGetCount(wv2)
+                    for i in range(cnt2):
+                        w = _cf.CFArrayGetValueAtIndex(wv2, i)
+                        if w and _cfbool(_get_attr(w, "AXMinimized")):
+                            # Un-minimize by raising
+                            k_u = _cfstr("AXRaise")
+                            _as.AXUIElementPerformAction(w, k_u)
+                            _cf.CFRelease(k_u)
+                    _cf.CFRelease(wv2)
+            except: pass
+            # Fallback: unhide the app (restores minimized windows on some macOS versions)
+            try:
+                import AppKit as _ak2
+                ns2 = _ak2.NSRunningApplication.runningApplicationWithProcessIdentifier_(pid)
+                if ns2:
+                    ns2.unhide()
+            except: pass
 
     # CG items: activation is sufficient. Don't try AX window-level focus.
     if is_cg:
