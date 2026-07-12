@@ -272,7 +272,7 @@ def run_server():
                 try:
                     _recorder.updateMeters()
                     db = _recorder.averagePowerForChannel_(0)
-                    _mic_level = max(0.0, min(1.0, (db + 60.0) / 60.0))
+                    _mic_level = max(0.0, min(1.0, (db + 50.0) / 50.0))
                     _time3.sleep(0.2)
                 except Exception as _e:
                     _logger.error(f"Mic sampler error: {_e}")
