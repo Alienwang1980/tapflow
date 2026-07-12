@@ -93,8 +93,13 @@ class WindowWatcher:
                 self._observer = observer
 
                 loop = NSRunLoop.currentRunLoop()
+                import time as _throttle_time
                 while not self._stop_event.is_set():
+                    _start = _throttle_time.monotonic()
                     loop.runUntilDate_(NSDate.dateWithTimeIntervalSinceNow_(0.5))
+                    _elapsed = _throttle_time.monotonic() - _start
+                    if _elapsed < 0.01:
+                        _throttle_time.sleep(0.1)
             except Exception as e:
                 logger.error(f"WindowWatcher thread error: {e}")
 

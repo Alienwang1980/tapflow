@@ -180,6 +180,7 @@ def run_server():
         _logger = _log.getLogger("stp.mic")
         def _sample():
             nonlocal _mic_level
+            import time as _time3
             while _mic_sampling:
                 try:
                     _tmp = tempfile.NamedTemporaryFile(suffix=".raw", delete=False)
@@ -195,8 +196,10 @@ def run_server():
                         _samples = struct.unpack("<" + "h" * (len(_data)//2), _data)
                         _rms = math.sqrt(sum(_s*_s for _s in _samples) / len(_samples))
                         _mic_level = min(1.0, _rms / 3000.0)
+                    _time3.sleep(0.05)
                 except Exception as _e:
                     _logger.error(f"Mic sampler error: {_e}")
+                    _time3.sleep(0.5)
         _th.Thread(target=_sample, daemon=True).start()
 
     @app.get("/api/system/mic-level")
@@ -233,35 +236,6 @@ def run_server():
         if os.path.exists(sw):
             _sc.run([sw, "-t", "input", "-i", body.get("name", "")])
         return {"status": "ok"}
-    @app.post("/api/system/audio-output")
-    async def _sys_aout(body: dict):
-        sw = os.path.expanduser("~/Library/Application Support/Smart Touch Panel/bin/SwitchAudioSource")
-        if os.path.exists(sw):
-            _sc.run([sw, "-t", "output", "-i", body.get("name", "")])
-        return {"status": "ok"}
-
-    @app.post("/api/system/audio-input")
-    async def _sys_ain(body: dict):
-        sw = os.path.expanduser("~/Library/Application Support/Smart Touch Panel/bin/SwitchAudioSource")
-        if os.path.exists(sw):
-            _sc.run([sw, "-t", "input", "-i", body.get("name", "")])
-        return {"status": "ok"}
-    @app.post("/api/system/audio-output")
-    async def _sys_aout(body: dict):
-        import os as _os2
-        sw = _os2.path.expanduser("~/Library/Application Support/Smart Touch Panel/bin/SwitchAudioSource")
-        if _os2.path.exists(sw):
-            _sc.run([sw, "-t", "output", "-i", body.get("name", "")])
-        return {"status": "ok"}
-
-    @app.post("/api/system/audio-input")
-    async def _sys_ain(body: dict):
-        import os as _os2
-        sw = _os2.path.expanduser("~/Library/Application Support/Smart Touch Panel/bin/SwitchAudioSource")
-        if _os2.path.exists(sw):
-            _sc.run([sw, "-t", "input", "-i", body.get("name", "")])
-        return {"status": "ok"}
-
     @app.get("/api/system/current-app")
     async def _sys_cur_app():
         try:
