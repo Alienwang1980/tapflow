@@ -444,6 +444,28 @@ def get_all_app_windows():
         items = get_app_items(pid, bundle_id)
         ax_count = len(items)
 
+        # Dedup: when browser is fullscreen, AX may report the same window
+        # via multiple AX elements. If two windows have identical tab sets,
+        # they're the same window — keep only the first.
+        if bundle_id in _TAB_AS_MAP and len(items) > 0:
+            tab_wins = {}
+            for it in items:
+                wi = it.get("window_index", -1)
+                if wi >= 0 and it.get("type") == "tab":
+                    tab_wins.setdefault(wi, []).append(it["title"])
+            if len(tab_wins) > 1:
+                seen_sigs = {}
+                dup_wins = set()
+                for wi, titles in tab_wins.items():
+                    sig = tuple(sorted(titles))
+                    if sig in seen_sigs:
+                        dup_wins.add(wi)
+                    else:
+                        seen_sigs[sig] = wi
+                if dup_wins:
+                    items = [it for it in items if it.get("window_index") not in dup_wins]
+                    _ax_log.info(f"[DEDUP] {name}: removed {len(dup_wins)} duplicate AX windows")
+
         # CG supplement: add windows from OTHER Spaces that AX can't see.
         # kCGWindowIsOnscreen=False means the window is on a different Space.
         # This is much more reliable than title matching for dedup.
