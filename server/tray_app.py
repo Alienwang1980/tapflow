@@ -268,11 +268,9 @@ def run_server():
             while _mic_sampling:
                 try:
                     _recorder.updateMeters()
-                    # averagePowerForChannel: returns dB, range ~-60 (silent) to 0 (max)
                     db = _recorder.averagePowerForChannel_(0)
-                    # Normalize to 0..1: -60dB → 0.0, 0dB → 1.0
                     _mic_level = max(0.0, min(1.0, (db + 60.0) / 60.0))
-                    _time3.sleep(0.2)  # 5×/second — lightweight, no process spawn
+                    _time3.sleep(0.2)
                 except Exception as _e:
                     _logger.error(f"Mic sampler error: {_e}")
                     _time3.sleep(0.5)
