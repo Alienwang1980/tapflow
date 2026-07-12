@@ -228,6 +228,54 @@ def get_app_items(pid, bundle_id=""):
     _cf.CFRelease(windows_val)
     return items
 
+def get_all_app_windows():
+    """Return windows from all running user apps, grouped by app.
+    Returns {apps: [{name, bundle_id, pid, icon, windows: [...]}], focused_app_idx, focused_global_idx}"""
+    import AppKit
+    workspace = AppKit.NSWorkspace.sharedWorkspace()
+    running = workspace.runningApplications()
+    result = []
+    global_idx = 0
+    focused_app_idx = -1
+    focused_global_idx = -1
+
+    for app in running:
+        try:
+            pid = app.processIdentifier()
+            name = app.localizedName() or "?"
+            bundle_id = app.bundleIdentifier() or ""
+            if not bundle_id:
+                continue
+            # Skip menu bar accessories and background daemons
+            policy = app.activationPolicy()
+            if policy != 0:  # NSApplicationActivationPolicyRegular only
+                continue
+        except:
+            continue
+
+        items = get_app_items(pid, bundle_id)
+        if not items:
+            continue
+
+        app_has_focus = any(it["is_focused"] for it in items)
+        if app_has_focus and focused_app_idx < 0:
+            focused_app_idx = len(result)
+
+        for it in items:
+            if it["is_focused"] and focused_global_idx < 0:
+                focused_global_idx = global_idx
+            it["global_index"] = global_idx
+            global_idx += 1
+
+        result.append({
+            "name": name,
+            "bundle_id": bundle_id,
+            "pid": pid,
+            "windows": items,
+        })
+
+    return {"apps": result, "focused_app_idx": focused_app_idx, "focused_global_idx": focused_global_idx}
+
 def focus_item(pid, item, bundle_id=""):
     """Focus a window or tab item. item = {window_index, tab_index, type}.
     For browser tabs, uses AppleScript to switch tabs (AX is unreliable for browser tabs)."""

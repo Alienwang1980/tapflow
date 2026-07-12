@@ -404,6 +404,14 @@ def run_server():
         except Exception as e:
             return {"name": "?", "pid": 0, "count": 0, "items": [], "focused_index": -1, "error": str(e)}
 
+    @app.get("/api/system/all-windows")
+    async def _sys_all_wins():
+        try:
+            from ax_bridge import get_all_app_windows
+            return get_all_app_windows()
+        except Exception as e:
+            return {"apps": [], "focused_app_idx": -1, "focused_global_idx": -1, "error": str(e)}
+
     @app.post("/api/system/focus-window")
     async def _sys_focus_win(req: Request):
         try:

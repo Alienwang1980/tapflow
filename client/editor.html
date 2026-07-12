@@ -548,9 +548,16 @@ const ftb=document.getElementById("ftb");var btb=document.getElementById("btb");
     var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";
     var _c=_cv.getContext("2d"),_w=_cv.width,_h=_cv.height;
     var _kc2=k.color||"#1a1a1a";_c.fillStyle=_kc2;_c.fillRect(0,0,_w,_h);
-    var _nameH=_h*0.25;_c.fillStyle="#fff";var _fs=Math.max(10,Math.min(_nameH*0.7,_w*0.05));_c.font="bold "+_fs+"px -apple-system,sans-serif";_c.textAlign="left";_c.textBaseline="middle";_c.fillText("App Name",4,_nameH/2);
-    var _by=_nameH+2;var _bh=_h-_by-2;var _fakeBtns=[{label:"Win A",active:true},{label:"Win B",active:false},{label:"Win C",active:false}];var _n=_fakeBtns.length;var _bw=(_w-6)/_n;var _bFs=Math.max(7,Math.min(_bh*0.32,_bw*0.12));_c.font=_bFs+"px -apple-system,sans-serif";_c.textAlign="center";_c.textBaseline="middle";
-    for(var _fi=0;_fi<_n;_fi++){var _bx2=3+_fi*_bw;var _fa=_fakeBtns[_fi];_c.fillStyle=_fa.active?"rgba(74,222,128,0.18)":"rgba(255,255,255,0.06)";_c.fillRect(_bx2+1,_by,_bw-2,_bh);if(_fa.active){_c.strokeStyle="rgba(74,222,128,0.5)";_c.lineWidth=1.5;_c.strokeRect(_bx2+1.5,_by+0.5,_bw-3,_bh-1)}_c.fillStyle=_fa.active?"#4ade80":"#999";_c.fillText(_fa.label,_bx2+_bw/2,_by+_bh/2)}
+    var _pad=2,_gap=1,_headerH=Math.max(10,_h*0.06),_btnSz=Math.floor((_w-_pad*2)/3);
+    if(_btnSz<12)_btnSz=12;var _apps2=[{n:"Chrome",w:[{t:"GH",f:!0},{t:"YT",f:!1}]},{n:"Finder",w:[{t:"~",f:!1},{t:"DL",f:!1}]}];
+    var _cy=_pad;var _bfs=Math.max(5,Math.floor(_btnSz*0.12));
+    for(var _ai=0;_ai<_apps2.length;_ai++){var _ap=_apps2[_ai],_ws=_ap.w;
+    if(_cy+_headerH<=_h){_c.fillStyle="rgba(255,255,255,0.5)";_c.font="bold "+Math.floor(_headerH*0.6)+"px -apple-system,sans-serif";_c.textAlign="left";_c.textBaseline="middle";_c.fillText(_ap.n,_pad+1,_cy+_headerH/2)}
+    _cy+=_headerH;
+    for(var _wi=0;_wi<_ws.length;_wi++){var _it=_ws[_wi],_bx=_pad+_wi*(_btnSz+_gap),_by=_cy;
+    if(_by+_btnSz<=_h){_c.fillStyle=_it.f?"rgba(74,222,128,0.15)":"rgba(255,255,255,0.05)";_c.fillRect(_bx,_by,_btnSz,_btnSz);if(_it.f){_c.strokeStyle="rgba(74,222,128,0.4)";_c.lineWidth=1;_c.strokeRect(_bx+0.5,_by+0.5,_btnSz-1,_btnSz-1)}
+    _c.fillStyle=_it.f?"#4ade80":"#777";_c.font=_bfs+"px -apple-system,sans-serif";_c.textAlign="center";_c.textBaseline="middle";_c.fillText(_it.t,_bx+_btnSz/2,_by+_btnSz/2)}}
+    _cy+=_btnSz+_gap;if(_ai<_apps2.length-1){_c.strokeStyle="rgba(255,255,255,0.08)";_c.lineWidth=0.5;_c.beginPath();_c.moveTo(_pad,_cy);_c.lineTo(_w-_pad,_cy);_c.stroke()}}
     el.appendChild(_cv);var _rh=document.createElement("div");_rh.className="rh";el.appendChild(_rh)}else{el.innerHTML='<span class="kl">'+hesc(k.label)+'</span>'+(w>1||h>1?'<span class="sz">'+w.toFixed(2)+'×'+h.toFixed(2)+'</span>':'')+((selKeys.size<=1?'<div class="rh"></div>':''))}    el.addEventListener("mousedown",e=>onKeyDown(e,k.id));
     el.addEventListener("click",e=>onKeyClick(e,k.id));
     const rh=el.querySelector(".rh");if(rh)rh.addEventListener("mousedown",e=>onRS(e,k.id));
