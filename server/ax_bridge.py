@@ -239,28 +239,7 @@ def get_app_items(pid, bundle_id=""):
         # Skip minimized windows
         if _cfbool(_get_attr(win, "AXMinimized")):
             continue
-        # Fullscreen windows: show as single entry, don't expand tabs
-        # (tab expansion after entering fullscreen causes confusing UX)
-        is_fullscreen = _cfbool(_get_attr(win, "AXFullScreen"))
         win_title = _pystr(_get_attr(win, "AXTitle"))
-        if is_fullscreen:
-            title = win_title or ""
-            if bundle_id == "com.apple.finder" and (not title or title == "(untitled)"):
-                continue
-            if not title:
-                continue
-            items.append({
-                "title": title or "(untitled)",
-                "type": "window",
-                "is_focused": _cfbool(_get_attr(win, "AXFocused")) or _cfbool(_get_attr(win, "AXMain")),
-                "item_index": item_idx,
-                "window_index": wi,
-                "tab_index": None,
-                "icon_url": "",
-                "icon": "folder" if bundle_id == "com.apple.finder" else "",
-            })
-            item_idx += 1
-            continue
         win_focused = _cfbool(_get_attr(win, "AXFocused")) or _cfbool(_get_attr(win, "AXMain"))
         # Check for tabs first
         tabs = _list_tabs_in_window(bundle_id, win, wi)
@@ -454,9 +433,9 @@ def get_all_app_windows():
         items = get_app_items(pid, bundle_id)
         ax_count = len(items)
 
-        # CG supplement: add cross-Space/fullscreen windows that AX doesn't see.
-        # Each fullscreen window becomes a single entry (no tab expansion).
-        # Dedup by checking if CG title is a substring of any AX item title (or vice versa).
+        # CG supplement: add windows from OTHER Spaces that AX can't see.
+        # kCGWindowIsOnscreen=False means the window is on a different Space.
+        # This is much more reliable than title matching for dedup.
         if has_sc and pid in cg_by_pid:
             new_cnt = 0
             for cg_win in cg_by_pid[pid]:
@@ -464,20 +443,9 @@ def get_all_app_windows():
                 # Filter ghost new-tab pages
                 if cg_title.strip().lower() in _GHOST_TAB_TITLES:
                     continue
-                # Check if this CG window is already represented by an AX item
-                norm = cg_title.strip().lower()
-                cleaned = _clean_title(cg_title, name).strip().lower()
-                is_dup = False
-                for it in items:
-                    ax_norm = it["title"].strip().lower()
-                    if norm == ax_norm or cleaned == ax_norm:
-                        is_dup = True; break
-                    # Substring match: e.g. "iCloud全部备忘录" ⊂ "iCloud全部备忘录 – 25个备忘录"
-                    if norm in ax_norm or ax_norm in norm:
-                        is_dup = True; break
-                    if cleaned and (cleaned in ax_norm or ax_norm in cleaned):
-                        is_dup = True; break
-                if is_dup:
+                # Only add windows that are NOT on the current Space
+                # (AX already covers onscreen windows)
+                if cg_win.get("onscreen", True):
                     continue
                 items.append({
                     "title": cg_title,
@@ -493,7 +461,7 @@ def get_all_app_windows():
                 })
                 new_cnt += 1
             if new_cnt > 0:
-                _ax_log.info(f"[MERGE] {name}: +{new_cnt} CG windows (AX had {ax_count})")
+                _ax_log.info(f"[MERGE] {name}: +{new_cnt} CG windows offscreen (AX had {ax_count})")
 
         # Re-sort and re-index after potential merge
         if items:
