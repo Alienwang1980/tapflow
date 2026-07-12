@@ -236,6 +236,9 @@ def get_app_items(pid, bundle_id=""):
     for wi in range(win_count):
         win = _cf.CFArrayGetValueAtIndex(windows_val, wi)
         if not win: continue
+        # Skip minimized windows
+        if _cfbool(_get_attr(win, "AXMinimized")):
+            continue
         win_title = _pystr(_get_attr(win, "AXTitle"))
         win_focused = _cfbool(_get_attr(win, "AXFocused")) or _cfbool(_get_attr(win, "AXMain"))
         # Check for tabs first
@@ -258,6 +261,12 @@ def get_app_items(pid, bundle_id=""):
             # Skip Finder's system-level windows (desktop, etc.)
             title = win_title or ""
             if bundle_id == "com.apple.finder" and (not title or title == "(untitled)"):
+                continue
+            # Skip minimized windows
+            if _cfbool(_get_attr(win, "AXMinimized")):
+                continue
+            # Skip windows with no title (fullscreen/minimized artifacts)
+            if not title:
                 continue
             icon = "folder" if bundle_id == "com.apple.finder" else ""
             items.append({
@@ -345,10 +354,19 @@ def get_all_app_windows():
 def focus_item(pid, item, bundle_id=""):
     """Focus a window or tab item. item = {window_index, tab_index, type}.
     For browser tabs, uses AppleScript to switch tabs (AX is unreliable for browser tabs)."""
-    # Activate the app first (bring to front) — use open -b for reliability
+    # Activate the app first (bring to front + switch spaces if needed)
     if bundle_id:
+        # open -b handles space switching
         try:
             subprocess.run(["open", "-b", bundle_id], capture_output=True, timeout=3)
+        except: pass
+        # NSRunningApplication.activate as backup for stubborn space switches
+        try:
+            import AppKit
+            ns_app = AppKit.NSRunningApplication.runningApplicationWithProcessIdentifier_(pid)
+            if ns_app:
+                ns_app.unhide()
+                ns_app.activateWithOptions_(1 | 2)  # IgnoringOtherApps | ActivateAllWindows
         except: pass
 
     elem = _as.AXUIElementCreateApplication(pid)
