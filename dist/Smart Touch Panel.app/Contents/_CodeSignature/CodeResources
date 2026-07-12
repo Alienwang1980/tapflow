@@ -10,7 +10,7 @@
 		</data>
 		<key>Resources/__boot__.py</key>
 		<data>
-		wWhEgfbgF8PKy9+/6GOSESC1hhg=
+		MiRGkA5gbrdycjC4n2/w4CAgr8k=
 		</data>
 		<key>Resources/__error__.sh</key>
 		<data>
@@ -38,7 +38,7 @@
 		</data>
 		<key>Resources/client/index.html</key>
 		<data>
-		O8Z7+Nr9Dxi2waHcDFE8Fn9XkLQ=
+		2QjrKYQRB8k7IezwR4PpsWlWBsE=
 		</data>
 		<key>Resources/include/python3.12/pyconfig.h</key>
 		<data>
@@ -8458,7 +8458,7 @@
 		</data>
 		<key>Resources/lib/python312.zip</key>
 		<data>
-		gMnjXXDuGqHVAUEWaVHoo/zCfpc=
+		fnyZaE5gEGKrFr9LA+kmAX0br2o=
 		</data>
 		<key>Resources/openssl.ca/cert.pem</key>
 		<data>
@@ -8478,11 +8478,11 @@
 		</data>
 		<key>Resources/site.pyc</key>
 		<data>
-		bySHs+6NVDvn7YRcYP28ziJsUDE=
+		1h7cfrgmFQ/Uk1NCUBc5h0b1cX4=
 		</data>
 		<key>Resources/tray_app.py</key>
 		<data>
-		H5QN82UB1Dm0K2lbyReFH94hJe8=
+		IqCKk4X/nDtIo7mpR8Prg7/ZkYY=
 		</data>
 		<key>Resources/zlib.cpython-312-darwin.so</key>
 		<data>
@@ -8561,7 +8561,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			fV819OaRsb0nEpow2g0X8B2mFzomn0+9HoC8hl//VRs=
+			xXIx3TU1nYj7YyH63JiFJ7780EovjiZ8URxc9UZHdGw=
 			</data>
 		</dict>
 		<key>Resources/__error__.sh</key>
@@ -8610,7 +8610,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			3H1/bIwQ6ZI7dgsBPjQdhBSvZJnynygqsNAmkfY8p80=
+			hbgphNRutqjh60tzXZySyBd7g2PD8qD800mlkyP86Z0=
 			</data>
 		</dict>
 		<key>Resources/include/python3.12/pyconfig.h</key>
@@ -23350,7 +23350,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			k596yOSCgzyFhqilPkCk9ifZI91vRG6fP5SJpZdLRjA=
+			SDzuihSK7dPjyqrez2SsbOHkCvOHbf9UzgXEMhVCWaM=
 			</data>
 		</dict>
 		<key>Resources/openssl.ca/cert.pem</key>
@@ -23385,14 +23385,14 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			CI1orP88sLUoQwkEzXRzGP4ojAMld0zMf0kCjTWoMCk=
+			ZyFqzJl1FZmxLb8XeJhB2O3gJZueBsGczJTn2RJX6Uc=
 			</data>
 		</dict>
 		<key>Resources/tray_app.py</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			vH0rKD8f2AvNTQov9YxfWbcs9ae3Dmlw5/t57CPCtxw=
+			g1k3zwAcmx3Rj5wgOZ31euIk61mR1cSbZuCz+Xh8sbI=
 			</data>
 		</dict>
 		<key>Resources/zlib.cpython-312-darwin.so</key>

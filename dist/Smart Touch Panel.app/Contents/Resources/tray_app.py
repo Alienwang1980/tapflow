@@ -463,7 +463,10 @@ def run_server():
     async def _sys_all_wins():
         try:
             from ax_bridge import get_all_app_windows
-            return get_all_app_windows()
+            result = get_all_app_windows()
+            import logging
+            logging.getLogger("stp.ax").info(f"[ALLWIN] {len(result.get('apps',[]))} apps, focused={result.get('focused_global_idx',-1)}")
+            return result
         except Exception as e:
             return {"apps": [], "focused_app_idx": -1, "focused_global_idx": -1, "error": str(e)}
 
@@ -475,7 +478,11 @@ def run_server():
             bundle_id = body.get("bundle_id", "")
             item = {"window_index": body.get("window_index", 0), "tab_index": body.get("tab_index"), "type": body.get("type", "window"), "title": body.get("title", ""), "_source": body.get("_source", "")}
             from ax_bridge import focus_item
+            import logging
+            _flog = logging.getLogger("stp.ax")
+            _flog.info(f"[FOCUS] type={item['type']} title={item.get('title','')[:40]} bundle={bundle_id}")
             result = focus_item(pid, item, bundle_id)
+            _flog.info(f"[FOCUS] result={result}")
             return result
         except Exception as e:
             return {"success": False, "error": str(e)}
