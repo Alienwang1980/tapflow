@@ -433,20 +433,36 @@ def get_all_app_windows():
         items = get_app_items(pid, bundle_id)
         ax_count = len(items)
 
-        # CG supplement: ONLY when AX sees no windows (fullscreen / other Space).
-        # If AX has windows, trust AX completely — CG title matching is too brittle.
-        if has_sc and ax_count == 0 and pid in cg_by_pid:
-            cg_wins = cg_by_pid[pid]
-            for wi, cg_win in enumerate(cg_wins):
+        # CG supplement: add cross-Space/fullscreen windows that AX doesn't see.
+        # Each fullscreen window becomes a single entry (no tab expansion).
+        # Dedup by checking if CG title is a substring of any AX item title (or vice versa).
+        if has_sc and pid in cg_by_pid:
+            new_cnt = 0
+            for cg_win in cg_by_pid[pid]:
                 cg_title = cg_win["title"]
-                # Filter ghost new-tab windows (same logic as AppleScript ghost tabs)
+                # Filter ghost new-tab pages
                 if cg_title.strip().lower() in _GHOST_TAB_TITLES:
+                    continue
+                # Check if this CG window is already represented by an AX item
+                norm = cg_title.strip().lower()
+                cleaned = _clean_title(cg_title, name).strip().lower()
+                is_dup = False
+                for it in items:
+                    ax_norm = it["title"].strip().lower()
+                    if norm == ax_norm or cleaned == ax_norm:
+                        is_dup = True; break
+                    # Substring match: e.g. "iCloud全部备忘录" ⊂ "iCloud全部备忘录 – 25个备忘录"
+                    if norm in ax_norm or ax_norm in norm:
+                        is_dup = True; break
+                    if cleaned and (cleaned in ax_norm or ax_norm in cleaned):
+                        is_dup = True; break
+                if is_dup:
                     continue
                 items.append({
                     "title": cg_title,
                     "type": "window",
                     "is_focused": False,
-                    "item_index": wi,
+                    "item_index": len(items),
                     "window_index": -1,  # sentinel: resolve in focus_item via title search
                     "window_id": cg_win.get("window_id", 0),
                     "tab_index": None,
@@ -454,8 +470,9 @@ def get_all_app_windows():
                     "icon": "folder" if bundle_id == "com.apple.finder" else "",
                     "_source": "cg",
                 })
-            if items:
-                _ax_log.info(f"[CG-FALLBACK] {name}: AX=0, using {len(items)} CG windows")
+                new_cnt += 1
+            if new_cnt > 0:
+                _ax_log.info(f"[MERGE] {name}: +{new_cnt} CG windows (AX had {ax_count})")
 
         # Re-sort and re-index after potential merge
         if items:
