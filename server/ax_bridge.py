@@ -469,11 +469,9 @@ def get_all_app_windows():
         # CG supplement: add windows from OTHER Spaces that AX can't see.
         # kCGWindowIsOnscreen=False means the window is on a different Space.
         if has_sc and pid in cg_by_pid:
-            # Build lowercase title set from existing AX items for dedup.
-            # When browser has both desktop and fullscreen windows, clicking
-            # a tab switches Spaces; the desktop window (now offscreen) gets
-            # added by CG with the same title as one of the fullscreen tabs.
+            # Build title set from AX items for dedup (both raw and cleaned).
             ax_title_set = {it["title"].strip().lower() for it in items}
+            ax_title_set.update(_clean_title(it["title"], name).strip().lower() for it in items)
             new_cnt = 0
             for cg_win in cg_by_pid[pid]:
                 cg_title = cg_win["title"]
@@ -504,19 +502,27 @@ def get_all_app_windows():
 
         # Re-sort, de-duplicate, and re-index
         if items:
-            # Dedup rule: if a "window" item has the same title as a "tab" item,
-            # the window is just mirroring the active tab (external view of the
-            # fullscreen browser). Remove the window, keep the tab.
+            # Dedup rule: if a "window" item (external view) has the same
+            # title as a "tab" item (internal view), the window is just
+            # mirroring the active tab. Remove the window, keep the tab.
             # Two tabs with the same title are genuinely different → keep both.
+            # Use _clean_title to strip " - AppName" suffix from window titles
+            # so "GitHub - Google Chrome" matches tab "GitHub".
             tab_titles = {it["title"].strip().lower() for it in items if it.get("type") == "tab"}
             if tab_titles:
                 before = len(items)
-                items = [it for it in items
-                         if not (it.get("type") == "window"
-                                 and it["title"].strip().lower() in tab_titles)]
-                dropped = before - len(items)
+                keep = []
+                for it in items:
+                    if it.get("type") == "window":
+                        t = it["title"].strip().lower()
+                        tc = _clean_title(it["title"], name).strip().lower()
+                        if t in tab_titles or tc in tab_titles:
+                            continue  # window mirrors a tab → drop
+                    keep.append(it)
+                dropped = before - len(keep)
                 if dropped > 0:
                     _ax_log.info(f"[DEDUP] {name}: dropped {dropped} window(s) matching active tab")
+                items = keep
             items.sort(key=lambda it: it["title"].lower())
             for i, it in enumerate(items):
                 it["item_index"] = i
