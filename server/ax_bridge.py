@@ -469,20 +469,12 @@ def get_all_app_windows():
         # CG supplement: add windows from OTHER Spaces that AX can't see.
         # kCGWindowIsOnscreen=False means the window is on a different Space.
         if has_sc and pid in cg_by_pid:
-            # Build title set from AX items for dedup (both raw and cleaned).
-            ax_title_set = {it["title"].strip().lower() for it in items}
-            ax_title_set.update(_clean_title(it["title"], name).strip().lower() for it in items)
             new_cnt = 0
             for cg_win in cg_by_pid[pid]:
                 cg_title = cg_win["title"]
-                # Filter ghost new-tab pages
                 if cg_title.strip().lower() in _GHOST_TAB_TITLES:
                     continue
-                # Only add windows that are NOT on the current Space
                 if cg_win.get("onscreen", True):
-                    continue
-                # Skip if title already present in AX items (prevents click→duplicate)
-                if cg_title.strip().lower() in ax_title_set:
                     continue
                 items.append({
                     "title": cg_title,
@@ -502,27 +494,18 @@ def get_all_app_windows():
 
         # Re-sort, de-duplicate, and re-index
         if items:
-            # Dedup rule: if a "window" item (external view) has the same
-            # title as a "tab" item (internal view), the window is just
-            # mirroring the active tab. Remove the window, keep the tab.
-            # Two tabs with the same title are genuinely different → keep both.
-            # Use _clean_title to strip " - AppName" suffix from window titles
-            # so "GitHub - Google Chrome" matches tab "GitHub".
-            tab_titles = {it["title"].strip().lower() for it in items if it.get("type") == "tab"}
-            if tab_titles:
-                before = len(items)
-                keep = []
-                for it in items:
-                    if it.get("type") == "window":
-                        t = it["title"].strip().lower()
-                        tc = _clean_title(it["title"], name).strip().lower()
-                        if t in tab_titles or tc in tab_titles:
-                            continue  # window mirrors a tab → drop
-                    keep.append(it)
-                dropped = before - len(keep)
-                if dropped > 0:
-                    _ax_log.info(f"[DEDUP] {name}: dropped {dropped} window(s) matching active tab")
-                items = keep
+            # For browser apps: if tabs are expanded (inner view), suppress
+            # ALL window-type entries (outer view). The inner tabs already
+            # represent the app; any outer window entry would be a duplicate
+            # of the active tab exposed as the window title.
+            if bundle_id in _TAB_AS_MAP:
+                has_tabs = any(it.get("type") == "tab" for it in items)
+                if has_tabs:
+                    before = len(items)
+                    items = [it for it in items if it.get("type") != "window"]
+                    dropped = before - len(items)
+                    if dropped > 0:
+                        _ax_log.info(f"[DEDUP] {name}: suppressed {dropped} outer window(s) (inner tabs present)")
             items.sort(key=lambda it: it["title"].lower())
             for i, it in enumerate(items):
                 it["item_index"] = i
