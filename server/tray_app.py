@@ -222,7 +222,7 @@ def run_server():
         except Exception:
             return {"status": -1}
 
-    # ── Mic Level Sampler (ffmpeg — sounddevice broken for AKG USB) ──
+    # ── Mic Level Sampler (AVAudioRecorder — zero external process, built-in metering) ──
     _mic_level = 0.0
     _mic_sampling = False
 
@@ -231,31 +231,53 @@ def run_server():
         if _mic_sampling:
             return
         _mic_sampling = True
-        import threading as _th, logging as _log, struct, math, tempfile, os as _os2
+        import threading as _th, logging as _log, tempfile, os as _os2
         _logger = _log.getLogger("stp.mic")
+
+        # Create AVAudioRecorder with a dummy file — we never read it,
+        # we only use the built-in averagePowerForChannel: metering.
+        from AVFoundation import (
+            AVAudioRecorder, NSURL,
+        )
+
+        _tmp = tempfile.NamedTemporaryFile(suffix=".m4a", delete=False)
+        _tmp.close()
+        _dummy_path = _tmp.name
+        _url = NSURL.fileURLWithPath_(_dummy_path)
+
+        _settings = {
+            "AVFormatIDKey": 1633772320,  # kAudioFormatMPEG4AAC
+            "AVSampleRateKey": 22050.0,
+            "AVNumberOfChannelsKey": 1,
+        }
+        _recorder, _err = AVAudioRecorder.alloc().initWithURL_settings_error_(
+            _url, _settings, None)
+
+        if _recorder is None:
+            _logger.error(f"AVAudioRecorder init failed: {_err}")
+            _os2.unlink(_dummy_path)
+            _mic_sampling = False
+            return
+
+        _recorder.setMeteringEnabled_(True)
+        _recorder.record()
+
         def _sample():
             nonlocal _mic_level
             import time as _time3
             while _mic_sampling:
                 try:
-                    _tmp = tempfile.NamedTemporaryFile(suffix=".raw", delete=False)
-                    _tmp.close()
-                    import subprocess as _sp5
-                    _sp5.run(["ffmpeg", "-y", "-f", "avfoundation", "-i", ":0",
-                        "-t", "0.1", "-ac", "1", "-ar", "22050", "-f", "s16le",
-                        _tmp.name], capture_output=True, timeout=2)
-                    with open(_tmp.name, "rb") as _f:
-                        _data = _f.read()
-                    _os2.unlink(_tmp.name)
-                    if len(_data) >= 400:
-                        _samples = struct.unpack("<" + "h" * (len(_data)//2), _data)
-                        _rms = math.sqrt(sum(_s*_s for _s in _samples) / len(_samples))
-                        _mic_level = min(1.0, _rms / 3000.0)
-                    _time3.sleep(0.5)
+                    _recorder.updateMeters()
+                    # averagePowerForChannel: returns dB, range ~-60 (silent) to 0 (max)
+                    db = _recorder.averagePowerForChannel_(0)
+                    # Normalize to 0..1: -60dB → 0.0, 0dB → 1.0
+                    _mic_level = max(0.0, min(1.0, (db + 60.0) / 60.0))
+                    _time3.sleep(0.2)  # 5×/second — lightweight, no process spawn
                 except Exception as _e:
                     _logger.error(f"Mic sampler error: {_e}")
                     _time3.sleep(0.5)
         _th.Thread(target=_sample, daemon=True).start()
+        _logger.info("Mic sampler started (AVAudioRecorder)")
 
     @app.get("/api/system/mic-level")
     async def _sys_mic_level():
