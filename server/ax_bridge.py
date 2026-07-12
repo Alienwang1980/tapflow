@@ -285,11 +285,61 @@ def get_app_items(pid, bundle_id=""):
         it["item_index"] = i
     return items
 
+def _has_screen_capture() -> bool:
+    """Check Screen Recording permission by verifying kCGWindowName is available
+    for regular app windows (kCGWindowLayer 0) from other processes."""
+    import os as _os7
+    try:
+        from Quartz import CGWindowListCopyWindowInfo, kCGWindowListOptionAll, kCGNullWindowID
+        my_pid = _os7.getpid()
+        window_list = CGWindowListCopyWindowInfo(kCGWindowListOptionAll, kCGNullWindowID)
+        if not window_list:
+            return False
+        for w in window_list:
+            if w.get('kCGWindowLayer', -1) == 0:
+                pid = w.get('kCGWindowOwnerPID', -1)
+                name = w.get('kCGWindowName', None)
+                if pid != my_pid and name is not None and len(str(name).strip()) > 0:
+                    return True
+        return False
+    except Exception:
+        return False
+
+
 def get_all_app_windows():
     """Return windows from all running user apps, grouped by app.
-    Primary: AX API (rich data: tabs, focus). Fallback: CGWindowList for cross-space visibility.
+    Primary: AX API (rich data: tabs, focus).
+    When Screen Recording permission is granted, CGWindowList supplements
+    windows from other Spaces (fullscreen apps) that AX can't see.
     Returns {apps: [{name, bundle_id, pid, icon, windows: [...]}], focused_app_idx, focused_global_idx}"""
     import AppKit
+
+    # If Screen Recording is granted, pre-build CG window lookup for cross-Space fallback
+    has_sc = _has_screen_capture()
+    cg_by_pid = {}  # {pid: [{title, owner, window_id, bounds, onscreen}]}
+    if has_sc:
+        try:
+            from Quartz import CGWindowListCopyWindowInfo, kCGWindowListOptionAll, kCGNullWindowID
+            cg_all = CGWindowListCopyWindowInfo(kCGWindowListOptionAll, kCGNullWindowID)
+            if cg_all:
+                for w in cg_all:
+                    pid_w = w.get('kCGWindowOwnerPID', -1)
+                    layer = w.get('kCGWindowLayer', -1)
+                    cg_title = w.get('kCGWindowName', None)
+                    owner = w.get('kCGWindowOwnerName', '')
+                    if layer != 0 or not cg_title or not str(cg_title).strip() or not owner:
+                        continue
+                    cg_by_pid.setdefault(pid_w, []).append({
+                        "title": str(cg_title).strip(),
+                        "owner": owner,
+                        "window_id": w.get('kCGWindowNumber', 0),
+                        "bounds": w.get('kCGWindowBounds', {}),
+                        "onscreen": w.get('kCGWindowIsOnscreen', True),
+                    })
+                for pid_w in cg_by_pid:
+                    cg_by_pid[pid_w].sort(key=lambda x: x["title"].lower())
+        except Exception:
+            has_sc = False
 
     workspace = AppKit.NSWorkspace.sharedWorkspace()
     try:
@@ -311,6 +361,22 @@ def get_all_app_windows():
             continue
 
         items = get_app_items(pid, bundle_id)
+
+        # If AX sees no windows but CG does (e.g. fullscreen Space), use CG items
+        if not items and has_sc and pid in cg_by_pid:
+            items = []
+            for wi, cg_win in enumerate(cg_by_pid[pid]):
+                items.append({
+                    "title": cg_win["title"],
+                    "type": "window",
+                    "is_focused": False,
+                    "item_index": wi,
+                    "window_index": wi,
+                    "tab_index": None,
+                    "icon_url": "",
+                    "icon": "folder" if bundle_id == "com.apple.finder" else "",
+                })
+
         if not items:
             continue
 

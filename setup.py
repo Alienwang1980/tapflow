@@ -38,6 +38,7 @@ OPTIONS = {
         "LSUIElement": True,
         "NSAppleEventsUsageDescription": "Smart Touch Panel needs Accessibility access to simulate keyboard input.",
         "NSMicrophoneUsageDescription": "Smart Touch Panel needs Microphone access to show input audio levels.",
+        "NSScreenCaptureUsageDescription": "Smart Touch Panel needs Screen Recording access to show window titles and thumbnails across all Spaces.",
     },
     "site_packages": True,
     "strip": False,

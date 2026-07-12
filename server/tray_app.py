@@ -70,6 +70,28 @@ def request_accessibility_permission():
     logger.info("Opened System Settings → Accessibility")
 
 
+def check_screen_capture() -> bool:
+    """Check Screen Recording permission (silent).
+    Returns True if kCGWindowName is available for regular app windows (layer 0) from other processes."""
+    import os as _os5
+    try:
+        from Quartz import CGWindowListCopyWindowInfo, kCGWindowListOptionAll, kCGNullWindowID
+        my_pid = _os5.getpid()
+        window_list = CGWindowListCopyWindowInfo(kCGWindowListOptionAll, kCGNullWindowID)
+        if not window_list:
+            return False
+        for w in window_list:
+            # kCGWindowLayer 0 = normal app windows (not Dock/System)
+            if w.get('kCGWindowLayer', -1) == 0:
+                pid = w.get('kCGWindowOwnerPID', -1)
+                name = w.get('kCGWindowName', None)
+                if pid != my_pid and name is not None and len(str(name).strip()) > 0:
+                    return True
+        return False
+    except Exception:
+        return False
+
+
 def create_icon_image(size=64):
     """Generate a simple icon: blue circle with 'STP' text."""
     img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
@@ -222,6 +244,17 @@ def run_server():
             return {"status": s}
         except Exception:
             return {"status": -1}
+
+    # ── Screen Recording Permission endpoints ──
+    @app.get("/api/system/screen-capture")
+    async def _sys_sc_status():
+        return {"granted": check_screen_capture()}
+
+    @app.post("/api/system/screen-capture")
+    async def _sys_sc_request():
+        """Open System Settings → Privacy → Screen Recording."""
+        request_screen_capture_permission()
+        return {"granted": check_screen_capture()}
 
     # ── Mic Level Sampler (AVAudioRecorder — zero external process, built-in metering) ──
     _mic_level = 0.0
@@ -686,6 +719,13 @@ def request_mic_permission():
     _sp4.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone"])
     logger.info("Opened System Settings → Microphone")
 
+
+def request_screen_capture_permission():
+    """Open System Settings → Privacy → Screen Recording."""
+    import subprocess as _sp5
+    _sp5.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"])
+    logger.info("Opened System Settings → Screen Recording")
+
 def run_tray():
     """Create and run the system tray icon."""
     ip = get_local_ip()
@@ -697,6 +737,7 @@ def run_tray():
         pystray.MenuItem("🔐 Permissions", pystray.Menu(
             pystray.MenuItem("🎤 Request Microphone", lambda icon, item: request_mic_permission()),
             pystray.MenuItem("⌨️ Request Accessibility", lambda icon, item: request_accessibility_permission()),
+            pystray.MenuItem("🖥️ Request Screen Recording", lambda icon, item: request_screen_capture_permission()),
         )),
         pystray.MenuItem(f"🔗 {url}", on_show_qr),
         pystray.MenuItem("📋 Health", on_show_health),
