@@ -386,11 +386,21 @@ def get_all_app_windows():
 
     # If Screen Recording is granted, pre-build CG window lookup for cross-Space fallback
     has_sc = _has_screen_capture()
-    cg_by_pid = {}  # {pid: [{title, owner, window_id, bounds, onscreen}]}
+    cg_by_pid = {}  # {pid: [{title, owner, window_id, bounds}]}
+    onscreen_ids = set()  # window IDs visible on current Space
     if has_sc:
         try:
             from Quartz import CGWindowListCopyWindowInfo, kCGWindowListOptionAll, kCGNullWindowID
+            # All windows (across all Spaces)
             cg_all = CGWindowListCopyWindowInfo(kCGWindowListOptionAll, kCGNullWindowID)
+            # On-screen only (current Space)
+            cg_onscreen = CGWindowListCopyWindowInfo(1, kCGNullWindowID)  # kCGWindowListOptionOnScreenOnly=1
+            if cg_onscreen:
+                for w in cg_onscreen:
+                    if w.get('kCGWindowLayer', -1) == 0:
+                        wid = w.get('kCGWindowNumber', 0)
+                        if wid:
+                            onscreen_ids.add(wid)
             if cg_all:
                 for w in cg_all:
                     pid_w = w.get('kCGWindowOwnerPID', -1)
@@ -399,12 +409,13 @@ def get_all_app_windows():
                     owner = w.get('kCGWindowOwnerName', '')
                     if layer != 0 or not cg_title or not str(cg_title).strip() or not owner:
                         continue
+                    wid = w.get('kCGWindowNumber', 0)
                     cg_by_pid.setdefault(pid_w, []).append({
                         "title": str(cg_title).strip(),
                         "owner": owner,
-                        "window_id": w.get('kCGWindowNumber', 0),
+                        "window_id": wid,
                         "bounds": w.get('kCGWindowBounds', {}),
-                        "onscreen": w.get('kCGWindowIsOnscreen', True),
+                        "onscreen": wid in onscreen_ids,
                     })
                 for pid_w in cg_by_pid:
                     cg_by_pid[pid_w].sort(key=lambda x: x["title"].lower())
