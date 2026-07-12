@@ -8,3 +8,4 @@ server/profiles/*.json
 server/venv/
 logs/
 .eggs/
+build/
