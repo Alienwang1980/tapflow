@@ -1,0 +1,20 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     'build/lib.macosx-10.13-universal2-cpython-312/objc/_machsignals.cpython-312-darwin.so'
+relocations:
+  - { offset: 0x27, size: 0x8, addend: 0x0, symName: _PyInit__machsignals, symObjAddr: 0x0, symBinAddr: 0x738, symSize: 0xC }
+  - { offset: 0x4E, size: 0x8, addend: 0x0, symName: _mod_module, symObjAddr: 0x398, symBinAddr: 0x80A8, symSize: 0x0 }
+  - { offset: 0xD56, size: 0x8, addend: 0x0, symName: _machsignals_doc, symObjAddr: 0x53B, symBinAddr: 0xCE0, symSize: 0x0 }
+  - { offset: 0xD78, size: 0x8, addend: 0x0, symName: _mod_methods, symObjAddr: 0x400, symBinAddr: 0x8110, symSize: 0x0 }
+  - { offset: 0xD8D, size: 0x8, addend: 0x0, symName: _machsignals_handleSignal, symObjAddr: 0xC, symBinAddr: 0x744, symSize: 0x7C }
+  - { offset: 0xDB2, size: 0x8, addend: 0x0, symName: _machsignals_handleSignal.keywords, symObjAddr: 0x440, symBinAddr: 0x8150, symSize: 0x0 }
+  - { offset: 0xE65, size: 0x8, addend: 0x0, symName: __MergedGlobals, symObjAddr: 0x5E40, symBinAddr: 0x8198, symSize: 0x0 }
+  - { offset: 0xEA6, size: 0x8, addend: 0x0, symName: _machsignals_handleSignal_doc, symObjAddr: 0x651, symBinAddr: 0xDF6, symSize: 0x0 }
+  - { offset: 0xEC7, size: 0x8, addend: 0x0, symName: _mod_slots, symObjAddr: 0x450, symBinAddr: 0x8160, symSize: 0x0 }
+  - { offset: 0xEE8, size: 0x8, addend: 0x0, symName: __MergedGlobals, symObjAddr: 0x5E40, symBinAddr: 0x8198, symSize: 0x0 }
+  - { offset: 0x1415, size: 0x8, addend: 0x0, symName: __MergedGlobals, symObjAddr: 0x5E40, symBinAddr: 0x8198, symSize: 0x0 }
+  - { offset: 0x14C8, size: 0x8, addend: 0x0, symName: _PyInit__machsignals, symObjAddr: 0x0, symBinAddr: 0x738, symSize: 0xC }
+  - { offset: 0x1587, size: 0x8, addend: 0x0, symName: _HandleSIG, symObjAddr: 0x88, symBinAddr: 0x7C0, symSize: 0x3C }
+  - { offset: 0x160E, size: 0x8, addend: 0x0, symName: _mod_exec_module, symObjAddr: 0xC4, symBinAddr: 0x7FC, symSize: 0x184 }
+  - { offset: 0x19DB, size: 0x8, addend: 0x0, symName: _SIGCallback, symObjAddr: 0x248, symBinAddr: 0x980, symSize: 0x148 }
+...

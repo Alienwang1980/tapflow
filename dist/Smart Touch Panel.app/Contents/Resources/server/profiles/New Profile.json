@@ -1,0 +1,54 @@
+{
+  "profileName": "New Profile",
+  "version": "1.0",
+  "device": "iPad 11\"",
+  "deviceWidth": 834,
+  "deviceHeight": 1210,
+  "cellSize": 60,
+  "gap": 0,
+  "canvasX": 0,
+  "canvasY": 0,
+  "defaultSound": "click",
+  "windowRules": [],
+  "pages": [
+    {
+      "id": "main",
+      "label": "Main",
+      "keys": [
+        {
+          "id": "k_1783615282033",
+          "label": "?",
+          "action": "balance",
+          "value": "A",
+          "color": "#0d1117",
+          "col": -3.25,
+          "row": -8.5,
+          "w": 6.5,
+          "h": 2.75,
+          "sound": "",
+          "groupId": null,
+          "groups": null,
+          "apiKey": "sk-c8502907727341e0932e61f5cbbd44b1"
+        },
+        {
+          "id": "k_1783615289607",
+          "label": "?",
+          "action": "visualizer",
+          "value": "A",
+          "color": "#0d1117",
+          "col": -3.75,
+          "row": -5,
+          "w": 7.25,
+          "h": 4.75,
+          "sound": "",
+          "groupId": null,
+          "groups": null
+        }
+      ]
+    }
+  ],
+  "groups": [],
+  "bgColor": "",
+  "bgTexture": "",
+  "showGrid": true
+}
