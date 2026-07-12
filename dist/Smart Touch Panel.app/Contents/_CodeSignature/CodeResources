@@ -40,6 +40,14 @@
 		<data>
 		HWJSB2QaJXH+eRUzDhO1DORy3Ho=
 		</data>
+		<key>Resources/client/voice-off.svg</key>
+		<data>
+		LFF/FRD1E3LiiE+ocbxeh7oC/xg=
+		</data>
+		<key>Resources/client/voice.svg</key>
+		<data>
+		sNyXQ/9Fb1u5uiCIKnYi/ZyWM/A=
+		</data>
 		<key>Resources/include/python3.12/pyconfig.h</key>
 		<data>
 		fVsqU6Ri/RxyL4MDiveaSOkbCcg=
@@ -8307,6 +8315,20 @@
 			<key>hash2</key>
 			<data>
 			ctNBIrpcOjzGk04wJLwVmy4kj8Et9ZizhH6hTZ2PO5s=
+			</data>
+		</dict>
+		<key>Resources/client/voice-off.svg</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			NogUJZjY7mfUGL6rfjaPsR7GOFaANNbNAQ5Q/Wf+Wkc=
+			</data>
+		</dict>
+		<key>Resources/client/voice.svg</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			cPrM/0CVUdQij9atte7X8iTWSm/7SNSOE7sd4zZI7YM=
 			</data>
 		</dict>
 		<key>Resources/include/python3.12/pyconfig.h</key>
