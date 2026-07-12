@@ -239,7 +239,28 @@ def get_app_items(pid, bundle_id=""):
         # Skip minimized windows
         if _cfbool(_get_attr(win, "AXMinimized")):
             continue
+        # Fullscreen windows: show as single entry, don't expand tabs
+        # (tab expansion after entering fullscreen causes confusing UX)
+        is_fullscreen = _cfbool(_get_attr(win, "AXFullScreen"))
         win_title = _pystr(_get_attr(win, "AXTitle"))
+        if is_fullscreen:
+            title = win_title or ""
+            if bundle_id == "com.apple.finder" and (not title or title == "(untitled)"):
+                continue
+            if not title:
+                continue
+            items.append({
+                "title": title or "(untitled)",
+                "type": "window",
+                "is_focused": _cfbool(_get_attr(win, "AXFocused")) or _cfbool(_get_attr(win, "AXMain")),
+                "item_index": item_idx,
+                "window_index": wi,
+                "tab_index": None,
+                "icon_url": "",
+                "icon": "folder" if bundle_id == "com.apple.finder" else "",
+            })
+            item_idx += 1
+            continue
         win_focused = _cfbool(_get_attr(win, "AXFocused")) or _cfbool(_get_attr(win, "AXMain"))
         # Check for tabs first
         tabs = _list_tabs_in_window(bundle_id, win, wi)
@@ -534,32 +555,30 @@ def _find_window_by_title(windows_val, title, bundle_id=""):
 
 
 def focus_item(pid, item, bundle_id=""):
-    """Focus a window or tab item. item = {window_index, tab_index, type, title, _source, window_id}.
-    For CG-sourced items (_source="cg"), resolves window_index by title search after activation."""
-    import time as _time
+    """Focus a window or tab item. item = {window_index, tab_index, type, title, _source}.
+    CG-sourced items (_source="cg"): just activate the app to switch Spaces.
+    AX-sourced items: focus specific window/tab via Accessibility API."""
     is_cg = item.get("_source") == "cg"
     item_title = item.get("title", "")
 
-    # Activate the app first (bring to front + switch spaces if needed)
+    # Activate the app (bring to front + switch spaces)
     if bundle_id:
-        # open -b handles space switching
         try:
             subprocess.run(["open", "-b", bundle_id], capture_output=True, timeout=3)
         except: pass
-        # NSRunningApplication.activate as backup for stubborn space switches
         try:
             import AppKit
             ns_app = AppKit.NSRunningApplication.runningApplicationWithProcessIdentifier_(pid)
             if ns_app:
                 ns_app.unhide()
-                ns_app.activateWithOptions_(1 | 2)  # IgnoringOtherApps | ActivateAllWindows
+                ns_app.activateWithOptions_(1 | 2)
         except: pass
 
-        # For CG-sourced items, the target window may be on a different Space.
-        # After activation we've switched to that Space — re-query AX windows.
-        if is_cg and item_title:
-            _time.sleep(0.3)  # brief settle time for Space switch
+    # CG items: activation is sufficient. Don't try AX window-level focus.
+    if is_cg:
+        return {"success": True, "title": item_title or "(fullscreen)", "_source": "cg"}
 
+    # AX items: normal window/tab focus flow
     elem = _as.AXUIElementCreateApplication(pid)
     if not elem: return {"success": False, "error": "no app element"}
 
@@ -569,31 +588,26 @@ def focus_item(pid, item, bundle_id=""):
     wi = item.get("window_index", 0)
     win = None
 
-    # For CG-sourced items, resolve window_index by title search
-    if is_cg and item_title:
+    # Title search for the right window
+    if item_title:
         found_wi, found_win = _find_window_by_title(windows_val, item_title, bundle_id)
         if found_wi >= 0:
             wi = found_wi
             win = found_win
-        else:
-            # Title search failed — the window might be the only/frontmost one now.
-            # Use window_index 0 (frontmost after activation) as last resort.
-            win = None
 
-    # Fallback: use window_index directly (for AX-sourced items or if title search didn't match)
+    # Fallback: use window_index directly
     if win is None:
         count = _cf.CFArrayGetCount(windows_val)
-        actual_wi = wi if wi >= 0 else 0
-        if actual_wi >= count:
+        if wi < 0 or wi >= count:
             _cf.CFRelease(windows_val)
-            return {"success": False, "error": f"window index {actual_wi} out of range ({count} windows)"}
-        win = _cf.CFArrayGetValueAtIndex(windows_val, actual_wi)
+            return {"success": False, "error": f"window index {wi} out of range ({count} windows)"}
+        win = _cf.CFArrayGetValueAtIndex(windows_val, wi)
 
     if not win:
         _cf.CFRelease(windows_val)
         return {"success": False, "error": "null window element"}
 
-    # First, focus the parent window
+    # Focus and raise the window
     k_focused = _cfstr("AXFocusedWindow")
     _as.AXUIElementSetAttributeValue(elem, k_focused, win)
     _cf.CFRelease(k_focused)
@@ -604,13 +618,12 @@ def focus_item(pid, item, bundle_id=""):
 
     title = "(untitled)"
 
-    # If it's a tab, select it via AppleScript (preferred for browsers) or AXPress fallback
+    # Tab selection (for non-CG items only)
     if item.get("type") == "tab" and item.get("tab_index") is not None:
         ti = item["tab_index"]
-        actual_wi = wi if wi >= 0 else 0
-        # AppleScript path for known browsers (tab index is 0-based, AS is 1-based)
+        # AppleScript path for known browsers
         if bundle_id and bundle_id in _AS_TAB_FOCUS:
-            as_code = _AS_TAB_FOCUS[bundle_id].format(w=actual_wi + 1, t=ti + 1)
+            as_code = _AS_TAB_FOCUS[bundle_id].format(w=wi + 1, t=ti + 1)
             try:
                 r = subprocess.run(["osascript", "-e", as_code], capture_output=True, encoding='utf-8', timeout=3)
                 if r.returncode == 0:
