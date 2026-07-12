@@ -230,6 +230,10 @@ def get_app_items(pid, bundle_id=""):
             item_idx += 1
 
     _cf.CFRelease(windows_val)
+    # Stable sort by title — AXWindows returns z-order which changes with focus
+    items.sort(key=lambda it: it["title"].lower())
+    for i, it in enumerate(items):
+        it["item_index"] = i
     return items
 
 def get_all_app_windows():
