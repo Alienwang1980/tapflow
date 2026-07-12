@@ -502,6 +502,12 @@ def get_all_app_windows():
 
         # Re-sort, de-duplicate, and re-index
         if items:
+            # ── DEBUG: dump every item for browser apps to trace duplicates ──
+            if bundle_id in _TAB_AS_MAP:
+                dump = "; ".join(f"{it['title'][:30]}|{it.get('type','?')}|wi={it.get('window_index','?')}|{it.get('_source','ax')}"
+                                 for it in items)
+                _ax_log.info(f"[DEBUG] {name} ({len(items)} items): {dump}")
+
             # Dedup rule: if a "window" item (external view) has the same
             # title as a "tab" item (internal view), the window is just
             # mirroring the active tab. Remove the window, keep the tab.
