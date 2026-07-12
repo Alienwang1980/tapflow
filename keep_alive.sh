@@ -16,7 +16,7 @@ while true; do
         log "Port $PORT dead, restarting..."
         cd "$DIR"
         source server/venv/bin/activate
-        nohup python3 server/main.py >> "$DIR/logs/server.log" 2>&1 &
+        nohup python3 server/tray_app.py >> "$DIR/logs/server.log" 2>&1 &
         echo $! > "$PIDFILE"
         log "Started PID $(cat "$PIDFILE")"
     fi
