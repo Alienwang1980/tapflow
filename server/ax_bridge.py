@@ -433,52 +433,40 @@ def get_all_app_windows():
         items = get_app_items(pid, bundle_id)
         ax_count = len(items)
 
-        # When SC granted, supplement AX with CG/AppleScript for cross-Space windows
+        # When SC granted, supplement AX with CG windows from other Spaces.
+        # Fullscreen/Split View windows are added as single entries (no tab expansion)
+        # to keep things simple and reliable.
         if has_sc and pid in cg_by_pid:
-            # Build dedup set of normalized titles from AX items
             seen = set()
             for it in items:
-                norm = it["title"].strip().lower()
-                seen.add(norm)
+                seen.add(it["title"].strip().lower())
 
-            # ── Browser apps: use AppleScript to get ALL tabs across ALL windows ──
-            # AppleScript works cross-Space, giving us tabs for fullscreen windows too.
-            cg_count = len(cg_by_pid[pid])
-            if bundle_id in _TAB_AS_MAP and cg_count > 0:
-                as_tabs = _as_tabs_for_app(bundle_id, cg_count)
-                if as_tabs:
-                    new_cnt = 0
-                    for tab in as_tabs:
-                        norm = tab["title"].strip().lower()
-                        if norm not in seen:
-                            items.append(tab)
-                            seen.add(norm)
-                            new_cnt += 1
-                    if new_cnt > 0:
-                        _ax_log.info(f"[MERGE] {name}: +{new_cnt} tabs via AppleScript (AX had {ax_count})")
-            else:
-                # ── Non-browser apps: add CG windows that AX missed ──
-                new_cnt = 0
-                for wi, cg_win in enumerate(cg_by_pid[pid]):
-                    norm = cg_win["title"].strip().lower()
-                    if norm in seen:
-                        continue
-                    items.append({
-                        "title": cg_win["title"],
-                        "type": "window",
-                        "is_focused": False,
-                        "item_index": len(items),
-                        "window_index": -1,  # sentinel: resolve in focus_item via title search
-                        "window_id": cg_win.get("window_id", 0),  # CG window number for raise
-                        "tab_index": None,
-                        "icon_url": "",
-                        "icon": "folder" if bundle_id == "com.apple.finder" else "",
-                        "_source": "cg",
-                    })
-                    seen.add(norm)
-                    new_cnt += 1
-                if new_cnt > 0:
-                    _ax_log.info(f"[MERGE] {name}: +{new_cnt} CG windows (AX had {ax_count})")
+            new_cnt = 0
+            for cg_win in cg_by_pid[pid]:
+                cg_title = cg_win["title"]
+                norm = cg_title.strip().lower()
+                # Also check cleaned title (strip " - AppName" suffix) to avoid
+                # matching a CG window that AX already shows as expanded tabs
+                cleaned = _clean_title(cg_title, name).strip().lower()
+                if norm in seen or cleaned in seen:
+                    continue
+                items.append({
+                    "title": cg_title,
+                    "type": "window",
+                    "is_focused": False,
+                    "item_index": len(items),
+                    "window_index": -1,  # sentinel: resolve in focus_item via title search
+                    "window_id": cg_win.get("window_id", 0),
+                    "tab_index": None,
+                    "icon_url": "",
+                    "icon": "folder" if bundle_id == "com.apple.finder" else "",
+                    "_source": "cg",
+                })
+                seen.add(norm)
+                seen.add(cleaned)
+                new_cnt += 1
+            if new_cnt > 0:
+                _ax_log.info(f"[MERGE] {name}: +{new_cnt} CG windows (AX had {ax_count})")
 
         # Re-sort and re-index after potential merge
         if items:
