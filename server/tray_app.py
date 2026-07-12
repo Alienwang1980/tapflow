@@ -248,7 +248,29 @@ def run_server():
     # ── Screen Recording Permission endpoints ──
     @app.get("/api/system/screen-capture")
     async def _sys_sc_status():
-        return {"granted": check_screen_capture()}
+        import os as _os8
+        granted = check_screen_capture()
+        diag = {}
+        try:
+            from Quartz import CGWindowListCopyWindowInfo, kCGWindowListOptionAll, kCGNullWindowID
+            my_pid = _os8.getpid()
+            wl = CGWindowListCopyWindowInfo(kCGWindowListOptionAll, kCGNullWindowID)
+            total, layer0, with_name = len(wl) if wl else 0, 0, 0
+            samples = []
+            if wl:
+                for w in wl:
+                    if w.get('kCGWindowLayer', -1) == 0:
+                        layer0 += 1
+                        n = w.get('kCGWindowName', None)
+                        if n is not None and len(str(n).strip()) > 0:
+                            with_name += 1
+                        pid_w = w.get('kCGWindowOwnerPID', -1)
+                        if pid_w != my_pid and len(samples) < 3:
+                            samples.append({"owner": w.get('kCGWindowOwnerName',''), "has_name": n is not None and len(str(n).strip())>0, "keys": list(w.keys())[:12]})
+            diag = {"total_windows": total, "layer0_windows": layer0, "with_name": with_name, "my_pid": my_pid, "samples": samples}
+        except Exception as e:
+            diag = {"error": str(e)}
+        return {"granted": granted, "diag": diag}
 
     @app.post("/api/system/screen-capture")
     async def _sys_sc_request():
@@ -451,7 +473,7 @@ def run_server():
             body = await req.json()
             pid = body.get("pid", 0)
             bundle_id = body.get("bundle_id", "")
-            item = {"window_index": body.get("window_index", 0), "tab_index": body.get("tab_index"), "type": body.get("type", "window"), "title": body.get("title", "")}
+            item = {"window_index": body.get("window_index", 0), "tab_index": body.get("tab_index"), "type": body.get("type", "window"), "title": body.get("title", ""), "_source": body.get("_source", "")}
             from ax_bridge import focus_item
             result = focus_item(pid, item, bundle_id)
             return result

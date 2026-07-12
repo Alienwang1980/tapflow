@@ -245,27 +245,32 @@ def run_server():
         except Exception:
             return {"status": -1}
 
-    # ── DEBUG: raw get_app_items ──
-    @app.get("/api/debug/raw-items")
-    async def _debug_raw(pid: int = 1455, bundle: str = "com.google.Chrome"):
-        import sys, os, subprocess as _sp
-        sys.path.insert(0, os.environ.get("RESOURCEPATH", os.path.dirname(os.path.abspath(__file__))))
-        from ax_bridge import get_app_items, _list_tabs_in_window, _as
-        items = get_app_items(pid, bundle)
-        # Also test AppleScript directly
-        as_test = ""
-        try:
-            r = _sp.run(["osascript", "-e", 'tell app "Google Chrome" to get title of every tab of window 1'],
-                       capture_output=True, encoding='utf-8', timeout=5)
-            as_test = f"rc={r.returncode} stdout={r.stdout.strip()[:100]} stderr={r.stderr.strip()[:100]}"
-        except Exception as e:
-            as_test = f"error: {e}"
-        return {"count": len(items), "items": items, "osascript_test": as_test, "bundle_in_map": bundle in __import__('ax_bridge')._TAB_AS_MAP}
-
     # ── Screen Recording Permission endpoints ──
     @app.get("/api/system/screen-capture")
     async def _sys_sc_status():
-        return {"granted": check_screen_capture()}
+        import os as _os8
+        granted = check_screen_capture()
+        diag = {}
+        try:
+            from Quartz import CGWindowListCopyWindowInfo, kCGWindowListOptionAll, kCGNullWindowID
+            my_pid = _os8.getpid()
+            wl = CGWindowListCopyWindowInfo(kCGWindowListOptionAll, kCGNullWindowID)
+            total, layer0, with_name = len(wl) if wl else 0, 0, 0
+            samples = []
+            if wl:
+                for w in wl:
+                    if w.get('kCGWindowLayer', -1) == 0:
+                        layer0 += 1
+                        n = w.get('kCGWindowName', None)
+                        if n is not None and len(str(n).strip()) > 0:
+                            with_name += 1
+                        pid_w = w.get('kCGWindowOwnerPID', -1)
+                        if pid_w != my_pid and len(samples) < 3:
+                            samples.append({"owner": w.get('kCGWindowOwnerName',''), "has_name": n is not None and len(str(n).strip())>0, "keys": list(w.keys())[:12]})
+            diag = {"total_windows": total, "layer0_windows": layer0, "with_name": with_name, "my_pid": my_pid, "samples": samples}
+        except Exception as e:
+            diag = {"error": str(e)}
+        return {"granted": granted, "diag": diag}
 
     @app.post("/api/system/screen-capture")
     async def _sys_sc_request():
@@ -468,7 +473,7 @@ def run_server():
             body = await req.json()
             pid = body.get("pid", 0)
             bundle_id = body.get("bundle_id", "")
-            item = {"window_index": body.get("window_index", 0), "tab_index": body.get("tab_index"), "type": body.get("type", "window"), "title": body.get("title", "")}
+            item = {"window_index": body.get("window_index", 0), "tab_index": body.get("tab_index"), "type": body.get("type", "window"), "title": body.get("title", ""), "_source": body.get("_source", "")}
             from ax_bridge import focus_item
             result = focus_item(pid, item, bundle_id)
             return result

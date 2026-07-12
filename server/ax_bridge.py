@@ -285,6 +285,10 @@ def get_app_items(pid, bundle_id=""):
         it["item_index"] = i
     return items
 
+import logging as _ax_logging
+_ax_log = _ax_logging.getLogger("stp.ax")
+
+
 def _has_screen_capture() -> bool:
     """Check Screen Recording permission by verifying kCGWindowName is available
     for regular app windows (kCGWindowLayer 0) from other processes."""
@@ -304,6 +308,63 @@ def _has_screen_capture() -> bool:
         return False
     except Exception:
         return False
+
+
+def _as_tabs_for_app(bundle_id, window_count):
+    """Fetch tabs via AppleScript for all windows of a browser app.
+    Works cross-Space (unlike AX). Returns list of tab items or None on failure.
+    window_index is 0-based matching AppleScript window numbering (1-based)."""
+    try:
+        all_items = []
+        for wi in range(window_count):
+            as_w = wi + 1  # AppleScript uses 1-based window numbers
+            as_code = f'tell app "{_browser_name(bundle_id)}" to get title of every tab of window {as_w}'
+            r = subprocess.run(["osascript", "-e", as_code], capture_output=True, encoding='utf-8', timeout=3)
+            if r.returncode != 0 or not r.stdout.strip():
+                continue
+            titles = [t.strip() for t in r.stdout.strip().split(", ") if t.strip()]
+            if not titles:
+                continue
+            # Get URLs
+            urls = []
+            if bundle_id in _TAB_URL_AS:
+                url_as = _TAB_URL_AS[bundle_id].format(w=as_w)
+                try:
+                    r3 = subprocess.run(["osascript", "-e", url_as], capture_output=True, encoding='utf-8', timeout=3)
+                    if r3.returncode == 0 and r3.stdout.strip():
+                        urls = [u.strip() for u in r3.stdout.strip().split(", ") if u.strip()]
+                except: pass
+            # Get active tab index
+            active_as = f'tell app "{_browser_name(bundle_id)}" to get active tab index of window {as_w}'
+            active_idx = 0
+            try:
+                r2 = subprocess.run(["osascript", "-e", active_as], capture_output=True, encoding='utf-8', timeout=2)
+                if r2.returncode == 0:
+                    active_idx = int(r2.stdout.strip()) - 1
+            except: pass
+            for ti, t in enumerate(titles):
+                icon_url = _favicon_url(urls[ti]) if ti < len(urls) else ""
+                all_items.append({
+                    "title": t, "type": "tab", "is_focused": (ti == active_idx),
+                    "item_index": len(all_items), "window_index": wi, "tab_index": ti,
+                    "icon_url": icon_url, "icon": "", "_source": "cg",
+                })
+        return all_items if all_items else None
+    except Exception:
+        return None
+
+
+def _browser_name(bundle_id):
+    """Extract browser name from bundle ID for AppleScript."""
+    m = {
+        "com.google.Chrome": "Google Chrome",
+        "com.apple.Safari": "Safari",
+        "com.microsoft.edgemac": "Microsoft Edge",
+        "com.brave.Browser": "Brave Browser",
+        "com.operasoftware.Opera": "Opera",
+        "com.vivaldi.Vivaldi": "Vivaldi",
+    }
+    return m.get(bundle_id, bundle_id)
 
 
 def get_all_app_windows():
@@ -361,21 +422,35 @@ def get_all_app_windows():
             continue
 
         items = get_app_items(pid, bundle_id)
+        ax_count = len(items)
 
         # If AX sees no windows but CG does (e.g. fullscreen Space), use CG items
         if not items and has_sc and pid in cg_by_pid:
             items = []
             for wi, cg_win in enumerate(cg_by_pid[pid]):
-                items.append({
+                item = {
                     "title": cg_win["title"],
                     "type": "window",
                     "is_focused": False,
                     "item_index": wi,
-                    "window_index": wi,
+                    "window_index": -1,  # sentinel: resolve in focus_item via title search
                     "tab_index": None,
                     "icon_url": "",
                     "icon": "folder" if bundle_id == "com.apple.finder" else "",
-                })
+                    "_source": "cg",
+                }
+                items.append(item)
+            # For browser apps, try AppleScript to fetch tabs (works cross-Space)
+            if bundle_id in _TAB_AS_MAP and len(items) > 0:
+                tabs_items = _as_tabs_for_app(bundle_id, len(items))
+                if tabs_items:
+                    items = tabs_items
+
+        cg_fallback_used = (ax_count == 0 and len(items) > 0)
+        if ax_count == 0:
+            cg_count = len(cg_by_pid.get(pid, []))
+            if cg_count > 0 or len(items) > 0:
+                _ax_log.info(f"[WINDOWS] {name}: AX=0 CG={cg_count} CGused={len(items)}")
 
         if not items:
             continue
@@ -409,11 +484,29 @@ def get_all_app_windows():
             it["global_index"] = global_idx
             global_idx += 1
 
+    _ax_log.info(f"[WINDOWS] Summary: {len(result)} apps, {global_idx} items, has_sc={has_sc}")
     return {"apps": result, "focused_app_idx": focused_app_idx, "focused_global_idx": focused_global_idx}
 
+def _find_window_by_title(windows_val, title, bundle_id=""):
+    """Search AX windows for one whose title (after cleanup) matches the given title.
+    Returns (window_index, window_element) or (-1, None)."""
+    count = _cf.CFArrayGetCount(windows_val)
+    target = title.lower().strip()
+    for i in range(count):
+        w = _cf.CFArrayGetValueAtIndex(windows_val, i)
+        if not w: continue
+        ax_title = (_pystr(_get_attr(w, "AXTitle")) or "").lower().strip()
+        if ax_title and (ax_title == target or target in ax_title or ax_title in target):
+            return i, w
+    return -1, None
+
+
 def focus_item(pid, item, bundle_id=""):
-    """Focus a window or tab item. item = {window_index, tab_index, type}.
-    For browser tabs, uses AppleScript to switch tabs (AX is unreliable for browser tabs)."""
+    """Focus a window or tab item. item = {window_index, tab_index, type, title, _source}.
+    For CG-sourced items (_source="cg"), resolves window_index by title search after activation."""
+    is_cg = item.get("_source") == "cg"
+    item_title = item.get("title", "")
+
     # Activate the app first (bring to front + switch spaces if needed)
     if bundle_id:
         # open -b handles space switching
@@ -436,12 +529,23 @@ def focus_item(pid, item, bundle_id=""):
     if not windows_val: return {"success": False, "error": "no windows"}
 
     wi = item.get("window_index", 0)
-    count = _cf.CFArrayGetCount(windows_val)
-    if wi >= count:
-        _cf.CFRelease(windows_val)
-        return {"success": False, "error": f"window index {wi} out of range"}
+    win = None
 
-    win = _cf.CFArrayGetValueAtIndex(windows_val, wi)
+    # For CG-sourced items, resolve window_index by title search
+    if is_cg and item_title:
+        found_wi, found_win = _find_window_by_title(windows_val, item_title, bundle_id)
+        if found_wi >= 0:
+            wi = found_wi
+            win = found_win
+
+    # Fallback: use window_index directly (for AX-sourced items or if title search didn't match)
+    if win is None:
+        count = _cf.CFArrayGetCount(windows_val)
+        if wi < 0 or wi >= count:
+            _cf.CFRelease(windows_val)
+            return {"success": False, "error": f"window index {wi} out of range ({count} windows)"}
+        win = _cf.CFArrayGetValueAtIndex(windows_val, wi)
+
     if not win:
         _cf.CFRelease(windows_val)
         return {"success": False, "error": "null window element"}
