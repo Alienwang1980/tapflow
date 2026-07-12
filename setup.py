@@ -22,7 +22,7 @@ OPTIONS = {
     ],
     "includes": [
         "connection_manager", "input_engine", "profile_manager",
-        "window_watcher", "editor_app",
+        "window_watcher", "editor_app", "ax_bridge",
         "logging", "json", "uuid", "asyncio", "threading", "webbrowser",
     ],
     "excludes": [
