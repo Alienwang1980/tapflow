@@ -8158,7 +8158,7 @@
 		</data>
 		<key>Resources/lib/python312.zip</key>
 		<data>
-		0BWnQFZpAOE7zTyIHADSkdzQtuE=
+		txEOU5w5uMQ45eNG+S7cdv0BMDM=
 		</data>
 		<key>Resources/openssl.ca/cert.pem</key>
 		<data>
@@ -8178,7 +8178,7 @@
 		</data>
 		<key>Resources/tray_app.py</key>
 		<data>
-		JWlEs9Ni/hqkRs7GMCs5gnZ163g=
+		f7GY9nbX2fnwRH7ShRG0yLNFo1M=
 		</data>
 		<key>Resources/zlib.cpython-312-darwin.so</key>
 		<data>
@@ -22516,7 +22516,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			SJLXNlAVxaEmYCEITfSJvKcCtGn2x8vGoWIGwnq30a4=
+			woyBeSQU4A1Fa+KuV8eP97EGc33q8hc2c9sxrPoEtXg=
 			</data>
 		</dict>
 		<key>Resources/openssl.ca/cert.pem</key>
@@ -22551,7 +22551,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			5CW7pzXDxKcejdIj33QOjLAEBLHMW7nXDJiKWeAjKuw=
+			w0jZGHwrnNkuH8xVaIj3EXwjaAI7oLG+3BxIW+UEyh0=
 			</data>
 		</dict>
 		<key>Resources/zlib.cpython-312-darwin.so</key>

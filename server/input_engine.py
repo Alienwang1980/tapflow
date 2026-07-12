@@ -127,14 +127,26 @@ def press_key(key: str):
 
 
 def is_accessibility_enabled() -> bool:
-    """Check if Accessibility permission is granted. Uses ctypes to avoid PyObjC import chain issues in .app bundle."""
+    """Definitive accessibility check using CGEventTapCreate.
+    CGEventTapCreate tests actual capability — more reliable than AXIsProcessTrusted()
+    which has known stale-cache bugs on macOS 13+."""
     try:
-        import ctypes
-        _as = ctypes.cdll.LoadLibrary(
-            '/System/Library/Frameworks/ApplicationServices.framework/Versions/A/ApplicationServices'
+        from Quartz.CoreGraphics import (
+            CGEventTapCreate, kCGHIDEventTap, kCGHeadInsertEventTap,
+            kCGEventTapOptionDefault, CGEventMaskBit, kCGEventLeftMouseDown,
         )
-        _as.AXIsProcessTrusted.restype = ctypes.c_bool
-        return _as.AXIsProcessTrusted()
+        tap = CGEventTapCreate(
+            kCGHIDEventTap, kCGHeadInsertEventTap,
+            kCGEventTapOptionDefault,
+            CGEventMaskBit(kCGEventLeftMouseDown),
+            lambda proxy, type, event, refcon: event,
+            None,
+        )
+        if tap is not None:
+            from CoreFoundation import CFMachPortInvalidate
+            CFMachPortInvalidate(tap)
+            return True
+        return False
     except Exception:
         return False
 

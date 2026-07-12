@@ -32,17 +32,41 @@ def get_local_ip() -> str:
         return "127.0.0.1"
 
 
-def check_accessibility() -> bool:
-    """Check Accessibility permission (silent — no system prompt). Uses ctypes for reliability."""
+def _can_create_event_tap() -> bool:
+    """Definitive accessibility check using CGEventTapCreate.
+    More reliable than AXIsProcessTrusted() which has known stale-cache bugs on macOS 13+."""
     try:
-        import ctypes
-        _as = ctypes.cdll.LoadLibrary(
-            '/System/Library/Frameworks/ApplicationServices.framework/Versions/A/ApplicationServices'
+        from Quartz import (
+            CGEventTapCreate, kCGHIDEventTap, kCGHeadInsertEventTap,
+            kCGEventTapOptionDefault, CGEventMaskBit, kCGEventLeftMouseDown
         )
-        _as.AXIsProcessTrusted.restype = ctypes.c_bool
-        return _as.AXIsProcessTrusted()
+        tap = CGEventTapCreate(
+            kCGHIDEventTap, kCGHeadInsertEventTap,
+            kCGEventTapOptionDefault,
+            CGEventMaskBit(kCGEventLeftMouseDown),
+            lambda proxy, type, event, refcon: event,
+            None,
+        )
+        if tap is not None:
+            from CoreFoundation import CFMachPortInvalidate
+            CFMachPortInvalidate(tap)
+            return True
+        return False
     except Exception:
         return False
+
+
+def check_accessibility() -> bool:
+    """Check accessibility permission (silent, no system prompt)."""
+    return _can_create_event_tap()
+
+
+def request_accessibility_permission():
+    """Open System Settings → Privacy → Accessibility.
+    Always opens the pane — no conditional checks."""
+    import subprocess as _sp4
+    _sp4.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"])
+    logger.info("Opened System Settings → Accessibility")
 
 
 def create_icon_image(size=64):
@@ -167,30 +191,36 @@ def run_server():
             _sc.run(["osascript", "-e", f"set volume input volume {restore}"])
             _state["mic_muted"] = False
         return {"muted": _state.get("mic_muted", False)}
-    # ── Accessibility permission request ──
-    @app.post("/api/system/request-accessibility")
-    async def _sys_req_acc():
-        """Trigger accessibility permission prompt via AXIsProcessTrustedWithOptions."""
+    # ── Accessibility & Mic Permission endpoints ──
+    @app.get("/api/system/accessibility")
+    async def _sys_acc_status():
+        return {"granted": check_accessibility()}
+
+    @app.post("/api/system/accessibility")
+    async def _sys_acc_request():
+        """Open System Settings → Privacy → Accessibility."""
+        request_accessibility_permission()
+        return {"granted": check_accessibility()}
+
+    @app.get("/api/system/mic-permission")
+    async def _sys_mic_status():
         try:
-            import ctypes, os as _os3
-            _as = ctypes.cdll.LoadLibrary(
-                '/System/Library/Frameworks/ApplicationServices.framework/Versions/A/ApplicationServices')
-            _as.AXIsProcessTrustedWithOptions.restype = ctypes.c_bool
-            _as.AXIsProcessTrustedWithOptions.argtypes = [ctypes.c_void_p]
-            _opts = ctypes.c_void_p(0)
-            try:
-                from CoreFoundation import CFDictionaryCreate, CFStringCreateWithCString, kCFBooleanTrue, kCFAllocatorDefault
-                _keys = [CFStringCreateWithCString(None, b"AXTrustedCheckOptionPrompt", 0x08000100)]
-                _vals = [kCFBooleanTrue]
-                _kc = (ctypes.c_void_p * len(_keys))(*[_k.__pointer__ for _k in _keys])
-                _vc = (ctypes.c_void_p * len(_vals))(*[_v.__pointer__ for _v in _vals])
-                _opts = CFDictionaryCreate(None, _kc, _vc, len(_keys), None, None)
-            except Exception:
-                pass
-            _result = _as.AXIsProcessTrustedWithOptions(_opts)
-            return {"granted": _result}
-        except Exception as _e:
-            return {"granted": False, "error": str(_e)}
+            from AVFoundation import AVCaptureDevice, AVMediaTypeAudio
+            s = AVCaptureDevice.authorizationStatusForMediaType_(AVMediaTypeAudio)
+            return {"status": s, "label": {0:"NotDetermined",1:"Denied",2:"Restricted",3:"Authorized"}.get(s)}
+        except Exception:
+            return {"status": -1, "label": "error"}
+
+    @app.post("/api/system/mic-permission")
+    async def _sys_mic_request():
+        """Open System Settings → Privacy → Microphone."""
+        request_mic_permission()
+        try:
+            from AVFoundation import AVCaptureDevice, AVMediaTypeAudio
+            s = AVCaptureDevice.authorizationStatusForMediaType_(AVMediaTypeAudio)
+            return {"status": s}
+        except Exception:
+            return {"status": -1}
 
     # ── Mic Level Sampler (ffmpeg — sounddevice broken for AKG USB) ──
     _mic_level = 0.0
@@ -221,7 +251,7 @@ def run_server():
                         _samples = struct.unpack("<" + "h" * (len(_data)//2), _data)
                         _rms = math.sqrt(sum(_s*_s for _s in _samples) / len(_samples))
                         _mic_level = min(1.0, _rms / 3000.0)
-                    _time3.sleep(0.05)
+                    _time3.sleep(0.5)
                 except Exception as _e:
                     _logger.error(f"Mic sampler error: {_e}")
                     _time3.sleep(0.5)
@@ -524,62 +554,11 @@ def on_quit(icon, item):
 
 
 def request_mic_permission():
-    """Request microphone permission via AVFoundation (proper PyObjC API).
-    Triggers the macOS mic permission dialog on first call."""
-    try:
-        from AVFoundation import AVCaptureDevice, AVMediaTypeAudio
-        status = AVCaptureDevice.authorizationStatusForMediaType_(AVMediaTypeAudio)
-        # 0=NotDetermined, 1=Denied, 2=Restricted, 3=Authorized
-        if status == 3:
-            logger.info("Mic permission: already authorized")
-        elif status == 0:  # NotDetermined — trigger the dialog
-            AVCaptureDevice.requestAccessForMediaType_completionHandler_(
-                AVMediaTypeAudio,
-                lambda granted: logger.info(f"Mic permission: {'granted' if granted else 'denied'}")
-            )
-            logger.info("Mic permission dialog requested")
-        else:  # Denied/Restricted — open Settings
-            logger.warning(f"Mic permission: status={status} — opening System Settings")
-            import subprocess as _sp4
-            _sp4.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone"])
-    except Exception as e:
-        logger.error(f"Mic permission request failed: {e}")
-        import subprocess as _sp4
-        _sp4.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone"])
-
-def request_accessibility_permission():
-    """Check Accessibility permission and prompt user if not granted.
-    Uses AXIsProcessTrustedWithOptions with kAXTrustedCheckOptionPrompt=1
-    to trigger the system permission dialog (macOS 10.9+)."""
-    try:
-        import ctypes
-        _as = ctypes.cdll.LoadLibrary(
-            '/System/Library/Frameworks/ApplicationServices.framework/Versions/A/ApplicationServices')
-        _as.AXIsProcessTrustedWithOptions.restype = ctypes.c_bool
-        _as.AXIsProcessTrustedWithOptions.argtypes = [ctypes.c_void_p]
-        # Build CFDictionary {AXTrustedCheckOptionPrompt: true}
-        _opts = ctypes.c_void_p(0)
-        try:
-            from CoreFoundation import CFDictionaryCreate, CFStringCreateWithCString, kCFBooleanTrue, kCFAllocatorDefault, kCFTypeDictionaryKeyCallBacks, kCFTypeDictionaryValueCallBacks
-            _keys = [CFStringCreateWithCString(None, b"AXTrustedCheckOptionPrompt", 0x08000100)]
-            _vals = [kCFBooleanTrue]
-            _kc = (ctypes.c_void_p * 1)(_keys[0].__pointer__)
-            _vc = (ctypes.c_void_p * 1)(_vals[0].__pointer__)
-            _opts = CFDictionaryCreate(None, _kc, _vc, 1, kCFTypeDictionaryKeyCallBacks, kCFTypeDictionaryValueCallBacks)
-        except Exception:
-            pass
-        _result = _as.AXIsProcessTrustedWithOptions(_opts)
-        if _result:
-            logger.info("Accessibility permission: granted")
-        else:
-            logger.warning("Accessibility permission: not granted — prompting user via System Settings")
-            import subprocess as _sp4
-            _sp4.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"])
-    except Exception as e:
-        logger.error(f"Accessibility request failed: {e}")
-        import subprocess as _sp4
-        _sp4.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"])
-
+    """Open System Settings → Privacy → Microphone.
+    Simple and reliable — no polling, no dialogs, just opens the right pane."""
+    import subprocess as _sp4
+    _sp4.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone"])
+    logger.info("Opened System Settings → Microphone")
 
 def run_tray():
     """Create and run the system tray icon."""
@@ -606,13 +585,6 @@ def run_tray():
         menu,
     )
 
-    # Check accessibility on start
-    acc_ok = check_accessibility()
-    if acc_ok:
-        logger.info("Accessibility permission: ✅")
-    else:
-        logger.warning("Accessibility permission: ❌ — check System Settings")
-
     logger.info(f"Server URL: {url}")
     icon.run()
 
@@ -622,14 +594,23 @@ def main():
     server_thread = threading.Thread(target=run_server, daemon=True)
     server_thread.start()
     logger.info("Server starting on port 8082...")
-    # Auto-request permissions on first launch
     import time as _time2; _time2.sleep(2)
-    try: request_mic_permission()
-    except Exception: pass
-    try: request_accessibility_permission()
+
+    # Startup check: if accessibility not granted, trigger system dialog + open Settings
+    try:
+        if not check_accessibility():
+            # Show the system prompt first
+            from HIServices import AXIsProcessTrustedWithOptions
+            from ApplicationServices import kAXTrustedCheckOptionPrompt
+            AXIsProcessTrustedWithOptions({kAXTrustedCheckOptionPrompt: True})
+            logger.info("Accessibility not granted — opening System Settings")
+            import subprocess as _sp6
+            _sp6.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"])
+        else:
+            logger.info("Accessibility permission: ✅")
     except Exception: pass
 
-    # Run tray icon on main thread
+    # Run tray icon on main thread (blocks on NSApp run loop)
     run_tray()
 
 
