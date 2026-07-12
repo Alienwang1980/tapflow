@@ -320,28 +320,30 @@ def run_server():
     async def _sys_adev():
         sw = os.path.expanduser("~/Library/Application Support/Smart Touch Panel/bin/SwitchAudioSource")
         if not os.path.exists(sw): return []
+        env = {"LANG":"C","PATH":os.environ.get("PATH","")}
         devs = []
         for dtype, dlabel in [("output","output"),("input","input")]:
-            r2 = _sc.run([sw, "-a", "-t", dtype], capture_output=True, encoding="utf-8", env={"LANG":"C","PATH":os.environ.get("PATH","")})
+            cur_r = _sc.run([sw, "-c", "-t", dtype], capture_output=True, encoding="utf-8", env=env)
+            cur_name = cur_r.stdout.strip()
+            r2 = _sc.run([sw, "-a", "-t", dtype], capture_output=True, encoding="utf-8", env=env)
             for line in r2.stdout.strip().splitlines():
                 ls = line.strip()
                 if not ls: continue
-                cur = ls.startswith("*")
-                devs.append({"name": ls.lstrip("*").strip(), "type": dlabel, "current": cur})
+                devs.append({"name": ls, "type": dlabel, "current": ls == cur_name})
         return devs
 
     @app.post("/api/system/audio-output")
     async def _sys_aout(body: dict):
         sw = os.path.expanduser("~/Library/Application Support/Smart Touch Panel/bin/SwitchAudioSource")
         if os.path.exists(sw):
-            _sc.run([sw, "-t", "output", "-i", body.get("name", "")])
+            _sc.run([sw, "-t", "output", "-s", body.get("name", "")])
         return {"status": "ok"}
 
     @app.post("/api/system/audio-input")
     async def _sys_ain(body: dict):
         sw = os.path.expanduser("~/Library/Application Support/Smart Touch Panel/bin/SwitchAudioSource")
         if os.path.exists(sw):
-            _sc.run([sw, "-t", "input", "-i", body.get("name", "")])
+            _sc.run([sw, "-t", "input", "-s", body.get("name", "")])
         return {"status": "ok"}
 
     def _cycle_audio_device(dtype: str):
@@ -349,18 +351,20 @@ def run_server():
         sw = os.path.expanduser("~/Library/Application Support/Smart Touch Panel/bin/SwitchAudioSource")
         if not os.path.exists(sw):
             return {"status": "error", "reason": "SwitchAudioSource not found"}
-        r = _sc.run([sw, "-a", "-t", dtype], capture_output=True, encoding="utf-8",
-                    env={"LANG":"C","PATH":os.environ.get("PATH","")})
-        names = []; cur_idx = -1
+        env = {"LANG":"C","PATH":os.environ.get("PATH","")}
+        cur_r = _sc.run([sw, "-c", "-t", dtype], capture_output=True, encoding="utf-8", env=env)
+        cur_name = cur_r.stdout.strip()
+        r = _sc.run([sw, "-a", "-t", dtype], capture_output=True, encoding="utf-8", env=env)
+        names = []
         for line in r.stdout.strip().splitlines():
             ls = line.strip()
             if not ls: continue
-            if ls.startswith("*"): cur_idx = len(names)
-            names.append(ls.lstrip("*").strip())
+            names.append(ls)
         if not names: return {"status": "error", "reason": "no devices"}
-        if cur_idx < 0: cur_idx = 0
+        try: cur_idx = names.index(cur_name)
+        except ValueError: cur_idx = 0
         next_name = names[(cur_idx + 1) % len(names)]
-        _sc.run([sw, "-t", dtype, "-i", next_name])
+        _sc.run([sw, "-t", dtype, "-s", next_name])
         return {"status": "ok", "current": next_name}
 
     @app.post("/api/system/audio-input/cycle")
