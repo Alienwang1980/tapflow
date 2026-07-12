@@ -468,8 +468,12 @@ def get_all_app_windows():
 
         # CG supplement: add windows from OTHER Spaces that AX can't see.
         # kCGWindowIsOnscreen=False means the window is on a different Space.
-        # This is much more reliable than title matching for dedup.
         if has_sc and pid in cg_by_pid:
+            # Build lowercase title set from existing AX items for dedup.
+            # When browser has both desktop and fullscreen windows, clicking
+            # a tab switches Spaces; the desktop window (now offscreen) gets
+            # added by CG with the same title as one of the fullscreen tabs.
+            ax_title_set = {it["title"].strip().lower() for it in items}
             new_cnt = 0
             for cg_win in cg_by_pid[pid]:
                 cg_title = cg_win["title"]
@@ -477,8 +481,10 @@ def get_all_app_windows():
                 if cg_title.strip().lower() in _GHOST_TAB_TITLES:
                     continue
                 # Only add windows that are NOT on the current Space
-                # (AX already covers onscreen windows)
                 if cg_win.get("onscreen", True):
+                    continue
+                # Skip if title already present in AX items (prevents click→duplicate)
+                if cg_title.strip().lower() in ax_title_set:
                     continue
                 items.append({
                     "title": cg_title,
