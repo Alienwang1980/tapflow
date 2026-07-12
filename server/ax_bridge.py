@@ -502,9 +502,24 @@ def get_all_app_windows():
             if new_cnt > 0:
                 _ax_log.info(f"[MERGE] {name}: +{new_cnt} CG windows offscreen (AX had {ax_count})")
 
-        # Re-sort and re-index after potential merge
+        # Re-sort, de-duplicate, and re-index
         if items:
             items.sort(key=lambda it: it["title"].lower())
+            # Universal dedup by title only (ignore type — CG "window" and AX "tab"
+            # with same title are duplicates to the user).
+            seen_titles = set()
+            deduped = []
+            dropped = 0
+            for it in items:
+                t = it["title"].strip().lower()
+                if t not in seen_titles:
+                    seen_titles.add(t)
+                    deduped.append(it)
+                else:
+                    dropped += 1
+            if dropped > 0:
+                _ax_log.info(f"[DEDUP] {name}: dropped {dropped} duplicate(s)")
+            items = deduped
             for i, it in enumerate(items):
                 it["item_index"] = i
 
