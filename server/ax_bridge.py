@@ -433,28 +433,20 @@ def get_all_app_windows():
         items = get_app_items(pid, bundle_id)
         ax_count = len(items)
 
-        # When SC granted, supplement AX with CG windows from other Spaces.
-        # Fullscreen/Split View windows are added as single entries (no tab expansion)
-        # to keep things simple and reliable.
-        if has_sc and pid in cg_by_pid:
-            seen = set()
-            for it in items:
-                seen.add(it["title"].strip().lower())
-
-            new_cnt = 0
-            for cg_win in cg_by_pid[pid]:
+        # CG supplement: ONLY when AX sees no windows (fullscreen / other Space).
+        # If AX has windows, trust AX completely — CG title matching is too brittle.
+        if has_sc and ax_count == 0 and pid in cg_by_pid:
+            cg_wins = cg_by_pid[pid]
+            for wi, cg_win in enumerate(cg_wins):
                 cg_title = cg_win["title"]
-                norm = cg_title.strip().lower()
-                # Also check cleaned title (strip " - AppName" suffix) to avoid
-                # matching a CG window that AX already shows as expanded tabs
-                cleaned = _clean_title(cg_title, name).strip().lower()
-                if norm in seen or cleaned in seen:
+                # Filter ghost new-tab windows (same logic as AppleScript ghost tabs)
+                if cg_title.strip().lower() in _GHOST_TAB_TITLES:
                     continue
                 items.append({
                     "title": cg_title,
                     "type": "window",
                     "is_focused": False,
-                    "item_index": len(items),
+                    "item_index": wi,
                     "window_index": -1,  # sentinel: resolve in focus_item via title search
                     "window_id": cg_win.get("window_id", 0),
                     "tab_index": None,
@@ -462,11 +454,8 @@ def get_all_app_windows():
                     "icon": "folder" if bundle_id == "com.apple.finder" else "",
                     "_source": "cg",
                 })
-                seen.add(norm)
-                seen.add(cleaned)
-                new_cnt += 1
-            if new_cnt > 0:
-                _ax_log.info(f"[MERGE] {name}: +{new_cnt} CG windows (AX had {ax_count})")
+            if items:
+                _ax_log.info(f"[CG-FALLBACK] {name}: AX=0, using {len(items)} CG windows")
 
         # Re-sort and re-index after potential merge
         if items:
