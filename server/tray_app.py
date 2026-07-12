@@ -10,6 +10,7 @@ import threading
 import pystray
 from PIL import Image, ImageDraw
 
+from fastapi import Request
 from main import app
 from editor_app import open_editor
 
@@ -381,7 +382,34 @@ def run_server():
             a = AppKit.NSWorkspace.sharedWorkspace().frontmostApplication()
             return {"name": a.localizedName() or "?", "bundle_id": a.bundleIdentifier() or ""}
         except: return {"name": "?", "bundle_id": ""}
-    
+
+    # ── Window Switcher (AX Bridge) ──
+
+    @app.get("/api/system/current-app-windows")
+    async def _sys_cur_wins():
+        try:
+            import AppKit
+            a = AppKit.NSWorkspace.sharedWorkspace().frontmostApplication()
+            pid = a.processIdentifier()
+            name = a.localizedName() or "?"
+            from ax_bridge import get_app_windows
+            wins = get_app_windows(pid)
+            return {"name": name, "pid": pid, "count": len(wins), "windows": wins}
+        except Exception as e:
+            return {"name": "?", "pid": 0, "count": 0, "windows": [], "error": str(e)}
+
+    @app.post("/api/system/focus-window")
+    async def _sys_focus_win(req: Request):
+        try:
+            body = await req.json()
+            pid = body.get("pid", 0)
+            idx = body.get("index", 0)
+            from ax_bridge import focus_window
+            result = focus_window(pid, idx)
+            return result
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
     # ── Window Shortcuts (keyboard only, no osascript) ──
 
     @app.post("/api/system/window/fullscreen")
