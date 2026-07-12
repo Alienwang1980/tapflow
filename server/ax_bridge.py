@@ -262,9 +262,6 @@ def get_app_items(pid, bundle_id=""):
             title = win_title or ""
             if bundle_id == "com.apple.finder" and (not title or title == "(untitled)"):
                 continue
-            # Skip minimized windows
-            if _cfbool(_get_attr(win, "AXMinimized")):
-                continue
             # Skip windows with no title (fullscreen/minimized artifacts)
             if not title:
                 continue
@@ -290,27 +287,25 @@ def get_app_items(pid, bundle_id=""):
 
 def get_all_app_windows():
     """Return windows from all running user apps, grouped by app.
+    Primary: AX API (rich data: tabs, focus). Fallback: CGWindowList for cross-space visibility.
     Returns {apps: [{name, bundle_id, pid, icon, windows: [...]}], focused_app_idx, focused_global_idx}"""
     import AppKit
+
     workspace = AppKit.NSWorkspace.sharedWorkspace()
-    running = workspace.runningApplications()
-    # Only the frontmost app can have a truly focused window
     try:
         front_pid = workspace.frontmostApplication().processIdentifier()
     except:
         front_pid = -1
-    result = []
 
-    for app in running:
+    result = []
+    for app in workspace.runningApplications():
         try:
             pid = app.processIdentifier()
             name = app.localizedName() or "?"
             bundle_id = app.bundleIdentifier() or ""
             if not bundle_id:
                 continue
-            # Skip menu bar accessories and background daemons
-            policy = app.activationPolicy()
-            if policy != 0:  # NSApplicationActivationPolicyRegular only
+            if app.activationPolicy() != 0:
                 continue
         except:
             continue
@@ -319,7 +314,6 @@ def get_all_app_windows():
         if not items:
             continue
 
-        # Only the frontmost app can have focused windows
         is_frontmost = (pid == front_pid)
         if not is_frontmost:
             for it in items:
@@ -332,10 +326,10 @@ def get_all_app_windows():
             "windows": items,
         })
 
-    # Stable alphabetical sort — prevents layout jumping when focus changes
+    # Stable alphabetical sort
     result.sort(key=lambda a: a["name"].lower())
 
-    # Assign global indices and find focused items AFTER sorting
+    # Assign global indices and find focused items
     focused_app_idx = -1
     focused_global_idx = -1
     global_idx = 0
@@ -487,11 +481,11 @@ def get_all_menus(pid):
     if not elem: return []
     menu_bar = _get_attr(elem, "AXMenuBar")
     if not menu_bar: return []
-    
+
     bar_items = _get_attr(menu_bar, "AXChildren")
     if not bar_items: return []
     count = _cf.CFArrayGetCount(bar_items)
-    
+
     menus = []
     for i in range(count):
         bar_item = _cf.CFArrayGetValueAtIndex(bar_items, i)
@@ -506,6 +500,6 @@ def get_all_menus(pid):
                 if items:
                     menus.append({"menu": title, "items": items})
         if sub_children: _cf.CFRelease(sub_children)
-    
+
     _cf.CFRelease(bar_items)
     return menus
