@@ -212,9 +212,13 @@ def get_app_items(pid, bundle_id=""):
                 item_idx += 1
         else:
             # No tabs — list the window itself
+            # Skip Finder's system-level windows (desktop, etc.)
+            title = win_title or ""
+            if bundle_id == "com.apple.finder" and (not title or title == "(untitled)"):
+                continue
             icon = "folder" if bundle_id == "com.apple.finder" else ""
             items.append({
-                "title": win_title or "(untitled)",
+                "title": title or "(untitled)",
                 "type": "window",
                 "is_focused": win_focused,
                 "item_index": item_idx,
