@@ -195,8 +195,8 @@ def run_server():
                         _samples = struct.unpack("<" + "h" * (len(_data)//2), _data)
                         _rms = math.sqrt(sum(_s*_s for _s in _samples) / len(_samples))
                         _mic_level = min(1.0, _rms / 3000.0)
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _logger.error(f"Mic sampler error: {_e}")
         _th.Thread(target=_sample, daemon=True).start()
 
     @app.get("/api/system/mic-level")
@@ -525,24 +525,22 @@ def on_quit(icon, item):
 
 
 def request_mic_permission():
-    """Check Microphone permission and open System Settings if not authorized."""
+    """Request microphone permission via AVFoundation (proper PyObjC API).
+    Triggers the macOS mic permission dialog on first call."""
     try:
-        import objc
-        g = {}
-        objc.loadBundle('AVFoundation', g,
-            bundle_path=objc.pathForFramework('/System/Library/Frameworks/AVFoundation.framework'))
-        AVCaptureDevice = g.get('AVCaptureDevice')
-        if not AVCaptureDevice:
-            logger.warning("AVCaptureDevice not available — opening Mic settings")
-            import subprocess as _sp4
-            _sp4.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone"])
-            return
-        # AVMediaTypeAudio = 'soun' (NSString constant, not exported by loadBundle)
-        status = AVCaptureDevice.authorizationStatusForMediaType_('soun')
-        if status == 3:  # Authorized
+        from AVFoundation import AVCaptureDevice, AVMediaTypeAudio
+        status = AVCaptureDevice.authorizationStatusForMediaType_(AVMediaTypeAudio)
+        # 0=NotDetermined, 1=Denied, 2=Restricted, 3=Authorized
+        if status == 3:
             logger.info("Mic permission: already authorized")
-        else:
-            logger.info(f"Mic permission: status={status} — opening System Settings")
+        elif status == 0:  # NotDetermined — trigger the dialog
+            AVCaptureDevice.requestAccessForMediaType_completionHandler_(
+                AVMediaTypeAudio,
+                lambda granted: logger.info(f"Mic permission: {'granted' if granted else 'denied'}")
+            )
+            logger.info("Mic permission dialog requested")
+        else:  # Denied/Restricted — open Settings
+            logger.warning(f"Mic permission: status={status} — opening System Settings")
             import subprocess as _sp4
             _sp4.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone"])
     except Exception as e:

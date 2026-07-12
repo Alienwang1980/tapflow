@@ -10,7 +10,7 @@
 		</data>
 		<key>Resources/__boot__.py</key>
 		<data>
-		bC3F0Y0Lgxrb5Usj0vl9DPnHedc=
+		/TLoa9yF59+uhRlNiDACiiy9j4w=
 		</data>
 		<key>Resources/__error__.sh</key>
 		<data>
@@ -22,7 +22,7 @@
 		</data>
 		<key>Resources/client/editor.html</key>
 		<data>
-		a64lxRbJG0DUMuZZ0MXMReDziCw=
+		z0h499EwyFTL0hQmUSZoxiX+1iE=
 		</data>
 		<key>Resources/client/fonts/PressStart2P.woff2</key>
 		<data>
@@ -42,7 +42,7 @@
 		</data>
 		<key>Resources/client/index.html</key>
 		<data>
-		hboi36dcmnLQTaTJLVcGryYgY1g=
+		7Y23IaforJEyGRYO80/O6qfCrRo=
 		</data>
 		<key>Resources/include/python3.12/pyconfig.h</key>
 		<data>
@@ -2311,6 +2311,34 @@
 		<key>Resources/lib/python3.12/fastapi/websockets.py</key>
 		<data>
 		BEqkqX3TIEtNzJcLgK3MDTQjE4M=
+		</data>
+		<key>Resources/lib/python3.12/lib-dynload/AVFAudio/_inlines.so</key>
+		<data>
+		gf0LhCUOMTmsaWfBDQMQVQKMp94=
+		</data>
+		<key>Resources/lib/python3.12/lib-dynload/AVFoundation/_AVFoundation.so</key>
+		<data>
+		AD32P9Cb1V4QK4DwO055+oMrRj4=
+		</data>
+		<key>Resources/lib/python3.12/lib-dynload/AVFoundation/_inlines.so</key>
+		<data>
+		qwBZ8SbIRajeckZnCvJ+hEWWqbk=
+		</data>
+		<key>Resources/lib/python3.12/lib-dynload/CoreAudio/_CoreAudio.so</key>
+		<data>
+		osLzOB7gAumar9WO9Xsvm/5mTVs=
+		</data>
+		<key>Resources/lib/python3.12/lib-dynload/CoreAudio/_inlines.so</key>
+		<data>
+		8iwIH0e0jb24CB/ys2Nj8gVemAg=
+		</data>
+		<key>Resources/lib/python3.12/lib-dynload/CoreMedia/_CoreMedia.so</key>
+		<data>
+		zzwNvI5lfgtsT7IT27pRmP68ha4=
+		</data>
+		<key>Resources/lib/python3.12/lib-dynload/CoreMedia/_inlines.so</key>
+		<data>
+		2QgGXJJwT546YlS3pvcw8X1c3ck=
 		</data>
 		<key>Resources/lib/python3.12/lib-dynload/CoreText/_manual.so</key>
 		<data>
@@ -13138,7 +13166,7 @@
 		</data>
 		<key>Resources/lib/python312.zip</key>
 		<data>
-		R00LEryOR+pmkeQBbe4456GqUKY=
+		zLOaAUvQmY2AEXbcnRWuZ4PXmKA=
 		</data>
 		<key>Resources/openssl.ca/cert.pem</key>
 		<data>
@@ -13158,11 +13186,11 @@
 		</data>
 		<key>Resources/site.pyc</key>
 		<data>
-		Al88CCJOpbQcDh8lpC5eFy286j4=
+		5/RbLB3VlQsBCGsToxZTwsNT3bY=
 		</data>
 		<key>Resources/tray_app.py</key>
 		<data>
-		t1lO6aimcB4atmk51NuWu8g1SYQ=
+		R3hg+CxUgWhERtVvpV2CglSz1qw=
 		</data>
 		<key>Resources/zlib.cpython-312-darwin.so</key>
 		<data>
@@ -13241,7 +13269,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			N9u+em4YRVYCiUH3eQR5i6MBgPk5XGXMc1TCn57v2dg=
+			Dp61dIhrUDxsMcGVDsuVWcV0aHwg6gdg2HJB4mKAdrE=
 			</data>
 		</dict>
 		<key>Resources/__error__.sh</key>
@@ -13262,7 +13290,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			MnKpGc+sb/3cfurnLCvAn7LJh3tgddl0Z8M6zNzYIOw=
+			0UViZcuHbd6a5atBxV/0hsxqUxpTfPAExpT7TUGMv5Y=
 			</data>
 		</dict>
 		<key>Resources/client/fonts/PressStart2P.woff2</key>
@@ -13297,7 +13325,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			Lmch9omHlgB6pLrfDt7QbHCK6ebVS7Y6OdhQ3c1T4pY=
+			bwyBNZ/AP+TosZFNzFEUTHhDyLXcaOU/KPDrvA+BiRs=
 			</data>
 		</dict>
 		<key>Resources/include/python3.12/pyconfig.h</key>
@@ -17267,6 +17295,55 @@
 			<key>hash2</key>
 			<data>
 			419uncYObEKZG0YcrXscfQQYLSWoE10jqxVMetGdR98=
+			</data>
+		</dict>
+		<key>Resources/lib/python3.12/lib-dynload/AVFAudio/_inlines.so</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			JnRfM9VvnbpJmb38R4lBEKBmtMiTzUC+8a4PPgd7OJw=
+			</data>
+		</dict>
+		<key>Resources/lib/python3.12/lib-dynload/AVFoundation/_AVFoundation.so</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			NUQn0wLV6K392DCUwGeGP6bjmS4dMjYSs7MtZ25KBgI=
+			</data>
+		</dict>
+		<key>Resources/lib/python3.12/lib-dynload/AVFoundation/_inlines.so</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			zSdT1D4vywhOBC1HGCYcZyP9upZYMv8NX1gQ3g3HPro=
+			</data>
+		</dict>
+		<key>Resources/lib/python3.12/lib-dynload/CoreAudio/_CoreAudio.so</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			iw+yAYbhelaAA2l/7W/wuBE5juep/17vo06QyYA0UOQ=
+			</data>
+		</dict>
+		<key>Resources/lib/python3.12/lib-dynload/CoreAudio/_inlines.so</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			m+kP+UaztoB0Wv0nYTFHrpQWWr4faY1yqBq3Jn2fUck=
+			</data>
+		</dict>
+		<key>Resources/lib/python3.12/lib-dynload/CoreMedia/_CoreMedia.so</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			YM0VmAgCAyGGcmFQb/ilX6gH0kcxaZmie3JEBfnIgBw=
+			</data>
+		</dict>
+		<key>Resources/lib/python3.12/lib-dynload/CoreMedia/_inlines.so</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			SelGCRQaiDdDWqQJfNUXfjv1xoZ7X1tbGZnWZU6Asz4=
 			</data>
 		</dict>
 		<key>Resources/lib/python3.12/lib-dynload/CoreText/_manual.so</key>
@@ -36220,7 +36297,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			9AQU6bpfg8UF02zIbkbm/+7aN7J4mWh9l4N9RMTRqLQ=
+			dgvQ6GOBNjlEkcTB8Enhvdkz9yocjZFdUEqcYhkAhk0=
 			</data>
 		</dict>
 		<key>Resources/openssl.ca/cert.pem</key>
@@ -36255,14 +36332,14 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			2/Y2lnPzcxfZaWIiNjwvwD1mfydSEuE7zfIjC/16LSM=
+			SqNJ9pHWdpokkxuMZKMnYBhLzq6lHFjlDd61wWEadwQ=
 			</data>
 		</dict>
 		<key>Resources/tray_app.py</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			WUPJ1NFNAfCsldTYFtomEm9ne5Oy8B0iu9QUE72OKJQ=
+			C8xz+KlY5Jj5qusq4Gd1mkp+vEjd1uhka9JWCrq5t3g=
 			</data>
 		</dict>
 		<key>Resources/zlib.cpython-312-darwin.so</key>
