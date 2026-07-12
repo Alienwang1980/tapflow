@@ -548,9 +548,9 @@ const ftb=document.getElementById("ftb");var btb=document.getElementById("btb");
     var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";
     var _c=_cv.getContext("2d"),_w=_cv.width,_h=_cv.height;
     var _kc2=k.color||"#1a1a1a";_c.fillStyle=_kc2;_c.fillRect(0,0,_w,_h);
-    var _pad=Math.max(6,_w*0.04);_c.fillStyle="#fff";var _fs=Math.max(11,Math.min(_h*0.30,_w*0.06));_c.font="bold "+_fs+"px -apple-system,sans-serif";_c.textAlign="left";_c.textBaseline="middle";_c.fillText("App Name",_pad,_h*0.25);
-    _c.fillStyle="#888";var _fs2=Math.max(9,Math.min(_h*0.22,_w*0.05));_c.font=_fs2+"px -apple-system,sans-serif";_c.textBaseline="middle";_c.fillText("3 windows",_pad,_h*0.72);
-    _c.fillStyle="#4ade80";_c.font=Math.max(9,_fs2*0.9)+"px -apple-system,sans-serif";_c.textAlign="right";_c.textBaseline="middle";_c.fillText("Downloads",_w-_pad,_h*0.72);
+    var _nameH=_h*0.25;_c.fillStyle="#fff";var _fs=Math.max(10,Math.min(_nameH*0.7,_w*0.05));_c.font="bold "+_fs+"px -apple-system,sans-serif";_c.textAlign="left";_c.textBaseline="middle";_c.fillText("App Name",4,_nameH/2);
+    var _by=_nameH+2;var _bh=_h-_by-2;var _fakeBtns=[{label:"Win A",active:true},{label:"Win B",active:false},{label:"Win C",active:false}];var _n=_fakeBtns.length;var _bw=(_w-6)/_n;var _bFs=Math.max(7,Math.min(_bh*0.32,_bw*0.12));_c.font=_bFs+"px -apple-system,sans-serif";_c.textAlign="center";_c.textBaseline="middle";
+    for(var _fi=0;_fi<_n;_fi++){var _bx2=3+_fi*_bw;var _fa=_fakeBtns[_fi];_c.fillStyle=_fa.active?"rgba(74,222,128,0.18)":"rgba(255,255,255,0.06)";_c.fillRect(_bx2+1,_by,_bw-2,_bh);if(_fa.active){_c.strokeStyle="rgba(74,222,128,0.5)";_c.lineWidth=1.5;_c.strokeRect(_bx2+1.5,_by+0.5,_bw-3,_bh-1)}_c.fillStyle=_fa.active?"#4ade80":"#999";_c.fillText(_fa.label,_bx2+_bw/2,_by+_bh/2)}
     el.appendChild(_cv);var _rh=document.createElement("div");_rh.className="rh";el.appendChild(_rh)}else{el.innerHTML='<span class="kl">'+hesc(k.label)+'</span>'+(w>1||h>1?'<span class="sz">'+w.toFixed(2)+'×'+h.toFixed(2)+'</span>':'')+((selKeys.size<=1?'<div class="rh"></div>':''))}    el.addEventListener("mousedown",e=>onKeyDown(e,k.id));
     el.addEventListener("click",e=>onKeyClick(e,k.id));
     const rh=el.querySelector(".rh");if(rh)rh.addEventListener("mousedown",e=>onRS(e,k.id));
