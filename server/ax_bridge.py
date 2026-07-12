@@ -443,6 +443,20 @@ def get_all_app_windows():
 
         items = get_app_items(pid, bundle_id)
         ax_count = len(items)
+        # For browser apps: if AX returns empty, retry — AX tree may be
+        # updating after a Space switch or AppleScript tab selection.
+        if bundle_id in _TAB_AS_MAP and ax_count == 0:
+            import time as _retry_time
+            for _retry_i in range(3):
+                _retry_time.sleep(0.2)
+                items = get_app_items(pid, bundle_id)
+                ax_count = len(items)
+                if ax_count > 0:
+                    _ax_log.info(f"[RETRY] {name}: AX returned {ax_count} items on retry {_retry_i+1}")
+                    break
+        if bundle_id in _TAB_AS_MAP:
+            item_types = [it.get("type") for it in items]
+            _ax_log.info(f"[TRACE] {name}: AX items={ax_count} types={item_types}")
 
         # Dedup: when browser is fullscreen, AX may report the same window
         # via multiple AX elements. If two windows have identical tab sets,
@@ -517,6 +531,9 @@ def get_all_app_windows():
             _ax_log.info(f"[WINDOWS] {name}: AX=0 CG={cg_count} CGused={len(items)}")
 
         if not items:
+            if bundle_id in _TAB_AS_MAP:
+                cg_info = len(cg_by_pid.get(pid, []))
+                _ax_log.info(f"[TRACE] {name}: FINAL empty — skipped! ax_count={ax_count} cg_avail={cg_info} has_sc={has_sc}")
             continue
 
         is_frontmost = (pid == front_pid)
