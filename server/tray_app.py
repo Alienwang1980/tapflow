@@ -169,7 +169,7 @@ def run_server():
 
     @app.get("/api/system/volume")
     async def _sys_vol():
-        r = _sc.run(["osascript", "-e", "get volume settings"], capture_output=True, text=True)
+        r = _sc.run(["osascript", "-e", "get volume settings"], capture_output=True, encoding='utf-8')
         res = {"output_volume": 75, "input_volume": 50, "output_muted": False}
         for part in r.stdout.strip().split(","):
             p = part.strip()
@@ -199,7 +199,7 @@ def run_server():
 
     @app.post("/api/system/mic-mute")
     async def _sys_mic_mute():
-        r = _sc.run(["osascript", "-e", "get volume settings"], capture_output=True, text=True)
+        r = _sc.run(["osascript", "-e", "get volume settings"], capture_output=True, encoding='utf-8')
         cur_vol = 50
         for part in r.stdout.strip().split(","):
             if "input volume" in part:

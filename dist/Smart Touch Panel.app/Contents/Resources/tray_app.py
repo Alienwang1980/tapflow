@@ -169,7 +169,7 @@ def run_server():
 
     @app.get("/api/system/volume")
     async def _sys_vol():
-        r = _sc.run(["osascript", "-e", "get volume settings"], capture_output=True, text=True)
+        r = _sc.run(["osascript", "-e", "get volume settings"], capture_output=True, encoding='utf-8')
         res = {"output_volume": 75, "input_volume": 50, "output_muted": False}
         for part in r.stdout.strip().split(","):
             p = part.strip()
@@ -199,7 +199,7 @@ def run_server():
 
     @app.post("/api/system/mic-mute")
     async def _sys_mic_mute():
-        r = _sc.run(["osascript", "-e", "get volume settings"], capture_output=True, text=True)
+        r = _sc.run(["osascript", "-e", "get volume settings"], capture_output=True, encoding='utf-8')
         cur_vol = 50
         for part in r.stdout.strip().split(","):
             if "input volume" in part:
@@ -244,6 +244,23 @@ def run_server():
             return {"status": s}
         except Exception:
             return {"status": -1}
+
+    # ── DEBUG: raw get_app_items ──
+    @app.get("/api/debug/raw-items")
+    async def _debug_raw(pid: int = 1455, bundle: str = "com.google.Chrome"):
+        import sys, os, subprocess as _sp
+        sys.path.insert(0, os.environ.get("RESOURCEPATH", os.path.dirname(os.path.abspath(__file__))))
+        from ax_bridge import get_app_items, _list_tabs_in_window, _as
+        items = get_app_items(pid, bundle)
+        # Also test AppleScript directly
+        as_test = ""
+        try:
+            r = _sp.run(["osascript", "-e", 'tell app "Google Chrome" to get title of every tab of window 1'],
+                       capture_output=True, encoding='utf-8', timeout=5)
+            as_test = f"rc={r.returncode} stdout={r.stdout.strip()[:100]} stderr={r.stderr.strip()[:100]}"
+        except Exception as e:
+            as_test = f"error: {e}"
+        return {"count": len(items), "items": items, "osascript_test": as_test, "bundle_in_map": bundle in __import__('ax_bridge')._TAB_AS_MAP}
 
     # ── Screen Recording Permission endpoints ──
     @app.get("/api/system/screen-capture")

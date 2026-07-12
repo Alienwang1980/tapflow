@@ -125,7 +125,7 @@ def _list_tabs_in_window(bundle_id, win_elem, window_index):
         if "every tab of every window" in as_code:
             as_code = as_code.replace("every tab of every window", f"every tab of window {wi}")
         try:
-            r = subprocess.run(["osascript", "-e", as_code], capture_output=True, text=True, timeout=3)
+            r = subprocess.run(["osascript", "-e", as_code], capture_output=True, encoding='utf-8', timeout=3)
             if r.returncode == 0 and r.stdout.strip():
                 titles = [t.strip() for t in r.stdout.strip().split(", ") if t.strip()]
                 # Get URLs
@@ -133,7 +133,7 @@ def _list_tabs_in_window(bundle_id, win_elem, window_index):
                 if bundle_id in _TAB_URL_AS:
                     url_as = _TAB_URL_AS[bundle_id].format(w=wi)
                     try:
-                        r3 = subprocess.run(["osascript", "-e", url_as], capture_output=True, text=True, timeout=3)
+                        r3 = subprocess.run(["osascript", "-e", url_as], capture_output=True, encoding='utf-8', timeout=3)
                         if r3.returncode == 0 and r3.stdout.strip():
                             urls = [u.strip() for u in r3.stdout.strip().split(", ") if u.strip()]
                     except: pass
@@ -142,7 +142,7 @@ def _list_tabs_in_window(bundle_id, win_elem, window_index):
                                             f"get active tab index of window {wi}")
                 active_idx = 0
                 try:
-                    r2 = subprocess.run(["osascript", "-e", active_as], capture_output=True, text=True, timeout=2)
+                    r2 = subprocess.run(["osascript", "-e", active_as], capture_output=True, encoding='utf-8', timeout=2)
                     if r2.returncode == 0:
                         active_idx = int(r2.stdout.strip()) - 1
                 except: pass
@@ -464,7 +464,7 @@ def focus_item(pid, item, bundle_id=""):
         if bundle_id and bundle_id in _AS_TAB_FOCUS:
             as_code = _AS_TAB_FOCUS[bundle_id].format(w=wi + 1, t=ti + 1)
             try:
-                r = subprocess.run(["osascript", "-e", as_code], capture_output=True, text=True, timeout=3)
+                r = subprocess.run(["osascript", "-e", as_code], capture_output=True, encoding='utf-8', timeout=3)
                 if r.returncode == 0:
                     title = item.get("title", "(untitled)")
                     _cf.CFRelease(windows_val)
