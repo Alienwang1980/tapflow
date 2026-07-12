@@ -392,20 +392,27 @@ def run_server():
             a = AppKit.NSWorkspace.sharedWorkspace().frontmostApplication()
             pid = a.processIdentifier()
             name = a.localizedName() or "?"
-            from ax_bridge import get_app_windows
-            wins = get_app_windows(pid)
-            return {"name": name, "pid": pid, "count": len(wins), "windows": wins}
+            from ax_bridge import get_app_items, _clean_title
+            bundle_id = a.bundleIdentifier() or ""
+            items = get_app_items(pid, bundle_id)
+            for it in items:
+                it["title"] = _clean_title(it["title"], name)
+            count = len(items)
+            # Check which item is focused
+            focused_idx = next((i for i, it in enumerate(items) if it["is_focused"]), -1)
+            return {"name": name, "pid": pid, "count": count, "items": items, "focused_index": focused_idx}
         except Exception as e:
-            return {"name": "?", "pid": 0, "count": 0, "windows": [], "error": str(e)}
+            return {"name": "?", "pid": 0, "count": 0, "items": [], "focused_index": -1, "error": str(e)}
 
     @app.post("/api/system/focus-window")
     async def _sys_focus_win(req: Request):
         try:
             body = await req.json()
             pid = body.get("pid", 0)
-            idx = body.get("index", 0)
-            from ax_bridge import focus_window
-            result = focus_window(pid, idx)
+            bundle_id = body.get("bundle_id", "")
+            item = {"window_index": body.get("window_index", 0), "tab_index": body.get("tab_index"), "type": body.get("type", "window"), "title": body.get("title", "")}
+            from ax_bridge import focus_item
+            result = focus_item(pid, item, bundle_id)
             return result
         except Exception as e:
             return {"success": False, "error": str(e)}

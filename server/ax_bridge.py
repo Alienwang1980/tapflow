@@ -1,5 +1,25 @@
 """AX API bridge via ctypes — no pyobjc needed."""
-import ctypes, ctypes.util
+import ctypes, ctypes.util, subprocess
+
+# Apps where we can get tabs via AppleScript
+_TAB_AS_MAP = {
+    "com.google.Chrome": 'tell app "Google Chrome" to get title of every tab of every window',
+    "com.apple.Safari": 'tell app "Safari" to get name of every tab of every window',
+    "com.microsoft.edgemac": 'tell app "Microsoft Edge" to get title of every tab of every window',
+    "com.brave.Browser": 'tell app "Brave Browser" to get title of every tab of every window',
+    "com.operasoftware.Opera": 'tell app "Opera" to get title of every tab of every window',
+    "com.vivaldi.Vivaldi": 'tell app "Vivaldi" to get title of every tab of every window',
+}
+
+# AppleScript for focusing a specific tab in a specific window
+_AS_TAB_FOCUS = {
+    "com.google.Chrome": 'tell app "Google Chrome" to set active tab index of window {w} to {t}',
+    "com.microsoft.edgemac": 'tell app "Microsoft Edge" to set active tab index of window {w} to {t}',
+    "com.brave.Browser": 'tell app "Brave Browser" to set active tab index of window {w} to {t}',
+    "com.operasoftware.Opera": 'tell app "Opera" to set active tab index of window {w} to {t}',
+    "com.vivaldi.Vivaldi": 'tell app "Vivaldi" to set active tab index of window {w} to {t}',
+    "com.apple.Safari": 'tell app "Safari" to set current tab of window {w} to tab {t} of window {w}',
+}
 
 _as = ctypes.cdll.LoadLibrary('/System/Library/Frameworks/ApplicationServices.framework/ApplicationServices')
 _cf = ctypes.cdll.LoadLibrary(ctypes.util.find_library('CoreFoundation'))
@@ -56,71 +76,180 @@ def _cfbool(cf_val):
     if not cf_val: return False
     return _cf.CFBooleanGetValue(cf_val)
 
-def get_app_windows(pid):
-    """Return [{title, is_main, is_focused, index}] for all windows of app pid."""
+def _clean_title(title, app_name):
+    """Strip app name suffix like ' - Google Chrome' or ' — Safari'."""
+    if not title or not app_name: return title or "(untitled)"
+    # Try common separators
+    for sep in [" — ", " - ", " – ", " – "]:
+        if sep + app_name in title:
+            return title[:title.rindex(sep + app_name)]
+        if app_name + sep in title:
+            return title[title.index(app_name + sep) + len(app_name + sep):]
+    # Also try at the end
+    for sep in [" — ", " - "]:
+        parts = title.rsplit(sep, 1)
+        if len(parts) == 2 and app_name.lower() in parts[1].lower():
+            return parts[0]
+    return title
+
+def _list_tabs_in_window(bundle_id, win_elem, window_index):
+    """Try to get tabs for a window. Uses AppleScript for known browsers, AX for others."""
+    # AppleScript path for known browsers
+    if bundle_id in _TAB_AS_MAP:
+        as_code = _TAB_AS_MAP[bundle_id]
+        # Build script: get tabs for specific window (1-indexed)
+        # For Chrome-style: get title of every tab of window N
+        if "every tab of every window" in as_code:
+            as_code = as_code.replace("every tab of every window", f"every tab of window {window_index + 1}")
+        try:
+            r = subprocess.run(["osascript", "-e", as_code], capture_output=True, text=True, timeout=3)
+            if r.returncode == 0 and r.stdout.strip():
+                titles = [t.strip() for t in r.stdout.strip().split(", ") if t.strip()]
+                # Get active tab index
+                active_as = as_code.replace(f"get title of every tab of window {window_index + 1}",
+                                            f"get active tab index of window {window_index + 1}")
+                active_idx = 0
+                try:
+                    r2 = subprocess.run(["osascript", "-e", active_as], capture_output=True, text=True, timeout=2)
+                    if r2.returncode == 0:
+                        active_idx = int(r2.stdout.strip()) - 1  # 1-indexed → 0-indexed
+                except: pass
+                return [{"title": t, "is_focused": (i == active_idx), "tab_index": i}
+                        for i, t in enumerate(titles)]
+        except: pass
+        return None
+
+    # AX path for other apps
+    tabs_val = _get_attr(win_elem, "AXTabs")
+    if not tabs_val: return None
+    count = _cf.CFArrayGetCount(tabs_val)
+    if count == 0:
+        _cf.CFRelease(tabs_val)
+        return None
+    tabs = []
+    for i in range(count):
+        tab = _cf.CFArrayGetValueAtIndex(tabs_val, i)
+        if not tab: continue
+        title = _pystr(_get_attr(tab, "AXTitle"))
+        is_focused = _cfbool(_get_attr(tab, "AXFocused"))
+        if not is_focused:
+            is_focused = _cfbool(_get_attr(tab, "AXSelected"))
+        if title and title.strip():
+            tabs.append({"title": title.strip(), "is_focused": is_focused, "tab_index": i})
+    _cf.CFRelease(tabs_val)
+    return tabs if tabs else None
+
+def get_app_items(pid, bundle_id=""):
+    """Return flat list of {title, type, is_focused, item_index, window_index, tab_index}.
+    Windows with tabs are expanded into individual tab items.
+    Windows without tabs become single items."""
     elem = _as.AXUIElementCreateApplication(pid)
     if not elem: return []
 
     windows_val = _get_attr(elem, "AXWindows")
     if not windows_val: return []
 
-    count = _cf.CFArrayGetCount(windows_val)
-    windows = []
-    for i in range(count):
-        win = _cf.CFArrayGetValueAtIndex(windows_val, i)
+    win_count = _cf.CFArrayGetCount(windows_val)
+    items = []
+    item_idx = 0
+
+    for wi in range(win_count):
+        win = _cf.CFArrayGetValueAtIndex(windows_val, wi)
         if not win: continue
-        title = _pystr(_get_attr(win, "AXTitle"))
-        is_main = _cfbool(_get_attr(win, "AXMain"))
-        is_focused = _cfbool(_get_attr(win, "AXFocused"))
-        # Try to get window role for filtering (exclude menu bar items etc)
-        role = _pystr(_get_attr(win, "AXRole"))
-        if role not in ("AXWindow", "AXStandardWindow", ""):
-            # Only include actual windows
-            if role and "Window" not in role:
-                continue
-        windows.append({
-            "title": title or "(untitled)",
-            "is_main": is_main,
-            "is_focused": is_focused,
-            "index": i,
-        })
+        win_title = _pystr(_get_attr(win, "AXTitle"))
+        win_focused = _cfbool(_get_attr(win, "AXFocused")) or _cfbool(_get_attr(win, "AXMain"))
+        # Check for tabs first
+        tabs = _list_tabs_in_window(bundle_id, win, wi)
+        if tabs and len(tabs) > 0:
+            for t in tabs:
+                items.append({
+                    "title": t["title"],
+                    "type": "tab",
+                    "is_focused": t["is_focused"] and win_focused,
+                    "item_index": item_idx,
+                    "window_index": wi,
+                    "tab_index": t["tab_index"],
+                })
+                item_idx += 1
+        else:
+            # No tabs — list the window itself
+            items.append({
+                "title": win_title or "(untitled)",
+                "type": "window",
+                "is_focused": win_focused,
+                "item_index": item_idx,
+                "window_index": wi,
+                "tab_index": None,
+            })
+            item_idx += 1
 
     _cf.CFRelease(windows_val)
-    return windows
+    return items
 
-def focus_window(pid, window_idx):
-    """Bring window at index to front. Returns {success, title}."""
+def focus_item(pid, item, bundle_id=""):
+    """Focus a window or tab item. item = {window_index, tab_index, type}.
+    For browser tabs, uses AppleScript to switch tabs (AX is unreliable for browser tabs)."""
     elem = _as.AXUIElementCreateApplication(pid)
     if not elem: return {"success": False, "error": "no app element"}
 
     windows_val = _get_attr(elem, "AXWindows")
     if not windows_val: return {"success": False, "error": "no windows"}
 
+    wi = item.get("window_index", 0)
     count = _cf.CFArrayGetCount(windows_val)
-    if window_idx < 0 or window_idx >= count:
+    if wi >= count:
         _cf.CFRelease(windows_val)
-        return {"success": False, "error": f"index {window_idx} out of range (0-{count-1})"}
+        return {"success": False, "error": f"window index {wi} out of range"}
 
-    win = _cf.CFArrayGetValueAtIndex(windows_val, window_idx)
+    win = _cf.CFArrayGetValueAtIndex(windows_val, wi)
     if not win:
         _cf.CFRelease(windows_val)
         return {"success": False, "error": "null window element"}
 
-    title = _pystr(_get_attr(win, "AXTitle")) or "(untitled)"
-
-    # Strategy: set AXFocusedWindow on app + AXRaise on window
+    # First, focus the parent window
     k_focused = _cfstr("AXFocusedWindow")
-    err1 = _as.AXUIElementSetAttributeValue(elem, k_focused, win)
+    _as.AXUIElementSetAttributeValue(elem, k_focused, win)
     _cf.CFRelease(k_focused)
 
     k_raise = _cfstr("AXRaise")
-    err2 = _as.AXUIElementPerformAction(win, k_raise)
+    _as.AXUIElementPerformAction(win, k_raise)
     _cf.CFRelease(k_raise)
 
-    _cf.CFRelease(windows_val)
+    title = "(untitled)"
 
-    ok = (err1 == 0)
-    return {"success": ok, "title": title, "set_focused": err1, "raise": err2}
+    # If it's a tab, select it via AppleScript (preferred for browsers) or AXPress fallback
+    if item.get("type") == "tab" and item.get("tab_index") is not None:
+        ti = item["tab_index"]
+        # AppleScript path for known browsers (tab index is 0-based, AS is 1-based)
+        if bundle_id and bundle_id in _AS_TAB_FOCUS:
+            as_code = _AS_TAB_FOCUS[bundle_id].format(w=wi + 1, t=ti + 1)
+            try:
+                r = subprocess.run(["osascript", "-e", as_code], capture_output=True, text=True, timeout=3)
+                if r.returncode == 0:
+                    title = item.get("title", "(untitled)")
+                    _cf.CFRelease(windows_val)
+                    return {"success": True, "title": title}
+            except: pass
+
+        # AXPress fallback for non-browser apps
+        tabs_val = _get_attr(win, "AXTabs")
+        if tabs_val:
+            tc = _cf.CFArrayGetCount(tabs_val)
+            if ti < tc:
+                tab = _cf.CFArrayGetValueAtIndex(tabs_val, ti)
+                if tab:
+                    title = _pystr(_get_attr(tab, "AXTitle")) or "(untitled)"
+                    k_press = _cfstr("AXPress")
+                    _as.AXUIElementPerformAction(tab, k_press)
+                    _cf.CFRelease(k_press)
+            _cf.CFRelease(tabs_val)
+        else:
+            title = item.get("title", "(untitled)")
+    else:
+        title = _pystr(_get_attr(win, "AXTitle")) or "(untitled)"
+
+    _cf.CFRelease(windows_val)
+    return {"success": True, "title": title}
 
 def get_current_app_info():
     import AppKit
