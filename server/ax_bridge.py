@@ -294,6 +294,14 @@ def get_all_app_windows():
 def focus_item(pid, item, bundle_id=""):
     """Focus a window or tab item. item = {window_index, tab_index, type}.
     For browser tabs, uses AppleScript to switch tabs (AX is unreliable for browser tabs)."""
+    # Activate the app first (bring to front)
+    try:
+        import AppKit
+        ns_app = AppKit.NSRunningApplication.runningApplicationWithProcessIdentifier_(pid)
+        if ns_app:
+            ns_app.activateWithOptions_(1)  # NSApplicationActivateIgnoringOtherApps
+    except: pass
+
     elem = _as.AXUIElementCreateApplication(pid)
     if not elem: return {"success": False, "error": "no app element"}
 
