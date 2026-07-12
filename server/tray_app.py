@@ -400,7 +400,7 @@ def run_server():
             count = len(items)
             # Check which item is focused
             focused_idx = next((i for i, it in enumerate(items) if it["is_focused"]), -1)
-            return {"name": name, "pid": pid, "count": count, "items": items, "focused_index": focused_idx}
+            return {"name": name, "pid": pid, "bundle_id": bundle_id, "count": count, "items": items, "focused_index": focused_idx}
         except Exception as e:
             return {"name": "?", "pid": 0, "count": 0, "items": [], "focused_index": -1, "error": str(e)}
 

@@ -11,6 +11,16 @@ _TAB_AS_MAP = {
     "com.vivaldi.Vivaldi": 'tell app "Vivaldi" to get title of every tab of every window',
 }
 
+# AppleScript for getting tab URLs (separate from titles to avoid comma-in-title issues)
+_TAB_URL_AS = {
+    "com.google.Chrome": 'tell app "Google Chrome" to get URL of every tab of window {w}',
+    "com.apple.Safari": 'tell app "Safari" to get URL of every tab of window {w}',
+    "com.microsoft.edgemac": 'tell app "Microsoft Edge" to get URL of every tab of window {w}',
+    "com.brave.Browser": 'tell app "Brave Browser" to get URL of every tab of window {w}',
+    "com.operasoftware.Opera": 'tell app "Opera" to get URL of every tab of window {w}',
+    "com.vivaldi.Vivaldi": 'tell app "Vivaldi" to get URL of every tab of window {w}',
+}
+
 # AppleScript for focusing a specific tab in a specific window
 _AS_TAB_FOCUS = {
     "com.google.Chrome": 'tell app "Google Chrome" to set active tab index of window {w} to {t}',
@@ -20,6 +30,18 @@ _AS_TAB_FOCUS = {
     "com.vivaldi.Vivaldi": 'tell app "Vivaldi" to set active tab index of window {w} to {t}',
     "com.apple.Safari": 'tell app "Safari" to set current tab of window {w} to tab {t} of window {w}',
 }
+
+def _favicon_url(url):
+    """Extract domain from URL and return Google favicon service URL."""
+    if not url: return ""
+    try:
+        from urllib.parse import urlparse
+        parsed = urlparse(url)
+        domain = parsed.netloc
+        if domain:
+            return f"https://www.google.com/s2/favicons?domain={domain}&sz=64"
+    except: pass
+    return ""
 
 _as = ctypes.cdll.LoadLibrary('/System/Library/Frameworks/ApplicationServices.framework/ApplicationServices')
 _cf = ctypes.cdll.LoadLibrary(ctypes.util.find_library('CoreFoundation'))
@@ -93,29 +115,45 @@ def _clean_title(title, app_name):
     return title
 
 def _list_tabs_in_window(bundle_id, win_elem, window_index):
-    """Try to get tabs for a window. Uses AppleScript for known browsers, AX for others."""
+    """Try to get tabs for a window. Uses AppleScript for known browsers, AX for others.
+    Returns list of {title, is_focused, tab_index, icon_url}."""
     # AppleScript path for known browsers
     if bundle_id in _TAB_AS_MAP:
         as_code = _TAB_AS_MAP[bundle_id]
-        # Build script: get tabs for specific window (1-indexed)
-        # For Chrome-style: get title of every tab of window N
+        wi = window_index + 1
+        # Build title script for specific window
         if "every tab of every window" in as_code:
-            as_code = as_code.replace("every tab of every window", f"every tab of window {window_index + 1}")
+            as_code = as_code.replace("every tab of every window", f"every tab of window {wi}")
         try:
             r = subprocess.run(["osascript", "-e", as_code], capture_output=True, text=True, timeout=3)
             if r.returncode == 0 and r.stdout.strip():
                 titles = [t.strip() for t in r.stdout.strip().split(", ") if t.strip()]
+                # Get URLs
+                urls = []
+                if bundle_id in _TAB_URL_AS:
+                    url_as = _TAB_URL_AS[bundle_id].format(w=wi)
+                    try:
+                        r3 = subprocess.run(["osascript", "-e", url_as], capture_output=True, text=True, timeout=3)
+                        if r3.returncode == 0 and r3.stdout.strip():
+                            urls = [u.strip() for u in r3.stdout.strip().split(", ") if u.strip()]
+                    except: pass
                 # Get active tab index
-                active_as = as_code.replace(f"get title of every tab of window {window_index + 1}",
-                                            f"get active tab index of window {window_index + 1}")
+                active_as = as_code.replace(f"get title of every tab of window {wi}",
+                                            f"get active tab index of window {wi}")
                 active_idx = 0
                 try:
                     r2 = subprocess.run(["osascript", "-e", active_as], capture_output=True, text=True, timeout=2)
                     if r2.returncode == 0:
-                        active_idx = int(r2.stdout.strip()) - 1  # 1-indexed → 0-indexed
+                        active_idx = int(r2.stdout.strip()) - 1
                 except: pass
-                return [{"title": t, "is_focused": (i == active_idx), "tab_index": i}
-                        for i, t in enumerate(titles)]
+                result = []
+                for i, t in enumerate(titles):
+                    icon_url = _favicon_url(urls[i]) if i < len(urls) else ""
+                    result.append({
+                        "title": t, "is_focused": (i == active_idx), "tab_index": i,
+                        "icon_url": icon_url,
+                    })
+                return result
         except: pass
         return None
 
@@ -135,7 +173,7 @@ def _list_tabs_in_window(bundle_id, win_elem, window_index):
         if not is_focused:
             is_focused = _cfbool(_get_attr(tab, "AXSelected"))
         if title and title.strip():
-            tabs.append({"title": title.strip(), "is_focused": is_focused, "tab_index": i})
+            tabs.append({"title": title.strip(), "is_focused": is_focused, "tab_index": i, "icon_url": ""})
     _cf.CFRelease(tabs_val)
     return tabs if tabs else None
 
@@ -169,10 +207,12 @@ def get_app_items(pid, bundle_id=""):
                     "item_index": item_idx,
                     "window_index": wi,
                     "tab_index": t["tab_index"],
+                    "icon_url": t.get("icon_url", ""),
                 })
                 item_idx += 1
         else:
             # No tabs — list the window itself
+            icon = "folder" if bundle_id == "com.apple.finder" else ""
             items.append({
                 "title": win_title or "(untitled)",
                 "type": "window",
@@ -180,6 +220,8 @@ def get_app_items(pid, bundle_id=""):
                 "item_index": item_idx,
                 "window_index": wi,
                 "tab_index": None,
+                "icon_url": "",
+                "icon": icon,
             })
             item_idx += 1
 
