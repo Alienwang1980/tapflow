@@ -405,8 +405,39 @@ def focus_item(pid, item, bundle_id=""):
                     _as.AXUIElementPerformAction(tab, k_press)
                     _cf.CFRelease(k_press)
             _cf.CFRelease(tabs_val)
-        else:
-            title = item.get("title", "(untitled)")
+            _cf.CFRelease(windows_val)
+            return {"success": True, "title": title}
+
+        # AXTabGroup fallback (Finder tabs — AXRadioButton[AXTabButton] in tab bar children)
+        win_children = _get_attr(win, "AXChildren")
+        if win_children:
+            wc = _cf.CFArrayGetCount(win_children)
+            for ci in range(wc):
+                c = _cf.CFArrayGetValueAtIndex(win_children, ci)
+                if c and _pystr(_get_attr(c, "AXRole")) == "AXTabGroup":
+                    tab_children = _get_attr(c, "AXChildren")
+                    if tab_children:
+                        tc = _cf.CFArrayGetCount(tab_children)
+                        found_idx = 0
+                        for tci in range(tc):
+                            tc_child = _cf.CFArrayGetValueAtIndex(tab_children, tci)
+                            if not tc_child: continue
+                            if _pystr(_get_attr(tc_child, "AXSubrole")) != "AXTabButton": continue
+                            if found_idx == ti:
+                                title = _pystr(_get_attr(tc_child, "AXTitle")) or "(untitled)"
+                                k_press = _cfstr("AXPress")
+                                _as.AXUIElementPerformAction(tc_child, k_press)
+                                _cf.CFRelease(k_press)
+                                _cf.CFRelease(tab_children)
+                                _cf.CFRelease(win_children)
+                                _cf.CFRelease(windows_val)
+                                return {"success": True, "title": title}
+                            found_idx += 1
+                        _cf.CFRelease(tab_children)
+                    break
+            _cf.CFRelease(win_children)
+
+        title = item.get("title", "(untitled)")
     else:
         title = _pystr(_get_attr(win, "AXTitle")) or "(untitled)"
 
