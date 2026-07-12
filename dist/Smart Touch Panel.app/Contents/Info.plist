@@ -42,6 +42,8 @@
 	<string>Smart Touch Panel needs Microphone access to show input audio levels.</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSScreenCaptureUsageDescription</key>
+	<string>Smart Touch Panel needs Screen Recording access to show window titles and thumbnails across all Spaces.</string>
 	<key>PyMainFileNames</key>
 	<array>
 		<string>__boot__</string>
@@ -76,7 +78,7 @@
 	<key>PythonInfoDict</key>
 	<dict>
 		<key>PythonExecutable</key>
-		<string>/Volumes/WD_BLACK/Claude/projects/smart-touch-panel/server/venv/bin/python</string>
+		<string>/Volumes/WD_BLACK/Claude/projects/smart-touch-panel/.venv/bin/python3</string>
 		<key>PythonLongVersion</key>
 		<string>3.12.13 (main, Mar  3 2026, 12:39:30) [Clang 21.0.0 (clang-2100.0.123.102)]</string>
 		<key>PythonShortVersion</key>

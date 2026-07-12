@@ -10,6 +10,7 @@ import threading
 import pystray
 from PIL import Image, ImageDraw
 
+from fastapi import Request
 from main import app
 from editor_app import open_editor
 
@@ -67,6 +68,28 @@ def request_accessibility_permission():
     import subprocess as _sp4
     _sp4.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"])
     logger.info("Opened System Settings → Accessibility")
+
+
+def check_screen_capture() -> bool:
+    """Check Screen Recording permission (silent).
+    Returns True if kCGWindowName is available for regular app windows (layer 0) from other processes."""
+    import os as _os5
+    try:
+        from Quartz import CGWindowListCopyWindowInfo, kCGWindowListOptionAll, kCGNullWindowID
+        my_pid = _os5.getpid()
+        window_list = CGWindowListCopyWindowInfo(kCGWindowListOptionAll, kCGNullWindowID)
+        if not window_list:
+            return False
+        for w in window_list:
+            # kCGWindowLayer 0 = normal app windows (not Dock/System)
+            if w.get('kCGWindowLayer', -1) == 0:
+                pid = w.get('kCGWindowOwnerPID', -1)
+                name = w.get('kCGWindowName', None)
+                if pid != my_pid and name is not None and len(str(name).strip()) > 0:
+                    return True
+        return False
+    except Exception:
+        return False
 
 
 def create_icon_image(size=64):
@@ -221,6 +244,17 @@ def run_server():
             return {"status": s}
         except Exception:
             return {"status": -1}
+
+    # ── Screen Recording Permission endpoints ──
+    @app.get("/api/system/screen-capture")
+    async def _sys_sc_status():
+        return {"granted": check_screen_capture()}
+
+    @app.post("/api/system/screen-capture")
+    async def _sys_sc_request():
+        """Open System Settings → Privacy → Screen Recording."""
+        request_screen_capture_permission()
+        return {"granted": check_screen_capture()}
 
     # ── Mic Level Sampler (AVAudioRecorder — zero external process, built-in metering) ──
     _mic_level = 0.0
@@ -381,7 +415,49 @@ def run_server():
             a = AppKit.NSWorkspace.sharedWorkspace().frontmostApplication()
             return {"name": a.localizedName() or "?", "bundle_id": a.bundleIdentifier() or ""}
         except: return {"name": "?", "bundle_id": ""}
-    
+
+    # ── Window Switcher (AX Bridge) ──
+
+    @app.get("/api/system/current-app-windows")
+    async def _sys_cur_wins():
+        try:
+            import AppKit
+            a = AppKit.NSWorkspace.sharedWorkspace().frontmostApplication()
+            pid = a.processIdentifier()
+            name = a.localizedName() or "?"
+            from ax_bridge import get_app_items, _clean_title
+            bundle_id = a.bundleIdentifier() or ""
+            items = get_app_items(pid, bundle_id)
+            for it in items:
+                it["title"] = _clean_title(it["title"], name)
+            count = len(items)
+            # Check which item is focused
+            focused_idx = next((i for i, it in enumerate(items) if it["is_focused"]), -1)
+            return {"name": name, "pid": pid, "bundle_id": bundle_id, "count": count, "items": items, "focused_index": focused_idx}
+        except Exception as e:
+            return {"name": "?", "pid": 0, "count": 0, "items": [], "focused_index": -1, "error": str(e)}
+
+    @app.get("/api/system/all-windows")
+    async def _sys_all_wins():
+        try:
+            from ax_bridge import get_all_app_windows
+            return get_all_app_windows()
+        except Exception as e:
+            return {"apps": [], "focused_app_idx": -1, "focused_global_idx": -1, "error": str(e)}
+
+    @app.post("/api/system/focus-window")
+    async def _sys_focus_win(req: Request):
+        try:
+            body = await req.json()
+            pid = body.get("pid", 0)
+            bundle_id = body.get("bundle_id", "")
+            item = {"window_index": body.get("window_index", 0), "tab_index": body.get("tab_index"), "type": body.get("type", "window"), "title": body.get("title", "")}
+            from ax_bridge import focus_item
+            result = focus_item(pid, item, bundle_id)
+            return result
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
     # ── Window Shortcuts (keyboard only, no osascript) ──
 
     @app.post("/api/system/window/fullscreen")
@@ -643,6 +719,21 @@ def request_mic_permission():
     _sp4.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone"])
     logger.info("Opened System Settings → Microphone")
 
+
+def request_screen_capture_permission():
+    """Trigger Screen Recording permission prompt + open System Settings as fallback."""
+    import subprocess as _sp5
+    # Step 1: Trigger the system TCC permission dialog by capturing the display
+    try:
+        from Quartz import CGDisplayCreateImage, CGMainDisplayID
+        img = CGDisplayCreateImage(CGMainDisplayID())
+        logger.info("Screen capture attempt completed")
+    except Exception:
+        pass
+    # Step 2: Also open System Settings in case user dismissed the dialog
+    _sp5.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"])
+    logger.info("Opened System Settings → Screen Recording")
+
 def run_tray():
     """Create and run the system tray icon."""
     ip = get_local_ip()
@@ -654,6 +745,7 @@ def run_tray():
         pystray.MenuItem("🔐 Permissions", pystray.Menu(
             pystray.MenuItem("🎤 Request Microphone", lambda icon, item: request_mic_permission()),
             pystray.MenuItem("⌨️ Request Accessibility", lambda icon, item: request_accessibility_permission()),
+            pystray.MenuItem("🖥️ Request Screen Recording", lambda icon, item: request_screen_capture_permission()),
         )),
         pystray.MenuItem(f"🔗 {url}", on_show_qr),
         pystray.MenuItem("📋 Health", on_show_health),

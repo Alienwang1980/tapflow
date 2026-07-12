@@ -721,8 +721,16 @@ def request_mic_permission():
 
 
 def request_screen_capture_permission():
-    """Open System Settings → Privacy → Screen Recording."""
+    """Trigger Screen Recording permission prompt + open System Settings as fallback."""
     import subprocess as _sp5
+    # Step 1: Trigger the system TCC permission dialog by capturing the display
+    try:
+        from Quartz import CGDisplayCreateImage, CGMainDisplayID
+        img = CGDisplayCreateImage(CGMainDisplayID())
+        logger.info("Screen capture attempt completed")
+    except Exception:
+        pass
+    # Step 2: Also open System Settings in case user dismissed the dialog
     _sp5.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"])
     logger.info("Opened System Settings → Screen Recording")
 
