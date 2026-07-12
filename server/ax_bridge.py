@@ -424,33 +424,61 @@ def get_all_app_windows():
         items = get_app_items(pid, bundle_id)
         ax_count = len(items)
 
-        # If AX sees no windows but CG does (e.g. fullscreen Space), use CG items
-        if not items and has_sc and pid in cg_by_pid:
-            items = []
-            for wi, cg_win in enumerate(cg_by_pid[pid]):
-                item = {
-                    "title": cg_win["title"],
-                    "type": "window",
-                    "is_focused": False,
-                    "item_index": wi,
-                    "window_index": -1,  # sentinel: resolve in focus_item via title search
-                    "tab_index": None,
-                    "icon_url": "",
-                    "icon": "folder" if bundle_id == "com.apple.finder" else "",
-                    "_source": "cg",
-                }
-                items.append(item)
-            # For browser apps, try AppleScript to fetch tabs (works cross-Space)
-            if bundle_id in _TAB_AS_MAP and len(items) > 0:
-                tabs_items = _as_tabs_for_app(bundle_id, len(items))
-                if tabs_items:
-                    items = tabs_items
+        # When SC granted, supplement AX with CG/AppleScript for cross-Space windows
+        if has_sc and pid in cg_by_pid:
+            # Build dedup set of normalized titles from AX items
+            seen = set()
+            for it in items:
+                norm = it["title"].strip().lower()
+                seen.add(norm)
 
-        cg_fallback_used = (ax_count == 0 and len(items) > 0)
-        if ax_count == 0:
+            # ── Browser apps: use AppleScript to get ALL tabs across ALL windows ──
+            # AppleScript works cross-Space, giving us tabs for fullscreen windows too.
+            cg_count = len(cg_by_pid[pid])
+            if bundle_id in _TAB_AS_MAP and cg_count > 0:
+                as_tabs = _as_tabs_for_app(bundle_id, cg_count)
+                if as_tabs:
+                    new_cnt = 0
+                    for tab in as_tabs:
+                        norm = tab["title"].strip().lower()
+                        if norm not in seen:
+                            items.append(tab)
+                            seen.add(norm)
+                            new_cnt += 1
+                    if new_cnt > 0:
+                        _ax_log.info(f"[MERGE] {name}: +{new_cnt} tabs via AppleScript (AX had {ax_count})")
+            else:
+                # ── Non-browser apps: add CG windows that AX missed ──
+                new_cnt = 0
+                for wi, cg_win in enumerate(cg_by_pid[pid]):
+                    norm = cg_win["title"].strip().lower()
+                    if norm in seen:
+                        continue
+                    items.append({
+                        "title": cg_win["title"],
+                        "type": "window",
+                        "is_focused": False,
+                        "item_index": len(items),
+                        "window_index": -1,  # sentinel: resolve in focus_item via title search
+                        "tab_index": None,
+                        "icon_url": "",
+                        "icon": "folder" if bundle_id == "com.apple.finder" else "",
+                        "_source": "cg",
+                    })
+                    seen.add(norm)
+                    new_cnt += 1
+                if new_cnt > 0:
+                    _ax_log.info(f"[MERGE] {name}: +{new_cnt} CG windows (AX had {ax_count})")
+
+        # Re-sort and re-index after potential merge
+        if items:
+            items.sort(key=lambda it: it["title"].lower())
+            for i, it in enumerate(items):
+                it["item_index"] = i
+
+        if ax_count == 0 and len(items) > 0:
             cg_count = len(cg_by_pid.get(pid, []))
-            if cg_count > 0 or len(items) > 0:
-                _ax_log.info(f"[WINDOWS] {name}: AX=0 CG={cg_count} CGused={len(items)}")
+            _ax_log.info(f"[WINDOWS] {name}: AX=0 CG={cg_count} CGused={len(items)}")
 
         if not items:
             continue
