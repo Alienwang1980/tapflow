@@ -33,11 +33,15 @@ def get_local_ip() -> str:
 
 
 def check_accessibility() -> bool:
-    """Check Accessibility permission (silent — no system prompt)."""
+    """Check Accessibility permission (silent — no system prompt). Uses ctypes for reliability."""
     try:
-        from ApplicationServices import AXIsProcessTrusted
-        return AXIsProcessTrusted()
-    except ImportError:
+        import ctypes
+        _as = ctypes.cdll.LoadLibrary(
+            '/System/Library/Frameworks/ApplicationServices.framework/Versions/A/ApplicationServices'
+        )
+        _as.AXIsProcessTrusted.restype = ctypes.c_bool
+        return _as.AXIsProcessTrusted()
+    except Exception:
         return False
 
 
@@ -521,32 +525,50 @@ def on_quit(icon, item):
 
 
 def request_mic_permission():
-    """Request microphone permission via AVFoundation."""
+    """Check Microphone permission and open System Settings if not authorized."""
     try:
         import objc
-        objc.loadBundle('AVFoundation', globals(), bundle_path=objc.pathForFramework('/System/Library/Frameworks/AVFoundation.framework'))
-        from AVFoundation import AVCaptureDevice, AVMediaTypeAudio
-        status = AVCaptureDevice.authorizationStatusForMediaType_(AVMediaTypeAudio)
-        if status == 0:  # NotDetermined
-            AVCaptureDevice.requestAccessForMediaType_completionHandler_(AVMediaTypeAudio, lambda granted: logger.info(f"Mic permission: {'granted' if granted else 'denied'}"))
-            logger.info("Mic permission dialog requested")
-        elif status == 3:  # Authorized
+        g = {}
+        objc.loadBundle('AVFoundation', g,
+            bundle_path=objc.pathForFramework('/System/Library/Frameworks/AVFoundation.framework'))
+        AVCaptureDevice = g.get('AVCaptureDevice')
+        if not AVCaptureDevice:
+            logger.warning("AVCaptureDevice not available — opening Mic settings")
+            import subprocess as _sp4
+            _sp4.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone"])
+            return
+        # AVMediaTypeAudio = 'soun' (NSString constant, not exported by loadBundle)
+        status = AVCaptureDevice.authorizationStatusForMediaType_('soun')
+        if status == 3:  # Authorized
             logger.info("Mic permission: already authorized")
-        else:  # Denied/Restricted
-            import subprocess as _sp3
-            _sp3.run(["tccutil", "reset", "Microphone"], capture_output=True)
-            AVCaptureDevice.requestAccessForMediaType_completionHandler_(AVMediaTypeAudio, lambda granted: logger.info(f"Mic permission: {'granted' if granted else 'denied'}"))
-            logger.info("Mic permission reset and re-requested")
+        else:
+            logger.info(f"Mic permission: status={status} — opening System Settings")
+            import subprocess as _sp4
+            _sp4.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone"])
     except Exception as e:
         logger.error(f"Mic permission request failed: {e}")
         import subprocess as _sp4
         _sp4.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone"])
 
 def request_accessibility_permission():
-    """Open Accessibility privacy settings."""
-    import subprocess as _sp4
-    _sp4.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"])
-    logger.info("Opened Accessibility privacy settings")
+    """Check Accessibility permission and open System Settings if not granted.
+    Uses ctypes (no PyObjC deps) for reliable checking in .app bundle.
+    AXMakeProcessTrusted is deprecated since macOS 10.9."""
+    try:
+        import ctypes
+        _as = ctypes.cdll.LoadLibrary(
+            '/System/Library/Frameworks/ApplicationServices.framework/Versions/A/ApplicationServices')
+        _as.AXIsProcessTrusted.restype = ctypes.c_bool
+        if _as.AXIsProcessTrusted():
+            logger.info("Accessibility permission: already granted")
+        else:
+            logger.warning("Accessibility permission: not granted — opening System Settings")
+            import subprocess as _sp4
+            _sp4.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"])
+    except Exception as e:
+        logger.error(f"Accessibility request failed: {e}")
+        import subprocess as _sp4
+        _sp4.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"])
 
 
 def run_tray():
@@ -590,6 +612,12 @@ def main():
     server_thread = threading.Thread(target=run_server, daemon=True)
     server_thread.start()
     logger.info("Server starting on port 8082...")
+    # Auto-request permissions on first launch
+    import time as _time2; _time2.sleep(2)
+    try: request_mic_permission()
+    except Exception: pass
+    try: request_accessibility_permission()
+    except Exception: pass
 
     # Run tray icon on main thread
     run_tray()

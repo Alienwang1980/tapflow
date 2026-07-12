@@ -76,7 +76,7 @@
 	<key>PythonInfoDict</key>
 	<dict>
 		<key>PythonExecutable</key>
-		<string>/Volumes/WD_BLACK/Claude/projects/smart-touch-panel/server/venv/bin/python3</string>
+		<string>/Volumes/WD_BLACK/Claude/projects/smart-touch-panel/server/venv/bin/python</string>
 		<key>PythonLongVersion</key>
 		<string>3.12.13 (main, Mar  3 2026, 12:39:30) [Clang 21.0.0 (clang-2100.0.123.102)]</string>
 		<key>PythonShortVersion</key>

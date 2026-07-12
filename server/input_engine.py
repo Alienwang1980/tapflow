@@ -127,11 +127,15 @@ def press_key(key: str):
 
 
 def is_accessibility_enabled() -> bool:
-    """Check if Accessibility permission is granted."""
+    """Check if Accessibility permission is granted. Uses ctypes to avoid PyObjC import chain issues in .app bundle."""
     try:
-        from ApplicationServices import AXIsProcessTrusted
-        return AXIsProcessTrusted()
-    except ImportError:
+        import ctypes
+        _as = ctypes.cdll.LoadLibrary(
+            '/System/Library/Frameworks/ApplicationServices.framework/Versions/A/ApplicationServices'
+        )
+        _as.AXIsProcessTrusted.restype = ctypes.c_bool
+        return _as.AXIsProcessTrusted()
+    except Exception:
         return False
 
 

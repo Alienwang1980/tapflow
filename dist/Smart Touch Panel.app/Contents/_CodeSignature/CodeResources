@@ -10,7 +10,7 @@
 		</data>
 		<key>Resources/__boot__.py</key>
 		<data>
-		6YFbLtWzhPfFAWL7smBlUYcCcc8=
+		bC3F0Y0Lgxrb5Usj0vl9DPnHedc=
 		</data>
 		<key>Resources/__error__.sh</key>
 		<data>
@@ -13138,7 +13138,7 @@
 		</data>
 		<key>Resources/lib/python312.zip</key>
 		<data>
-		vpDn/C6q6kJMlogu+cnz1G5Eh94=
+		R00LEryOR+pmkeQBbe4456GqUKY=
 		</data>
 		<key>Resources/openssl.ca/cert.pem</key>
 		<data>
@@ -13158,11 +13158,11 @@
 		</data>
 		<key>Resources/site.pyc</key>
 		<data>
-		67LRch55JN/6j3lIdbyUIoaqaFw=
+		Al88CCJOpbQcDh8lpC5eFy286j4=
 		</data>
 		<key>Resources/tray_app.py</key>
 		<data>
-		cGxufzjNKR79evFDPJw8Rkp3Zrg=
+		t1lO6aimcB4atmk51NuWu8g1SYQ=
 		</data>
 		<key>Resources/zlib.cpython-312-darwin.so</key>
 		<data>
@@ -13241,7 +13241,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			1ZRTwWOd/TeZS4g0NQe6Wxh/l5I39vgYzw41CEOGbEg=
+			N9u+em4YRVYCiUH3eQR5i6MBgPk5XGXMc1TCn57v2dg=
 			</data>
 		</dict>
 		<key>Resources/__error__.sh</key>
@@ -36220,7 +36220,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			l5TarqJU0NARCzCJEKkPaGhig1xVdbreHQpBBBK+SX4=
+			9AQU6bpfg8UF02zIbkbm/+7aN7J4mWh9l4N9RMTRqLQ=
 			</data>
 		</dict>
 		<key>Resources/openssl.ca/cert.pem</key>
@@ -36255,14 +36255,14 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			uQhDsBi+I34dhpsbNO1MdBafKbM4NG+7d+rKtQznDgY=
+			2/Y2lnPzcxfZaWIiNjwvwD1mfydSEuE7zfIjC/16LSM=
 			</data>
 		</dict>
 		<key>Resources/tray_app.py</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			kkjzZtDB5HFq2rjkDG6QAwCghupQZYj7zEpw0vHbOxA=
+			WUPJ1NFNAfCsldTYFtomEm9ne5Oy8B0iu9QUE72OKJQ=
 			</data>
 		</dict>
 		<key>Resources/zlib.cpython-312-darwin.so</key>
