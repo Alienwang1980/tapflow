@@ -234,6 +234,11 @@ def get_all_app_windows():
     import AppKit
     workspace = AppKit.NSWorkspace.sharedWorkspace()
     running = workspace.runningApplications()
+    # Only the frontmost app can have a truly focused window
+    try:
+        front_pid = workspace.frontmostApplication().processIdentifier()
+    except:
+        front_pid = -1
     result = []
     global_idx = 0
     focused_app_idx = -1
@@ -256,6 +261,12 @@ def get_all_app_windows():
         items = get_app_items(pid, bundle_id)
         if not items:
             continue
+
+        # Only the frontmost app can have focused windows
+        is_frontmost = (pid == front_pid)
+        if not is_frontmost:
+            for it in items:
+                it["is_focused"] = False
 
         app_has_focus = any(it["is_focused"] for it in items)
         if app_has_focus and focused_app_idx < 0:
