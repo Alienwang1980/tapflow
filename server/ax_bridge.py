@@ -310,18 +310,24 @@ def _has_screen_capture() -> bool:
         return False
 
 
+# Ghost new-tab page titles that Chrome/Safari/Edge show when no page is loaded
+_GHOST_TAB_TITLES = {"new tab", "newtab", "新标签页", "新しいタブ", "nouvel onglet", "neuer tab", "nova guia",
+                     "nueva pestaña", "incognito tab", "incognito new tab"}
+
 def _as_tabs_for_app(bundle_id, window_count):
     """Fetch tabs via AppleScript for all windows of a browser app.
     Works cross-Space (unlike AX). Returns list of tab items or None on failure.
-    window_index is 0-based matching AppleScript window numbering (1-based)."""
+    window_index is 0-based matching AppleScript window numbering (1-based).
+    Tries up to window_count + 2 extra windows in case CG undercounts."""
     try:
         all_items = []
-        for wi in range(window_count):
+        max_wi = window_count + 3  # try a few extra in case CG undercounts
+        for wi in range(max_wi):
             as_w = wi + 1  # AppleScript uses 1-based window numbers
             as_code = f'tell app "{_browser_name(bundle_id)}" to get title of every tab of window {as_w}'
             r = subprocess.run(["osascript", "-e", as_code], capture_output=True, encoding='utf-8', timeout=3)
             if r.returncode != 0 or not r.stdout.strip():
-                continue
+                break  # window out of range → stop
             titles = [t.strip() for t in r.stdout.strip().split(", ") if t.strip()]
             if not titles:
                 continue
@@ -343,6 +349,9 @@ def _as_tabs_for_app(bundle_id, window_count):
                     active_idx = int(r2.stdout.strip()) - 1
             except: pass
             for ti, t in enumerate(titles):
+                # Filter ghost new-tab pages that aren't the active tab
+                if t.strip().lower() in _GHOST_TAB_TITLES and ti != active_idx:
+                    continue
                 icon_url = _favicon_url(urls[ti]) if ti < len(urls) else ""
                 all_items.append({
                     "title": t, "type": "tab", "is_focused": (ti == active_idx),
@@ -460,6 +469,7 @@ def get_all_app_windows():
                         "is_focused": False,
                         "item_index": len(items),
                         "window_index": -1,  # sentinel: resolve in focus_item via title search
+                        "window_id": cg_win.get("window_id", 0),  # CG window number for raise
                         "tab_index": None,
                         "icon_url": "",
                         "icon": "folder" if bundle_id == "com.apple.finder" else "",
@@ -530,8 +540,9 @@ def _find_window_by_title(windows_val, title, bundle_id=""):
 
 
 def focus_item(pid, item, bundle_id=""):
-    """Focus a window or tab item. item = {window_index, tab_index, type, title, _source}.
+    """Focus a window or tab item. item = {window_index, tab_index, type, title, _source, window_id}.
     For CG-sourced items (_source="cg"), resolves window_index by title search after activation."""
+    import time as _time
     is_cg = item.get("_source") == "cg"
     item_title = item.get("title", "")
 
@@ -550,6 +561,11 @@ def focus_item(pid, item, bundle_id=""):
                 ns_app.activateWithOptions_(1 | 2)  # IgnoringOtherApps | ActivateAllWindows
         except: pass
 
+        # For CG-sourced items, the target window may be on a different Space.
+        # After activation we've switched to that Space — re-query AX windows.
+        if is_cg and item_title:
+            _time.sleep(0.3)  # brief settle time for Space switch
+
     elem = _as.AXUIElementCreateApplication(pid)
     if not elem: return {"success": False, "error": "no app element"}
 
@@ -565,14 +581,19 @@ def focus_item(pid, item, bundle_id=""):
         if found_wi >= 0:
             wi = found_wi
             win = found_win
+        else:
+            # Title search failed — the window might be the only/frontmost one now.
+            # Use window_index 0 (frontmost after activation) as last resort.
+            win = None
 
     # Fallback: use window_index directly (for AX-sourced items or if title search didn't match)
     if win is None:
         count = _cf.CFArrayGetCount(windows_val)
-        if wi < 0 or wi >= count:
+        actual_wi = wi if wi >= 0 else 0
+        if actual_wi >= count:
             _cf.CFRelease(windows_val)
-            return {"success": False, "error": f"window index {wi} out of range ({count} windows)"}
-        win = _cf.CFArrayGetValueAtIndex(windows_val, wi)
+            return {"success": False, "error": f"window index {actual_wi} out of range ({count} windows)"}
+        win = _cf.CFArrayGetValueAtIndex(windows_val, actual_wi)
 
     if not win:
         _cf.CFRelease(windows_val)
@@ -592,9 +613,10 @@ def focus_item(pid, item, bundle_id=""):
     # If it's a tab, select it via AppleScript (preferred for browsers) or AXPress fallback
     if item.get("type") == "tab" and item.get("tab_index") is not None:
         ti = item["tab_index"]
+        actual_wi = wi if wi >= 0 else 0
         # AppleScript path for known browsers (tab index is 0-based, AS is 1-based)
         if bundle_id and bundle_id in _AS_TAB_FOCUS:
-            as_code = _AS_TAB_FOCUS[bundle_id].format(w=wi + 1, t=ti + 1)
+            as_code = _AS_TAB_FOCUS[bundle_id].format(w=actual_wi + 1, t=ti + 1)
             try:
                 r = subprocess.run(["osascript", "-e", as_code], capture_output=True, encoding='utf-8', timeout=3)
                 if r.returncode == 0:
