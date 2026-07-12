@@ -182,7 +182,7 @@ def run_server():
                     _tmp.close()
                     import subprocess as _sp5
                     _sp5.run(["ffmpeg", "-y", "-f", "avfoundation", "-i", ":0",
-                        "-t", "0.1", "-ac", "1", "-ar", "16000", "-f", "s16le",
+                        "-t", "0.1", "-ac", "1", "-ar", "22050", "-f", "s16le",
                         _tmp.name], capture_output=True, timeout=2)
                     with open(_tmp.name, "rb") as _f:
                         _data = _f.read()
