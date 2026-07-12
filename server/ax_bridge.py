@@ -468,13 +468,15 @@ def get_all_app_windows():
 
         # CG supplement: add windows from OTHER Spaces that AX can't see.
         # kCGWindowIsOnscreen=False means the window is on a different Space.
+        # If AX returned nothing, also accept onscreen CG windows as fallback —
+        # AX may be slow to update after a Space switch (focus_item).
         if has_sc and pid in cg_by_pid:
             new_cnt = 0
             for cg_win in cg_by_pid[pid]:
                 cg_title = cg_win["title"]
                 if cg_title.strip().lower() in _GHOST_TAB_TITLES:
                     continue
-                if cg_win.get("onscreen", True):
+                if cg_win.get("onscreen", True) and ax_count > 0:
                     continue
                 items.append({
                     "title": cg_title,
