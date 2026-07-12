@@ -244,9 +244,6 @@ def get_all_app_windows():
     except:
         front_pid = -1
     result = []
-    global_idx = 0
-    focused_app_idx = -1
-    focused_global_idx = -1
 
     for app in running:
         try:
@@ -272,22 +269,29 @@ def get_all_app_windows():
             for it in items:
                 it["is_focused"] = False
 
-        app_has_focus = any(it["is_focused"] for it in items)
-        if app_has_focus and focused_app_idx < 0:
-            focused_app_idx = len(result)
-
-        for it in items:
-            if it["is_focused"] and focused_global_idx < 0:
-                focused_global_idx = global_idx
-            it["global_index"] = global_idx
-            global_idx += 1
-
         result.append({
             "name": name,
             "bundle_id": bundle_id,
             "pid": pid,
             "windows": items,
         })
+
+    # Stable alphabetical sort — prevents layout jumping when focus changes
+    result.sort(key=lambda a: a["name"].lower())
+
+    # Assign global indices and find focused items AFTER sorting
+    focused_app_idx = -1
+    focused_global_idx = -1
+    global_idx = 0
+    for ai, app_data in enumerate(result):
+        for it in app_data["windows"]:
+            if it["is_focused"]:
+                if focused_app_idx < 0:
+                    focused_app_idx = ai
+                if focused_global_idx < 0:
+                    focused_global_idx = global_idx
+            it["global_index"] = global_idx
+            global_idx += 1
 
     return {"apps": result, "focused_app_idx": focused_app_idx, "focused_global_idx": focused_global_idx}
 
