@@ -157,25 +157,67 @@ def _list_tabs_in_window(bundle_id, win_elem, window_index):
         except: pass
         return None
 
-    # AX path for other apps
+    # AX path for AXTabs (non-browser apps with tab controls)
     tabs_val = _get_attr(win_elem, "AXTabs")
-    if not tabs_val: return None
-    count = _cf.CFArrayGetCount(tabs_val)
-    if count == 0:
-        _cf.CFRelease(tabs_val)
-        return None
-    tabs = []
-    for i in range(count):
-        tab = _cf.CFArrayGetValueAtIndex(tabs_val, i)
-        if not tab: continue
-        title = _pystr(_get_attr(tab, "AXTitle"))
-        is_focused = _cfbool(_get_attr(tab, "AXFocused"))
-        if not is_focused:
-            is_focused = _cfbool(_get_attr(tab, "AXSelected"))
-        if title and title.strip():
-            tabs.append({"title": title.strip(), "is_focused": is_focused, "tab_index": i, "icon_url": ""})
-    _cf.CFRelease(tabs_val)
-    return tabs if tabs else None
+    if tabs_val:
+        count = _cf.CFArrayGetCount(tabs_val)
+        if count > 0:
+            tabs = []
+            for i in range(count):
+                tab = _cf.CFArrayGetValueAtIndex(tabs_val, i)
+                if not tab: continue
+                title = _pystr(_get_attr(tab, "AXTitle"))
+                is_focused = _cfbool(_get_attr(tab, "AXFocused"))
+                if not is_focused:
+                    is_focused = _cfbool(_get_attr(tab, "AXSelected"))
+                if title and title.strip():
+                    tabs.append({"title": title.strip(), "is_focused": is_focused, "tab_index": i, "icon_url": ""})
+            _cf.CFRelease(tabs_val)
+            if tabs: return tabs
+        else:
+            _cf.CFRelease(tabs_val)
+
+    # AX path for AXTabGroup (Finder, etc. — tab bar in AXChildren, not a direct attribute)
+    win_children = _get_attr(win_elem, "AXChildren")
+    if win_children:
+        wc = _cf.CFArrayGetCount(win_children)
+        tab_group = None
+        for ci in range(wc):
+            c = _cf.CFArrayGetValueAtIndex(win_children, ci)
+            if c and _pystr(_get_attr(c, "AXRole")) == "AXTabGroup":
+                tab_group = c
+                break
+        if tab_group:
+            tab_children = _get_attr(tab_group, "AXChildren")
+            _cf.CFRelease(win_children)
+            if tab_children:
+                tc = _cf.CFArrayGetCount(tab_children)
+                tabs = []
+                tab_idx = 0
+                for i in range(tc):
+                    child = _cf.CFArrayGetValueAtIndex(tab_children, i)
+                    if not child: continue
+                    role = _pystr(_get_attr(child, "AXRole"))
+                    subrole = _pystr(_get_attr(child, "AXSubrole"))
+                    if role != "AXRadioButton" or subrole != "AXTabButton":
+                        continue
+                    title = _pystr(_get_attr(child, "AXTitle"))
+                    if not title or not title.strip():
+                        continue
+                    # Check focused via AXValue (1 = selected for radio buttons) or AXFocused
+                    is_focused = _cfbool(_get_attr(child, "AXFocused"))
+                    if not is_focused:
+                        val = _get_attr(child, "AXValue")
+                        is_focused = _cfbool(val) if val else False
+                    tabs.append({"title": title.strip(), "is_focused": is_focused, "tab_index": tab_idx,
+                        "icon_url": "", "icon": "folder" if bundle_id == "com.apple.finder" else ""})
+                    tab_idx += 1
+                _cf.CFRelease(tab_children)
+                if tabs: return tabs
+        else:
+            _cf.CFRelease(win_children)
+
+    return None
 
 def get_app_items(pid, bundle_id=""):
     """Return flat list of {title, type, is_focused, item_index, window_index, tab_index}.
@@ -208,6 +250,7 @@ def get_app_items(pid, bundle_id=""):
                     "window_index": wi,
                     "tab_index": t["tab_index"],
                     "icon_url": t.get("icon_url", ""),
+                    "icon": t.get("icon", ""),
                 })
                 item_idx += 1
         else:
