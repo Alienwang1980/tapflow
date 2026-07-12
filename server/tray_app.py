@@ -343,6 +343,33 @@ def run_server():
         if os.path.exists(sw):
             _sc.run([sw, "-t", "input", "-i", body.get("name", "")])
         return {"status": "ok"}
+
+    def _cycle_audio_device(dtype: str):
+        """Cycle to the next audio device of the given type. Returns status + new name."""
+        sw = os.path.expanduser("~/Library/Application Support/Smart Touch Panel/bin/SwitchAudioSource")
+        if not os.path.exists(sw):
+            return {"status": "error", "reason": "SwitchAudioSource not found"}
+        r = _sc.run([sw, "-a", "-t", dtype], capture_output=True, encoding="utf-8",
+                    env={"LANG":"C","PATH":os.environ.get("PATH","")})
+        names = []; cur_idx = -1
+        for line in r.stdout.strip().splitlines():
+            ls = line.strip()
+            if not ls: continue
+            if ls.startswith("*"): cur_idx = len(names)
+            names.append(ls.lstrip("*").strip())
+        if not names: return {"status": "error", "reason": "no devices"}
+        if cur_idx < 0: cur_idx = 0
+        next_name = names[(cur_idx + 1) % len(names)]
+        _sc.run([sw, "-t", dtype, "-i", next_name])
+        return {"status": "ok", "current": next_name}
+
+    @app.post("/api/system/audio-input/cycle")
+    async def _sys_ain_cycle():
+        return _cycle_audio_device("input")
+
+    @app.post("/api/system/audio-output/cycle")
+    async def _sys_aout_cycle():
+        return _cycle_audio_device("output")
     @app.get("/api/system/current-app")
     async def _sys_cur_app():
         try:
