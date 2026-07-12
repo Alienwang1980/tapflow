@@ -1,13 +1,14 @@
-# Plan A 执行计划 v3
+# Plan A 执行计划 v4
 
-> 审核历史: V1(9问题)→V2(5问题)→V3(无新问题)
-> v3 已写入全部修正，待最终审核
+> 审核历史: V1(9问题)→V2(5问题)→V3(无新问题)→V4(新增窗口切换+应用切换)
+> 2026-07-12: 新增 Phase 3.5 (窗口切换) + Phase 3.6 (应用切换)
 
 ## Phase 顺序
 
 ```
 Phase 1 (音量系 + 当前应用) → Phase 2 (音源)
-    → Phase 0.5 (ctypes AX 桥) → Phase 3 (窗口) → Phase 4 (Dock)
+    → Phase 0.5 (ctypes AX 桥) → Phase 3 (窗口快捷) → Phase 3.5 (窗口切换)
+    → Phase 3.6 (应用切换) → Phase 4 (Dock)
     → Phase 5 (动态菜单) → Phase 6 (平铺 + 布局)
 ```
 
@@ -126,6 +127,62 @@ Commit: "feat: window shortcuts widget"
 
 ---
 
+## Phase 3.5: 窗口切换（当前应用内，依赖 Phase 0.5）
+
+### 需求
+- 显示当前应用有多少个窗口（如 "Finder (3 windows)"）
+- 点击展开窗口列表（标题 + 是否主窗口）
+- 点某个窗口 → 切换焦点到该窗口
+
+### 3.5.1 — 窗口列表 API
+```
+ax_bridge: get_app_windows(pid) → [{title, window_id, is_main, position, size}]
+ax_bridge: focus_window(pid, window_id) → AXRaise + AXSetAttributeValue
+路由: GET /api/system/current-app-windows, POST /api/system/focus-window
+Commit: "feat: window list + focus API"
+```
+
+### 3.5.2 — iPad widget
+```
+active-app widget 改造:
+  _drawCurrentApp → 显示 "Finder (3)" + 展开/收起箭头
+  _onTap → 展开窗口列表
+  _onWindowTap → POST /focus-window
+  长按 → 刷新列表
+Editor: 升级 active-app widget 配置
+Commit: "feat: window switcher widget"
+```
+
+---
+
+## Phase 3.6: 应用切换（依赖 Phase 0.5）
+
+### 需求
+- 显示所有正在运行的应用列表
+- 点击应用 → 切换到该应用（bring to front）
+- 如果应用有多个窗口 → 同时显示窗口列表供选择
+
+### 3.6.1 — 应用列表 API
+```
+system_control: list_running_apps → NSWorkspace.runningApplications
+  → [{name, bundle_id, pid, icon?}]
+system_control: activate_app(pid) → NSWorkspace.launchApplication + AX frontmost
+路由: GET /api/system/running-apps, POST /api/system/activate-app
+Commit: "feat: running apps list + activate API"
+```
+
+### 3.6.2 — iPad widget
+```
+新增 app-switcher widget:
+  _drawAppList → 应用图标 + 名称 + 窗口数
+  _onAppTap → POST /activate-app
+  _onAppLongPress → 展开该应用的窗口列表
+Editor: 新增 app-switcher 类型
+Commit: "feat: app switcher widget"
+```
+
+---
+
 ## Phase 4: Dock 面板
 
 ### 4.1 — Dock API
@@ -191,8 +248,8 @@ Commit: "feat: window layout presets"
 
 ## 模块划分
 
-`32-media.js` → 音频 + 亮度 (volume, mute, mic-mute, audio-out/in, brightness)
-`33-dock.js` → 系统 (active-app, dock, win-shortcuts, app-menu, win-tile, layout-preset)
+`32-media.js` → 音频 + 亮度 (volume, mic-mute, audio-out/in, brightness)
+`33-system.js` → 系统 (active-app, window-switcher, app-switcher, dock, win-shortcuts, app-menu, win-tile, layout-preset)
 
 ## 错误处理
 
