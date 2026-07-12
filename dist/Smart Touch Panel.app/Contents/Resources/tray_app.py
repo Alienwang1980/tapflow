@@ -225,9 +225,11 @@ def run_server():
     # ── Mic Level Sampler (AVAudioRecorder — zero external process, built-in metering) ──
     _mic_level = 0.0
     _mic_sampling = False
+    _mic_recorder = None
+    _mic_monitor_enabled = False
 
     def _start_mic_sampler():
-        nonlocal _mic_sampling
+        nonlocal _mic_sampling, _mic_recorder
         if _mic_sampling:
             return
         _mic_sampling = True
@@ -259,6 +261,7 @@ def run_server():
             _mic_sampling = False
             return
 
+        _mic_recorder = _recorder
         _recorder.setMeteringEnabled_(True)
         _recorder.record()
 
@@ -277,9 +280,38 @@ def run_server():
         _th.Thread(target=_sample, daemon=True).start()
         _logger.info("Mic sampler started (AVAudioRecorder)")
 
+    def _stop_mic_sampler():
+        nonlocal _mic_sampling, _mic_recorder
+        _mic_sampling = False
+        if _mic_recorder:
+            try:
+                _mic_recorder.stop()
+            except Exception:
+                pass
+            _mic_recorder = None
+        _logger.info("Mic sampler stopped")
+
+    @app.get("/api/system/mic-monitor")
+    async def _sys_mic_monitor_get():
+        nonlocal _mic_monitor_enabled
+        return {"enabled": _mic_monitor_enabled}
+
+    @app.post("/api/system/mic-monitor")
+    async def _sys_mic_monitor_set(body: dict):
+        nonlocal _mic_monitor_enabled
+        enabled = body.get("enabled", False)
+        _mic_monitor_enabled = enabled
+        if enabled:
+            _start_mic_sampler()
+        else:
+            _stop_mic_sampler()
+        return {"enabled": _mic_monitor_enabled}
+
     @app.get("/api/system/mic-level")
     async def _sys_mic_level():
-        nonlocal _mic_sampling
+        nonlocal _mic_sampling, _mic_monitor_enabled
+        if not _mic_monitor_enabled:
+            return {"level": 0.0}
         if not _mic_sampling:
             _start_mic_sampler()
         return {"level": round(_mic_level, 4)}
