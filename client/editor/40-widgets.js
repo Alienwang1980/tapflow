@@ -235,7 +235,9 @@ var WIDGET_TYPES={key:{label:"Regular Key",defaults:{w:1,h:1,color:"#0f3460",act
   var wt=WIDGET_TYPES[type]||WIDGET_TYPES.key;
   var d=wt.defaults;
   page.keys.push({id:"k_"+Date.now(),label:"?",action:d.action,value:"A",
-    color:d.color,col:window._pendingCol||0,row:window._pendingRow||0,w:d.w,h:d.h,sound:""});
+    color:d.color,col:window._pendingCol||0,row:window._pendingRow||0,w:d.w,h:d.h,sound:"",
+    fontColor:d.fontColor,borderRadius:d.borderRadius,fontSize:d.fontSize,
+    tapAction:d.tapAction,holdAction:d.holdAction});
   _pushUndo([]);selKey=page.keys[page.keys.length-1].id;selKeys.clear();selKeys.add(selKey);
   dirty=true;closeKeyTypeModal();rr();rpr();
 }
