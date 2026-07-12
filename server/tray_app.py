@@ -163,32 +163,43 @@ def run_server():
             _sc.run(["osascript", "-e", f"set volume input volume {restore}"])
             _state["mic_muted"] = False
         return {"muted": _state.get("mic_muted", False)}
-    # ── Mic Level Sampler (sounddevice — continuous stream, no subprocess) ──
+    # ── Mic Level Sampler (ffmpeg — sounddevice broken for AKG USB) ──
     _mic_level = 0.0
-    _mic_stream = None
+    _mic_sampling = False
 
-    def _start_mic_stream():
-        nonlocal _mic_stream
-        if _mic_stream is not None:
+    def _start_mic_sampler():
+        nonlocal _mic_sampling
+        if _mic_sampling:
             return
-        try:
-            import sounddevice as _sd, numpy as _np
-            def _mic_cb(indata, frames, time_info, status):
-                nonlocal _mic_level
-                if status: return
-                _mic_level = min(1.0, float(_np.sqrt(_np.mean(indata**2))) * 8.0)
-            _mic_stream = _sd.InputStream(callback=_mic_cb, channels=1,
-                samplerate=16000, blocksize=400, dtype='float32')
-            _mic_stream.start()
-            _logger.info("Mic stream started (sounddevice 16kHz, ~40 updates/s)")
-        except Exception as e:
-            _logger.warning(f"Mic stream failed: {e}")
+        _mic_sampling = True
+        import threading as _th, logging as _log, struct, math, tempfile, os as _os2
+        _logger = _log.getLogger("stp.mic")
+        def _sample():
+            nonlocal _mic_level
+            while _mic_sampling:
+                try:
+                    _tmp = tempfile.NamedTemporaryFile(suffix=".raw", delete=False)
+                    _tmp.close()
+                    import subprocess as _sp5
+                    _sp5.run(["ffmpeg", "-y", "-f", "avfoundation", "-i", ":0",
+                        "-t", "0.1", "-ac", "1", "-ar", "16000", "-f", "s16le",
+                        _tmp.name], capture_output=True, timeout=2)
+                    with open(_tmp.name, "rb") as _f:
+                        _data = _f.read()
+                    _os2.unlink(_tmp.name)
+                    if len(_data) >= 400:
+                        _samples = struct.unpack("<" + "h" * (len(_data)//2), _data)
+                        _rms = math.sqrt(sum(_s*_s for _s in _samples) / len(_samples))
+                        _mic_level = min(1.0, _rms / 3000.0)
+                except Exception:
+                    pass
+        _th.Thread(target=_sample, daemon=True).start()
 
     @app.get("/api/system/mic-level")
     async def _sys_mic_level():
-        nonlocal _mic_stream
-        if _mic_stream is None:
-            _start_mic_stream()
+        nonlocal _mic_sampling
+        if not _mic_sampling:
+            _start_mic_sampler()
         return {"level": round(_mic_level, 4)}
 
     @app.get("/api/system/audio-devices")
