@@ -504,22 +504,20 @@ def get_all_app_windows():
 
         # Re-sort, de-duplicate, and re-index
         if items:
+            # Dedup rule: if a "window" item has the same title as a "tab" item,
+            # the window is just mirroring the active tab (external view of the
+            # fullscreen browser). Remove the window, keep the tab.
+            # Two tabs with the same title are genuinely different → keep both.
+            tab_titles = {it["title"].strip().lower() for it in items if it.get("type") == "tab"}
+            if tab_titles:
+                before = len(items)
+                items = [it for it in items
+                         if not (it.get("type") == "window"
+                                 and it["title"].strip().lower() in tab_titles)]
+                dropped = before - len(items)
+                if dropped > 0:
+                    _ax_log.info(f"[DEDUP] {name}: dropped {dropped} window(s) matching active tab")
             items.sort(key=lambda it: it["title"].lower())
-            # Universal dedup by title only (ignore type — CG "window" and AX "tab"
-            # with same title are duplicates to the user).
-            seen_titles = set()
-            deduped = []
-            dropped = 0
-            for it in items:
-                t = it["title"].strip().lower()
-                if t not in seen_titles:
-                    seen_titles.add(t)
-                    deduped.append(it)
-                else:
-                    dropped += 1
-            if dropped > 0:
-                _ax_log.info(f"[DEDUP] {name}: dropped {dropped} duplicate(s)")
-            items = deduped
             for i, it in enumerate(items):
                 it["item_index"] = i
 
