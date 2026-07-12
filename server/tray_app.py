@@ -167,6 +167,31 @@ def run_server():
             _sc.run(["osascript", "-e", f"set volume input volume {restore}"])
             _state["mic_muted"] = False
         return {"muted": _state.get("mic_muted", False)}
+    # ── Accessibility permission request ──
+    @app.post("/api/system/request-accessibility")
+    async def _sys_req_acc():
+        """Trigger accessibility permission prompt via AXIsProcessTrustedWithOptions."""
+        try:
+            import ctypes, os as _os3
+            _as = ctypes.cdll.LoadLibrary(
+                '/System/Library/Frameworks/ApplicationServices.framework/Versions/A/ApplicationServices')
+            _as.AXIsProcessTrustedWithOptions.restype = ctypes.c_bool
+            _as.AXIsProcessTrustedWithOptions.argtypes = [ctypes.c_void_p]
+            _opts = ctypes.c_void_p(0)
+            try:
+                from CoreFoundation import CFDictionaryCreate, CFStringCreateWithCString, kCFBooleanTrue, kCFAllocatorDefault
+                _keys = [CFStringCreateWithCString(None, b"AXTrustedCheckOptionPrompt", 0x08000100)]
+                _vals = [kCFBooleanTrue]
+                _kc = (ctypes.c_void_p * len(_keys))(*[_k.__pointer__ for _k in _keys])
+                _vc = (ctypes.c_void_p * len(_vals))(*[_v.__pointer__ for _v in _vals])
+                _opts = CFDictionaryCreate(None, _kc, _vc, len(_keys), None, None)
+            except Exception:
+                pass
+            _result = _as.AXIsProcessTrustedWithOptions(_opts)
+            return {"granted": _result}
+        except Exception as _e:
+            return {"granted": False, "error": str(_e)}
+
     # ── Mic Level Sampler (ffmpeg — sounddevice broken for AKG USB) ──
     _mic_level = 0.0
     _mic_sampling = False
@@ -523,18 +548,31 @@ def request_mic_permission():
         _sp4.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone"])
 
 def request_accessibility_permission():
-    """Check Accessibility permission and open System Settings if not granted.
-    Uses ctypes (no PyObjC deps) for reliable checking in .app bundle.
-    AXMakeProcessTrusted is deprecated since macOS 10.9."""
+    """Check Accessibility permission and prompt user if not granted.
+    Uses AXIsProcessTrustedWithOptions with kAXTrustedCheckOptionPrompt=1
+    to trigger the system permission dialog (macOS 10.9+)."""
     try:
         import ctypes
         _as = ctypes.cdll.LoadLibrary(
             '/System/Library/Frameworks/ApplicationServices.framework/Versions/A/ApplicationServices')
-        _as.AXIsProcessTrusted.restype = ctypes.c_bool
-        if _as.AXIsProcessTrusted():
-            logger.info("Accessibility permission: already granted")
+        _as.AXIsProcessTrustedWithOptions.restype = ctypes.c_bool
+        _as.AXIsProcessTrustedWithOptions.argtypes = [ctypes.c_void_p]
+        # Build CFDictionary {AXTrustedCheckOptionPrompt: true}
+        _opts = ctypes.c_void_p(0)
+        try:
+            from CoreFoundation import CFDictionaryCreate, CFStringCreateWithCString, kCFBooleanTrue, kCFAllocatorDefault, kCFTypeDictionaryKeyCallBacks, kCFTypeDictionaryValueCallBacks
+            _keys = [CFStringCreateWithCString(None, b"AXTrustedCheckOptionPrompt", 0x08000100)]
+            _vals = [kCFBooleanTrue]
+            _kc = (ctypes.c_void_p * 1)(_keys[0].__pointer__)
+            _vc = (ctypes.c_void_p * 1)(_vals[0].__pointer__)
+            _opts = CFDictionaryCreate(None, _kc, _vc, 1, kCFTypeDictionaryKeyCallBacks, kCFTypeDictionaryValueCallBacks)
+        except Exception:
+            pass
+        _result = _as.AXIsProcessTrustedWithOptions(_opts)
+        if _result:
+            logger.info("Accessibility permission: granted")
         else:
-            logger.warning("Accessibility permission: not granted — opening System Settings")
+            logger.warning("Accessibility permission: not granted — prompting user via System Settings")
             import subprocess as _sp4
             _sp4.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"])
     except Exception as e:
