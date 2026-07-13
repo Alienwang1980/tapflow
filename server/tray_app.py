@@ -214,6 +214,15 @@ def run_server():
             _sc.run(["osascript", "-e", f"set volume input volume {restore}"])
             _state["mic_muted"] = False
         return {"muted": _state.get("mic_muted", False)}
+
+    @app.post("/api/system/mic-volume")
+    async def _sys_mic_vol_set(body: dict):
+        v = max(0, min(100, int(body.get("value", 50))))
+        _sc.run(["osascript", "-e", f"set volume input volume {v}"])
+        _state["mic_muted"] = (v == 0)
+        if v > 0:
+            _state["mic_pre"] = v
+        return {"status": "ok", "input_volume": v, "muted": v == 0}
     # ── Accessibility & Mic Permission endpoints ──
     @app.get("/api/system/accessibility")
     async def _sys_acc_status():
