@@ -510,7 +510,57 @@ def run_server():
     @app.post("/api/system/window/show-desktop")
     async def _wsd(): from input_engine import press_key; press_key("f11"); return {"status":"ok"}
 
-    
+    # ── Window Arrange (native macOS tiling via System Events menu click) ──
+    # ponytail: 菜单项按中文名匹配(mini 系统为中文);系统语言改英文需加名称映射表。
+    # 作用于「当前最前窗口」,用 frontmost process 免去取 app 名(无注入),已实测可靠。
+    _WIN_MENU = "窗口"
+    _MR_SUB = "移动与调整大小"   # Move & Resize 子菜单
+    _FS_SUB = "全屏幕平铺"        # Full-Screen Tile 子菜单
+    _ARRANGE_MAP = {
+        "left":    (_MR_SUB, "左侧"),
+        "right":   (_MR_SUB, "右侧"),
+        "top":     (_MR_SUB, "顶部"),
+        "bottom":  (_MR_SUB, "底部"),
+        "fill":    (None, "填充"),
+        "restore": (_MR_SUB, "恢复上一个大小"),
+        "fs-left":  (_FS_SUB, "屏幕左侧"),
+        "fs-right": (_FS_SUB, "屏幕右侧"),
+    }
+
+    def _menu_ref(submenu, item):
+        base = f'menu 1 of menu bar item "{_WIN_MENU}" of menu bar 1'
+        if submenu:
+            return f'menu item "{item}" of menu 1 of menu item "{submenu}" of {base}'
+        return f'menu item "{item}" of {base}'
+
+    def _run_osa(lines):
+        try:
+            r = _sc.run(["osascript", "-e", "\n".join(lines)],
+                        capture_output=True, text=True,
+                        encoding="utf-8", errors="replace", timeout=5)
+        except Exception as e:
+            return False, str(e)[:200]
+        if r.returncode != 0:
+            return False, (r.stderr or "").strip()[:200]
+        return True, r.stdout.strip()
+
+    @app.post("/api/system/window/arrange")
+    async def _sys_arrange(body: dict):
+        action = body.get("action", "")
+        if action not in _ARRANGE_MAP:
+            return {"success": False, "error": f"unknown action: {action}"}
+        submenu, item = _ARRANGE_MAP[action]
+        lines = [
+            'tell application "System Events"',
+            'tell (first process whose frontmost is true)',
+            f'click {_menu_ref(submenu, item)}',
+            'end tell',
+            'end tell',
+        ]
+        ok, out = _run_osa(lines)
+        return {"success": ok, "action": action, "result": out} if ok else {"success": False, "error": out}
+
+
     # ── Dock Panel ──
 
     @app.get("/api/system/dock-items")
