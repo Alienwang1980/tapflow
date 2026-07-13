@@ -21,6 +21,67 @@ TITLE = "Smart Touch Panel"
 TOOLTIP = "Smart Touch Panel — Touch Input Server"
 
 
+# ── 端口配置(可在任意机器上修改)──────────────────────────────
+# 优先级: 环境变量 STP_PORT > config.json 的 "port" > 默认 8082。
+# config.json 路径: ~/Library/Application Support/Smart Touch Panel/config.json
+import json as _json_cfg
+
+def _config_dir() -> str:
+    d = os.path.expanduser("~/Library/Application Support/Smart Touch Panel")
+    try:
+        os.makedirs(d, exist_ok=True)
+    except Exception:
+        pass
+    return d
+
+def _config_path() -> str:
+    return os.path.join(_config_dir(), "config.json")
+
+def _resolve_port() -> int:
+    """端口解析,范围 1-65535,任何异常都回退默认 8082。"""
+    default = 8082
+    env = os.environ.get("STP_PORT")
+    if env:
+        try:
+            p = int(env)
+            if 1 <= p <= 65535:
+                return p
+        except (ValueError, TypeError):
+            logger.warning("STP_PORT=%r 无效,忽略", env)
+    try:
+        cp = _config_path()
+        if os.path.exists(cp):
+            with open(cp, "r", encoding="utf-8") as f:
+                p = int(_json_cfg.load(f).get("port", default))
+                if 1 <= p <= 65535:
+                    return p
+                logger.warning("config.json port=%s 越界,用默认 %d", p, default)
+    except Exception as e:
+        logger.warning("读取 config.json 失败(%s),用默认端口", e)
+    return default
+
+def _ensure_config(port: int) -> None:
+    """首次运行写一份默认 config.json,方便用户直接编辑端口。"""
+    try:
+        cp = _config_path()
+        if not os.path.exists(cp):
+            with open(cp, "w", encoding="utf-8") as f:
+                _json_cfg.dump(
+                    {"port": port,
+                     "_comment": "改端口后重启 Smart Touch Panel 生效(范围 1-65535)。也可用环境变量 STP_PORT 覆盖。"},
+                    f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        logger.warning("写默认 config.json 失败: %s", e)
+
+PORT = _resolve_port()
+# 同步 mDNS 广播端口
+try:
+    import main as _main_mod
+    _main_mod.mdns_info["port"] = PORT
+except Exception:
+    pass
+
+
 def get_local_ip() -> str:
     """Get the primary LAN IP."""
     try:
@@ -761,13 +822,13 @@ def run_server():
 
     _logger.info("Widget routes registered")
     
-    uvicorn.run(app, host="0.0.0.0", port=8082, log_level="warning")
+    uvicorn.run(app, host="0.0.0.0", port=PORT, log_level="warning")
 
 
 def on_show_qr(icon, item):
     """Print QR code URL to console."""
     ip = get_local_ip()
-    url = f"http://{ip}:8082"
+    url = f"http://{ip}:{PORT}"
     print(f"\n{'='*50}")
     print(f"  Smart Touch Panel")
     print(f"  Open in iPad browser: {url}")
@@ -785,7 +846,7 @@ def on_show_health(icon, item):
     """Show server health."""
     import urllib.request, json
     try:
-        resp = urllib.request.urlopen("http://localhost:8082/health", timeout=2)
+        resp = urllib.request.urlopen(f"http://localhost:{PORT}/health", timeout=2)
         data = json.loads(resp.read())
         print(f"\n  Status: {data.get('status')}")
         print(f"  Clients: {data.get('clients')}")
@@ -793,6 +854,12 @@ def on_show_health(icon, item):
         print(f"  Engine: {data.get('engine')}\n")
     except Exception as e:
         print(f"\n  Server not reachable: {e}\n")
+
+
+def on_edit_config(icon, item):
+    """打开 config.json 让用户修改端口(改完重启 App 生效)。"""
+    _ensure_config(PORT)
+    os.system(f"open '{_config_path()}'")
 
 
 def on_quit(icon, item):
@@ -825,7 +892,7 @@ def request_screen_capture_permission():
 def run_tray():
     """Create and run the system tray icon."""
     ip = get_local_ip()
-    url = f"http://{ip}:8082"
+    url = f"http://{ip}:{PORT}"
 
     menu = pystray.Menu(
         pystray.MenuItem("✏️ Open Editor", on_open_editor, default=True),
@@ -837,6 +904,7 @@ def run_tray():
         )),
         pystray.MenuItem(f"🔗 {url}", on_show_qr),
         pystray.MenuItem("📋 Health", on_show_health),
+        pystray.MenuItem(f"⚙️ Port {PORT} — Edit Config", on_edit_config),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem("❌ Quit", on_quit),
     )
@@ -853,10 +921,11 @@ def run_tray():
 
 
 def main():
+    _ensure_config(PORT)
     # Start FastAPI in background thread
     server_thread = threading.Thread(target=run_server, daemon=True)
     server_thread.start()
-    logger.info("Server starting on port 8082...")
+    logger.info(f"Server starting on port {PORT}...")
     import time as _time2; _time2.sleep(2)
 
     # Startup check: if accessibility not granted, trigger system dialog + open Settings

@@ -21,7 +21,11 @@ DATA_FILES = client_files + profile_files
 OPTIONS = {
     "argv_emulation": False,
     "packages": [
-        "fastapi", "uvicorn", "starlette", "pydantic", "anyio", "multipart",
+        "fastapi", "uvicorn", "starlette", "pydantic", "pydantic_core", "anyio",
+        "click", "h11", "websockets",
+        "multipart", "python_multipart",
+        "annotated_types", "annotated_doc", "typing_inspection",
+        "zeroconf", "ifaddr",
         "pystray", "PIL",
         "Quartz", "Foundation", "AppKit", "ApplicationServices", "CoreFoundation",
         "objc",
@@ -29,6 +33,9 @@ OPTIONS = {
     "includes": [
         "connection_manager", "input_engine", "profile_manager",
         "window_watcher", "editor_app", "ax_bridge",
+        "system_control", "balance_poller", "widget_extension",
+        "typing_extensions", "six",
+        "PyObjCTools.MachSignals", "PyObjCTools.AppHelper",
         "logging", "json", "uuid", "asyncio", "threading", "webbrowser",
     ],
     "excludes": [
