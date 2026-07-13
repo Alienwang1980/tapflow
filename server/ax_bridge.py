@@ -485,6 +485,11 @@ def get_all_app_windows():
         # If AX returned nothing, also accept onscreen CG windows as fallback —
         # AX may be slow to update after a Space switch (focus_item).
         if has_sc and pid in cg_by_pid:
+            # 已被 AX 展开的条目(tab/window)标题集合 —— CG 补充时用于去重。
+            # Finder 多 tab:非活动 tab 在 CG 里是 offscreen 独立窗口,标题=该 tab,
+            # 会和 AX 展开的 tab 撞车 → 窗口切换器出现重复板块(总是未选中那个)。
+            # ponytail: 按标题去重; 若同 app 有两个真实同名窗口会漏一个 —— Finder tab 场景罕见,YAGNI
+            existing_titles = {it["title"].strip().lower() for it in items}
             new_cnt = 0
             for cg_win in cg_by_pid[pid]:
                 cg_title = cg_win["title"]
@@ -492,6 +497,8 @@ def get_all_app_windows():
                     continue
                 if cg_win.get("onscreen", True) and ax_count > 0:
                     continue
+                if cg_title.strip().lower() in existing_titles:
+                    continue  # 标题已被 AX 条目占用 → 跳过重复 (修 Finder tab 重复板块)
                 items.append({
                     "title": cg_title,
                     "type": "window",
@@ -504,6 +511,7 @@ def get_all_app_windows():
                     "icon": "folder" if bundle_id == "com.apple.finder" else "",
                     "_source": "cg",
                 })
+                existing_titles.add(cg_title.strip().lower())
                 new_cnt += 1
             if new_cnt > 0:
                 _ax_log.info(f"[MERGE] {name}: +{new_cnt} CG windows offscreen (AX had {ax_count})")
