@@ -519,13 +519,12 @@ const ftb=document.getElementById("ftb");var btb=document.getElementById("btb");
       _c.fillStyle="#cfd8dc";_edWinArrow(_c,cl[2],_x+_bw2/2,_y+_bh2/2,Math.min(_bw2,_bh2)*0.26);
     });
     el.appendChild(_cv);var _rh=document.createElement("div");_rh.className="rh";el.appendChild(_rh)}else if(k.action==="win-gesture"){
-    var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius="3px";
-    var _c=_cv.getContext("2d"),_w=_cv.width,_h=_cv.height,_m=Math.min(_w,_h),_bs=_m*0.60,_bx=(_w-_bs)/2,_by=(_h-_bs)/2;
-    _c.fillStyle="rgba(255,255,255,0.08)";_c.fillRect(_bx,_by,_bs,_bs);
-    _c.strokeStyle="rgba(255,255,255,0.2)";_c.lineWidth=1.2;_c.strokeRect(_bx,_by,_bs,_bs);
-    var _cx=_w/2,_cy=_h/2,_q=_bs*0.30;_c.strokeStyle="#cfd8dc";_c.lineWidth=1.4;_c.strokeRect(_cx-_q/2,_cy-_q/2,_q,_q);
-    var _ar=_bs*0.40,_as=_m*0.04;_c.fillStyle="rgba(207,216,220,0.5)";
-    _edWinArrow(_c,"up",_cx,_cy-_ar,_as);_edWinArrow(_c,"down",_cx,_cy+_ar,_as);_edWinArrow(_c,"left",_cx-_ar,_cy,_as);_edWinArrow(_c,"right",_cx+_ar,_cy,_as);
+    var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius=br;
+    var _c=_cv.getContext("2d"),_w=_cv.width,_h=_cv.height,_m=Math.min(_w,_h),_cx=_w/2,_cy=_h/2,_R=_m*0.40,_kr=_m*0.17,_norm=k.iconColor||"#cfd8dc";
+    _c.fillStyle=k.color||"#1a2a2a";_c.fillRect(0,0,_w,_h);
+    _c.beginPath();_c.arc(_cx,_cy,_R,0,Math.PI*2);_c.fillStyle="rgba(255,255,255,0.05)";_c.fill();_c.strokeStyle="rgba(255,255,255,0.18)";_c.lineWidth=1;_c.beginPath();_c.arc(_cx,_cy,_R,0,Math.PI*2);_c.stroke();
+    var _ar=_R*0.80,_as=_m*0.05;_c.fillStyle="rgba(207,216,220,0.5)";_edWinArrow(_c,"up",_cx,_cy-_ar,_as);_edWinArrow(_c,"down",_cx,_cy+_ar,_as);_edWinArrow(_c,"left",_cx-_ar,_cy,_as);_edWinArrow(_c,"right",_cx+_ar,_cy,_as);
+    _c.beginPath();_c.arc(_cx,_cy,_kr,0,Math.PI*2);_c.fillStyle="rgba(255,255,255,0.10)";_c.fill();_c.strokeStyle=_norm;_c.lineWidth=1.4;_c.beginPath();_c.arc(_cx,_cy,_kr,0,Math.PI*2);_c.stroke();
     el.appendChild(_cv);var _rh=document.createElement("div");_rh.className="rh";el.appendChild(_rh)}else if(k.action==="dock"){
     // Frosted glass via CSS on container
     var _dc2=k.bgColor||k.color||null;
