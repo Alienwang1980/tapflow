@@ -4,7 +4,13 @@ from pathlib import Path
 from setuptools import setup
 
 client_dir = Path("client")
-client_files = [(str(client_dir), [str(f) for f in client_dir.glob("*.html")]), (str(client_dir/"fonts"), [str(f) for f in (client_dir/"fonts").glob("*")])]
+# client 根下所有静态资源(html + svg 图标 + 未来任何类型),排除隐藏文件。
+# 此前只 glob *.html,漏掉 2026-07 新增的 svg 图标 → 打包后 /static/*.svg 404,
+# 音量/麦克风回退老款手绘图标。改为全量打包以杜绝同类遗漏。
+client_files = [
+    (str(client_dir), [str(f) for f in client_dir.glob("*") if f.is_file() and not f.name.startswith(".") and not f.name.endswith(".template")]),
+    (str(client_dir / "fonts"), [str(f) for f in (client_dir / "fonts").glob("*") if f.is_file()]),
+]
 
 profiles_dir = Path("server/profiles")
 profile_files = [(str(profiles_dir), [str(f) for f in profiles_dir.glob("*.json")])]
