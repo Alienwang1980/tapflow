@@ -1,7 +1,7 @@
 # Smart Touch Panel — 项目全貌（CONTEXT）
 
 > 本文档为项目领域知识 + 完整现状快照 + 待办计划。后续开发（含 AI）动代码前**必须优先阅读**。
-> 最后更新：2026-07-15 ｜ 对应 commit：`b78111f`（即将提交） ｜ 全部数据基于 2026-07-15 实测
+> 最后更新：2026-07-15（窗口缩略图功能） ｜ 全部数据基于 2026-07-15 实测
 
 ---
 
@@ -205,7 +205,7 @@ let dirty=false          // 未保存标记
 | `macro` | 组合键宏 | `LCONTROL+LSHIFT+A` 格式 |
 | `volume` | 音量滑块 | 横向/纵向，tap=mute |
 | `mic-mute` | 麦克风静音 + 电平显示 | 50ms 高频轮询 |
-| `active-app` | 窗口切换器 | 5s 轮询窗口列表 |
+| `active-app` | 窗口切换器（**窗口缩略图** + 底部标题条） | 10s 轮询；缩略图懒加载 + 每轮补截 2 张 |
 | `win-shortcuts` | 窗口管理快捷按钮 | 置顶/铺满/左半/右半 |
 | `win-gesture` | **方形摇杆** | 滑动=贴边，轻点=铺满⇄恢复，长按=全屏 |
 | `dock` | 系统 Dock | 固定布局 |
@@ -222,9 +222,9 @@ let dirty=false          // 未保存标记
 | 控件 | 间隔 | 端点 |
 |------|------|------|
 | `mic-mute` (showLevel) | **50ms** | `/api/system/mic-level` |
-| `active-app` | 5,000ms | `/api/system/all-windows` |
-| `app-menu` | 5,000ms | `/api/system/current-menus` |
-| `audio-out` / `audio-in` | 5,000ms | `/api/system/audio-devices` |
+| `active-app` | 10,000ms | `/api/system/all-windows` + `/api/system/window-thumbnail` |
+| `app-menu` | 10,000ms | `/api/system/current-menus` |
+| `audio-out` / `audio-in` | 10,000ms | `/api/system/audio-devices` |
 | `balance` | 30,000ms | `/api/deepseek/balance` |
 
 ---
@@ -266,6 +266,10 @@ Active profile 由客户端 `localStorage.getItem("stp_active")` 决定，非服
 ### 🟡 P2：`tools/build.py` 是地雷
 
 用废弃的 `client/ipad/*.js` / `client/editor/*.js` 覆盖权威源。**禁止运行**。重打包用 `setup.py py2app`。
+
+### 🟡 P2：`_winIcons` favicon 缓存按 `global_index` 键控（不稳定）
+
+`index.html` `_loadWinIcons` 用 `global_index` 做缓存 key,窗口增减后索引整体位移 → favicon 可能张冠李戴。缩略图缓存 `_winThumbs` 已用稳定 key(`pid:window_index:tab_index:title`),favicon 待迁移到同方案。
 
 ### 🟡 P2：分发限制
 
@@ -352,6 +356,27 @@ if flags or not down: CGEventSetFlags(event, flags)
 
 尝试 tap 修饰键保持激活 → macOS 不认为修饰键被单独按下。完全回退。
 
+### 10.5 窗口切换器缩略图（2026-07-15）
+
+窗口切换器文字块替换为**窗口实时缩略图**（底部保留一行半透明标题条,圆角,块间距 10px,无分组分割线）。
+
+**后端**：
+- `ax_bridge.capture_window_thumbnail(pid, title, max_w=256)`：pid+title 现场解析 CG window_id（精确→子串→frontmost 兜底）→ `CGWindowListCreateImage` → NSImage 缩放 → JPEG bytes
+- `GET /api/system/window-thumbnail?pid=N&title=...&refresh=0|1`（**`def` 路由**）：服务端缓存 `{(pid,title): (bytes,ts)}`,TTL 60s,`refresh=1` 强制重拍,过期条目 10min 修剪,拍失败时兜底返回 stale 缓存
+- **跨 Space 窗口截不了**（实测 `CGWindowListCreateImage` 返回 None）→ 404,前端文字降级
+
+**前端**（`index.html`）：
+- 缓存 `canvas._winThumbs`,key = `pid:window_index:tab_index:title`（title 变化自动失效重拍）;`_thumbFail` 失败冷却 60s;每轮按当前列表修剪
+- **首轮全量拉取**（`_thumbsWarm` 标记,页面刷新后缩略图秒回,靠服务端缓存）,之后每轮只拉聚焦项(`refresh=1`) + 补截 2 张
+- 点击切换窗口/tab 成功后 **500ms 延迟重拍**（等目标渲染完成）
+- `_source==="cg"`（跨 Space）条目跳过,不请求
+- 圆角绘制:`_rrPath/_rrFill/_rrStroke` 辅助,圆角=btnSize 的 8%（最小 3px）,缩略图走 clip
+
+**TCC 教训（重要,见 §13.9/§13.10）**：屏幕录制权限排障两小时的根因有三层:
+1. 改 bundle 任何文件 → 签名 seal 失效 → TCC 静默吊销;重签后 cdhash 变 → 旧授权条目 csreq 不匹配 → **设置界面显示已开启但实际无效**,必须 `tccutil reset <service> com.smarttouch.panel` 删旧条目再重新授权
+2. **从终端启动的实例走 Terminal 的 TCC 归因**（responsible process）,Terminal 被拒 → app 自己的授权根本不被查询;必须用 cron/launchd 归因启动（临时 cron 行拉起）
+3. 桌面残留的旧版 .app 抢授权/抢端口（已删）
+
 ---
 
 ## 11. `input_engine.py` 关键约束（CRITICAL）
@@ -406,10 +431,16 @@ nohup "dist/Smart Touch Panel.app/Contents/MacOS/Smart Touch Panel" > /tmp/stp_n
 ### 12.3 打包分发
 
 ```bash
-.venv/bin/python3 setup.py py2app
+server/venv/bin/python3 setup.py py2app      # ⚠️ 必须 server/venv(.venv 缺 AVFoundation 等 pyobjc 框架,打出的包麦克风功能是坏的)
 codesign --force --deep --sign - "dist/Smart Touch Panel.app"
 codesign --verify --deep --strict "dist/Smart Touch Panel.app"
 ditto -c -k --sequesterRsrc --keepParent "dist/Smart Touch Panel.app" ~/Desktop/STP.zip
+```
+
+**rebuild 后 TCC 重授权流程**（每次重打包必做,见 §13.9）：
+```bash
+for s in ScreenCapture Accessibility Microphone; do tccutil reset $s com.smarttouch.panel; done
+# cron/launchd 归因启动 app → 触发一次截屏/录音尝试 → 系统设置里重新授权三项
 ```
 
 ### 12.4 开发注意
@@ -431,6 +462,9 @@ ditto -c -k --sequesterRsrc --keepParent "dist/Smart Touch Panel.app" ~/Desktop/
 6. **端口**：改端口需同步 `keep_alive.sh`（见 §8 P1）。
 7. **Git remote**：`nas`（不是 `origin`）= `Claude@192.168.2.62:/volume1/Git_Station/smart-touch-panel.git`。
 8. **编辑器浏览器**：必须 Safari（原生颜色选择器）。
+9. **TCC 重授权必须先 `tccutil reset`**：重签后旧条目 csreq 不匹配,设置界面开关显示开启但实际无效,直接切开关救不回来;必须 reset 删条目 → 触发一次真实访问重新登记 → 再授权（屏幕录制/辅助功能/麦克风三项同理）。
+10. **开发期启动归因**：从终端（含 Claude 会话）`nohup` 启动的实例,屏幕捕获走 **Terminal 的 TCC 归因**;Terminal 无屏幕录制授权则截图必失败。验证截图/权限相关功能必须用 cron 拉起（临时 cron 行,起来后删）。生产 cron @reboot 天然正确。
+11. **打包用 `server/venv`**：`.venv` 的 pyobjc 不全（缺 AVFoundation）,用它打包麦克风电平功能静默失效（import 错误被 except 吞掉,只表现为"权限挂不上"）。
 
 ---
 

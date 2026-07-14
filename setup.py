@@ -28,6 +28,7 @@ OPTIONS = {
         "zeroconf", "ifaddr",
         "pystray", "PIL",
         "Quartz", "Foundation", "AppKit", "ApplicationServices", "CoreFoundation",
+        "AVFoundation",
         "objc",
     ],
     "includes": [
