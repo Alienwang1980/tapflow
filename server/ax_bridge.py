@@ -314,6 +314,97 @@ def _has_screen_capture() -> bool:
 _GHOST_TAB_TITLES = {"new tab", "newtab", "新标签页", "新しいタブ", "nouvel onglet", "neuer tab", "nova guia",
                      "nueva pestaña", "incognito tab", "incognito new tab"}
 
+
+def _resolve_cg_window_id(pid, title):
+    """Find CG window_id for (pid, title). Exact title match first, then substring.
+    Falls back to the frontmost app's first onscreen window when pid is frontmost.
+    Returns 0 when unresolvable."""
+    from Quartz import CGWindowListCopyWindowInfo, kCGWindowListOptionAll, kCGNullWindowID
+    target = (title or "").strip().lower()
+    if not target:
+        return 0
+    wl = CGWindowListCopyWindowInfo(kCGWindowListOptionAll, kCGNullWindowID) or []
+    cands = []  # [(title_lower, window_id)]
+    for w in wl:
+        if w.get('kCGWindowLayer', -1) != 0 or w.get('kCGWindowOwnerPID', -1) != pid:
+            continue
+        t = str(w.get('kCGWindowName') or '').strip()
+        if t:
+            cands.append((t.lower(), w.get('kCGWindowNumber', 0)))
+    for t, wid in cands:
+        if t == target:
+            return wid
+    for t, wid in cands:
+        if target in t or t in target:
+            return wid
+    # Frontmost fallback: focused item's window IS the frontmost window,
+    # even when its CG name lags behind the requested title (e.g. just-switched tab)
+    try:
+        import AppKit
+        front_pid = AppKit.NSWorkspace.sharedWorkspace().frontmostApplication().processIdentifier()
+    except Exception:
+        front_pid = -1
+    if front_pid == pid:
+        onscreen = CGWindowListCopyWindowInfo(1, kCGNullWindowID) or []  # kCGWindowListOptionOnScreenOnly=1
+        for w in onscreen:
+            if w.get('kCGWindowLayer', -1) == 0 and w.get('kCGWindowOwnerPID', -1) == pid:
+                return w.get('kCGWindowNumber', 0)
+    return 0
+
+
+def _cgimage_to_jpeg(img, max_w):
+    """Scale a CGImage down to max_w and encode as JPEG bytes. None on failure."""
+    from Quartz import CGImageGetWidth, CGImageGetHeight
+    from Cocoa import NSImage, NSBitmapImageRep
+    from AppKit import NSBitmapImageFileTypeJPEG, NSImageCompressionFactor
+    w, h = CGImageGetWidth(img), CGImageGetHeight(img)
+    if w < 2 or h < 2:
+        return None
+    scale = min(1.0, float(max_w) / float(w))
+    tw, th = max(1, int(w * scale)), max(1, int(h * scale))
+    rep = NSBitmapImageRep.alloc().initWithCGImage_(img)
+    if not rep:
+        return None
+    src = NSImage.alloc().initWithSize_((float(w), float(h)))
+    src.addRepresentation_(rep)
+    out = NSImage.alloc().initWithSize_((float(tw), float(th)))
+    out.lockFocus()
+    src.drawInRect_fromRect_operation_fraction_(
+        ((0.0, 0.0), (float(tw), float(th))), ((0.0, 0.0), (float(w), float(h))), 2, 1.0)
+    out.unlockFocus()
+    tiff = out.TIFFRepresentation()
+    if not tiff:
+        return None
+    rep2 = NSBitmapImageRep.imageRepWithData_(tiff)
+    if not rep2:
+        return None
+    data = rep2.representationUsingType_properties_(NSBitmapImageFileTypeJPEG, {NSImageCompressionFactor: 0.65})
+    return bytes(data) if data else None
+
+
+def capture_window_thumbnail(pid, title, max_w=256):
+    """Capture a window screenshot as JPEG bytes scaled to max_w. None on failure.
+    Requires Screen Recording permission (kCGWindowName visibility)."""
+    if not _has_screen_capture():
+        return None
+    try:
+        from Quartz import (CGWindowListCreateImage, CGRectNull,
+                            kCGWindowListOptionIncludingWindow, kCGWindowImageBoundsIgnoreFraming)
+        wid = _resolve_cg_window_id(pid, title)
+        if not wid:
+            _ax_log.info(f"[THUMB] no CG window for pid={pid} title={str(title)[:40]!r}")
+            return None
+        img = CGWindowListCreateImage(CGRectNull, kCGWindowListOptionIncludingWindow,
+                                      wid, kCGWindowImageBoundsIgnoreFraming)
+        if img is None:
+            _ax_log.info(f"[THUMB] CGWindowListCreateImage returned None for wid={wid}")
+            return None
+        return _cgimage_to_jpeg(img, max_w)
+    except Exception as e:
+        _ax_log.info(f"[THUMB] capture failed pid={pid}: {e}")
+        return None
+
+
 def _as_tabs_for_app(bundle_id, window_count):
     """Fetch tabs via AppleScript for all windows of a browser app.
     Works cross-Space (unlike AX). Returns list of tab items or None on failure.

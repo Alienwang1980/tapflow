@@ -18,7 +18,7 @@
 		</data>
 		<key>Resources/client/editor.html</key>
 		<data>
-		PGArdpsgv0R3PRdKZfjdcaveUYw=
+		FCrrzvGvQe+QDDvJEoP7OwqEbwk=
 		</data>
 		<key>Resources/client/fonts/PressStart2P.woff2</key>
 		<data>
@@ -4110,7 +4110,7 @@
 		</data>
 		<key>Resources/lib/python312.zip</key>
 		<data>
-		bi2qRx0aafSnwZk5igqTZKgFiro=
+		51w24gCDmgCKa2G26HasofcW7LE=
 		</data>
 		<key>Resources/openssl.ca/cert.pem</key>
 		<data>
@@ -4134,7 +4134,7 @@
 		</data>
 		<key>Resources/tray_app.py</key>
 		<data>
-		tUmpr+3Nz+hgliB2mbOzCTH7RtI=
+		HvPe7kqCyhE/PGTYz4zj4uw0n3M=
 		</data>
 		<key>Resources/zlib.cpython-312-darwin.so</key>
 		<data>
@@ -4197,10 +4197,10 @@
 		<dict>
 			<key>cdhash</key>
 			<data>
-			PO7kWKWAinlnOy/TVjhk/aDDug0=
+			b1XqqxLclhuRgUlDQkkYAd7q5OQ=
 			</data>
 			<key>requirement</key>
-			<string>cdhash H"3ceee458a5808a79673b2fd3563864fda0c3ba0d"</string>
+			<string>cdhash H"6f55eaab12dc961b9181494342491801deeae4e4"</string>
 		</dict>
 		<key>Resources/PythonApplet.icns</key>
 		<dict>
@@ -4227,7 +4227,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			u6p9aMYk2BRL0i9htdeAlVzaYlbGmMex9/8TS/ELSVU=
+			3CYzRYOAwGWWku3yFCRvGRzhfcaCrf6RR9/zNvpWP/8=
 			</data>
 		</dict>
 		<key>Resources/client/fonts/PressStart2P.woff2</key>
@@ -11393,7 +11393,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			O/1cZTimltg/lfkA5MDWvZFyQgbmGGinqDd6+miWoEo=
+			pZ6D0cJwBpirsxgZk7sfnStPJJ5QKGA/LZLiqWWA+Kk=
 			</data>
 		</dict>
 		<key>Resources/openssl.ca/cert.pem</key>
@@ -11435,7 +11435,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			rH8sT0eu7caIMf+8kRXEjvqr2Vmxv/doE/VKN6+mOp0=
+			hQXOsMqbIIM/VsLBEyntjoE7dwV/CEwjzstE2tWNjuY=
 			</data>
 		</dict>
 		<key>Resources/zlib.cpython-312-darwin.so</key>

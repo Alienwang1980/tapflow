@@ -557,6 +557,34 @@ def run_server():
         except Exception as e:
             return {"success": False, "error": str(e)}
 
+    # ── Window Thumbnail (JPEG capture, server-side cache) ──
+    _thumb_cache = {}  # {(pid, title_lower): (jpeg_bytes, ts)}
+    _THUMB_TTL = 60.0
+    _THUMB_PRUNE_AGE = 600.0
+
+    @app.get("/api/system/window-thumbnail")
+    def _sys_win_thumb(pid: int = 0, title: str = "", refresh: int = 0):
+        # def (not async): capture blocks on CGWindowList — runs in thread pool
+        import time as _tt
+        from fastapi.responses import Response as _Resp, JSONResponse as _JResp
+        if not pid or not title.strip():
+            return _JResp({"error": "missing pid/title"}, status_code=400)
+        key = (pid, title.strip().lower())
+        now = _tt.time()
+        hit = _thumb_cache.get(key)
+        if hit and not refresh and now - hit[1] < _THUMB_TTL:
+            return _Resp(content=hit[0], media_type="image/jpeg")
+        from ax_bridge import capture_window_thumbnail
+        data = capture_window_thumbnail(pid, title)
+        if not data:
+            if hit:  # stale beats nothing (window may be on another Space now)
+                return _Resp(content=hit[0], media_type="image/jpeg")
+            return _JResp({"error": "capture failed"}, status_code=404)
+        _thumb_cache[key] = (data, now)
+        for k in [k for k, v in _thumb_cache.items() if now - v[1] > _THUMB_PRUNE_AGE]:
+            _thumb_cache.pop(k, None)
+        return _Resp(content=data, media_type="image/jpeg")
+
     # ── Window Shortcuts (keyboard only, no osascript) ──
 
     @app.post("/api/system/window/fullscreen")
