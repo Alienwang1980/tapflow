@@ -119,8 +119,9 @@ smart-touch-panel/
 
 ## 7. 已知问题 / 技术债
 
-### 🔴 P0：使用时每 5 秒卡顿（触控数据不连续）— 已定位，待修
+### ✅ P0（已修复 2026-07-14，commit `258bbee`）：使用时每 5 秒卡顿（触控数据不连续）
 **根因**：前端每 5s 的窗口/菜单轮询，打到会**阻塞 event loop** 的后端端点。
+**修复**：见 §8 三条已全部实施。服务端验证——4 线程持续轰炸慢 osascript 端点(current-menus/all-windows)期间，快端点(active-profile)延迟仅 2–7ms(此前会排队等 osascript)→ event loop 不再被阻塞。iPad 实机 60s 滑动验收待用户确认。
 
 实测证据（分析用户实际使用时的 `/tmp/stp_ws.log`，7411 条 / 652s）：
 | 观测 | 数据 |
@@ -131,8 +132,8 @@ smart-touch-panel/
 
 **机制**：uvicorn 单进程单 event loop，WebSocket 触控与 HTTP 路由共用一个 loop。`async def` 路由里的同步 osascript 会把整个 loop 堵住最多 3s，其间 117 条/秒的触控全部积压 → 光标停顿、数据不连续，**恰好每 5s 一次**。修复方案见 §8。
 
-### 🟠 P1：调试日志残留（性能 + 隐私）
-`main.py:415-419`：**每一条** WebSocket 消息（含每次触控 move）都同步 `open/write/close` + `json.dumps` 写 `/tmp/stp_ws.log`。已堆 961K / 7411 行，含全部触控/按键明文。属上个会话调试残留，应删除。
+### ✅ P1（已删除 2026-07-14）：调试日志残留（性能 + 隐私）
+~~`main.py:415-419`：**每一条** WebSocket 消息（含每次触控 move）都同步 `open/write/close` + `json.dumps` 写 `/tmp/stp_ws.log`~~。已随 P0 第 2 条删除（commit `258bbee`）。
 
 ### 🟠 P1：keep_alive 端口与配置漂移
 `keep_alive.sh:6` **硬编码 `PORT=8082`**，用 `lsof -ti:8082` 判活。但 `tray_app.py` 支持 config.json / `STP_PORT` 改端口。**一旦用户改了端口**：守护脚本仍查 8082 → 永远查不到 → 每 10s 误判「服务已死」并重复拉起 → 端口冲突/进程抖动。修复：keep_alive 应从同一 config.json / STP_PORT 解析端口。
@@ -147,7 +148,7 @@ arm64-only（Intel 不可运行）；adhoc 未公证 → 目标机需手动解�
 
 ## 8. 性能改进计划（P0 卡顿修复 + 减负）
 
-> 状态：**已定位、已评审、待用户批准后实施**。分三条，第 1 条治本、第 2 条清理、第 3 条减负。
+> 状态：**✅ 已实施并验证（2026-07-14，commit `258bbee`）**。分三条，第 1 条治本、第 2 条清理、第 3 条减负。
 
 ### 第 1 条 · 治本：阻塞路由 `async def` → `def`
 把这些「体内无 `await`、却跑同步 osascript」的 GET 路由改为普通 `def`——FastAPI 会自动把 `def` 路由丢到线程池执行，**不再阻塞 event loop**，触控立即恢复流畅。行为完全等价，只换执行线程。

@@ -10,7 +10,7 @@
 		</data>
 		<key>Resources/__boot__.py</key>
 		<data>
-		pScv0xJkl/7tntPZxzA1VpMVoXc=
+		Qijxc+kyGOrDQ+iwyLkVMToqJV4=
 		</data>
 		<key>Resources/__error__.sh</key>
 		<data>
@@ -18,7 +18,7 @@
 		</data>
 		<key>Resources/client/editor.html</key>
 		<data>
-		wQ+G6fb15cOSrUT6Gd9WpUYa92A=
+		vSkJHo5RMHeed/Yu44vufBZqNbc=
 		</data>
 		<key>Resources/client/fonts/PressStart2P.woff2</key>
 		<data>
@@ -38,7 +38,7 @@
 		</data>
 		<key>Resources/client/index.html</key>
 		<data>
-		T2I7DvSONN1Fi174GeQYqmPzxTY=
+		wCZt+4FjgBG3P++6QULH7nPkOgs=
 		</data>
 		<key>Resources/client/voice-off.svg</key>
 		<data>
@@ -2020,50 +2020,6 @@
 		<data>
 		mNOc3QaYX76mWzFf7/6eNeWwHdk=
 		</data>
-		<key>Resources/lib/python3.12/h11/__pycache__/__init__.cpython-312.pyc</key>
-		<data>
-		YkFS2rUf+nO4gXnbhIdx3JVTmgU=
-		</data>
-		<key>Resources/lib/python3.12/h11/__pycache__/_abnf.cpython-312.pyc</key>
-		<data>
-		2YrNZ0awAWAEYbAE0t2yycVNqqY=
-		</data>
-		<key>Resources/lib/python3.12/h11/__pycache__/_connection.cpython-312.pyc</key>
-		<data>
-		vgTD9xDgVC5NFhjj/bWeMJyKIKU=
-		</data>
-		<key>Resources/lib/python3.12/h11/__pycache__/_events.cpython-312.pyc</key>
-		<data>
-		RszQs4e0KDbVeBtJu3t6oWkwuDU=
-		</data>
-		<key>Resources/lib/python3.12/h11/__pycache__/_headers.cpython-312.pyc</key>
-		<data>
-		kGEn9yqzL/a8/baBOLINjQWo3/g=
-		</data>
-		<key>Resources/lib/python3.12/h11/__pycache__/_readers.cpython-312.pyc</key>
-		<data>
-		HX6tOYDCypskPWQiBLtlnFoH6so=
-		</data>
-		<key>Resources/lib/python3.12/h11/__pycache__/_receivebuffer.cpython-312.pyc</key>
-		<data>
-		IDmGLR/e4iKQHAL5xVLcDYQQUA8=
-		</data>
-		<key>Resources/lib/python3.12/h11/__pycache__/_state.cpython-312.pyc</key>
-		<data>
-		9grqo61s5pwVRYnHGrVkTI08zn4=
-		</data>
-		<key>Resources/lib/python3.12/h11/__pycache__/_util.cpython-312.pyc</key>
-		<data>
-		M9bbEsTo+GDyT8TXW0jZLwxIJjo=
-		</data>
-		<key>Resources/lib/python3.12/h11/__pycache__/_version.cpython-312.pyc</key>
-		<data>
-		4Mq/4fBqtFTCHpciRDxXdYuhS7M=
-		</data>
-		<key>Resources/lib/python3.12/h11/__pycache__/_writers.cpython-312.pyc</key>
-		<data>
-		wPrSw0U+OaKNPXFfRdIuC/rgiEQ=
-		</data>
 		<key>Resources/lib/python3.12/h11/_abnf.py</key>
 		<data>
 		5GtQfnnf3IJO93DwWok8wMiuRBc=
@@ -2419,10 +2375,6 @@
 		<key>Resources/lib/python3.12/multipart/__init__.py</key>
 		<data>
 		Zm4XhntxpwyO3/dsWf0tzqvFZrY=
-		</data>
-		<key>Resources/lib/python3.12/multipart/__pycache__/__init__.cpython-312.pyc</key>
-		<data>
-		DWyB8pa7Oa8FWP3j/DFDpzKzcx4=
 		</data>
 		<key>Resources/lib/python3.12/multipart/decoders.py</key>
 		<data>
@@ -10450,7 +10402,7 @@
 		</data>
 		<key>Resources/lib/python312.zip</key>
 		<data>
-		ASszM69bLf0Gv7sWFy1aka4i8eI=
+		VjjyBwaHggMN3L6FT7Il4JrGIJY=
 		</data>
 		<key>Resources/openssl.ca/cert.pem</key>
 		<data>
@@ -10470,11 +10422,11 @@
 		</data>
 		<key>Resources/site.pyc</key>
 		<data>
-		icln1WEg5djGtN4FGbGln5+gquU=
+		FtE/F4qJuYbtTD8JGXHnaJc79ao=
 		</data>
 		<key>Resources/tray_app.py</key>
 		<data>
-		ilYKv7hzdNIvrH5ptKvRSbjQF/s=
+		hbQGdYE/YVt0PGXplaZNDptMEyk=
 		</data>
 		<key>Resources/zlib.cpython-312-darwin.so</key>
 		<data>
@@ -10553,7 +10505,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			NDvm6cICznrvttKVsf+sDUYE87p/w93xlcuXx2yLuts=
+			H7h6uyJAlPYxTsIQaz9Ai2fvRFIIoxC9awyfEJjXRMo=
 			</data>
 		</dict>
 		<key>Resources/__error__.sh</key>
@@ -10567,7 +10519,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			RXx94roVLKbcf19AFOAdgGxMLEb9CVXYwuJVGitZrF8=
+			FRDgF7hm8UFwtbXsv1aOObXsOuNAcqRNgi1Ta2KeV3c=
 			</data>
 		</dict>
 		<key>Resources/client/fonts/PressStart2P.woff2</key>
@@ -10602,7 +10554,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			lDpSF5cxI4/zKcAQFsz+1Pb7oBg6AvgK2tfhcyR8CGg=
+			uOQ4LizICuJzi/p0QW39NSOcPdlQb8yizncNGp+eO8I=
 			</data>
 		</dict>
 		<key>Resources/client/voice-off.svg</key>
@@ -14070,83 +14022,6 @@
 			iO1KzkSO42yZ6ffg+VMgbx/ZVTWGUY00nRYEWn+s3kY=
 			</data>
 		</dict>
-		<key>Resources/lib/python3.12/h11/__pycache__/__init__.cpython-312.pyc</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			DWPWq1peAIRCpGW0QJG/eRt397vzw/INuP1NyD3TH9Q=
-			</data>
-		</dict>
-		<key>Resources/lib/python3.12/h11/__pycache__/_abnf.cpython-312.pyc</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			OEYb8VFCyaYBNLM+8QKxUIPRp2v1o+gi7yuKXkZf1RE=
-			</data>
-		</dict>
-		<key>Resources/lib/python3.12/h11/__pycache__/_connection.cpython-312.pyc</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			Ap0YLPRUA+dek1GNqkhXW5yXUvswO3XQTtZNYP8OSQA=
-			</data>
-		</dict>
-		<key>Resources/lib/python3.12/h11/__pycache__/_events.cpython-312.pyc</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			z1zUMs3MEoqTh/GQDfnv6Jm8wJy3R+juOkolcUATulA=
-			</data>
-		</dict>
-		<key>Resources/lib/python3.12/h11/__pycache__/_headers.cpython-312.pyc</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			becb23gYbw/2VL4tHS/mU8ZRO2sVibuRcTUmZNMoJ0o=
-			</data>
-		</dict>
-		<key>Resources/lib/python3.12/h11/__pycache__/_readers.cpython-312.pyc</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			S65h0JD21onuV7n5cxbKpmKragO71hcL5u0/iLoNJnM=
-			</data>
-		</dict>
-		<key>Resources/lib/python3.12/h11/__pycache__/_receivebuffer.cpython-312.pyc</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			v6umt+1woYL4VfcjmQ4BIxLw8Kb8hvchmp3YUkWi9qU=
-			</data>
-		</dict>
-		<key>Resources/lib/python3.12/h11/__pycache__/_state.cpython-312.pyc</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			4j4nFl0dBNPHAOXKSWMJCoB8rgynOTsA9t5TES3SpE0=
-			</data>
-		</dict>
-		<key>Resources/lib/python3.12/h11/__pycache__/_util.cpython-312.pyc</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			JTNCAUNNjJuSHG5Wcn00mBT/3Ix1s9JiedbWWCvNuXg=
-			</data>
-		</dict>
-		<key>Resources/lib/python3.12/h11/__pycache__/_version.cpython-312.pyc</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			zj1ecRoXK91IUVT0nz5VOC1ElRwojL3XgGDTWRm0fQ4=
-			</data>
-		</dict>
-		<key>Resources/lib/python3.12/h11/__pycache__/_writers.cpython-312.pyc</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			iunzC/g6RiUAqEgK4rQPuJqQGOJ3mgLtImS0gXQPSas=
-			</data>
-		</dict>
 		<key>Resources/lib/python3.12/h11/_abnf.py</key>
 		<dict>
 			<key>hash2</key>
@@ -14768,13 +14643,6 @@
 			<key>hash2</key>
 			<data>
 			gbY7W9NUdsFZavp+iKQroN4FxonfZqzokkLW5B3jnZ0=
-			</data>
-		</dict>
-		<key>Resources/lib/python3.12/multipart/__pycache__/__init__.cpython-312.pyc</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			e+gIB692gl9m53BiUIdcBumpMz3FBTU/H/lhRl1zeuk=
 			</data>
 		</dict>
 		<key>Resources/lib/python3.12/multipart/decoders.py</key>
@@ -28828,7 +28696,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			PrQP6mbFJ/edHmxZL0cDbK2+1A80X5+zaU4K5d64VpM=
+			yZuU7dDB6kCZumqfPkuHHnMHdrtQzOwSmXA397fIFRg=
 			</data>
 		</dict>
 		<key>Resources/openssl.ca/cert.pem</key>
@@ -28863,14 +28731,14 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			sRaGU5aFz2MOTiCCWfaB/vwnZ8e89bVYNjpw1/NrwgQ=
+			wjW2sae5Dr1sZSSy7YG4uWIrd5SAjsUuq7kovkio+OU=
 			</data>
 		</dict>
 		<key>Resources/tray_app.py</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			T9vwYKe5sH9//VRCDtI+yYLX6YWGdnkCkHc/vDDWv5s=
+			o7v+IK1CMtcyIzH+344s6195onMypdHcRF6RfMIKeY8=
 			</data>
 		</dict>
 		<key>Resources/zlib.cpython-312-darwin.so</key>
