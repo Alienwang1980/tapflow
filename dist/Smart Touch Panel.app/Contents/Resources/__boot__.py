@@ -61,7 +61,7 @@ def _site_packages(prefix, real_prefix, global_site_packages):
         )
 
 
-_site_packages('/Volumes/WD_BLACK/Claude/projects/smart-touch-panel/server/venv', '/opt/homebrew/opt/python@3.12', 0)
+_site_packages('/Volumes/WD_BLACK/Claude/projects/smart-touch-panel/.venv', '/opt/homebrew/opt/python@3.12', 0)
 
 def _chdir_resource():
     import os
@@ -184,7 +184,7 @@ def _recipes_pil_prescript(plugins):
     Image.init = init
 
 
-_recipes_pil_prescript(['ImtImagePlugin', 'PsdImagePlugin', 'IcnsImagePlugin', 'GribStubImagePlugin', 'QoiImagePlugin', 'DdsImagePlugin', 'FtexImagePlugin', 'XpmImagePlugin', 'PixarImagePlugin', 'JpegImagePlugin', 'GbrImagePlugin', 'FliImagePlugin', 'MicImagePlugin', 'WebPImagePlugin', 'XbmImagePlugin', 'GifImagePlugin', 'SpiderImagePlugin', 'PcdImagePlugin', 'TgaImagePlugin', 'XVThumbImagePlugin', 'MpoImagePlugin', 'IcoImagePlugin', 'ImImagePlugin', 'BmpImagePlugin', 'PcxImagePlugin', 'Jpeg2KImagePlugin', 'BlpImagePlugin', 'AvifImagePlugin', 'DcxImagePlugin', 'PngImagePlugin', 'BufrStubImagePlugin', 'SunImagePlugin', 'SgiImagePlugin', 'FitsImagePlugin', 'PdfImagePlugin', 'PpmImagePlugin', 'IptcImagePlugin', 'MspImagePlugin', 'PalmImagePlugin', 'WmfImagePlugin', 'McIdasImagePlugin', 'FpxImagePlugin', 'TiffImagePlugin', 'MpegImagePlugin', 'EpsImagePlugin', 'CurImagePlugin', 'Hdf5StubImagePlugin'])
+_recipes_pil_prescript(['IptcImagePlugin', 'BlpImagePlugin', 'PalmImagePlugin', 'PsdImagePlugin', 'IcnsImagePlugin', 'PcxImagePlugin', 'JpegImagePlugin', 'FtexImagePlugin', 'MpegImagePlugin', 'WebPImagePlugin', 'MspImagePlugin', 'SpiderImagePlugin', 'BufrStubImagePlugin', 'DcxImagePlugin', 'GbrImagePlugin', 'McIdasImagePlugin', 'WmfImagePlugin', 'SunImagePlugin', 'TiffImagePlugin', 'PngImagePlugin', 'PcdImagePlugin', 'PixarImagePlugin', 'FliImagePlugin', 'MpoImagePlugin', 'GifImagePlugin', 'FpxImagePlugin', 'XpmImagePlugin', 'FitsImagePlugin', 'ImtImagePlugin', 'TgaImagePlugin', 'Hdf5StubImagePlugin', 'IcoImagePlugin', 'ImImagePlugin', 'DdsImagePlugin', 'BmpImagePlugin', 'EpsImagePlugin', 'XbmImagePlugin', 'QoiImagePlugin', 'GribStubImagePlugin', 'PdfImagePlugin', 'SgiImagePlugin', 'CurImagePlugin', 'MicImagePlugin', 'AvifImagePlugin', 'Jpeg2KImagePlugin', 'PpmImagePlugin', 'XVThumbImagePlugin'])
 
 
 def _setup_ctypes():
