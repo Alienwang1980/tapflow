@@ -228,11 +228,11 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
         <div id="profList"></div>
       </div>
       <div class="rp-section">
-        <h3>Pages</h3>
+        <h3>Profile Properties</h3>
         <div id="pgl"></div>
         <div style="margin-top:6px"><div style="display:flex;align-items:center;gap:4px"><label style="font-size:10px;color:var(--dim);white-space:nowrap">Pat</label><select id="pagePat" onchange="upkPagePattern(this.value)" style="flex:1;height:22px;font-size:10px;padding:0 2px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:3px"><option value="none">No Pattern</option><option value="topography">Topography</option><option value="circuit">Circuit</option><option value="dots">Dots</option><option value="diagonal">Diagonal</option><option value="hexagon">Hexagon</option><option value="grid">Grid</option><option value="triangles">Triangles</option><option value="topo">Topography</option><option value="waves">Waves</option></select><input type="color" id="pagePatColor" value="#ffffff" onchange="upkPagePatternColor(this.value)" style="width:22px;height:22px;padding:0;border:1px solid var(--border);border-radius:3px;cursor:pointer;background:transparent"><button onclick="upkPagePatternSize(-10)" style="width:20px;height:22px;font-size:12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:3px;cursor:pointer;line-height:1">-</button><span id="pagePatSz" style="font-size:10px;color:var(--dim);min-width:20px;text-align:center">60</span><button onclick="upkPagePatternSize(10)" style="width:20px;height:22px;font-size:12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:3px;cursor:pointer;line-height:1">+</button></div></div>
         <div style="margin-top:6px;display:flex;align-items:center;gap:6px"><label style="font-size:10px;color:var(--dim);white-space:nowrap">BG</label><input type="color" id="pageBg" value="#1a1a2e" onchange="upkPageBg(this.value)" style="width:26px;height:22px;padding:0;border:1px solid var(--border);border-radius:3px;cursor:pointer;background:transparent"></div>
-        <button onclick="apg()" style="margin-top:6px;width:100%;padding:5px;font-size:11px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer">+ New Page</button>
+
       </div>
       <div class="rp-section" id="rp-ratio-sec">
         <h3>显示比例</h3>
