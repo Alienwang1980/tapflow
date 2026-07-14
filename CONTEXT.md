@@ -1,257 +1,445 @@
-# Smart Touch Panel — 项目现状与改进计划（CONTEXT）
+# Smart Touch Panel — 项目全貌（CONTEXT）
 
-> 本文档为项目领域知识 + 现状快照 + 待办计划，供后续开发（含 AI）在动代码前**优先阅读**。
-> 生成时间：2026-07-15 ｜ 对应 commit：`5343d8c` ｜ 全部内容基于源码实测，非推测。
+> 本文档为项目领域知识 + 完整现状快照 + 待办计划。后续开发（含 AI）动代码前**必须优先阅读**。
+> 最后更新：2026-07-15 ｜ 对应 commit：`b78111f`（即将提交） ｜ 全部数据基于 2026-07-15 实测
 
 ---
 
 ## 1. 项目是什么
 
-Smart Touch Panel（STP）是一个 **macOS 菜单栏应用**：在 Mac 上起一个 HTTP + WebSocket 服务（默认端口 **8082**），iPad / 平板用浏览器连入后，屏幕即变成一块可自定义的**虚拟触控控制面板**——触控板、自定义按键、宏、方形摇杆、窗口切换器、Dock、音量/麦克风、应用菜单等。所有触控/按键最终通过 macOS Quartz CGEvent 注入系统，模拟真实输入。
+Smart Touch Panel（STP）是一个 **macOS 菜单栏应用**：在 Mac 上起一个 HTTP + WebSocket 服务（端口 **8082**），iPad 用浏览器连入后，屏幕变成可自定义的**虚拟触控控制面板**。所有触控/按键通过 macOS Quartz CoreGraphics `CGEvent` 注入系统，模拟真实键鼠输入。
 
-- 平台：仅 Apple Silicon（arm64）。
-- 连接：Mac 与 iPad 同一局域网，iPad 打开 `http://<Mac-IP>:8082`，编辑器在 `/editor`。
-- 两种形态：
-  1. **生产运行 = 从源码跑**（`start.sh` / `keep_alive.sh` + cron @reboot 守护）——这是本机日常使用的形态。
-  2. **可分发 .app = py2app 打包产物**（`dist/` 内，另导出为桌面 zip），用于装到任意 arm64 Mac。
+- **平台**：仅 Apple Silicon（arm64），macOS 15 Sequoia
+- **连接**：iPad 与 Mac 同一局域网，iPad 打开 `http://<Mac-IP>:8082`，编辑器 `/editor`
+- **编辑器**：必须用 **Safari** 打开（macOS 原生颜色选择器），Chrome 不支持
+- **两种运行形态**：
+  1. **生产**：源码 `start.sh` / `keep_alive.sh` + cron `@reboot` 守护（本机日常使用）
+  2. **分发**：py2app 打包 `.app`（`dist/`），可装到任意 arm64 Mac
 
----
-
-## 2. 技术栈
-
-| 层 | 技术 |
-|---|---|
-| Web 框架 | FastAPI + Starlette |
-| ASGI 服务器 | uvicorn（**单进程、单 event loop**——本文档最关键的架构约束） |
-| 实时通道 | WebSocket（触控/按键低延迟下发） |
-| 输入模拟 | Quartz CoreGraphics `CGEvent`（键盘/鼠标事件注入） |
-| 系统集成 | PyObjC（AppKit / Quartz / Foundation）、`osascript`（AppleScript，取浏览器 tab、菜单、窗口平铺） |
-| 菜单栏 GUI | pystray（`LSUIElement=True`，无 Dock 图标） |
-| 服务发现 | zeroconf（mDNS 广播） |
-| 打包 | py2app（arm64、adhoc 签名） |
-| 运行时 | Python 3.12 |
+**当前运行状态（2026-07-15）**：`.app` 版正在运行（pid 在 `lsof -ti:8082`），端口 8082，Mac IP `192.168.2.20`。
 
 ---
 
-## 3. 目录结构与模块职责
+## 2. 技术栈与规模
+
+| 层 | 技术 | 规模 |
+|---|---|---|
+| Web 框架 | FastAPI + Starlette | — |
+| ASGI | uvicorn（**单进程、单 event loop**） | — |
+| 实时通道 | WebSocket | 触控/按键低延迟下发 |
+| 输入模拟 | Quartz CoreGraphics `CGEvent` | `input_engine.py` 251 行 |
+| 系统集成 | PyObjC (AppKit/Quartz/Foundation)、osascript | `ax_bridge.py` 816 行 |
+| 菜单栏 | pystray (`LSUIElement=True`，无 Dock 图标) | `tray_app.py` 950 行 |
+| 服务发现 | zeroconf (mDNS) | — |
+| 打包 | py2app (arm64, adhoc 签名) | `setup.py` |
+| 运行时 | Python 3.12（`.venv`） | — |
+
+**代码量**：
+
+| 文件 | 行数 | 职责 |
+|------|------|------|
+| `client/index.html` | 387 | iPad 主面板（单文件，压缩长行，canvas 渲染） |
+| `client/editor.html` | 1,333 | 面板编辑器（拖拽布局、控件属性、按键绑定） |
+| `server/tray_app.py` | 950 | ★ 入口：菜单栏 app + 端口解析 + `/api/system/*` 路由 |
+| `server/ax_bridge.py` | 816 | 窗口/tab/菜单枚举（CGWindowList + osascript） |
+| `server/main.py` | 479 | FastAPI app、WebSocket 主循环、静态文件 |
+| `server/input_engine.py` | 251 | CGEvent 键鼠模拟 |
+| `server/profile_manager.py` | 179 | Profile 读写、迁移、窗口规则匹配 |
+| `server/window_watcher.py` | 119 | 前台 app 切换监听（NSWorkspace 通知） |
+| `server/system_control.py` | 108 | 音量/麦克风/音频设备 |
+| `server/balance_poller.py` | 62 | DeepSeek 余额轮询 |
+| `server/connection_manager.py` | 47 | WebSocket 连接池 |
+| `server/widget_extension.py` | 40 | 额外 API 端点 |
+| `server/editor_app.py` | 16 | 打开编辑器（Safari） |
+| **总计** | **~4,800** | |
+
+---
+
+## 3. 目录结构
 
 ```
 smart-touch-panel/
-├── server/                    # 后端（Python，共 ~3072 行）
-│   ├── main.py         (484)  # FastAPI app、路由、WebSocket 主循环、生命周期
-│   ├── tray_app.py     (950)  # ★ 入口。菜单栏 app + 端口解析 + 绝大多数 /api/system/* 路由
-│   ├── ax_bridge.py    (816)  # 窗口/浏览器 tab/菜单枚举（CGWindowList + osascript）
-│   ├── input_engine.py (251)  # CGEvent 键鼠模拟（move/scroll/click/按键/组合键）
-│   ├── profile_manager.py(179)# 面板配置（profile）读写、迁移、窗口规则匹配
-│   ├── window_watcher.py(119) # 前台 app 切换监听（NSWorkspace 通知）
-│   ├── system_control.py(108) # 音量/麦克风/音频设备（osascript + SwitchAudioSource）
-│   ├── balance_poller.py (62) # DeepSeek 余额轮询（30s）→ WebSocket 广播
-│   ├── connection_manager.py(47)# WebSocket 客户端连接池、send_to/broadcast
-│   ├── widget_extension.py(40)# 额外 API（active-profile、balance）
-│   ├── editor_app.py     (16) # 打开编辑器页
-│   └── profiles/              # 面板配置 JSON（*.json 被 gitignore，仅 _default_template.json 入库）
-├── client/                    # 前端（浏览器端，纯静态）
-│   ├── index.html     (386)   # ★ iPad 主面板。单文件，高度压缩（minified 长行），canvas 渲染所有控件
-│   ├── editor.html   (1304)   # 面板编辑器（拖拽布局、控件属性、按键绑定）
-│   ├── *.svg                  # 音量/麦克风图标
-│   └── fonts/                 # 字体
-├── setup.py                   # py2app 打包配置（依赖闭包、plist、data_files）
-├── start.sh                   # 手动启动（GUI，前台）
-├── keep_alive.sh              # 守护：10s 轮询端口，死了重启（cron @reboot）
-├── docs/                      # 历史需求/规划文档（plan-*、round-*、需求/实施计划）
-├── tools/                     # ⚠️ build.py 是地雷，见 §7
-├── build/ dist/               # py2app 产物（dist/ 入库，2000+ 文件）
-└── logs/                      # keep_alive.log / server.log / stp.pid
+├── server/                          # 后端 Python（13 文件，~3,067 行）
+│   ├── tray_app.py                  # ★ 主入口。菜单栏 GUI + 系统路由
+│   ├── main.py                      # FastAPI app、WebSocket、HTTP 路由
+│   ├── input_engine.py              # CGEvent 键鼠注入（见 §9.1 关键修复）
+│   ├── ax_bridge.py                 # macOS 辅助功能桥接（窗口/菜单/AppleScript）
+│   ├── profile_manager.py           # Profile JSON 读写 + 窗口规则匹配
+│   ├── window_watcher.py            # NSWorkspace 前台 app 切换通知
+│   ├── system_control.py            # 音量/麦克风/音频设备控制
+│   ├── balance_poller.py            # DeepSeek 余额 30s 轮询
+│   ├── connection_manager.py        # WebSocket 客户端连接池
+│   ├── widget_extension.py          # 额外 HTTP API
+│   ├── editor_app.py                # Safari 打开编辑器
+│   └── profiles/                    # 预置模板（`_default_template.json` 入库；其他 .json gitignore）
+├── client/                          # 前端纯静态
+│   ├── index.html                   # ★ iPad 主面板
+│   ├── editor.html                  # ★ 面板编辑器
+│   ├── *.svg                        # 音量/麦克风图标
+│   └── fonts/                       # PressStart2P, VT323, RussoOne
+├── setup.py                         # py2app 打包
+├── start.sh                         # 手动前台启动
+├── keep_alive.sh                    # 守护脚本（cron @reboot）
+├── docs/                            # 历史文档
+├── tools/                           # ⚠️ build.py 是地雷（见 §7）
+├── build/ dist/                     # py2app 产物（dist/ 入库）
+└── logs/                            # keep_alive.log, stp.pid
+```
+
+**用户数据目录**：`~/Library/Application Support/Smart Touch Panel/`
+
+```
+├── config.json                      # {"port": 8082}
+└── profiles/
+    ├── Default.json                 # "Keyboard" profile（68 keys, 5 windowRules, 1 page）
+    ├── Apple.json                   # "vibe" profile（22 keys, 1 page）
+    └── New Profile.json             # "test" profile（80 keys, 5 windowRules, 1 page）
 ```
 
 ---
 
-## 4. 运行与部署
+## 4. Editor 架构（`client/editor.html` 1,333 行）
 
-### 4.1 生产（本机日常）
-- `keep_alive.sh` 每 10s 用 `lsof -ti:8082` 检测端口；端口无进程 → `nohup python3 server/tray_app.py` 拉起，PID 写 `logs/stp.pid`。
-- 由 cron `@reboot` 开机自启。端口互斥保证**最多一个实例**（不会多开）。
-- 手动启动：`./start.sh`（前台，带菜单栏图标）。
+### 4.1 布局结构
 
-### 4.2 端口配置（3 种方式，优先级从高到低）
-`tray_app.py` `_resolve_port()`（约 43–60 行）：
-1. 环境变量 `STP_PORT`（1–65535）。
-2. 配置文件 `~/Library/Application Support/Smart Touch Panel/config.json` 的 `"port"`。
-3. 默认 `8082`。
-- 菜单栏「⚙️ Port … — Edit Config」直接打开 config.json。改后**重启服务生效**。
+```
+┌──────────────────────────────────────────────────────────┐
+│  左侧面板 (#lp-panel)    │    画布 (#carea)              │
+│                          │                                │
+│  Profiles                │    ┌─────────────────────┐    │
+│  ├─ profile 列表         │    │                     │    │
+│                          │    │  按钮网格 (canvas)   │    │
+│  {name} Properties       │    │                     │    │
+│  ├─ Pat 图案选择         │    │                     │    │
+│  ├─ BG 背景色            │    │                     │    │
+│                          │    └─────────────────────┘    │
+│  显示比例                │                                │
+│  ├─ 当前比例信息         │    ┌──────────────────────┐   │
+│  ├─ 预设按钮             │    │  右侧属性面板 (#rp)   │   │
+│  ├─ 自定义像素 / 横竖屏  │    │  选中 key 的属性编辑  │   │
+│                          │    └──────────────────────┘   │
+│  默认声音                │                                │
+│                          │                                │
+│  Groups                  │                                │
+│  Clipboard               │                                │
+│                          │                                │
+│  Button Library (拖拽)   │                                │
+└──────────────────────────────────────────────────────────┘
+```
 
-### 4.3 独立 .app 分发
-- 打包：`server/venv/bin/python3 setup.py py2app`（arm64，约 109M）。
-- 签名：adhoc（`codesign --force --deep --sign -`），`--verify --deep --strict` 通过。
-- 分发 zip：`ditto -c -k --sequesterRsrc --keepParent "dist/Smart Touch Panel.app" <zip>`（约 35M）。
-- 目标机首次运行需：`xattr -dr com.apple.quarantine <app>` 解隔离；授辅助功能 / 屏幕录制 / 麦克风三项权限。
-- 安装说明模板见 `~/Desktop/SmartTouchPanel-安装说明.txt`（分发时随包附带）。
+### 4.2 左侧面板初始化流程
+
+1. HTML 中所有 `.rp-section` 初始在 `#rp-profile` 内，CSS `opacity:0` 隐藏
+2. `setTimeout(200ms)` 后将它们移到 `#lp-panel` 并设 `opacity:1`
+3. 跳过 `#pl`（profile 列表模板，始终 `display:none`）
+
+### 4.3 编辑器关键变量
+
+```javascript
+let profile=null         // 当前加载的 profile 对象
+let profiles=[]          // 所有 profile 摘要列表 [{filename, profileName}, ...]
+let activeProfile=""     // 当前 active profile 文件名
+let activePage=""        // 当前选中的 page id
+let selKey=null          // 单选 key id
+let selKeys=new Set()    // 多选 key id 集合
+let panX=0, panY=0       // 画布平移偏移
+let panning=false        // 右键拖拽平移中
+let panShiftLock=null    // Shift 锁定方向 ('x'/'y'/null)
+let dirty=false          // 未保存标记
+```
+
+### 4.4 编辑器关键渲染函数
+
+| 函数 | 作用 |
+|------|------|
+| `rr()` | 渲染画布（canvas 绘制所有 key） |
+| `rpl()` | 渲染 profile 列表 + 工具栏下拉 |
+| `rpgl()` | 更新动态标题 `{name} Properties` + 同步 Pat/BG 控件 |
+| `rpr()` | 渲染右侧属性面板（根据选中 key 类型动态生成 HTML） |
+| `rgrp()` | 渲染 Groups 列表 |
+| `renderAll()` | 调用上述全部 + `updateRatioInfo()` |
+
+### 4.5 编辑器交互
+
+- **左键拖拽空白**：框选 keys
+- **右键拖拽空白**：平移画布（+ **Shift 锁定方向**：3px 阈值后锁到主方向）
+- **拖拽 key**：移动位置（带 resize 手柄 `.rh`）
+- **拖拽 Library item**：从 Button Library 拖到画布创建新 key
+- **右键点 key**：删除
+- **Ctrl+Z / Ctrl+Shift+Z**：undo / redo
 
 ---
 
-## 5. WebSocket 协议（前端 → 后端）
+## 5. iPad 面板架构（`client/index.html` 387 行）
 
-`main.py` WebSocket 主循环（约 412 行起）。消息 `type`：
+单文件 WebSocket 客户端，连接 `ws://host:8082/ws`。全部控件通过 canvas 渲染，触控事件通过 WebSocket 下发。
 
-| type | 动作 | 说明 |
-|---|---|---|
-| `touchpad` | `move` / `scroll` / `click` / `mousedown` / `mouseup` | 触控板；`move` 带 `dx/dy/drag`。每次回 `ack` |
-| `key` | 单键或 `keys[]` 序列 | 按键/宏，回 `results` |
-| `profile_saved` | 广播 profile 更新给所有客户端 | 编辑器保存后 |
-| `ping` | 回 `pong` | 心跳 |
+### 5.1 Profile 页面切换
 
-> **注意**：连接建立后默认下发 `Default.json`（`main.py:406`）。曾有「控件不显示」问题实为 profile 不匹配（控件在 A profile，iPad 加载了 Default），**非代码 bug**。
+- Profile 可含多个 page，当前只有 1 个
+- `window_watcher.py` 检测前台 app 切换 → WebSocket 推送 `page_switch` → 自动切到匹配的 page
+- windowRules 匹配逻辑在 `profile_manager.py`
 
----
+### 5.2 WebSocket 消息类型
 
-## 6. 前端控件类型（`index.html:336` 渲染分支）
-
-`volume`、`mic-mute`、`active-app`（窗口切换器）、`win-shortcuts`、`win-gesture`（**方形摇杆**：整块触控板，左/右/上/下滑=贴左/右/顶/底，轻点=铺满⇄恢复，长按=全屏）、`dock`、`app-menu`、`layout-preset`、`audio-out`、`audio-in`、`visualizer`、`balance`、`switch-profile`，以及基础 `touchpad` / 按键。
-
-**周期性轮询控件**（各自 `setInterval`）：
-- `mic-mute`（showLevel）：**50ms** 拉电平
-- `active-app`：**5000ms** → `/api/system/all-windows`
-- `app-menu`：**5000ms** → `/api/system/current-menus`
-- `audio-out` / `audio-in`：**5000ms** → `/api/system/audio-devices`
-- `balance`：30000ms → DeepSeek 余额
+| type | 方向 | 字段 | 说明 |
+|------|------|------|------|
+| `touchpad` | C→S | `action, dx, dy, drag` | 触控板操作 |
+| `key` | C→S | `key` 或 `keys[]` | 按键/宏 |
+| `profile_saved` | C→S | profile JSON | 编辑器保存后广播 |
+| `profile` | S→C | 完整 profile | 首次连接下发 |
+| `profile_update` | S→C | 完整 profile | 其他客户端保存后推送 |
+| `page_switch` | S→C | `page_id` | 前台 app 切换触发 |
+| `ping/pong` | 双向 | — | 心跳 |
 
 ---
 
-## 7. 已知问题 / 技术债
+## 6. 控件类型总览
 
-### ✅ P0（已修复 2026-07-14，commit `258bbee`）：使用时每 5 秒卡顿（触控数据不连续）
-**根因**：前端每 5s 的窗口/菜单轮询，打到会**阻塞 event loop** 的后端端点。
-**修复**：见 §8 三条已全部实施。服务端验证——4 线程持续轰炸慢 osascript 端点(current-menus/all-windows)期间，快端点(active-profile)延迟仅 2–7ms(此前会排队等 osascript)→ event loop 不再被阻塞。iPad 实机 60s 滑动验收待用户确认。
+`index.html` 渲染分支支持的控件 `action`：
 
-实测证据（分析用户实际使用时的 `/tmp/stp_ws.log`，7411 条 / 652s）：
-| 观测 | 数据 |
-|---|---|
-| 触控管道本身 | `touchpad` 相邻间隔中位 **9ms（~117 条/秒）**，连续段流畅 |
-| 前端轮询 | `index.html:336` 两个 `5000ms` interval（窗口切换器、菜单） |
-| 阻塞端点 | `tray_app.py` `/api/system/all-windows`(533)、`/api/system/current-menus`(696)、`/api/system/current-app-windows`(514) 均为 **`async def` + 同步 `subprocess.run(osascript, timeout=3)`** |
+| action | 说明 | 特殊 UI |
+|--------|------|---------|
+| `touchpad` | 触控板区域 | 手势识别 |
+| `turbo` | 普通按键 | 字体/颜色/圆角可配 |
+| `macro` | 组合键宏 | `LCONTROL+LSHIFT+A` 格式 |
+| `volume` | 音量滑块 | 横向/纵向，tap=mute |
+| `mic-mute` | 麦克风静音 + 电平显示 | 50ms 高频轮询 |
+| `active-app` | 窗口切换器 | 5s 轮询窗口列表 |
+| `win-shortcuts` | 窗口管理快捷按钮 | 置顶/铺满/左半/右半 |
+| `win-gesture` | **方形摇杆** | 滑动=贴边，轻点=铺满⇄恢复，长按=全屏 |
+| `dock` | 系统 Dock | 固定布局 |
+| `app-menu` | 当前 app 菜单栏 | 5s 轮询 |
+| `layout-preset` | 布局预设 | 窗口排列模板 |
+| `audio-out` | 输出设备切换 | 5s 轮询 |
+| `audio-in` | 输入设备切换 | 5s 轮询 |
+| `visualizer` | 音频可视化 | 4×2 频谱 |
+| `balance` | DeepSeek 余额 | 30s 轮询 |
+| `switch-profile` | 切换 profile | tap=切 profile, long press=另一个 |
 
-**机制**：uvicorn 单进程单 event loop，WebSocket 触控与 HTTP 路由共用一个 loop。`async def` 路由里的同步 osascript 会把整个 loop 堵住最多 3s，其间 117 条/秒的触控全部积压 → 光标停顿、数据不连续，**恰好每 5s 一次**。修复方案见 §8。
+**轮询频率汇总**：
 
-### ✅ P1（已删除 2026-07-14）：调试日志残留（性能 + 隐私）
-~~`main.py:415-419`：**每一条** WebSocket 消息（含每次触控 move）都同步 `open/write/close` + `json.dumps` 写 `/tmp/stp_ws.log`~~。已随 P0 第 2 条删除（commit `258bbee`）。
+| 控件 | 间隔 | 端点 |
+|------|------|------|
+| `mic-mute` (showLevel) | **50ms** | `/api/system/mic-level` |
+| `active-app` | 5,000ms | `/api/system/all-windows` |
+| `app-menu` | 5,000ms | `/api/system/current-menus` |
+| `audio-out` / `audio-in` | 5,000ms | `/api/system/audio-devices` |
+| `balance` | 30,000ms | `/api/deepseek/balance` |
 
-### 🟠 P1：keep_alive 端口与配置漂移
-`keep_alive.sh:6` **硬编码 `PORT=8082`**，用 `lsof -ti:8082` 判活。但 `tray_app.py` 支持 config.json / `STP_PORT` 改端口。**一旦用户改了端口**：守护脚本仍查 8082 → 永远查不到 → 每 10s 误判「服务已死」并重复拉起 → 端口冲突/进程抖动。修复：keep_alive 应从同一 config.json / STP_PORT 解析端口。
+---
 
-### 🟡 P2：`tools/build.py` 是地雷（勿运行）
-它会用 `client/ipad/*.js`、`client/editor/*.js` 等**已废弃的旧模块**重新生成 `client/*.html`，覆盖当前权威源（`client/index.html` / `editor.html`）。重打包一律用 `setup.py py2app`。（详见记忆 `stp-build-py-landmine`）
+## 7. 当前 Profile 清单（2026-07-15 实测）
+
+| 文件 | profileName | 尺寸 | 按键数 | Pages | WindowRules |
+|------|-------------|------|--------|-------|-------------|
+| `Default.json` | Keyboard | 1210×834 横屏 | 68 | 1 | 5 |
+| `Apple.json` | vibe | 1210×834 横屏 | 22 | 1 | 0 |
+| `New Profile.json` | test | 1210×834 横屏 | 80 | 1 | 5 |
+
+所有 profile 均为横屏 1210×834（iPad 11" landscape），device 字段为 `"iPad 11\" (landscape)"`。
+
+Active profile 由客户端 `localStorage.getItem("stp_active")` 决定，非服务端配置。
+
+---
+
+## 8. 已知问题 / 技术债
+
+### ✅ P0（已修复 · `258bbee`）：Event loop 阻塞致每 5s 卡顿
+
+**根因**：`async def` 路由体内的同步 `subprocess.run(osascript, timeout=3)` 阻塞 uvicorn 单 event loop。
+
+**修复**：9 个阻塞 GET 路由 `async def` → `def`（FastAPI 自动丢线程池）。详见下文 §9。
+
+### ✅ P1（已修复 · `258bbee`）：调试日志残留
+
+`main.py` 每条 WebSocket 消息写 `/tmp/stp_ws.log`。已删除。
+
+### ✅ 已修复 · `9f0ae14`：E 键触发 emoji 面板
+
+`CGEventSetFlags` 在 key-up 时不调用导致修饰键残留。修复见 §10.1。
+
+### 🟠 P1：`keep_alive.sh` 端口硬编码
+
+`keep_alive.sh:6` 硬编码 `PORT=8082`。改端口后守护脚本不停误判重启。应改为读 config.json / `STP_PORT`。
+
+### 🟡 P2：`tools/build.py` 是地雷
+
+用废弃的 `client/ipad/*.js` / `client/editor/*.js` 覆盖权威源。**禁止运行**。重打包用 `setup.py py2app`。
 
 ### 🟡 P2：分发限制
-arm64-only（Intel 不可运行）；adhoc 未公证 → 目标机需手动解隔离 + 授权 TCC（辅助功能/屏幕录制/麦克风）。
+
+arm64 only、adhoc 未公证、需手动 TCC 授权（辅助功能/屏幕录制/麦克风）。
 
 ---
 
-## 8. 性能改进计划（P0 卡顿修复 + 减负）
+## 9. P0 性能修复详情（已实施）
 
-> 状态：**✅ 已实施并验证（2026-07-14，commit `258bbee`）**。分三条，第 1 条治本、第 2 条清理、第 3 条减负。
+> 三条全部实施（commit `258bbee`）并服务端验证。iPad 实机 60s 滑动验收待用户确认。
 
-### 第 1 条 · 治本：阻塞路由 `async def` → `def`
-把这些「体内无 `await`、却跑同步 osascript」的 GET 路由改为普通 `def`——FastAPI 会自动把 `def` 路由丢到线程池执行，**不再阻塞 event loop**，触控立即恢复流畅。行为完全等价，只换执行线程。
+### 第 1 条 · 治本：9 个阻塞路由 `async def` → `def`
 
-涉及 `tray_app.py`（★ 全部被前端周期轮询的慢端点，缺一即残留卡顿）：
-- `_sys_all_wins`（`/api/system/all-windows`，0.47s，active-app 5s 轮询）
-- `_sys_menus`（`/api/system/current-menus`，app-menu 5s 轮询）
-- `_sys_cur_wins`（`/api/system/current-app-windows`）
-- `_sys_cur_app`（一致性顺带）
-- `_sys_adev`（`/api/system/audio-devices`，0.175s，**audio-in + audio-out 各 5s = 每 5s 打 2 次**）
-- `_sys_vol`（`/api/system/volume`，0.35s）
-- `_get_balance`（`/api/deepseek/balance`，同步 `urllib.urlopen` **最长阻塞 10s**，balance 30s 轮询）
-- `_sys_sc_status`（`/api/system/screen-capture`，`CGWindowListCopyWindowInfo`）
-- `_sys_icon`（`/api/system/app-icon`，文件 IO / 生成图标）
+涉及 `tray_app.py` 全部被前端周期轮询的慢端点：
 
-> ⚠️ **教训（2026-07-14）**：首轮只改前 4 个（凭 §7 的手工列表），漏掉 audio-devices/volume/balance —— vibe 面板恰有 audio-in/out，卡顿依旧。**别信手工列表，用脚本系统排查所有 `async def` GET + 体内跑同步 subprocess/osascript/CGWindowList/urlopen 且无 `await`的路由，全部转 `def`**。`_sys_mic_level`（50ms 高频）是纯内存读，极快，无需改。
+| 路由 | 耗时 | 轮询者 |
+|------|------|--------|
+| `/api/system/all-windows` | ~0.47s | active-app (5s) |
+| `/api/system/current-menus` | 变化大 | app-menu (5s) |
+| `/api/system/current-app-windows` | — | — |
+| `/api/system/current-app` | — | — |
+| `/api/system/audio-devices` | ~0.18s | audio-in + audio-out (各 5s) |
+| `/api/system/volume` | ~0.35s | — |
+| `/api/deepseek/balance` | 最多 10s | balance (30s) |
+| `/api/system/screen-capture` | — | — |
+| `/api/system/app-icon` | — | — |
 
-> 不动带 `await req.json()` / `body: dict` 的 POST 路由（用户偶发点击，非轮询，非卡顿源）。
+**教训**：首轮只改前 4 个（凭手工列表），漏掉 audio-devices/volume/balance。**必须用脚本系统排查所有 `async def` GET 路由**。
 
 ### 第 2 条 · 清理：删调试日志
-删除 `main.py:415-419` 的写盘块。（性能 + 隐私，见 §7 P1）
 
-### 第 3 条 · 减负：掐掉无谓前端轮询
-即便 loop 不再被阻塞，也不该让线程池每 5s 空跑一堆 osascript（耗 CPU、反复唤醒浏览器 AppleScript）。三个子项，纯前端小改：
-- **A. 不看的页不轮询**：每个轮询函数开头加 `if(canvas.offsetParent===null)return;`。多页面板下，非当前页（`.active` 切页 → 非 active 页 `display:none` → `offsetParent` 为 null）的控件完全停轮询。
-  - 前提：非 active 页确为 `display:none`（切页用 `.active` class，`index.html:262-265`）。实施前先核对该 CSS；若用的是 opacity/transform，则改判 `canvas.closest('.page.active')`。
-- **B. 后台不轮询**：守卫加 `|| document.hidden`，iPad 锁屏/切 app 时停。
-- **C. 降频**：窗口/菜单/音频三处 `5000` → `10000`。
-- **不做 D（后端缓存）**：解阻塞后单次慢已不影响触控，YAGNI。
+### 第 3 条 · 减负（纯前端，待实施）
 
-### 验收标准
-- 用 iPad 连续滑动 60s，重新采集触控时间戳：**无 ≥0.5s 停顿**（此前 5s 一次）。
-- **本机自证法（无需 iPad，推荐）**：Python `websocket-client` 连 `ws://127.0.0.1:8082/ws` 持续发 `touchpad move`（~117/s 节奏），同时后台线程 HTTP 并发轰所有慢轮询端点（audio-devices/volume/all-windows），量测相邻 ack 间隔中位/最大。脚本 `/tmp/ws_lag_test.py`。
-  - **实证（2026-07-14）**：修复前中位 **361ms** / 12s 仅 34 条 / 34 次 >200ms；修复后中位 **10.8ms** / 1028 条 / 0 停顿。对照 §7 的 9ms 健康基线。
-  - ⚠️ 反面教材：只单发一个慢端点测「快端点延迟」是**伪验证**——当端点恰好快（如 current-menus 14ms）时测不出阻塞。必须并发压测 + 走真实 WS 触控路径。
+- A. 非当前页不轮询（`canvas.offsetParent===null` 守卫）
+- B. 后台不轮询（`document.hidden` 守卫）
+- C. 降频 `5000` → `10000`
 
-### 实施后的收尾
-1. 重启本机源码服务（keep_alive 端口互斥，不会多开）。
-2. 重编译 .app + 重签 + 重打包桌面 zip。
-3. commit（`fix: 解除 osascript 阻塞 event loop 致触控卡顿` 等）+ push NAS。
+**验证**：并发压测脚本 `/tmp/ws_lag_test.py`。修复前中位 361ms，修复后中位 10.8ms。
 
 ---
 
-## 9. 最近更新（2026-07-14 ~ 2026-07-15）
+## 10. 最近更新（2026-07-14 ~ 2026-07-15）
 
-### 9.1 E 键触发 emoji 面板（已修复 · commit `9f0ae14`）
+### 10.1 E 键 emoji 面板修复（`9f0ae14`）
 
-**现象**：iPad 端按 E 键，Mac 弹出 emoji 选择器 (Ctrl+Cmd+Space)。
+**现象**：iPad 按 E → Mac 弹出 emoji 选择器 (Ctrl+Cmd+Space)。
 
-**根因**：`input_engine.py:_post_key_event()` 的 `if flags:` 守卫跳过了 key-up 时的 `CGEventSetFlags(event, 0)`，导致前一次按键的修饰键 flag 残留。E 的虚拟键码 `0x0E` 恰好是 Ctrl+Cmd+Space 的触发键码。
-
-**修复**（仅改一行，`input_engine.py:67`）：
+**根因**：`input_engine.py:67` `_post_key_event()`：
 ```python
-# Before
+# Before（bug）
 if flags: CGEventSetFlags(event, flags)
-# After  
+# → key-up 时 flags=0，不调用 CGEventSetFlags → 上一个按键的修饰键 flag 残留
+# E 的虚拟键码 0x0E 恰好 = 系统快捷键 Ctrl+Cmd+Space 的触发键
+
+# After（修复）
 if flags or not down: CGEventSetFlags(event, flags)
+# → key-up 时永远调用 CGEventSetFlags(event, 0) 清零残留
+# → key-down flags=0 时不调用（保留系统默认行为，修饰键可正常工作）
 ```
-Key-up 时永远调 CGEventSetFlags 清零残留；key-down 时仅 flags≠0 时调用（保留默认系统行为）。
 
-### 9.2 Editor UI 改进（commits `33b83dd` ~ `62508c5`）
+**这是本项目最关键的 CGEvent 约束**：修改 `_post_key_event` 必须保证 key-up 时清零 flags，key-down 时仅在 flags≠0 时设置。
 
-| 改动 | 说明 |
-|------|------|
-| 移除 Label 行 | Page 不再需要手动命名，自动 `"Page N"` |
-| 显示比例始终展开 | 去掉折叠 toggle，`ratioBox` 常显 |
-| 默认横屏 | `deviceWidth:1210, deviceHeight:834`，预设点击也用 `Math.max/min` 强制横屏 |
-| "Pages" → "Profile Properties" | 板块重命名，去掉 "+ New Page" 按钮 |
-| 动态标题 | `<h3 id="pp-heading">` 随 profile 名变化，如 `"Keyboard Properties"` |
-| 去除重复 page 名 | 删 `#pgl`（标题下不再有重复的页面列表行） |
+### 10.2 Editor UI 改进（`33b83dd` ~ `62508c5`）
 
-### 9.3 Shift 锁定画布平移方向（commit `5343d8c`）
+| commit | 改动 |
+|--------|------|
+| `adf440b` | 移除 Label 行（Page 自动命名 `"Page N"`）；显示比例始终展开；默认横屏 1210×834 |
+| `3883428` | "Pages" → "Profile Properties"；去掉 "+ New Page" 按钮 |
+| `33b83dd` | Page 标签同步 profile 名；`saveAs()` / `pmRename()` 联动刷新 |
+| `6b844b1` | 标题动态 `"{name} Properties"`；删除 `#pgl`（重复的页面列表行） |
+| `62508c5` | 显示比例预设点击强制横屏（`Math.max(w,h)` 当宽、`Math.min(w,h)` 当高） |
 
-右键拖动画布时按住 Shift → 移动超过 3px 后锁定到主方向（水平/垂直）。松 Shift 平滑解锁无跳动。
+### 10.3 Shift 锁定画布平移方向（`5343d8c`）
 
-实现：`editor.html` mousemove 改用 per-frame delta 累积；解锁时重置冻结轴基线避免位置跳变。
+右键拖动画布 + 按住 Shift → 移动 > 3px 后锁定到主方向（水平/垂直）。
 
-### 9.4 Sticky 修饰键方案（已回退）
+实现要点：
+- mousemove 改用 **per-frame delta 累积**（而非从 mousedown 算总量）
+- `panShiftLock` 状态机：`null` → `'x'` / `'y'` → `null`
+- 解锁时重置冻结轴基线，**避免位置跳变**
+- mouseup 时 `_snap4()` snaps 到 0.25 格对齐
 
-曾尝试实现 sticky modifier keys（tap 修饰键保持激活），但 CGEvent 的修饰键注入不符合预期——macOS 不认为修饰键被单独按下（需要与普通键组合才生效）。已完全回退至 `9f0ae14`。
+### 10.4 Sticky 修饰键（已回退至 `9f0ae14`）
 
----
-
-## 10. 关键约束（动代码前必读）
-
-- **单 event loop**：任何在 `async def` 路由 / WebSocket 循环里的**同步阻塞调用**（osascript、subprocess、CGWindowList、file I/O）都会卡住全局触控。同步重活一律放 `def` 路由或 `run_in_executor`。
-- **权威前端源**是 `client/index.html` / `editor.html`，**不是** `tools/build.py` 的输入模块。
-- **profiles**：`server/profiles/*.json` 被 gitignore（仅模板入库）；控件「不显示」先查 profile 匹配，别急着改代码。
-- **分发签名**：任何 rebuild 都是新 cdhash → 目标机 TCC 授权需重做；打包后务必 `codesign --verify --deep --strict` 复验。
-- **端口**：改端口需同时考虑 `keep_alive.sh`（见 §7 P1），否则守护脚本失灵。
+尝试 tap 修饰键保持激活 → macOS 不认为修饰键被单独按下。完全回退。
 
 ---
 
-## 11. 前端可实测（不要只静态读代码）
+## 11. `input_engine.py` 关键约束（CRITICAL）
 
-> STP 的 iPad 面板 / editor 都是**浏览器端**页面 → 本机可用 headless Chrome 亲自跑，别停在读代码或让用户贴 console。（用户明确指令 2026-07-14）
+### 11.1 CGEventSetFlags 规则
 
-> **⚠️ 引擎要对**：**editor 用 Safari 打开**（`server/editor_app.py` = `webbrowser.get('safari')`，为原生取色器），iPad 面板才是任意浏览器。**Chrome headless 测不出 Safari 专属 bug**。测 editor 的交互/CSS 必须用 **safaridriver**（W3C WebDriver，需先 `sudo safaridriver --enable` + Safari 设置勾「Allow Remote Automation」；Python 用 urllib 直发 `POST /session`→`/url`→`/execute/sync`→`DELETE /session`，不必装 selenium）。Chrome 只作 DOM/逻辑初筛。
-> - **实证（2026-07-14）**：`.ftb{pointer-events:none}`+`.ftb>*{pointer-events:auto}` 在 Chrome 原生 `<select>` 可点，**Safari 里子级 auto 不生效 → 下拉点不开**（需求3「点击没反应」真凶）。工具条实心带背景无需穿透，`.ftb`/`.btb` 一律 `pointer-events:auto`。`position:fixed` 元素 `offsetParent` 恒 null，别用它判可见性，用 `getComputedStyle`+`getBoundingClientRect`。
+```python
+def _post_key_event(key_code: int, down: bool, flags: int = 0):
+    event = CGEventCreateKeyboardEvent(None, key_code, down)
+    if flags or not down:          # ← 这行不能简化为 if flags:
+        CGEventSetFlags(event, flags)
+    CGEventPost(kCGHIDEventTap, event)
+```
 
+| 场景 | down | flags | 行为 | 原因 |
+|------|------|-------|------|------|
+| 按普通键 | True | 0 | **不调** CGEventSetFlags | 保留系统默认 |
+| 抬普通键 | False | 0 | **调用** CGEventSetFlags(event, 0) | 清零残留 |
+| 按组合键 | True | ≠0 | 调用 CGEventSetFlags | 设置修饰键 |
+| 抬组合键 | False | ≠0 | 调用 CGEventSetFlags | 清零 |
 
-- **快看 DOM 解析**（真 HTML5 树构建）：
-  `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --dump-dom http://127.0.0.1:8082/editor`
-- **交互 + 抓 console/异常 + 截图**（DevTools Protocol）：Chrome 加 `--remote-debugging-port=9333 --remote-allow-origins=* --user-data-dir=<tmp>`；Python `import websocket`（websocket-client 已装）连 `http://127.0.0.1:9333/json` 拿 page 的 `webSocketDebuggerUrl`；发 `Runtime.enable`/`Log.enable`/`Page.enable`→`Page.navigate`→`Runtime.evaluate`(returnByValue+awaitPromise) 模拟操作；监听 `Runtime.consoleAPICalled`/`Runtime.exceptionThrown`/`Log.entryAdded`；`Page.captureScreenshot` 截图。
-- **运行的是桌面 app**（`/Users/mini/Desktop/Smart Touch Panel.app`，非 dist/）；静态文件挂 `/static`→CLIENT_DIR。放临时诊断页要放进该 app 的 `Contents/Resources/client/`，用完即删。
-- **实测记录（2026-07-14，需求1「管理界面打不开」）**：真实 Chrome + 真实 profile 下，选 Profile 下拉 `Manage...` → `#profileManagerModal` **确实 display=flex 打开**。控制台捕获真 bug：`lp()`（`editor.html:434`）`openProfileManager();this.value=activeProfile` 里 `this` 为 undefined → `TypeError: Cannot set properties of undefined`，但抛错在 openProfileManager() **之后**，不阻止模态框打开。→ 该行是待清理的冗余（onchange 处已 reset），非「打不开」根因；「打不开」在干净浏览器无法复现。
+### 11.2 修饰键注入限制
+
+CGEvent 单独按下修饰键（如只按 LSHIFT）→ macOS **可能不识别为修饰键按下**。这是 CGEvent API 的已知限制，非 STP 的 bug。用户如需纯修饰键功能（如 LCtrl+LCmd 切换输入法），需用 AppleScript 或系统其他方式实现。
+
+---
+
+## 12. 运行与部署
+
+### 12.1 当前运行（2026-07-15）
+
+```bash
+# 查看
+lsof -ti:8082                    # pid
+ps aux | grep "Smart Touch"      # 进程信息
+tail -f /tmp/stp_nohup.log       # 日志
+
+# 重启（更新代码后）
+cp client/editor.html "dist/.../Resources/client/editor.html"   # 或重打包
+kill $(lsof -ti:8082)
+nohup "dist/Smart Touch Panel.app/Contents/MacOS/Smart Touch Panel" > /tmp/stp_nohup.log 2>&1 &
+```
+
+### 12.2 生产部署（keep_alive + cron）
+
+```bash
+# cron @reboot 启动 keep_alive.sh
+# keep_alive.sh 每 10s lsof -ti:8082 检测，down 则重启
+# 端口互斥保证最多一个实例
+```
+
+### 12.3 打包分发
+
+```bash
+.venv/bin/python3 setup.py py2app
+codesign --force --deep --sign - "dist/Smart Touch Panel.app"
+codesign --verify --deep --strict "dist/Smart Touch Panel.app"
+ditto -c -k --sequesterRsrc --keepParent "dist/Smart Touch Panel.app" ~/Desktop/STP.zip
+```
+
+### 12.4 开发注意
+
+- 改 `client/*.html` → 源码即权威，无需 build
+- 运行中更新 `.app`：直接 cp 到 bundle，重启进程即可
+- 编辑器用 Safari 测（`open -a Safari http://localhost:8082/editor`）
+- Chrome 只用于快速 DOM/逻辑初筛
+
+---
+
+## 13. 关键约束（动代码前必读）
+
+1. **单 event loop**：同步阻塞（osascript、subprocess、CGWindowList、file I/O）放 `def` 路由或 `run_in_executor`，严禁放 `async def`。
+2. **权威前端源**：`client/index.html` / `editor.html`——**不是** `tools/build.py` 的输入。
+3. **CGEventSetFlags**：修改 `_post_key_event` 必须遵守 §11.1 的规则表。
+4. **Profiles**：`server/profiles/*.json` gitignore（仅模板入库）；控件不显示先查 profile 匹配。
+5. **签名**：rebuild → 新 cdhash → TCC 需重授权。
+6. **端口**：改端口需同步 `keep_alive.sh`（见 §8 P1）。
+7. **Git remote**：`nas`（不是 `origin`）= `Claude@192.168.2.62:/volume1/Git_Station/smart-touch-panel.git`。
+8. **编辑器浏览器**：必须 Safari（原生颜色选择器）。
+
+---
+
+## 14. 前端验证方法
+
+- **快速 DOM 检查**：`curl -s http://localhost:8082/editor | grep <id>`
+- **Chrome headless DOM dump**：`google-chrome --headless=new --dump-dom http://127.0.0.1:8082/editor`
+- **Chrome CDP 交互 + console**：`--remote-debugging-port=9333` + websocket-client
+- **Safari 测交互/CSS**：safaridriver（`sudo safaridriver --enable` 后 W3C WebDriver）
+- **iPad 面板测触控延迟**：`/tmp/ws_lag_test.py`（并发 WS + HTTP 压测）
+
+> ⚠️ Chrome headless 测不出 Safari 专属 bug（实测：pointer-events 行为不同、原生 select 下拉不同）。editor 交互/CSS 必须用 Safari 验证。
