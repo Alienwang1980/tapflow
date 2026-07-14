@@ -153,11 +153,18 @@ arm64-only（Intel 不可运行）；adhoc 未公证 → 目标机需手动解�
 ### 第 1 条 · 治本：阻塞路由 `async def` → `def`
 把这些「体内无 `await`、却跑同步 osascript」的 GET 路由改为普通 `def`——FastAPI 会自动把 `def` 路由丢到线程池执行，**不再阻塞 event loop**，触控立即恢复流畅。行为完全等价，只换执行线程。
 
-涉及 `tray_app.py`：
-- `_sys_all_wins`（533，`/api/system/all-windows`）
-- `_sys_menus`（696，`/api/system/current-menus`）
-- `_sys_cur_wins`（514，`/api/system/current-app-windows`）
-- `_sys_cur_app`（504，一致性顺带）
+涉及 `tray_app.py`（★ 全部被前端周期轮询的慢端点，缺一即残留卡顿）：
+- `_sys_all_wins`（`/api/system/all-windows`，0.47s，active-app 5s 轮询）
+- `_sys_menus`（`/api/system/current-menus`，app-menu 5s 轮询）
+- `_sys_cur_wins`（`/api/system/current-app-windows`）
+- `_sys_cur_app`（一致性顺带）
+- `_sys_adev`（`/api/system/audio-devices`，0.175s，**audio-in + audio-out 各 5s = 每 5s 打 2 次**）
+- `_sys_vol`（`/api/system/volume`，0.35s）
+- `_get_balance`（`/api/deepseek/balance`，同步 `urllib.urlopen` **最长阻塞 10s**，balance 30s 轮询）
+- `_sys_sc_status`（`/api/system/screen-capture`，`CGWindowListCopyWindowInfo`）
+- `_sys_icon`（`/api/system/app-icon`，文件 IO / 生成图标）
+
+> ⚠️ **教训（2026-07-14）**：首轮只改前 4 个（凭 §7 的手工列表），漏掉 audio-devices/volume/balance —— vibe 面板恰有 audio-in/out，卡顿依旧。**别信手工列表，用脚本系统排查所有 `async def` GET + 体内跑同步 subprocess/osascript/CGWindowList/urlopen 且无 `await`的路由，全部转 `def`**。`_sys_mic_level`（50ms 高频）是纯内存读，极快，无需改。
 
 > 不动带 `await req.json()` / `body: dict` 的 POST 路由（用户偶发点击，非轮询，非卡顿源）。
 
@@ -174,7 +181,9 @@ arm64-only（Intel 不可运行）；adhoc 未公证 → 目标机需手动解�
 
 ### 验收标准
 - 用 iPad 连续滑动 60s，重新采集触控时间戳：**无 ≥0.5s 停顿**（此前 5s 一次）。
-- 采集方法（临时，验证后移除）：在 WS 循环记录消息时间戳，用相邻间隔中位/最大值量化；对照 §7 的 9ms 基线。
+- **本机自证法（无需 iPad，推荐）**：Python `websocket-client` 连 `ws://127.0.0.1:8082/ws` 持续发 `touchpad move`（~117/s 节奏），同时后台线程 HTTP 并发轰所有慢轮询端点（audio-devices/volume/all-windows），量测相邻 ack 间隔中位/最大。脚本 `/tmp/ws_lag_test.py`。
+  - **实证（2026-07-14）**：修复前中位 **361ms** / 12s 仅 34 条 / 34 次 >200ms；修复后中位 **10.8ms** / 1028 条 / 0 停顿。对照 §7 的 9ms 健康基线。
+  - ⚠️ 反面教材：只单发一个慢端点测「快端点延迟」是**伪验证**——当端点恰好快（如 current-menus 14ms）时测不出阻塞。必须并发压测 + 走真实 WS 触控路径。
 
 ### 实施后的收尾
 1. 重启本机源码服务（keep_alive 端口互斥，不会多开）。

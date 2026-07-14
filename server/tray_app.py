@@ -207,7 +207,7 @@ def run_server():
         return {"active": _current_profile}
     
     @app.get("/api/deepseek/balance")
-    async def _get_balance(api_key: str = ""):
+    def _get_balance(api_key: str = ""):
         import urllib.request, logging as _log2
         _log2.getLogger("stp.widgets").info(f"Balance API called, key={api_key[:12] if api_key else 'NONE'}...")
         if not api_key:
@@ -229,7 +229,7 @@ def run_server():
     _state = {"muted": False, "mic_pre": None}
 
     @app.get("/api/system/volume")
-    async def _sys_vol():
+    def _sys_vol():
         r = _sc.run(["osascript", "-e", "get volume settings"], capture_output=True, encoding='utf-8')
         res = {"output_volume": 75, "input_volume": 50, "output_muted": False}
         for part in r.stdout.strip().split(","):
@@ -317,7 +317,7 @@ def run_server():
 
     # ── Screen Recording Permission endpoints ──
     @app.get("/api/system/screen-capture")
-    async def _sys_sc_status():
+    def _sys_sc_status():
         import os as _os8
         granted = check_screen_capture()
         diag = {}
@@ -443,7 +443,7 @@ def run_server():
         return {"level": round(_mic_level, 4)}
 
     @app.get("/api/system/audio-devices")
-    async def _sys_adev():
+    def _sys_adev():
         sw = os.path.expanduser("~/Library/Application Support/Smart Touch Panel/bin/SwitchAudioSource")
         if not os.path.exists(sw): return []
         env = {"LANG":"C","PATH":os.environ.get("PATH","")}
@@ -771,7 +771,7 @@ def run_server():
     # ── App Icon ──
 
     @app.get("/api/system/app-icon")
-    async def _sys_icon(name: str = ""):
+    def _sys_icon(name: str = ""):
         import os as _os4
         if not name: return {"error": "missing name"}
         cache_dir = _os4.path.expanduser("~/Library/Application Support/Smart Touch Panel/icon_cache")
