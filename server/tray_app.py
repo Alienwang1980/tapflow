@@ -501,7 +501,7 @@ def run_server():
     async def _sys_aout_cycle():
         return _cycle_audio_device("output")
     @app.get("/api/system/current-app")
-    async def _sys_cur_app():
+    def _sys_cur_app():
         try:
             import AppKit
             a = AppKit.NSWorkspace.sharedWorkspace().frontmostApplication()
@@ -511,7 +511,7 @@ def run_server():
     # ── Window Switcher (AX Bridge) ──
 
     @app.get("/api/system/current-app-windows")
-    async def _sys_cur_wins():
+    def _sys_cur_wins():
         try:
             import AppKit
             a = AppKit.NSWorkspace.sharedWorkspace().frontmostApplication()
@@ -530,7 +530,7 @@ def run_server():
             return {"name": "?", "pid": 0, "count": 0, "items": [], "focused_index": -1, "error": str(e)}
 
     @app.get("/api/system/all-windows")
-    async def _sys_all_wins():
+    def _sys_all_wins():
         try:
             from ax_bridge import get_all_app_windows
             result = get_all_app_windows()
@@ -693,7 +693,7 @@ def run_server():
     # ── Dynamic Menu ──
 
     @app.get("/api/system/current-menus")
-    async def _sys_menus():
+    def _sys_menus():
         import sys as _sys, os as _os; _sys.path.insert(0, _os.environ.get("RESOURCEPATH", _os.path.dirname(_os.path.abspath(__file__)))); from ax_bridge import get_current_app_info, get_all_menus
         name, pid = get_current_app_info()
         menus = get_all_menus(pid)

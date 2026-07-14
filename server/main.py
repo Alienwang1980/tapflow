@@ -412,11 +412,6 @@ async def ws_endpoint(websocket: WebSocket):
         while True:
             data = await websocket.receive_json()
             msg_type = data.get("type", "")
-            try:
-                with open("/tmp/stp_ws.log","a") as _f:
-                    import json as _js, datetime as _dt
-                    _f.write(_dt.datetime.now().isoformat()+" ["+client_id[:8]+"] "+msg_type+" "+_js.dumps(data)+"\n")
-            except: pass
             if msg_type == "touchpad":
                 action = data.get("action", "move")
                 from input_engine import move_mouse, scroll_mouse, click_mouse, mouse_down, mouse_up
