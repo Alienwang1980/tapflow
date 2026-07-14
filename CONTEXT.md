@@ -189,3 +189,15 @@ arm64-only（Intel 不可运行）；adhoc 未公证 → 目标机需手动解�
 - **profiles**：`server/profiles/*.json` 被 gitignore（仅模板入库）；控件「不显示」先查 profile 匹配，别急着改代码。
 - **分发签名**：任何 rebuild 都是新 cdhash → 目标机 TCC 授权需重做；打包后务必 `codesign --verify --deep --strict` 复验。
 - **端口**：改端口需同时考虑 `keep_alive.sh`（见 §7 P1），否则守护脚本失灵。
+
+---
+
+## 10. 前端可实测（不要只静态读代码）
+
+> STP 的 iPad 面板 / editor 都是**浏览器端**页面 → 本机可用 headless Chrome 亲自跑，别停在读代码或让用户贴 console。（用户明确指令 2026-07-14）
+
+- **快看 DOM 解析**（真 HTML5 树构建）：
+  `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --dump-dom http://127.0.0.1:8082/editor`
+- **交互 + 抓 console/异常 + 截图**（DevTools Protocol）：Chrome 加 `--remote-debugging-port=9333 --remote-allow-origins=* --user-data-dir=<tmp>`；Python `import websocket`（websocket-client 已装）连 `http://127.0.0.1:9333/json` 拿 page 的 `webSocketDebuggerUrl`；发 `Runtime.enable`/`Log.enable`/`Page.enable`→`Page.navigate`→`Runtime.evaluate`(returnByValue+awaitPromise) 模拟操作；监听 `Runtime.consoleAPICalled`/`Runtime.exceptionThrown`/`Log.entryAdded`；`Page.captureScreenshot` 截图。
+- **运行的是桌面 app**（`/Users/mini/Desktop/Smart Touch Panel.app`，非 dist/）；静态文件挂 `/static`→CLIENT_DIR。放临时诊断页要放进该 app 的 `Contents/Resources/client/`，用完即删。
+- **实测记录（2026-07-14，需求1「管理界面打不开」）**：真实 Chrome + 真实 profile 下，选 Profile 下拉 `Manage...` → `#profileManagerModal` **确实 display=flex 打开**。控制台捕获真 bug：`lp()`（`editor.html:434`）`openProfileManager();this.value=activeProfile` 里 `this` 为 undefined → `TypeError: Cannot set properties of undefined`，但抛错在 openProfileManager() **之后**，不阻止模态框打开。→ 该行是待清理的冗余（onchange 处已 reset），非「打不开」根因；「打不开」在干净浏览器无法复现。
