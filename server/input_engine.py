@@ -64,7 +64,8 @@ def _post_key_event(key_code: int, down: bool, flags: int = 0):
         logger.info(f"[SIMULATE] Key{action}: code=0x{key_code:02X}, flags=0x{flags:08X}")
         return
     event = CGEventCreateKeyboardEvent(None, key_code, down)
-    CGEventSetFlags(event, flags)
+    if flags or not down:
+        CGEventSetFlags(event, flags)
     CGEventPost(kCGHIDEventTap, event)
 
 
