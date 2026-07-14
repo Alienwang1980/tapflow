@@ -196,6 +196,10 @@ arm64-only（Intel 不可运行）；adhoc 未公证 → 目标机需手动解�
 
 > STP 的 iPad 面板 / editor 都是**浏览器端**页面 → 本机可用 headless Chrome 亲自跑，别停在读代码或让用户贴 console。（用户明确指令 2026-07-14）
 
+> **⚠️ 引擎要对**：**editor 用 Safari 打开**（`server/editor_app.py` = `webbrowser.get('safari')`，为原生取色器），iPad 面板才是任意浏览器。**Chrome headless 测不出 Safari 专属 bug**。测 editor 的交互/CSS 必须用 **safaridriver**（W3C WebDriver，需先 `sudo safaridriver --enable` + Safari 设置勾「Allow Remote Automation」；Python 用 urllib 直发 `POST /session`→`/url`→`/execute/sync`→`DELETE /session`，不必装 selenium）。Chrome 只作 DOM/逻辑初筛。
+> - **实证（2026-07-14）**：`.ftb{pointer-events:none}`+`.ftb>*{pointer-events:auto}` 在 Chrome 原生 `<select>` 可点，**Safari 里子级 auto 不生效 → 下拉点不开**（需求3「点击没反应」真凶）。工具条实心带背景无需穿透，`.ftb`/`.btb` 一律 `pointer-events:auto`。`position:fixed` 元素 `offsetParent` 恒 null，别用它判可见性，用 `getComputedStyle`+`getBoundingClientRect`。
+
+
 - **快看 DOM 解析**（真 HTML5 树构建）：
   `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --dump-dom http://127.0.0.1:8082/editor`
 - **交互 + 抓 console/异常 + 截图**（DevTools Protocol）：Chrome 加 `--remote-debugging-port=9333 --remote-allow-origins=* --user-data-dir=<tmp>`；Python `import websocket`（websocket-client 已装）连 `http://127.0.0.1:9333/json` 拿 page 的 `webSocketDebuggerUrl`；发 `Runtime.enable`/`Log.enable`/`Page.enable`→`Page.navigate`→`Runtime.evaluate`(returnByValue+awaitPromise) 模拟操作；监听 `Runtime.consoleAPICalled`/`Runtime.exceptionThrown`/`Log.entryAdded`；`Page.captureScreenshot` 截图。
