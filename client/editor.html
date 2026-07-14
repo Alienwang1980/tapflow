@@ -208,9 +208,6 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
   <h1>Smart <span>Touch</span> Editor</h1>
   <span class="conn off" id="cs">off</span>
   <span class="tb-sep">|</span>
-  <span class="tb-lbl">Profile</span>
-  <select id="tpf" onchange="var v=this.value;lp(v);if(v==='__manage__')this.value=activeProfile||''" style="min-width:150px"><option value="">loading...</option></select>
-  <span class="tb-sep">|</span>
   <span class="tb-lbl">&#9834;</span>
   <select id="tgs" onchange="if(profile){profile.defaultSound=this.value;dirty=true}"><option value="none">None</option><option value="click">Click</option><option value="soft">Soft</option><option value="mechanical">Mechanical</option><option value="deep">Deep</option><option value="red">Red Switch</option><option value="topre">Topre EC</option><option value="glass">Glass Tap</option><option value="bubble">Bubble Pop</option><option value="blip">8-bit Blip</option><option value="spark">Electric Spark</option></select> <button onclick="testSnd(document.getElementById('tgs').value)" style="padding:4px 8px;font-size:12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'" title="Preview">&#x25B6;</button>
   <button class="btn-save" onclick="saveProfile()">Save &amp; Sync</button>
@@ -230,6 +227,10 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 </div>
 <div class="rp">
     <div id="rp-profile"><div id="pl" style="display:none"></div>
+      <div class="rp-section" id="rp-profiles-sec">
+        <h3>Profiles <button onclick="pmCreate()" title="新建 Profile" style="font-size:10px;padding:2px 8px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;float:right">+ New</button></h3>
+        <div id="profList"></div>
+      </div>
       <div class="rp-section">
         <h3>Pages</h3>
         <div id="pgl"></div>
@@ -452,7 +453,9 @@ function dpg(pid){if(profile.pages.length<=1)return;profile.pages=profile.pages.
 function cp_(){return profile?.pages.find(p=>p.id===activePage)}
 function _edWinArrow(c,dir,cx,cy,s){if(dir==="center"){c.fillRect(cx-s*0.6,cy-s*0.6,s*1.2,s*1.2);return}c.beginPath();if(dir==="up"){c.moveTo(cx,cy-s);c.lineTo(cx-s,cy+s*0.65);c.lineTo(cx+s,cy+s*0.65)}else if(dir==="down"){c.moveTo(cx,cy+s);c.lineTo(cx-s,cy-s*0.65);c.lineTo(cx+s,cy-s*0.65)}else if(dir==="left"){c.moveTo(cx-s,cy);c.lineTo(cx+s*0.65,cy-s);c.lineTo(cx+s*0.65,cy+s)}else{c.moveTo(cx+s,cy);c.lineTo(cx-s*0.65,cy-s);c.lineTo(cx-s*0.65,cy+s)}c.closePath();c.fill()}
 function renderAll(){rpl();rpgl();rr();rpr();rgrp()}
-function rpl(){var _pl=document.getElementById("pl");if(_pl)_pl.innerHTML=profiles.map(p=>'<div class="it'+(p.filename===activeProfile?" ac":"")+'" onclick="lp(\''+p.filename+'\')">'+hesc(p.profileName)+'<span class="x" onclick="event.stopPropagation();dp(\''+p.filename+'\')">×</span></div>').join("");var tpf=document.getElementById("tpf");if(tpf){tpf.innerHTML=profiles.map(function(p){return"<option value='"+p.filename+"'>"+p.profileName+"</option>"}).join("")+"<option value='__manage__' style='color:var(--accent)'>Manage...</option></option>";if(activeProfile)tpf.value=activeProfile}}
+function rpl(){var _pl=document.getElementById("pl");if(_pl)_pl.innerHTML=profiles.map(p=>'<div class="it'+(p.filename===activeProfile?" ac":"")+'" onclick="lp(\''+p.filename+'\')">'+hesc(p.profileName)+'<span class="x" onclick="event.stopPropagation();dp(\''+p.filename+'\')">×</span></div>').join("");var tpf=document.getElementById("tpf");if(tpf){tpf.innerHTML=profiles.map(function(p){return"<option value='"+p.filename+"'>"+p.profileName+"</option>"}).join("")+"<option value='__manage__' style='color:var(--accent)'>Manage...</option></option>";if(activeProfile)tpf.value=activeProfile}renderProfileList()}
+function renderProfileList(){var el=document.getElementById("profList");if(!el)return;if(!profiles||!profiles.length){el.innerHTML='<p style="font-size:10px;color:var(--dim);padding:4px 2px">No profiles</p>';return}el.innerHTML=profiles.map(function(p){return '<div class="it'+(p.filename===activeProfile?" ac":"")+'" onclick="lp(\''+p.filename+'\')"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+hesc(p.profileName)+'</span><span title="重命名" onclick="event.stopPropagation();pmRenamePrompt(\''+p.filename+'\')" style="opacity:0.6;color:var(--dim);cursor:pointer;font-size:12px;padding:2px 6px;border-radius:3px">&#x270E;</span><span class="x" title="删除" onclick="event.stopPropagation();dp(\''+p.filename+'\')">&times;</span></div>'}).join("")}
+function pmRenamePrompt(fn){var p=(profiles||[]).find(function(x){return x.filename===fn});var cur=p?p.profileName:"";var nm=prompt("重命名 profile:",cur);if(nm&&nm.trim()&&nm.trim()!==cur)pmRename(fn,nm.trim())}
 function rpgl(){document.getElementById("pgl").innerHTML=profile?.pages.map(p=>'<div class="it'+(p.id===activePage?" ac":"")+'" onclick="activePage=\''+p.id+'\';selKey=null;selKeys.clear();selGroup=null;renderAll()">'+hesc(p.label)+'<span class="x" onclick="event.stopPropagation();dpg(\''+p.id+'\')">×</span></div>').join("")||"";var _cp=cp_();var _bg=document.getElementById("pageBg");if(_bg&&_cp)_bg.value=_cp.bgColor||"#1a1a2e";var _pt=document.getElementById("pagePat");if(_pt&&_cp)_pt.value=_cp.bgPattern||"none";var _pc=document.getElementById("pagePatColor");if(_pc&&_cp)_pc.value=_cp.bgPatternColor||"#ffffff";var _ps=document.getElementById("pagePatSz");if(_ps&&_cp)_ps.textContent=_cp.bgPatternSize||60}
 
 function upkShowFlag(flag,val){var k=cp_()?.keys.find(function(x){return x.id===selKey});if(!k)return;if(!k.showFlags)k.showFlags={};k.showFlags[flag]=val;dirty=true;rr()}
