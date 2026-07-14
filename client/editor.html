@@ -47,7 +47,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 /* ==== Frame Toolbar ==== */
 .ftb{
   position:absolute;display:flex;align-items:center;gap:0;height:36px;
-  z-index:30;pointer-events:none;background:var(--panel);
+  z-index:30;pointer-events:auto;background:var(--panel);
   border:1px solid rgba(255,255,255,0.06);border-bottom:none;
   border-radius:8px 8px 0 0;
 }
@@ -190,7 +190,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 @font-face{font-family:"VT323";src:url("/static/fonts/VT323.woff2") format("woff2")}
 @font-face{font-family:"Russo One";src:url("/static/fonts/RussoOne.woff2") format("woff2")}
 
-.btb{position:absolute;display:flex;align-items:center;gap:6px;height:34px;z-index:30;pointer-events:none;background:var(--panel);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:0 8px}
+.btb{position:absolute;display:flex;align-items:center;gap:6px;height:34px;z-index:30;pointer-events:auto;background:var(--panel);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:0 8px}
 .btb>*{pointer-events:auto}
 .btb button{height:28px;background:transparent;color:var(--text);border:none;padding:0 8px;font-size:14px;cursor:pointer;font-weight:500;transition:all 0.15s}
 .btb button:hover{color:var(--accent)}
