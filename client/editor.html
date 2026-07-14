@@ -222,7 +222,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 </div>
 <div class="carea" id="carea"><div id="tl" style="position:absolute;inset:0;pointer-events:none;z-index:0;display:none"></div>
   <div class="gh" id="gh"></div>
-  <div class="ftb" id="ftb"><select id="fdev" onchange="onFDev()"><option value="iPad 11&quot;" selected>iPad 11"</option><option value="iPad 4:3">iPad 4:3</option><option value="iPad mini">iPad mini</option><option value="Android 16:10">Android 16:10</option></select><button class="btn-ori" onclick="toggleOri()" title="Toggle"><svg width="16" height="16" viewBox="0 0 48 48" fill="none" style="vertical-align:middle"><path d="M4 24C4 35.0457 12.9543 44 24 44L19 39" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M44 24C44 12.9543 35.0457 4 24 4L29 9" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M30 41L7 18L18 7L41 30L30 41Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+  <div class="ftb" id="ftb"><select id="fdev" onchange="onFDev()"><optgroup label="设备"><option value="iPad 11&quot;">iPad 11"</option><option value="iPad 4:3">iPad 4:3</option><option value="iPad mini">iPad mini</option><option value="Android 16:10">Android 16:10</option></optgroup><optgroup label="比例"><option value="3:2">3:2</option><option value="16:10">16:10</option><option value="16:9">16:9</option><option value="21:9">21:9</option></optgroup><option value="__custom__" id="fdev_custom">自定义…</option></select><button class="btn-ori" onclick="toggleOri()" title="Toggle"><svg width="16" height="16" viewBox="0 0 48 48" fill="none" style="vertical-align:middle"><path d="M4 24C4 35.0457 12.9543 44 24 44L19 39" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M44 24C44 12.9543 35.0457 4 24 4L29 9" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M30 41L7 18L18 7L41 30L30 41Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
   <div class="sr" id="sr"></div><div class="grh" id="grh_b" style="cursor:s-resize"></div><div class="grh" id="grh_l" style="cursor:w-resize"></div><div class="grh" id="grh_r" style="cursor:e-resize"></div>
   <div class="cwrap" id="cwrap"><div class="canvas" id="canvas"></div></div>
   <div id="carea-overlay"></div>
@@ -345,7 +345,7 @@ let panX=0,panY=0,panning=false,panStartX=0,panStartY=0,mx=0,my=0,copiedStyle=nu
 let selecting=false,srSX=0,srSY=0,srCX=0,srCY=0;
 let undoStack=[],redoStack=[];
 const MAX_UNDO=200;
-const DEVS={"iPad 4:3":{w:1024,h:1366},"iPad 11\"":{w:834,h:1210},"iPad mini":{w:744,h:1133},"Android 16:10":{w:1280,h:800}};
+const DEVS={"iPad 4:3":{w:1024,h:1366},"iPad 11\"":{w:834,h:1210},"iPad mini":{w:744,h:1133},"Android 16:10":{w:1280,h:800},"3:2":{w:800,h:1200},"16:10":{w:750,h:1200},"16:9":{w:675,h:1200},"21:9":{w:514,h:1200}};
 
 // ── Undo/Redo ──
 function _snapshot(k){return JSON.parse(JSON.stringify(k))}
@@ -481,6 +481,7 @@ function _scr2cell(sx,sy){
 }
 function rr(){
   if(!profile)return;
+  _syncFDev();
   const dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210,cs=profile.cellSize||60,gp=profile.gap||0;
   var ca=document.getElementById("carea"),cw=ca.clientWidth,ch=ca.clientHeight;
   document.getElementById("tgs").value=profile.defaultSound||"none";
@@ -792,7 +793,8 @@ carea.addEventListener("wheel",e=>{e.preventDefault();zoomBy(e.deltaY>0?-1:1)},{
 function fitAll(){if(!profile)return;var page=profile.pages.find(function(p){return p.id===activePage});if(!page||!page.keys.length)return;var cs=profile.cellSize||60,gp=profile.gap||0,dw=profile.deviceWidth||834,dh=profile.deviceHeight||1210;var cpx=cs+gp;var minC=Infinity,minR=Infinity,maxC=-Infinity,maxR=-Infinity;page.keys.forEach(function(k){var c=k.col||0,r=k.row||0,w=k.w||1,h=k.h||1;if(c<minC)minC=c;if(r<minR)minR=r;if(c+w>maxC)maxC=c+w;if(r+h>maxR)maxR=r+h});if(minC===Infinity)return;var cols=maxC-minC,rows=maxR-minR;var kw=cols*cpx-gp,kh=rows*cpx-gp;var pad=0;var scale=Math.min((dw-pad*2)/kw,(dh-pad*2)/kh,2.5);var newCs=Math.max(15,Math.floor(cs*scale));var centerC=(minC+maxC)/2,centerR=(minR+maxR)/2;profile.cellSize=newCs;profile.canvasX=-centerC;profile.canvasY=-centerR;panX=-centerC;panY=-centerR;rr();dirty=true}
 function zoomBy(d){const nv=Math.max(20,Math.min(200,(profile.cellSize||60)+d));if(nv!==profile.cellSize){profile.cellSize=nv;dirty=true;rr()}}
 function toggleOri(){const t=profile.deviceWidth;profile.deviceWidth=profile.deviceHeight;profile.deviceHeight=t;dirty=true;rr()}
-function onFDev(){const d=DEVS[document.getElementById("fdev").value];if(d&&profile){profile.device=document.getElementById("fdev").value;profile.deviceWidth=d.w;profile.deviceHeight=d.h;dirty=true;rr()}}
+function onFDev(){var sel=document.getElementById("fdev");var v=sel.value;if(!profile)return;if(v==="__custom__"){var cur=(profile.deviceWidth||834)+"x"+(profile.deviceHeight||1210);var inp=prompt("自定义画布像素 宽x高(如 1280x800):",cur);if(!inp){_syncFDev();return}var mm=inp.replace(/[×,\s]/g,"x").split("x");var w=parseInt(mm[0],10),h=parseInt(mm[1],10);if(!(w>0&&h>0&&w<=8000&&h<=8000)){alert("请输入有效像素,如 1280x800");_syncFDev();return}profile.device="__custom__";profile.deviceWidth=w;profile.deviceHeight=h;dirty=true;rr();return}var d=DEVS[v];if(d){profile.device=v;profile.deviceWidth=d.w;profile.deviceHeight=d.h;dirty=true;rr()}}
+function _syncFDev(){var sel=document.getElementById("fdev");if(!sel||!profile)return;var co=document.getElementById("fdev_custom");var dev=profile.device,w=profile.deviceWidth||834,h=profile.deviceHeight||1210,match=null;if(dev&&DEVS[dev]&&((DEVS[dev].w===w&&DEVS[dev].h===h)||(DEVS[dev].w===h&&DEVS[dev].h===w)))match=dev;if(!match){for(var k in DEVS){if((DEVS[k].w===w&&DEVS[k].h===h)||(DEVS[k].w===h&&DEVS[k].h===w)){match=k;break}}}if(match){sel.value=match;if(co)co.textContent="自定义…"}else{sel.value="__custom__";if(co)co.textContent="自定义 ("+w+"×"+h+")"}}
 
 
 function onDev(){} // removed — use onFDev from frame toolbar
