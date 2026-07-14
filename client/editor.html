@@ -355,7 +355,7 @@ function _patCSS(pid,color,sz){if(!pid||pid==="none")return"";var p=PATTERNS[pid
 function hesc(s){return String(s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
 let ws=null,profile=null,profiles=[],activePage="",activeProfile="Default.json";
 let selKey=null,selKeys=new Set(),selGroup=null,dirty=false,profileLoaded=false;
-let panX=0,panY=0,panning=false,panStartX=0,panStartY=0,mx=0,my=0,copiedStyle=null;
+let panX=0,panY=0,panning=false,panStartX=0,panStartY=0,mx=0,my=0,panShiftLock=null,copiedStyle=null;
 let selecting=false,srSX=0,srSY=0,srCX=0,srCY=0;
 let undoStack=[],redoStack=[];
 const MAX_UNDO=200;
@@ -759,7 +759,7 @@ carea.addEventListener("mousedown",e=>{
     if(!e.shiftKey){selKeys.clear();selKey=null;rr();rpr()}
     e.preventDefault();
   }else if(e.button===2){
-    panning=true;panStartX=e.clientX;panStartY=e.clientY;mx=panX;my=panY;e.preventDefault();
+    panning=true;panStartX=e.clientX;panStartY=e.clientY;mx=panX;my=panY;panShiftLock=null;e.preventDefault();
   }
 });
 carea.addEventListener("contextmenu",e=>{e.preventDefault()});
@@ -784,8 +784,17 @@ document.addEventListener("mousemove",e=>{
   const dw=profile.deviceWidth||1210,dh=profile.deviceHeight||834,cs=profile.cellSize||60,gp=profile.gap||0;
   const cpx=cs+gp;
   const scale=Math.min(cw*0.85/dw,ch*0.85/dh);
-  panX=mx+(e.clientX-panStartX)/(cpx*scale);
-  panY=my+(e.clientY-panStartY)/(cpx*scale);
+  const wasLocked=panShiftLock;
+  if(!e.shiftKey){panShiftLock=null}
+  else if(panShiftLock===null){
+    const adx=Math.abs(e.clientX-panStartX),ady=Math.abs(e.clientY-panStartY);
+    if(adx>3||ady>3)panShiftLock=adx>=ady?'x':'y';
+  }
+  // On unlock, reset previously-frozen axis baseline to prevent jump
+  if(wasLocked==='y'&&!panShiftLock)panStartX=e.clientX;
+  if(wasLocked==='x'&&!panShiftLock)panStartY=e.clientY;
+  if(panShiftLock!=='y'){panX+=(e.clientX-panStartX)/(cpx*scale);panStartX=e.clientX}
+  if(panShiftLock!=='x'){panY+=(e.clientY-panStartY)/(cpx*scale);panStartY=e.clientY}
   rr();
 });
 
@@ -798,7 +807,7 @@ document.addEventListener("mouseup",e=>{
     rr();rpr();
   }
   if(panning){
-    panning=false;
+    panning=false;panShiftLock=null;
     panX=_snap4(panX);panY=_snap4(panY);
     rr();
   }
