@@ -1,7 +1,7 @@
 # Smart Touch Panel — 项目现状与改进计划（CONTEXT）
 
 > 本文档为项目领域知识 + 现状快照 + 待办计划，供后续开发（含 AI）在动代码前**优先阅读**。
-> 生成时间：2026-07-14 ｜ 对应 commit：`c372273` ｜ 全部内容基于源码实测，非推测。
+> 生成时间：2026-07-15 ｜ 对应 commit：`5343d8c` ｜ 全部内容基于源码实测，非推测。
 
 ---
 
@@ -192,7 +192,47 @@ arm64-only（Intel 不可运行）；adhoc 未公证 → 目标机需手动解�
 
 ---
 
-## 9. 关键约束（动代码前必读）
+## 9. 最近更新（2026-07-14 ~ 2026-07-15）
+
+### 9.1 E 键触发 emoji 面板（已修复 · commit `9f0ae14`）
+
+**现象**：iPad 端按 E 键，Mac 弹出 emoji 选择器 (Ctrl+Cmd+Space)。
+
+**根因**：`input_engine.py:_post_key_event()` 的 `if flags:` 守卫跳过了 key-up 时的 `CGEventSetFlags(event, 0)`，导致前一次按键的修饰键 flag 残留。E 的虚拟键码 `0x0E` 恰好是 Ctrl+Cmd+Space 的触发键码。
+
+**修复**（仅改一行，`input_engine.py:67`）：
+```python
+# Before
+if flags: CGEventSetFlags(event, flags)
+# After  
+if flags or not down: CGEventSetFlags(event, flags)
+```
+Key-up 时永远调 CGEventSetFlags 清零残留；key-down 时仅 flags≠0 时调用（保留默认系统行为）。
+
+### 9.2 Editor UI 改进（commits `33b83dd` ~ `62508c5`）
+
+| 改动 | 说明 |
+|------|------|
+| 移除 Label 行 | Page 不再需要手动命名，自动 `"Page N"` |
+| 显示比例始终展开 | 去掉折叠 toggle，`ratioBox` 常显 |
+| 默认横屏 | `deviceWidth:1210, deviceHeight:834`，预设点击也用 `Math.max/min` 强制横屏 |
+| "Pages" → "Profile Properties" | 板块重命名，去掉 "+ New Page" 按钮 |
+| 动态标题 | `<h3 id="pp-heading">` 随 profile 名变化，如 `"Keyboard Properties"` |
+| 去除重复 page 名 | 删 `#pgl`（标题下不再有重复的页面列表行） |
+
+### 9.3 Shift 锁定画布平移方向（commit `5343d8c`）
+
+右键拖动画布时按住 Shift → 移动超过 3px 后锁定到主方向（水平/垂直）。松 Shift 平滑解锁无跳动。
+
+实现：`editor.html` mousemove 改用 per-frame delta 累积；解锁时重置冻结轴基线避免位置跳变。
+
+### 9.4 Sticky 修饰键方案（已回退）
+
+曾尝试实现 sticky modifier keys（tap 修饰键保持激活），但 CGEvent 的修饰键注入不符合预期——macOS 不认为修饰键被单独按下（需要与普通键组合才生效）。已完全回退至 `9f0ae14`。
+
+---
+
+## 10. 关键约束（动代码前必读）
 
 - **单 event loop**：任何在 `async def` 路由 / WebSocket 循环里的**同步阻塞调用**（osascript、subprocess、CGWindowList、file I/O）都会卡住全局触控。同步重活一律放 `def` 路由或 `run_in_executor`。
 - **权威前端源**是 `client/index.html` / `editor.html`，**不是** `tools/build.py` 的输入模块。
@@ -202,7 +242,7 @@ arm64-only（Intel 不可运行）；adhoc 未公证 → 目标机需手动解�
 
 ---
 
-## 10. 前端可实测（不要只静态读代码）
+## 11. 前端可实测（不要只静态读代码）
 
 > STP 的 iPad 面板 / editor 都是**浏览器端**页面 → 本机可用 headless Chrome 亲自跑，别停在读代码或让用户贴 console。（用户明确指令 2026-07-14）
 
