@@ -340,6 +340,19 @@ async def save_profile(body: dict):
 
 
 
+@app.post("/api/profiles/import")
+async def import_profile(body: dict):
+    """Import an exported profile JSON. Auto-renames on any name conflict."""
+    if not isinstance(body, dict) or not body:
+        raise HTTPException(400, "Body must be a profile JSON object")
+    if not isinstance(body.get("pages"), list):
+        raise HTTPException(400, "Not a valid profile: missing 'pages' list")
+    filename = profiles.import_profile(body)
+    p = profiles.get_profile(filename)
+    return {"status": "imported", "filename": filename,
+            "profileName": p.get("profileName") if p else filename}
+
+
 @app.patch("/api/profiles/{filename:path}")
 async def update_profile_meta(filename: str, body: dict):
     """Update profile name without renaming the file."""

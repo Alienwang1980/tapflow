@@ -137,6 +137,26 @@ class ProfileManager:
         logger.info(f"Profile saved: {filename}")
         return filename
 
+    def import_profile(self, profile: dict) -> str:
+        """Import an externally exported profile. Never overwrites:
+        name conflicts (filename OR profileName, case-insensitive — APFS
+        is case-insensitive and PATCH rename can desync the two) get an
+        auto " (2)" / " (3)"... suffix. Returns the saved filename."""
+        raw = str(profile.get("profileName", "") or "Imported").strip() or "Imported"
+        # Sanitize: external input crosses a trust boundary — no path tricks.
+        base = raw.replace("/", "_").replace("\\", "_").replace("\0", "").lstrip(".") or "Imported"
+
+        taken_files = {f.name.lower() for f in self.dir.glob("*.json")}
+        taken_names = {p["profileName"].strip().lower() for p in self.list_profiles()}
+
+        name, n = base, 1
+        while f"{name}.json".lower() in taken_files or name.lower() in taken_names:
+            n += 1
+            name = f"{base} ({n})"
+
+        imported = dict(profile, profileName=name)
+        return self.save_profile(imported, f"{name}.json")
+
     def delete_profile(self, filename: str) -> bool:
         path = self.dir / filename
         if path.exists():

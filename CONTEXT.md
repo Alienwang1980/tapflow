@@ -377,6 +377,14 @@ if flags or not down: CGEventSetFlags(event, flags)
 2. **从终端启动的实例走 Terminal 的 TCC 归因**（responsible process）,Terminal 被拒 → app 自己的授权根本不被查询;必须用 cron/launchd 归因启动（临时 cron 行拉起）
 3. 桌面残留的旧版 .app 抢授权/抢端口（已删）
 
+### 10.6 launchd 自托管 + Profile 导入/导出（2026-07-15 深夜）
+
+- 自托管改造见 §12.1/§12.2(cron/keep_alive 退役,SMAppService 两次实测失败后改经典 LaunchAgent)
+- **Profile 导入/导出**(跨 Mac 迁移):
+  - 导出:编辑器 Manage Profiles 每行 ⬇ 按钮 → 前端 fetch 现有 `GET /api/profiles/{fn}` → Blob 下载 `<profileName>.json`(零新后端代码)
+  - 导入:底部 Import 按钮 → `POST /api/profiles/import`(校验 dict+`pages` list)→ `ProfileManager.import_profile()`:名字消毒(`/`→`_`,剥首部 `.`)+ **大小写不敏感**查重(文件名 + 所有 profileName,二者可因 PATCH 改名脱钩)→ 冲突自动 `Name (2)`/`(3)`…,绝不覆盖
+  - 路由注册在 `{filename:path}` 参数路由之前;测试:import_profile 9 断言单测 + 实机 curl 四用例 + CDP UI 闭环
+
 ---
 
 ## 11. `input_engine.py` 关键约束（CRITICAL）
@@ -406,26 +414,34 @@ CGEvent 单独按下修饰键（如只按 LSHIFT）→ macOS **可能不识别�
 
 ## 12. 运行与部署
 
-### 12.1 当前运行（2026-07-15）
+### 12.1 运行模型（2026-07-15 起:launchd 自托管）
+
+- **运行时标准位置:`/Applications/Smart Touch Panel.app`**(内置盘)。`dist/` 只是构建产物。
+  - ⚠️ launchd 拉起的进程读 WD_BLACK(外置卷)会永久挂死在 opendir(实测,sample 实锤)
+- 开机自启 + 崩溃自愈:app 启动时 `register_launch_agent()` 自安装
+  `~/Library/LaunchAgents/com.smarttouch.panel.plist`(KeepAlive SuccessfulExit=false,ThrottleInterval 10)
+  - 正常启动只写 plist 不 bootout(避免杀自己);`STP_REGISTER_ONLY=1` 模式才 bootout+bootstrap
+- keep_alive.sh / cron @reboot 已退役(c77e1c0);SMAppService 不可用(macOS 26 + adhoc:LWCR 0x3 / BundleProgram 0x6f)
 
 ```bash
 # 查看
-lsof -ti:8082                    # pid
-ps aux | grep "Smart Touch"      # 进程信息
-tail -f /tmp/stp_nohup.log       # 日志
+lsof -ti:8082                                  # pid
+launchctl print gui/501/com.smarttouch.panel   # job 状态
+tail -f /tmp/stp_agent.log                     # 日志
 
-# 重启（更新代码后）
-cp client/editor.html "dist/.../Resources/client/editor.html"   # 或重打包
-kill $(lsof -ti:8082)
-nohup "dist/Smart Touch Panel.app/Contents/MacOS/Smart Touch Panel" > /tmp/stp_nohup.log 2>&1 &
+# 手动重启(kill -9 会被 launchd 自动拉起;干净退出/kickstart -k 见下)
+launchctl kickstart -k gui/501/com.smarttouch.panel
 ```
 
-### 12.2 生产部署（keep_alive + cron）
+### 12.2 更新部署流程(重打包后)
 
 ```bash
-# cron @reboot 启动 keep_alive.sh
-# keep_alive.sh 每 10s lsof -ti:8082 检测，down 则重启
-# 端口互斥保证最多一个实例
+launchctl bootout gui/501/com.smarttouch.panel
+rm -rf "/Applications/Smart Touch Panel.app"
+ditto "dist/Smart Touch Panel.app" "/Applications/Smart Touch Panel.app"
+STP_REGISTER_ONLY=1 "/Applications/Smart Touch Panel.app/Contents/MacOS/Smart Touch Panel"
+# ⚠️ 验证监听的是新实例(curl /openapi.json 查新路由):遗留老实例占着 8082 时,
+#    新实例端口守卫重试 15s 后干净退出 → kill 老实例 + launchctl kickstart
 ```
 
 ### 12.3 打包分发
@@ -459,12 +475,13 @@ for s in ScreenCapture Accessibility Microphone; do tccutil reset $s com.smartto
 3. **CGEventSetFlags**：修改 `_post_key_event` 必须遵守 §11.1 的规则表。
 4. **Profiles**：`server/profiles/*.json` gitignore（仅模板入库）；控件不显示先查 profile 匹配。
 5. **签名**：rebuild → 新 cdhash → TCC 需重授权。
-6. **端口**：改端口需同步 `keep_alive.sh`（见 §8 P1）。
+6. **端口**：8082 硬编码于 plist 端口守卫逻辑与前端,改端口需全局搜。
 7. **Git remote**：`nas`（不是 `origin`）= `Claude@192.168.2.62:/volume1/Git_Station/smart-touch-panel.git`。
 8. **编辑器浏览器**：必须 Safari（原生颜色选择器）。
 9. **TCC 重授权必须先 `tccutil reset`**：重签后旧条目 csreq 不匹配,设置界面开关显示开启但实际无效,直接切开关救不回来;必须 reset 删条目 → 触发一次真实访问重新登记 → 再授权（屏幕录制/辅助功能/麦克风三项同理）。
 10. **开发期启动归因**：从终端（含 Claude 会话）`nohup` 启动的实例,屏幕捕获走 **Terminal 的 TCC 归因**;Terminal 无屏幕录制授权则截图必失败。验证截图/权限相关功能必须用 cron 拉起（临时 cron 行,起来后删）。生产 cron @reboot 天然正确。
 11. **打包用 `server/venv`**：`.venv` 的 pyobjc 不全（缺 AVFoundation）,用它打包麦克风电平功能静默失效（import 错误被 except 吞掉,只表现为"权限挂不上"）。
+12. **`setup.py` 必须 `site_packages: False`**：True 会把构建机 venv 绝对路径(/Volumes/WD_BLACK/…)烧进 `__boot__.py`,launchd 拉起时 addsitedir→opendir 外置卷永久挂死(faulthandler 实锤)。改回 True 等于把 app 重新拴回外置盘。
 
 ---
 
