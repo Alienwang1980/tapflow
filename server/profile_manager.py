@@ -117,7 +117,13 @@ class ProfileManager:
         if not path.exists():
             return None
         profile = json.loads(path.read_text(encoding='utf-8'))
-        return migrate_key_positions(profile)
+        profile = migrate_key_positions(profile)
+        # Strip secrets from memory copy
+        for page in profile.get("pages", []):
+            for key in page.get("keys", []):
+                if key.get("action") == "balance":
+                    key.pop("apiKey", None)
+        return profile
 
     def save_profile(self, profile: dict, filename: Optional[str] = None) -> str:
         if not filename:
@@ -130,6 +136,9 @@ class ProfileManager:
             for i, key in enumerate(page.get("keys", [])):
                 if not key.get("id"):
                     key["id"] = f"{page.get('id', 'p')}_{i}"
+                # Strip secrets — apiKey must never be persisted
+                if key.get("action") == "balance":
+                    key.pop("apiKey", None)
         # Migrate to grid positions before saving
         profile = migrate_key_positions(profile)
         path = self.dir / filename
