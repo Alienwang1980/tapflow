@@ -1,7 +1,7 @@
 # Smart Touch Panel — 项目全貌（CONTEXT）
 
 > 本文档为项目领域知识 + 完整现状快照 + 待办计划。后续开发（含 AI）动代码前**必须优先阅读**。
-> 最后更新：2026-07-15（窗口缩略图功能） ｜ 全部数据基于 2026-07-15 实测
+> 最后更新：2026-07-16（响应式面板 + SwitchProfile 标签 + 纹理修复 + DMG 打包） ｜ 全部数据基于 2026-07-16 实测
 
 ---
 
@@ -13,10 +13,10 @@ Smart Touch Panel（STP）是一个 **macOS 菜单栏应用**：在 Mac 上起�
 - **连接**：iPad 与 Mac 同一局域网，iPad 打开 `http://<Mac-IP>:8082`，编辑器 `/editor`
 - **编辑器**：必须用 **Safari** 打开（macOS 原生颜色选择器），Chrome 不支持
 - **两种运行形态**：
-  1. **生产**：源码 `start.sh` / `keep_alive.sh` + cron `@reboot` 守护（本机日常使用）
-  2. **分发**：py2app 打包 `.app`（`dist/`），可装到任意 arm64 Mac
+  1. **生产**：launchd 自托管 `~/Library/LaunchAgents/com.smarttouch.panel.plist`（KeepAlive + 崩溃自愈）
+  2. **分发**：py2app 打包 `.app` + Apple Development 签名（`dist/`），DMG 安装
 
-**当前运行状态（2026-07-15）**：`.app` 版正在运行（pid 在 `lsof -ti:8082`），端口 8082，Mac IP `192.168.2.20`。
+**当前运行状态（2026-07-16）**：`.app` 版正在运行，端口 8082，Mac IP `192.168.2.20`。launchd 自托管 + Apple Development 签名。
 
 ---
 
@@ -31,16 +31,16 @@ Smart Touch Panel（STP）是一个 **macOS 菜单栏应用**：在 Mac 上起�
 | 系统集成 | PyObjC (AppKit/Quartz/Foundation)、osascript | `ax_bridge.py` 816 行 |
 | 菜单栏 | pystray (`LSUIElement=True`，无 Dock 图标) | `tray_app.py` 950 行 |
 | 服务发现 | zeroconf (mDNS) | — |
-| 打包 | py2app (arm64, adhoc 签名) | `setup.py` |
-| 运行时 | Python 3.12（`.venv`） | — |
+| 打包 | py2app (arm64, Apple Development 签名) | `setup.py` |
+| 运行时 | Python 3.12（`server/venv`） | — |
 
 **代码量**：
 
 | 文件 | 行数 | 职责 |
 |------|------|------|
 | `client/index.html` | 387 | iPad 主面板（单文件，压缩长行，canvas 渲染） |
-| `client/editor.html` | 1,333 | 面板编辑器（拖拽布局、控件属性、按键绑定） |
-| `server/tray_app.py` | 950 | ★ 入口：菜单栏 app + 端口解析 + `/api/system/*` 路由 |
+| `client/editor.html` | 1,341 | 面板编辑器（拖拽布局、控件属性、按键绑定） |
+| `server/tray_app.py` | 1,321 | ★ 入口：菜单栏 app + 端口解析 + NSPanel 设置面板 + `/api/system/*` 路由 |
 | `server/ax_bridge.py` | 816 | 窗口/tab/菜单枚举（CGWindowList + osascript） |
 | `server/main.py` | 479 | FastAPI app、WebSocket 主循环、静态文件 |
 | `server/input_engine.py` | 251 | CGEvent 键鼠模拟 |
@@ -51,7 +51,7 @@ Smart Touch Panel（STP）是一个 **macOS 菜单栏应用**：在 Mac 上起�
 | `server/connection_manager.py` | 47 | WebSocket 连接池 |
 | `server/widget_extension.py` | 40 | 额外 API 端点 |
 | `server/editor_app.py` | 16 | 打开编辑器（Safari） |
-| **总计** | **~4,800** | |
+| **总计** | **~5,200** | |
 
 ---
 
@@ -98,13 +98,17 @@ smart-touch-panel/
 
 ---
 
-## 4. Editor 架构（`client/editor.html` 1,333 行）
+## 4. Editor 架构（`client/editor.html` 1,341 行）
 
 ### 4.1 布局结构
+
+左右面板宽度 `clamp(160px, 20vw, 270px)` 响应式自适应，画布 `flex:1; min-width:0` 填充剩余空间。900px 视口下无横向滚动。
 
 ```
 ┌──────────────────────────────────────────────────────────┐
 │  左侧面板 (#lp-panel)    │    画布 (#carea)              │
+│  宽度: clamp(160px,      │    flex:1; min-width:0        │
+│    20vw, 270px)          │    overflow:hidden             │
 │                          │                                │
 │  Profiles                │    ┌─────────────────────┐    │
 │  ├─ profile 列表         │    │                     │    │
@@ -259,7 +263,11 @@ Active profile 由客户端 `localStorage.getItem("stp_active")` 决定，非服
 
 `CGEventSetFlags` 在 key-up 时不调用导致修饰键残留。修复见 §10.1。
 
-### 🟠 P1：`keep_alive.sh` 端口硬编码
+### ✅ 已修复（`f708c6b`）：Editor 面板非响应式
+
+左右面板固定 `270px` + `flex-shrink:0` → 窄屏下画布被挤压/溢出。已改为 `clamp(160px, 20vw, 270px)` 响应式宽度 + `flex-shrink:1`。
+
+### 🟠 P1：`keep_alive.sh` 端口硬编码（已退役但脚本残留）
 
 `keep_alive.sh:6` 硬编码 `PORT=8082`。改端口后守护脚本不停误判重启。应改为读 config.json / `STP_PORT`。
 
@@ -385,6 +393,64 @@ if flags or not down: CGEventSetFlags(event, flags)
   - 导入:底部 Import 按钮 → `POST /api/profiles/import`(校验 dict+`pages` list)→ `ProfileManager.import_profile()`:名字消毒(`/`→`_`,剥首部 `.`)+ **大小写不敏感**查重(文件名 + 所有 profileName,二者可因 PATCH 改名脱钩)→ 冲突自动 `Name (2)`/`(3)`…,绝不覆盖
   - 路由注册在 `{filename:path}` 参数路由之前;测试:import_profile 9 断言单测 + 实机 curl 四用例 + CDP UI 闭环
 
+### 10.7 编辑器修复与改进（2026-07-16）
+
+#### Topography 纹理修复（`2be7bb9` ~ `a361562`）
+
+**现象**：topography 纹理 `bgPatternSize=20` 几乎不可见、需 900+ 才能看到；而我批量替换编辑时引入 JS 语法错误导致编辑器完全空白。
+
+**根因**：
+1. `PATTERNS["topography"]` 的 `size:80` 远大于其他纹理（24/30/60），CSS `background-size` 默认取 pattern.size 时不一致
+2. 替换脚本生成的 `svg:<svg` 缺开引号 → `Uncaught SyntaxError: Unexpected token '<'` → PATTERNS undefined → 编辑器空白
+
+**修复**：
+- topography `size: 80 → 24`，重绘 SVG（三行等高线，stroke-width 1.6，opacity 0.30）
+- `svg:<svg` → `svg:'<svg`，`</svg>'}`（单引号包裹 SVG 字符串，内部全双引号）
+- CDP 实测验证：0 JS errors，9 PATTERNS keys，topography `bgPatternSize≈20` 与其余纹理同级可见
+
+#### 响应式面板（`f708c6b`）
+
+**需求**：编辑器在窄屏/低分辨率下左右面板溢出画面。
+
+**变更**：
+
+| 属性 | 旧值 | 新值 |
+|------|------|------|
+| `.rp width` | `270px` | `clamp(160px, 20vw, 270px)` |
+| `.rp flex-shrink` | `0` | `1` |
+| `.carea overflow` | `visible` | `hidden` |
+| `.carea min-width` | 无 | `0` |
+
+CDP 三分辨率验证（900/1280/1680px）：面板 180→270px 自适应，画布填满剩余空间，无横向滚动条。
+
+#### Switch Profile 标签动态更新（`51395a2`）
+
+**现象**：编辑器中 Switch Profile 控件的画布印字停留在默认 "Switch Profile"，不跟随选择的 target profile 更新。
+
+**修复**：
+- `upk()` 函数：`prop==="targetProfile"` 时自动查 profiles 列表取 `profileName` 更新 `key.label`
+- Profile 加载处理器：WS 收到 profile 后全量修正 switchprofile 键的 label（覆盖 `renderAll()` 之前的窗口期）
+
+#### 图标自愈与 SwitchAudioSource 跨机部署（`7144181`）
+
+- SVG/Dock 图标 `onerror` 死标记改为 3s/5s 自动重试
+- `SwitchAudioSource` 二进制打入 bundle Resources/bin，首次运行自动拷到 App Support
+
+#### 设置 NSPanel（`7144181`）
+
+- 菜单 "⚙️ 设置" → 原生 NSPanel（380×316，NSFloatingWindowLevel）
+- 三行权限：Screen Recording / Accessibility / Microphone，已授权→绿字，未授权→按钮跳系统设置
+- 端口修改：未改时"保存并重启"置灰，保存写 config.json + `os._exit(1)` 由 launchd 拉起
+- 2s NSTimer 自动刷新权限状态
+
+#### DMG 打包
+
+`~/Desktop/STP.dmg`（52M UDZO），含 app + `/Applications` symlink，拖拽安装。
+
+#### 证书签名
+
+使用 Keychain 现有 Apple Development 证书（`wang xinlei, 3PZ5GB6NV9`，2027-06-04 到期），hash `50035AAD0722786A4C024087383B654504F75C33`。TCC 授权跨重建保持（实测验证：重签后 ScreenCapture 仍 granted）。
+
 ---
 
 ## 11. `input_engine.py` 关键约束（CRITICAL）
@@ -446,11 +512,27 @@ STP_REGISTER_ONLY=1 "/Applications/Smart Touch Panel.app/Contents/MacOS/Smart To
 
 ### 12.3 打包分发
 
+**py2app 构建：**
 ```bash
 server/venv/bin/python3 setup.py py2app      # ⚠️ 必须 server/venv(.venv 缺 AVFoundation 等 pyobjc 框架,打出的包麦克风功能是坏的)
-codesign --force --deep --sign - "dist/Smart Touch Panel.app"
+```
+
+**签名**（Apple Development 证书，已在 Keychain）：
+```bash
+# 证书: Apple Development: wang xinlei (3PZ5GB6NV9)
+# hash: 50035AAD0722786A4C024087383B654504F75C33
+# 到期: 2027-06-04
+codesign --force --deep -s 50035AAD0722786A4C024087383B654504F75C33 "dist/Smart Touch Panel.app"
 codesign --verify --deep --strict "dist/Smart Touch Panel.app"
-ditto -c -k --sequesterRsrc --keepParent "dist/Smart Touch Panel.app" ~/Desktop/STP.zip
+```
+
+**DMG 打包：**
+```bash
+mkdir /tmp/stp_dmg_root
+ditto "dist/Smart Touch Panel.app" "/tmp/stp_dmg_root/Smart Touch Panel.app"
+ln -s /Applications /tmp/stp_dmg_root/Applications
+hdiutil create -volname "Smart Touch Panel" -srcfolder /tmp/stp_dmg_root -ov -format UDZO ~/Desktop/STP.dmg
+rm -rf /tmp/stp_dmg_root
 ```
 
 **rebuild 后 TCC 重授权流程**（每次重打包必做,见 §13.9）：
