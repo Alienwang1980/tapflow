@@ -1,5 +1,4 @@
 """py2app setup for Smart Touch Panel macOS menu bar app."""
-import sys
 from pathlib import Path
 from setuptools import setup
 
@@ -54,7 +53,10 @@ OPTIONS = {
         "NSMicrophoneUsageDescription": "Smart Touch Panel needs Microphone access to show input audio levels.",
         "NSScreenCaptureUsageDescription": "Smart Touch Panel needs Screen Recording access to show window titles and thumbnails across all Spaces.",
     },
-    "site_packages": True,
+    # site_packages=True 会把构建机 venv 的绝对路径(/Volumes/WD_BLACK/...)烧进
+    # __boot__.py → launchd 拉起时 opendir 外置卷挂死(实测,2026-07-15)。
+    # 所有依赖已通过 packages/includes 完整打入 bundle,必须 False。
+    "site_packages": False,
     "strip": False,
 }
 

@@ -11,58 +11,6 @@ def _reset_sys_path():
 _reset_sys_path()
 
 
-def _site_packages(prefix, real_prefix, global_site_packages):
-    import os
-    import site
-    import sys
-
-    paths = []
-
-    paths.append(
-        os.path.join(
-            prefix, "lib", "python%d.%d" % (sys.version_info[:2]), "site-packages"
-        )
-    )
-    if os.path.join(".framework", "") in os.path.join(prefix, ""):
-        home = os.environ.get("HOME")
-        if home:
-            paths.append(
-                os.path.join(
-                    home,
-                    "Library",
-                    "Python",
-                    "%d.%d" % (sys.version_info[:2]),
-                    "site-packages",
-                )
-            )
-
-    # Work around for a misfeature in setuptools: easy_install.pth places
-    # site-packages way to early on sys.path and that breaks py2app bundles.
-    # NOTE: this is hacks into an undocumented feature of setuptools and
-    # might stop to work without warning.
-    sys.__egginsert = len(sys.path)
-
-    for path in paths:
-        site.addsitedir(path)
-
-    # Ensure that the global site packages get placed on sys.path after
-    # the site packages from the virtual environment (this functionality
-    # is also in virtualenv)
-    sys.__egginsert = len(sys.path)
-
-    if global_site_packages:
-        site.addsitedir(
-            os.path.join(
-                real_prefix,
-                "lib",
-                "python%d.%d" % (sys.version_info[:2]),
-                "site-packages",
-            )
-        )
-
-
-_site_packages('/Volumes/WD_BLACK/Claude/projects/smart-touch-panel/server/venv', '/opt/homebrew/opt/python@3.12', 0)
-
 def _chdir_resource():
     import os
 
@@ -184,7 +132,7 @@ def _recipes_pil_prescript(plugins):
     Image.init = init
 
 
-_recipes_pil_prescript(['PcxImagePlugin', 'TgaImagePlugin', 'McIdasImagePlugin', 'FitsImagePlugin', 'MicImagePlugin', 'Hdf5StubImagePlugin', 'BlpImagePlugin', 'MspImagePlugin', 'GbrImagePlugin', 'TiffImagePlugin', 'IcoImagePlugin', 'SunImagePlugin', 'EpsImagePlugin', 'BmpImagePlugin', 'SgiImagePlugin', 'WebPImagePlugin', 'XVThumbImagePlugin', 'PngImagePlugin', 'MpegImagePlugin', 'DdsImagePlugin', 'FliImagePlugin', 'WmfImagePlugin', 'PsdImagePlugin', 'IcnsImagePlugin', 'ImtImagePlugin', 'FpxImagePlugin', 'ImImagePlugin', 'JpegImagePlugin', 'AvifImagePlugin', 'CurImagePlugin', 'PixarImagePlugin', 'FtexImagePlugin', 'PpmImagePlugin', 'GribStubImagePlugin', 'PalmImagePlugin', 'MpoImagePlugin', 'XbmImagePlugin', 'DcxImagePlugin', 'PcdImagePlugin', 'Jpeg2KImagePlugin', 'SpiderImagePlugin', 'IptcImagePlugin', 'BufrStubImagePlugin', 'PdfImagePlugin', 'GifImagePlugin', 'QoiImagePlugin', 'XpmImagePlugin'])
+_recipes_pil_prescript(['QoiImagePlugin', 'IcoImagePlugin', 'PcdImagePlugin', 'MicImagePlugin', 'PcxImagePlugin', 'PalmImagePlugin', 'XpmImagePlugin', 'XVThumbImagePlugin', 'BufrStubImagePlugin', 'WebPImagePlugin', 'MpegImagePlugin', 'ImtImagePlugin', 'AvifImagePlugin', 'BlpImagePlugin', 'GbrImagePlugin', 'IcnsImagePlugin', 'PdfImagePlugin', 'FitsImagePlugin', 'MpoImagePlugin', 'DcxImagePlugin', 'PsdImagePlugin', 'PpmImagePlugin', 'CurImagePlugin', 'SgiImagePlugin', 'Hdf5StubImagePlugin', 'GribStubImagePlugin', 'FpxImagePlugin', 'Jpeg2KImagePlugin', 'DdsImagePlugin', 'PixarImagePlugin', 'EpsImagePlugin', 'IptcImagePlugin', 'TgaImagePlugin', 'XbmImagePlugin', 'PngImagePlugin', 'GifImagePlugin', 'ImImagePlugin', 'WmfImagePlugin', 'McIdasImagePlugin', 'JpegImagePlugin', 'SunImagePlugin', 'FtexImagePlugin', 'BmpImagePlugin', 'MspImagePlugin', 'FliImagePlugin', 'SpiderImagePlugin', 'TiffImagePlugin'])
 
 
 def _setup_ctypes():

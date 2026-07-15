@@ -948,13 +948,109 @@ def run_tray():
     icon.run()
 
 
+AGENT_LABEL = "com.smarttouch.panel"
+AGENT_PLIST_PATH = os.path.expanduser(f"~/Library/LaunchAgents/{AGENT_LABEL}.plist")
+
+
+def _is_frozen() -> bool:
+    """True when running from the py2app bundle (not source mode)."""
+    import sys as _sys9
+    return bool(getattr(_sys9, "frozen", None))
+
+
+def _port_in_use(port: int) -> bool:
+    """Bind test: True if another process already holds the port."""
+    import socket as _sock9
+    s = _sock9.socket(_sock9.AF_INET, _sock9.SOCK_STREAM)
+    try:
+        s.setsockopt(_sock9.SOL_SOCKET, _sock9.SO_REUSEADDR, 1)
+        s.bind(("0.0.0.0", port))
+        return False
+    except OSError:
+        return True
+    finally:
+        s.close()
+
+
+def register_launch_agent(apply_now: bool = False) -> str:
+    """Self-install a classic LaunchAgent plist pointing at this bundle's executable.
+    开机自启 + 崩溃自动重启(KeepAlive SuccessfulExit=false),无 cron 无 FDA。
+    不用 SMAppService:macOS 26 上对 adhoc 签名/外置卷二进制 LWCR 校验失败(0x3),
+    BundleProgram 相对路径也解析失败(0x6f) —— 均为实测。
+    apply_now=False: 只写 plist(下次登录生效),避免 bootout 杀掉自己;
+    apply_now=True(STP_REGISTER_ONLY 模式): bootout+bootstrap 立即生效。
+    Bundle mode only."""
+    if not _is_frozen():
+        return "skipped (source mode)"
+    try:
+        import plistlib, subprocess as _sp9
+        from Foundation import NSBundle
+        exe = str(NSBundle.mainBundle().executablePath())
+        agent = {
+            "Label": AGENT_LABEL,
+            "Program": exe,
+            "RunAtLoad": True,
+            "KeepAlive": {"SuccessfulExit": False},
+            "ThrottleInterval": 10,
+            "StandardOutPath": "/tmp/stp_agent.log",
+            "StandardErrPath": "/tmp/stp_agent.log",
+            "ProcessType": "Interactive",
+        }
+        new_data = plistlib.dumps(agent)
+        try:
+            with open(AGENT_PLIST_PATH, "rb") as f:
+                unchanged = f.read() == new_data
+        except FileNotFoundError:
+            unchanged = False
+        if not unchanged:
+            os.makedirs(os.path.dirname(AGENT_PLIST_PATH), exist_ok=True)
+            with open(AGENT_PLIST_PATH, "wb") as f:
+                f.write(new_data)
+        if not apply_now:
+            return "already installed" if unchanged else f"plist written ({exe}), effective next login"
+        uid = os.getuid()
+        _sp9.run(["launchctl", "bootout", f"gui/{uid}/{AGENT_LABEL}"],
+                 capture_output=True, timeout=10)
+        r = _sp9.run(["launchctl", "bootstrap", f"gui/{uid}", AGENT_PLIST_PATH],
+                     capture_output=True, text=True, timeout=10)
+        if r.returncode != 0:
+            return f"plist installed; bootstrap failed rc={r.returncode}: {r.stderr.strip()[:80]}"
+        return f"installed + bootstrapped ({exe})"
+    except Exception as e:
+        return f"error: {e}"
+
+
 def main():
+    # Register-only mode: used once after (re)build to install the LaunchAgent,
+    # then launchd starts the real instance with the app's own TCC attribution.
+    import os as _os9
+    if _os9.environ.get("STP_REGISTER_ONLY"):
+        result = register_launch_agent(apply_now=True)
+        print(f"launch agent: {result}")
+        return
+
+    # Single-instance guard: agent + manual launch must not fight over the port.
+    # 崩溃后 launchd 秒级重启,旧 socket 可能未释放 → 必须重试而非瞬时判定,
+    # 否则新实例 exit 0,KeepAlive={SuccessfulExit:false} 不再拉起(实测踩坑)。
+    # 15s 内端口一直被占 → 真有另一个实例在跑 → 干净退出(launchd 不重启)。
+    import time as _time9
+    for _try9 in range(15):
+        if not _port_in_use(PORT):
+            break
+        _time9.sleep(1)
+    else:
+        logger.info(f"Port {PORT} still in use after 15s — another instance is running, exiting")
+        return
+
     _ensure_config(PORT)
     # Start FastAPI in background thread
     server_thread = threading.Thread(target=run_server, daemon=True)
     server_thread.start()
     logger.info(f"Server starting on port {PORT}...")
     import time as _time2; _time2.sleep(2)
+
+    # Self-register as launchd agent (KeepAlive) — idempotent, bundle mode only
+    logger.info(f"Launch agent: {register_launch_agent()}")
 
     # Startup check: if accessibility not granted, trigger system dialog + open Settings
     try:

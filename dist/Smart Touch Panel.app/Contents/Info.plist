@@ -61,7 +61,7 @@
 		<key>prefer_ppc</key>
 		<false/>
 		<key>site_packages</key>
-		<true/>
+		<false/>
 		<key>use_faulthandler</key>
 		<false/>
 		<key>use_pythonpath</key>

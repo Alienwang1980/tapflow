@@ -10,7 +10,7 @@
 		</data>
 		<key>Resources/__boot__.py</key>
 		<data>
-		euGAfF+tZ8LkmmREzNJRzuavWZQ=
+		mF+IJJrsygZJr0nWyRsjI9wDiMk=
 		</data>
 		<key>Resources/__error__.sh</key>
 		<data>
@@ -10418,7 +10418,7 @@
 		</data>
 		<key>Resources/lib/python312.zip</key>
 		<data>
-		CRsI0MZYMEJ94ls+tRLP4gXtCg8=
+		Bc4Qmkv8COoGOgSSb79h7RqSoTk=
 		</data>
 		<key>Resources/openssl.ca/cert.pem</key>
 		<data>
@@ -10438,11 +10438,11 @@
 		</data>
 		<key>Resources/site.pyc</key>
 		<data>
-		q3LZYpNorNDj4bCx0E6Zu5P+gDU=
+		2eX6mS50VzscCz9nkWW+WVWVn80=
 		</data>
 		<key>Resources/tray_app.py</key>
 		<data>
-		HvPe7kqCyhE/PGTYz4zj4uw0n3M=
+		9dNU/bv/cscZPo3zd+7pgJzDTAM=
 		</data>
 		<key>Resources/zlib.cpython-312-darwin.so</key>
 		<data>
@@ -10505,10 +10505,10 @@
 		<dict>
 			<key>cdhash</key>
 			<data>
-			b1XqqxLclhuRgUlDQkkYAd7q5OQ=
+			PO7kWKWAinlnOy/TVjhk/aDDug0=
 			</data>
 			<key>requirement</key>
-			<string>cdhash H"6f55eaab12dc961b9181494342491801deeae4e4"</string>
+			<string>cdhash H"3ceee458a5808a79673b2fd3563864fda0c3ba0d"</string>
 		</dict>
 		<key>Resources/PythonApplet.icns</key>
 		<dict>
@@ -10521,7 +10521,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			JQg2TmJC70KaWWw9GiXIFbZFxOe2+w4dHThC56l+GX0=
+			H0MSfF0GOeeM9GgTOFIN3H3OfcDjHAQwx4761cXQHPY=
 			</data>
 		</dict>
 		<key>Resources/__error__.sh</key>
@@ -28740,7 +28740,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			rF29ZLb1UjDNJrnIp5M022fAD+FqBLnk+WPzoTLE6gE=
+			V0catP+ZiGB6ccuTCKFsWCfVq2kOwTAuEVwrQjl2lR4=
 			</data>
 		</dict>
 		<key>Resources/openssl.ca/cert.pem</key>
@@ -28775,14 +28775,14 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			rldJGRukOKBudhOCS1Gr30J8TS+fpat044rCYOo1oCM=
+			knTExfk809Cy3yUshxw800X019PQpTDuBFvHbgUCGPM=
 			</data>
 		</dict>
 		<key>Resources/tray_app.py</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			hQXOsMqbIIM/VsLBEyntjoE7dwV/CEwjzstE2tWNjuY=
+			7bSO2QiANG3SrHzjOU6Z21r/l6jXl7YK+6NUIyYg6Vo=
 			</data>
 		</dict>
 		<key>Resources/zlib.cpython-312-darwin.so</key>
