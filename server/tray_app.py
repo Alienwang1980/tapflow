@@ -442,10 +442,43 @@ def run_server():
             _start_mic_sampler()
         return {"level": round(_mic_level, 4)}
 
+    def _ensure_switch_audio_source() -> str | None:
+        """Ensure SwitchAudioSource binary is installed in App Support.
+        On first run (or when missing), copies from bundle Resources/bin.
+        Returns the binary path or None if unavailable."""
+        import shutil as _sh11
+        dst = os.path.expanduser("~/Library/Application Support/Smart Touch Panel/bin/SwitchAudioSource")
+        if os.path.isfile(dst) and os.access(dst, os.X_OK):
+            return dst
+        src = None
+        if _is_frozen():
+            bundle = os.path.dirname(os.path.dirname(sys.executable))  # Contents
+            candidate = os.path.join(bundle, "Resources", "bin", "SwitchAudioSource")
+            if os.path.isfile(candidate):
+                src = candidate
+        else:
+            for cand in [os.path.join(os.path.dirname(__file__), "..", "bin", "SwitchAudioSource"),
+                         "/opt/homebrew/bin/SwitchAudioSource",
+                         "/usr/local/bin/SwitchAudioSource"]:
+                if os.path.isfile(cand):
+                    src = cand
+                    break
+        if not src:
+            return None
+        try:
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            _sh11.copy2(src, dst)
+            os.chmod(dst, 0o755)
+            logger.info("SwitchAudioSource installed: %s -> %s", src, dst)
+            return dst
+        except Exception as e:
+            logger.warning("SwitchAudioSource install failed: %s", e)
+            return src  # fallback: use from bundle/project tree
+
     @app.get("/api/system/audio-devices")
     def _sys_adev():
-        sw = os.path.expanduser("~/Library/Application Support/Smart Touch Panel/bin/SwitchAudioSource")
-        if not os.path.exists(sw): return []
+        sw = _ensure_switch_audio_source()
+        if not sw: return []
         env = {"LANG":"C","PATH":os.environ.get("PATH","")}
         devs = []
         for dtype, dlabel in [("output","output"),("input","input")]:
@@ -474,8 +507,8 @@ def run_server():
 
     def _cycle_audio_device(dtype: str):
         """Cycle to the next audio device of the given type. Returns status + new name."""
-        sw = os.path.expanduser("~/Library/Application Support/Smart Touch Panel/bin/SwitchAudioSource")
-        if not os.path.exists(sw):
+        sw = _ensure_switch_audio_source()
+        if not sw:
             return {"status": "error", "reason": "SwitchAudioSource not found"}
         env = {"LANG":"C","PATH":os.environ.get("PATH","")}
         cur_r = _sc.run([sw, "-c", "-t", dtype], capture_output=True, encoding="utf-8", env=env)
@@ -813,6 +846,14 @@ def run_server():
         for b in ["/Applications","/System/Applications","/System/Applications/Utilities","/System/Library/CoreServices","/System/Volumes/Preboot/Cryptexes/App/System/Applications"]:
             t = _os4.path.join(b, name+".app")
             if _os4.path.exists(t): ap = t; break
+        if not ap:
+            # 固定目录没命中(如 ~/Applications、DMG 直启等)→ 问 LaunchServices
+            try:
+                from Cocoa import NSWorkspace as _NSW0
+                p = _NSW0.sharedWorkspace().fullPathForApplication_(name)
+                if p and _os4.path.exists(p): ap = str(p)
+            except Exception:
+                pass
         if ap:
             ic = None
             for fn in ["AppIcon.icns","ApplicationIcon.icns","app.icns","icon.icns", name+".icns"]:
@@ -846,7 +887,8 @@ def run_server():
                                 return FileResponse(cp, media_type="image/png")
             except Exception:
                 pass
-        return {"error": "icon not found"}
+        from fastapi import HTTPException as _HTTPExc4
+        raise _HTTPExc4(404, f"icon not found: {name}")
 
     _logger.info("Widget routes registered")
     
@@ -884,10 +926,7 @@ def on_show_health(icon, item):
         print(f"\n  Server not reachable: {e}\n")
 
 
-def on_edit_config(icon, item):
-    """打开 config.json 让用户修改端口(改完重启 App 生效)。"""
-    _ensure_config(PORT)
-    os.system(f"open '{_config_path()}'")
+
 
 
 def on_quit(icon, item):
@@ -917,6 +956,219 @@ def request_screen_capture_permission():
     _sp5.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"])
     logger.info("Opened System Settings → Screen Recording")
 
+
+# ── Settings panel (native NSPanel: 权限状态 + 端口修改) ──
+# pystray darwin 菜单回调在 AppKit 主线程直接调用(pystray/_darwin.py:268),
+# 所以这里可以直接建窗口,无需跨线程 dispatch。
+_SETTINGS = {"panel": None, "delegate": None, "timer": None,
+             "rows": {}, "port_field": None, "err_label": None,
+             "mic_granted": False}
+
+
+def _mic_granted() -> bool:
+    """authorizationStatus 进程内有滞后(实测),requestAccess 回调结果作补充真值。"""
+    try:
+        from AVFoundation import AVCaptureDevice, AVMediaTypeAudio
+        if AVCaptureDevice.authorizationStatusForMediaType_(AVMediaTypeAudio) == 3:
+            return True
+    except Exception:
+        pass
+    return _SETTINGS["mic_granted"]
+
+
+def _perm_checks():
+    return {
+        "screen": ("🖥️ 屏幕录制", check_screen_capture),
+        "ax": ("⌨️ 辅助功能", check_accessibility),
+        "mic": ("🎤 麦克风", _mic_granted),
+    }
+
+
+def _refresh_settings_rows():
+    for key, (_, check) in _perm_checks().items():
+        row = _SETTINGS["rows"].get(key)
+        if not row:
+            continue
+        granted = False
+        try:
+            granted = bool(check())
+        except Exception:
+            pass
+        row["ok"].setHidden_(not granted)
+        row["btn"].setHidden_(granted)
+
+
+def _update_save_btn():
+    btn, field = _SETTINGS.get("save_btn"), _SETTINGS.get("port_field")
+    if btn is None or field is None:
+        return
+    raw = str(field.stringValue()).strip()
+    btn.setEnabled_(raw != str(PORT) and raw != "")
+
+
+def _save_port_and_restart():
+    import json as _json9
+    field, err = _SETTINGS["port_field"], _SETTINGS["err_label"]
+    raw = str(field.stringValue()).strip()
+    try:
+        port = int(raw)
+        if not (1 <= port <= 65535):
+            raise ValueError
+    except ValueError:
+        err.setStringValue_(f"无效端口: {raw}(需 1-65535)")
+        err.setHidden_(False)
+        return
+    if port == PORT:
+        err.setStringValue_("端口未变化")
+        err.setHidden_(False)
+        return
+    try:
+        with open(_config_path(), "w", encoding="utf-8") as f:
+            _json9.dump({"port": port,
+                         "_comment": "改端口后重启 Smart Touch Panel 生效(范围 1-65535)。也可用环境变量 STP_PORT 覆盖。"},
+                        f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        err.setStringValue_(f"写入失败: {e}")
+        err.setHidden_(False)
+        return
+    logger.info("Port changed %d -> %d, exiting for launchd respawn", PORT, port)
+    # 非零退出 → launchd KeepAlive(SuccessfulExit=false)自动拉起,新端口生效
+    os._exit(1)
+
+
+try:
+    from Foundation import NSObject as _NSObject9
+
+    class _StpSettingsDelegate(_NSObject9):
+        def grantScreen_(self, sender):
+            request_screen_capture_permission()
+
+        def grantAx_(self, sender):
+            request_accessibility_permission()
+
+        def grantMic_(self, sender):
+            try:
+                from AVFoundation import AVCaptureDevice, AVMediaTypeAudio
+
+                def _cb(granted):
+                    _SETTINGS["mic_granted"] = bool(granted)
+
+                # 麦克风支持原生授权弹窗,比开系统设置顺;回调结果是权威真值
+                AVCaptureDevice.requestAccessForMediaType_completionHandler_(AVMediaTypeAudio, _cb)
+            except Exception:
+                request_mic_permission()
+
+        def savePort_(self, sender):
+            _save_port_and_restart()
+
+        def controlTextDidChange_(self, note):
+            # 端口输入变化 → 只有和当前端口不同时才点亮"保存并重启"
+            _update_save_btn()
+
+        def refresh_(self, timer):
+            _refresh_settings_rows()
+            _update_save_btn()
+
+        def windowWillClose_(self, note):
+            t = _SETTINGS["timer"]
+            if t is not None:
+                t.invalidate()
+            _SETTINGS.update({"panel": None, "timer": None, "rows": {},
+                              "port_field": None, "err_label": None, "save_btn": None})
+except Exception:  # 源码模式无 AppKit 时不致命
+    _StpSettingsDelegate = None
+
+
+def open_settings_panel():
+    """⚙️ 设置:权限状态(2s 自动刷新)+ 端口修改(保存后 exit(1) 由 launchd 拉起)。"""
+    import AppKit
+    from Foundation import NSMakeRect, NSTimer
+
+    if _SETTINGS["panel"] is not None:
+        _SETTINGS["panel"].makeKeyAndOrderFront_(None)
+        AppKit.NSApp.activateIgnoringOtherApps_(True)
+        return
+
+    W, ROW_H = 380, 30
+    panel = AppKit.NSPanel.alloc().initWithContentRect_styleMask_backing_defer_(
+        NSMakeRect(0, 0, W, 316),
+        AppKit.NSWindowStyleMaskTitled | AppKit.NSWindowStyleMaskClosable,
+        AppKit.NSBackingStoreBuffered, False)
+    panel.setTitle_("Smart Touch Panel 设置")
+    panel.setLevel_(AppKit.NSFloatingWindowLevel)
+    panel.setReleasedWhenClosed_(False)
+    # NSPanel 默认 app 失活即隐藏 —— 点"去授权"跳系统设置时窗口会消失,必须关掉
+    panel.setHidesOnDeactivate_(False)
+    content = panel.contentView()
+
+    if _SETTINGS["delegate"] is None:
+        _SETTINGS["delegate"] = _StpSettingsDelegate.alloc().init()
+    dele = _SETTINGS["delegate"]
+    panel.setDelegate_(dele)
+
+    def _label(text, x, y, w, size=13, color=None, bold=False):
+        f = AppKit.NSTextField.alloc().initWithFrame_(NSMakeRect(x, y, w, 20))
+        f.setStringValue_(text)
+        f.setBezeled_(False); f.setDrawsBackground_(False)
+        f.setEditable_(False); f.setSelectable_(False)
+        font = AppKit.NSFont.boldSystemFontOfSize_(size) if bold else AppKit.NSFont.systemFontOfSize_(size)
+        f.setFont_(font)
+        if color is not None:
+            f.setTextColor_(color)
+        content.addSubview_(f)
+        return f
+
+    def _button(title, x, y, w, action):
+        b = AppKit.NSButton.alloc().initWithFrame_(NSMakeRect(x, y, w, 24))
+        b.setTitle_(title)
+        b.setBezelStyle_(AppKit.NSBezelStyleRounded)
+        b.setTarget_(dele)
+        b.setAction_(action)
+        content.addSubview_(b)
+        return b
+
+    y = 280
+    _label("权限", 20, y, 100, bold=True)
+    y -= 20
+    dim = AppKit.NSColor.secondaryLabelColor()
+    _label("为保证窗口截图、按键注入、麦克风电平正常工作,需要以下系统授权:", 20, y, W - 40, size=11, color=dim)
+    actions = {"screen": "grantScreen:", "ax": "grantAx:", "mic": "grantMic:"}
+    green = AppKit.NSColor.systemGreenColor()
+    for key, (name, _) in _perm_checks().items():
+        y -= ROW_H
+        _label(name, 28, y + 2, 150)
+        ok = _label("✓ 已授权", W - 110, y + 2, 90, color=green)
+        btn = _button("去授权", W - 110, y, 90, actions[key])
+        _SETTINGS["rows"][key] = {"ok": ok, "btn": btn}
+
+    y -= 42
+    _label("端口", 20, y, 100, bold=True)
+    y -= 20
+    _label(f"当前 {PORT}。如与其他服务端口冲突可按需修改,保存后自动重启生效。", 20, y, W - 40, size=11, color=dim)
+    y -= ROW_H
+    pf = AppKit.NSTextField.alloc().initWithFrame_(NSMakeRect(28, y, 100, 24))
+    pf.setStringValue_(str(PORT))
+    pf.setDelegate_(dele)   # controlTextDidChange → 按钮亮/灰
+    content.addSubview_(pf)
+    _SETTINGS["port_field"] = pf
+    save_btn = _button("保存并重启", W - 130, y, 110, "savePort:")
+    save_btn.setEnabled_(False)  # 端口未更改时置灰
+    _SETTINGS["save_btn"] = save_btn
+    y -= 24
+    err = _label("", 28, y, W - 48, size=11, color=AppKit.NSColor.systemRedColor())
+    err.setHidden_(True)
+    _SETTINGS["err_label"] = err
+
+    _refresh_settings_rows()
+    _SETTINGS["timer"] = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
+        2.0, dele, "refresh:", None, True)
+
+    _SETTINGS["panel"] = panel
+    panel.center()
+    panel.makeKeyAndOrderFront_(None)
+    AppKit.NSApp.activateIgnoringOtherApps_(True)  # LSUIElement app 需显式激活才能到前台
+
+
 def run_tray():
     """Create and run the system tray icon."""
     ip = get_local_ip()
@@ -925,14 +1177,9 @@ def run_tray():
     menu = pystray.Menu(
         pystray.MenuItem("✏️ Open Editor", on_open_editor, default=True),
         pystray.Menu.SEPARATOR,
-        pystray.MenuItem("🔐 Permissions", pystray.Menu(
-            pystray.MenuItem("🎤 Request Microphone", lambda icon, item: request_mic_permission()),
-            pystray.MenuItem("⌨️ Request Accessibility", lambda icon, item: request_accessibility_permission()),
-            pystray.MenuItem("🖥️ Request Screen Recording", lambda icon, item: request_screen_capture_permission()),
-        )),
+        pystray.MenuItem("⚙️ 设置", lambda icon, item: open_settings_panel()),
         pystray.MenuItem(f"🔗 {url}", on_show_qr),
         pystray.MenuItem("📋 Health", on_show_health),
-        pystray.MenuItem(f"⚙️ Port {PORT} — Edit Config", on_edit_config),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem("❌ Quit", on_quit),
     )

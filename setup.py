@@ -14,8 +14,13 @@ client_files = [
 profiles_dir = Path("server/profiles")
 profile_files = [(str(profiles_dir), [str(f) for f in profiles_dir.glob("*.json")])]
 
+# SwitchAudioSource(arm64,仅链系统框架):音源列表/切换依赖它。
+# 运行时由 _ensure_switch_audio_source() 从 Resources/bin 拷到 App Support,
+# 新 Mac 免手动安装。
+bin_files = [("bin", ["bin/SwitchAudioSource"])]
+
 APP = ["server/tray_app.py"]
-DATA_FILES = client_files + profile_files
+DATA_FILES = client_files + profile_files + bin_files
 
 OPTIONS = {
     "argv_emulation": False,

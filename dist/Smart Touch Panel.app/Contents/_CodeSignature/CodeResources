@@ -10,15 +10,19 @@
 		</data>
 		<key>Resources/__boot__.py</key>
 		<data>
-		3H9HCmWbY1WuEBzAsDdQZYCT8tA=
+		pkjBJQyUAIfvg6Znwi9cMIv3+Mw=
 		</data>
 		<key>Resources/__error__.sh</key>
 		<data>
 		jiMXHe2/gGu9p3+O3RpqVGbONRE=
 		</data>
+		<key>Resources/bin/SwitchAudioSource</key>
+		<data>
+		U9rTCHr5XS6b2HQJ3lbIucX0cZw=
+		</data>
 		<key>Resources/client/editor.html</key>
 		<data>
-		F7eHyQt0rlQsN9SPFCBfF2/m63g=
+		yB5Ev5PpoQPzOabWeBU7PA5kP8E=
 		</data>
 		<key>Resources/client/fonts/PressStart2P.woff2</key>
 		<data>
@@ -38,7 +42,7 @@
 		</data>
 		<key>Resources/client/index.html</key>
 		<data>
-		EgV2gfrSILLTyZfGCA+vvAiDbiU=
+		hOd/pznM28FD5SBQcU4O27PE0e8=
 		</data>
 		<key>Resources/client/voice-off.svg</key>
 		<data>
@@ -1759,6 +1763,10 @@
 		<key>Resources/lib/python3.12/fastapi/__pycache__/staticfiles.cpython-312.pyc</key>
 		<data>
 		p2wFSbgycg7rQTYmoiY3uoUH4SI=
+		</data>
+		<key>Resources/lib/python3.12/fastapi/__pycache__/testclient.cpython-312.pyc</key>
+		<data>
+		2e2hVjphQKpdZ944GcJCexEFYAA=
 		</data>
 		<key>Resources/lib/python3.12/fastapi/__pycache__/types.cpython-312.pyc</key>
 		<data>
@@ -9316,6 +9324,10 @@
 		<data>
 		m7bycPT68wd8IahhPCzd2mRBPeo=
 		</data>
+		<key>Resources/lib/python3.12/starlette/__pycache__/testclient.cpython-312.pyc</key>
+		<data>
+		NlK6uA8vTPChxPCA2jBoU0lGX8I=
+		</data>
 		<key>Resources/lib/python3.12/starlette/__pycache__/types.cpython-312.pyc</key>
 		<data>
 		elxrItWMz4CrzefFIZ6H5sJ1GZI=
@@ -10418,7 +10430,7 @@
 		</data>
 		<key>Resources/lib/python312.zip</key>
 		<data>
-		mGV26FRSHRyRRLIExKG/xeJPJzw=
+		fb1a2uPYQ5H4ievnfnyTBcTrG8Y=
 		</data>
 		<key>Resources/openssl.ca/cert.pem</key>
 		<data>
@@ -10438,11 +10450,11 @@
 		</data>
 		<key>Resources/site.pyc</key>
 		<data>
-		bsIOf22atKIvY6b8Ic0+CL/wwcU=
+		TSB+bMyaqn3FXIdmnSiYIdBEsvs=
 		</data>
 		<key>Resources/tray_app.py</key>
 		<data>
-		9dNU/bv/cscZPo3zd+7pgJzDTAM=
+		0pBd7aK6/GnxHoo+O834NdT1MC4=
 		</data>
 		<key>Resources/zlib.cpython-312-darwin.so</key>
 		<data>
@@ -10455,37 +10467,37 @@
 		<dict>
 			<key>cdhash</key>
 			<data>
-			UgfdJXrv2rR02W5UyUWoboM0r2c=
+			hlFBPBYrtUvULUYn5jRfEFj9JRA=
 			</data>
 			<key>requirement</key>
-			<string>cdhash H"5207dd257aefdab474d96e54c945a86e8334af67"</string>
+			<string>identifier "org.python.python" and anchor apple generic and certificate leaf[subject.CN] = "Apple Development: wang xinlei (3PZ5GB6NV9)" and certificate 1[field.1.2.840.113635.100.6.2.1] /* exists */</string>
 		</dict>
 		<key>Frameworks/libcrypto.3.dylib</key>
 		<dict>
 			<key>cdhash</key>
 			<data>
-			XmKo3WWw8G9PjCzGTcROoovBSt0=
+			D30jVrBYha2uw5W0FHkfOUjfnqo=
 			</data>
 			<key>requirement</key>
-			<string>cdhash H"5e62a8dd65b0f06f4f8c2cc64dc44ea28bc14add"</string>
+			<string>identifier "libcrypto.3" and anchor apple generic and certificate leaf[subject.CN] = "Apple Development: wang xinlei (3PZ5GB6NV9)" and certificate 1[field.1.2.840.113635.100.6.2.1] /* exists */</string>
 		</dict>
 		<key>Frameworks/liblzma.5.dylib</key>
 		<dict>
 			<key>cdhash</key>
 			<data>
-			qFWrsGQYms8iqawc0459OxiOacg=
+			b7ZWBzy7Ut1QZn6O/RAnSHEJahw=
 			</data>
 			<key>requirement</key>
-			<string>cdhash H"a855abb064189acf22a9ac1cd38e7d3b188e69c8"</string>
+			<string>identifier "liblzma.5" and anchor apple generic and certificate leaf[subject.CN] = "Apple Development: wang xinlei (3PZ5GB6NV9)" and certificate 1[field.1.2.840.113635.100.6.2.1] /* exists */</string>
 		</dict>
 		<key>Frameworks/libmpdec.4.0.1.dylib</key>
 		<dict>
 			<key>cdhash</key>
 			<data>
-			CWkSYWzMNcbLGp8G2UVxDo7DS8c=
+			5giMkzg1SbPlwJhlnnLc7AEM3zo=
 			</data>
 			<key>requirement</key>
-			<string>cdhash H"096912616ccc35c6cb1a9f06d945710e8ec34bc7"</string>
+			<string>identifier "libmpdec.4" and anchor apple generic and certificate leaf[subject.CN] = "Apple Development: wang xinlei (3PZ5GB6NV9)" and certificate 1[field.1.2.840.113635.100.6.2.1] /* exists */</string>
 		</dict>
 		<key>Frameworks/libmpdec.4.dylib</key>
 		<dict>
@@ -10496,19 +10508,19 @@
 		<dict>
 			<key>cdhash</key>
 			<data>
-			1Na/IWAikR28i+vzBSEaLYLnjLc=
+			7kyRp6O5Cd8irmFIMZzB+urHKqM=
 			</data>
 			<key>requirement</key>
-			<string>cdhash H"d4d6bf216022911dbc8bebf305211a2d82e78cb7"</string>
+			<string>identifier "libssl.3" and anchor apple generic and certificate leaf[subject.CN] = "Apple Development: wang xinlei (3PZ5GB6NV9)" and certificate 1[field.1.2.840.113635.100.6.2.1] /* exists */</string>
 		</dict>
 		<key>MacOS/python</key>
 		<dict>
 			<key>cdhash</key>
 			<data>
-			PO7kWKWAinlnOy/TVjhk/aDDug0=
+			LkenXc8+SGvq4T8ofaeWwUue6RE=
 			</data>
 			<key>requirement</key>
-			<string>cdhash H"3ceee458a5808a79673b2fd3563864fda0c3ba0d"</string>
+			<string>identifier python and anchor apple generic and certificate leaf[subject.CN] = "Apple Development: wang xinlei (3PZ5GB6NV9)" and certificate 1[field.1.2.840.113635.100.6.2.1] /* exists */</string>
 		</dict>
 		<key>Resources/PythonApplet.icns</key>
 		<dict>
@@ -10521,7 +10533,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			5JY6k/T2jk/1YXyqbsLuJ0E5yBQhquAtcyzhD6/8NeY=
+			IikGrMSpF3n4yP/lTSzmsPFXy1ygbSpeNWBSP1LKfj8=
 			</data>
 		</dict>
 		<key>Resources/__error__.sh</key>
@@ -10531,11 +10543,18 @@
 			X92yvDN0TrSkH2FT7nqBEm6WgAZJ9CS2MXV1a7IpE4o=
 			</data>
 		</dict>
+		<key>Resources/bin/SwitchAudioSource</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			mikUili5HGrBMoGzzBkVkiva3QCrCbMmcnHlkl1S+2Q=
+			</data>
+		</dict>
 		<key>Resources/client/editor.html</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			rAuOydwEw/BUAsGJirmOHJ6GRr1ApCmHL9yQaPUdNR8=
+			D1Rri0p2CTBRMFMYxLNrBN49gRZXGM5WsUrZNPLPEvk=
 			</data>
 		</dict>
 		<key>Resources/client/fonts/PressStart2P.woff2</key>
@@ -10570,7 +10589,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			/D+6esBn0yP1dTniKHpGj4tFCekFWPm7H45cyprodLE=
+			vrnGgOft+H4u8PUUM6V4p+2o8LWu4SFB5Fly8dcHfHI=
 			</data>
 		</dict>
 		<key>Resources/client/voice-off.svg</key>
@@ -13581,6 +13600,13 @@
 			<key>hash2</key>
 			<data>
 			RIB7OLF97Nuz7OlYmvfBUmP/VAIuk/WFMJluW2sg6tE=
+			</data>
+		</dict>
+		<key>Resources/lib/python3.12/fastapi/__pycache__/testclient.cpython-312.pyc</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			W4ihSGq5ffQQ+APoaqfMSQz6U7uGV8CvuZSG6DJd2Lo=
 			</data>
 		</dict>
 		<key>Resources/lib/python3.12/fastapi/__pycache__/types.cpython-312.pyc</key>
@@ -26811,6 +26837,13 @@
 			32njFExsO1UN6OEZJNSUPtuMZyWXD7Ub4ZsWReePoYM=
 			</data>
 		</dict>
+		<key>Resources/lib/python3.12/starlette/__pycache__/testclient.cpython-312.pyc</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			xmeAa4ocun+vE3ZDNAc2NA97smx9hJVR0Hq/c8KcbrA=
+			</data>
+		</dict>
 		<key>Resources/lib/python3.12/starlette/__pycache__/types.cpython-312.pyc</key>
 		<dict>
 			<key>hash2</key>
@@ -28740,7 +28773,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			Vfa3DYc/ljSEU+FCFJZdF5MXaT3UykK/lHj+V4cAZS4=
+			tVUn8ara+44rW7hD4C4Q4XayR/ne38wHGqfgVENPN90=
 			</data>
 		</dict>
 		<key>Resources/openssl.ca/cert.pem</key>
@@ -28775,14 +28808,14 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			kbJkfkOmwUUSfs1R2ST6P5jDg1c0kGVWpdyAoBHV+WE=
+			lgcea2/fKzs5TKaZKn3EL5H22mFega6yc94rQW2CK+Q=
 			</data>
 		</dict>
 		<key>Resources/tray_app.py</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			7bSO2QiANG3SrHzjOU6Z21r/l6jXl7YK+6NUIyYg6Vo=
+			jUv3JrBbiiBH1AWMbSgd7Mc9oMHwG553rn68RC9SCtU=
 			</data>
 		</dict>
 		<key>Resources/zlib.cpython-312-darwin.so</key>
