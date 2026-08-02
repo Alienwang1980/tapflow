@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Touch Panel — Icon Preview v3 (Dot-based)</title>
+<style>
+  :root {
+    --bg: #0d0b09; --surface: #181410; --border: #2a2418;
+    --text: #e8e0d8; --muted: #8a8070; --accent: #d97706; --glow: #f59e0b;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    padding: 40px; max-width: 1500px; margin: 0 auto;
+  }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 48px 0 20px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 32px; }
+  .dir { color: #c99550; font-size: 14px; margin-bottom: 10px; font-weight: 500; }
+
+  .icon-grid { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+  .icon-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 28px 20px 24px; text-align: center; flex: 1; min-width: 210px; max-width: 240px;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    cursor: pointer;
+  }
+  .icon-card:hover { border-color: var(--accent); }
+  .icon-card.selected { border-color: var(--glow); box-shadow: 0 0 28px rgba(245,158,11,0.18); background: #1f1a12; }
+  .icon-card .num { font-size: 12px; font-weight: 700; color: var(--accent); margin-bottom: 14px; }
+  .icon-card .label { font-weight: 600; font-size: 14px; margin: 14px 0 6px; }
+  .icon-card .desc { color: var(--muted); font-size: 11px; line-height: 1.5; }
+
+  .sizes-row { display: flex; gap: 8px; justify-content: center; align-items: flex-end; margin: 14px 0 0; }
+  .size-item { text-align: center; }
+  .size-item canvas { display: block; border-radius: 6px; background: #0a0806; }
+  .size-item .sz { font-size: 9px; color: var(--muted); margin-top: 3px; }
+
+  .vote-btn {
+    display: inline-block; margin-top: 12px; padding: 5px 18px;
+    border: 1px solid var(--accent); border-radius: 8px;
+    color: var(--accent); font-size: 12px; font-weight: 600; cursor: pointer;
+    background: transparent; transition: all 0.2s;
+  }
+  .vote-btn:hover { background: var(--accent); color: #fff; }
+
+  /* Dashboard */
+  .dash-frame {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 36px; display: flex; gap: 24px; flex-wrap: wrap; justify-content: center;
+  }
+  .dash-card {
+    background: rgba(255,255,255,0.03); border: 1.5px solid rgba(255,255,255,0.07);
+    border-radius: 16px; padding: 28px 24px; width: 260px; text-align: center;
+    transition: all 0.2s; cursor: pointer;
+  }
+  .dash-card:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.12); }
+  .dash-card .emoji { font-size: 48px; margin-bottom: 12px; }
+  .dash-card .title { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+  .dash-card .desc { color: var(--muted); font-size: 12px; line-height: 1.4; }
+  .dash-footer { margin-top: 14px; text-align: center; color: var(--muted); font-size: 12px; font-family: "SF Mono", monospace; }
+
+  /* Plan */
+  .plan-steps { display: flex; flex-direction: column; gap: 10px; }
+  .plan-step {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 22px; display: flex; gap: 12px; align-items: flex-start;
+  }
+  .plan-step .n {
+    background: var(--accent); color: #fff; width: 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px;
+    flex-shrink: 0;
+  }
+  .plan-step .c h4 { font-size: 14px; margin-bottom: 2px; }
+  .plan-step .c p { color: var(--muted); font-size: 12px; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<h1>Smart Touch Panel — Icon Preview v3</h1>
+<p class="subtitle">彩色圆点构成可识别图形 · 6 组方案 · 每张展示 512 / 64 / 32 / 16px</p>
+<p class="dir">设计方向：多彩圆点 → 形成手指/触控/连接等可记忆图形，深色背景衬托色彩</p>
+
+<h2>🎨 6 组彩色圆点 Icon 方案</h2>
+<div class="icon-grid" id="grid"></div>
+
+<h2>🏠 Dashboard 主界面</h2>
+<div class="dash-frame">
+  <div class="dash-card">
+    <div class="emoji">🎛️</div>
+    <div class="title">Open Editor</div>
+    <div class="desc">Design custom touch panels<br>assign keys & macros</div>
+  </div>
+  <div class="dash-card">
+    <div class="emoji">📱</div>
+    <div class="title">Open Smart Panel</div>
+    <div class="desc">Connect from iPad or browser<br>to use your panels</div>
+  </div>
+</div>
+<div class="dash-footer">http://192.168.x.x:8082</div>
+
+<h2>📋 实施计划</h2>
+<div class="plan-steps">
+  <div class="plan-step"><div class="n">1</div><div class="c"><h4>选定方案 → PIL 生成 icon</h4><p>生成 1024² PNG → iconutil 转 .icns → 同风格 44² 菜单栏 template 图标</p></div></div>
+  <div class="plan-step"><div class="n">2</div><div class="c"><h4>新增 Dashboard NSPanel</h4><p>CleanMyMac 风格，两张卡片 + 深色底 + 悬停高亮 + IP 栏</p></div></div>
+  <div class="plan-step"><div class="n">3</div><div class="c"><h4>菜单重构 + 去 Health</h4><p>"🏠 Dashboard" 替 "✏️ Open Editor"→default，删 Health</p></div></div>
+  <div class="plan-step"><div class="n">4</div><div class="c"><h4>编译 · 签名 · 部署</h4><p>py2app → codesign → /Applications → DMG → 重启验证</p></div></div>
+</div>
+
+<script>
+// ═══════════ DOT COLOR PALETTES ═══════════
+// Each palette: array of colors used for dots
+const P_WARM   = ['#f59e0b','#f97316','#ef4444','#e94560','#d97706','#fb923c','#fbbf24','#fcd34d'];
+const P_COOL   = ['#3b82f6','#6366f1','#8b5cf6','#06b6d4','#0ea5e9','#2563eb','#7c3aed','#22d3ee'];
+const P_MIX    = ['#f59e0b','#3b82f6','#ef4444','#22c55e','#8b5cf6','#f97316','#06b6d4','#e94560'];
+const P_SUNSET = ['#f59e0b','#f97316','#ef4444','#ec4899','#d946ef','#fb923c','#f43f5e','#e11d48'];
+const P_OCEAN  = ['#06b6d4','#0ea5e9','#3b82f6','#6366f1','#2563eb','#0284c7','#1d4ed8','#0369a1'];
+const P_FOREST = ['#22c55e','#16a34a','#15803d','#a3e635','#65a30d','#84cc16','#4d7c0f','#3f6212'];
+const P_STP    = ['#d97706','#f59e0b','#f97316','#fb923c','#e94560','#ef4444','#fcd34d','#ffedd5'];
+
+// ═══════════ DRAWING HELPERS ═══════════
+function rr(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+r,r);ctx.lineTo(x,y+h-r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();}
+
+function drawDot(ctx, cx, cy, radius, color, alpha=1) {
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI*2);
+  ctx.fillStyle = color;
+  ctx.globalAlpha = alpha;
+  ctx.fill();
+  ctx.globalAlpha = 1;
+}
+
+// ═══════════ SCHEME 1: Dot Hand ═══════════
+// A hand silhouette created from colorful dots
+function draw1(ctx, s) {
+  const dots = [];
+  // palm area
+  const cx = s*0.48, cy = s*0.55;
+  // palm dots
+  for (let i=0;i<40;i++) {
+    const a = Math.random()*Math.PI*2;
+    const d = Math.random()*s*0.12;
+    const x = cx + Math.cos(a)*d;
+    const y = cy + Math.sin(a)*d*1.2;
+    dots.push({x,y,r:s*0.018+Math.random()*s*0.018, c:P_STP[Math.floor(Math.random()*P_STP.length)]});
+  }
+  // finger area dots (index finger pointing up-left)
+  for (let i=0;i<25;i++) {
+    const baseX = cx+s*0.02, baseY = cy-s*0.16;
+    const x = baseX + (Math.random()-0.5)*s*0.06;
+    const y = baseY + (Math.random()-0.5)*s*0.25;
+    dots.push({x,y,r:s*0.014+Math.random()*s*0.014, c:P_STP[Math.floor(Math.random()*P_STP.length)]});
+  }
+  // touch point glow
+  dots.push({x:cx+s*0.02, y:cy-s*0.32, r:s*0.04, c:'#ffffff'});
+  dots.push({x:cx+s*0.02, y:cy-s*0.32, r:s*0.025, c:'#f59e0b'});
+
+  dots.forEach(d => drawDot(ctx, d.x, d.y, d.r, d.c));
+}
+
+// ═══════════ SCHEME 2: Dot Fingerprint ═══════════
+// Concentric fingerprint-like arcs made of colorful dots
+function draw2(ctx, s) {
+  const cx = s*0.5, cy = s*0.5;
+  const colors = P_SUNSET;
+  for (let ring=0; ring<8; ring++) {
+    const r = s*(0.08 + ring*0.04);
+    const arcLen = Math.PI*0.6 + ring*0.15;
+    const dotCount = Math.floor(r*2.5);
+    for (let i=0; i<dotCount; i++) {
+      const angle = -Math.PI*0.4 + (i/dotCount)*arcLen;
+      const x = cx + Math.cos(angle)*r;
+      const y = cy + Math.sin(angle)*r;
+      const color = colors[(ring+i) % colors.length];
+      drawDot(ctx, x, y, s*0.013, color);
+    }
+  }
+  // center dot
+  for (let i=0;i<3;i++) {
+    drawDot(ctx, cx+Math.cos(i*2.1)*s*0.025, cy+Math.sin(i*2.1)*s*0.025, s*0.016, '#ffffff', 0.8-i*0.2);
+  }
+}
+
+// ═══════════ SCHEME 3: Dot Waveform ═══════════
+// Audio/signal bars made of colored dots
+function draw3(ctx, s) {
+  const bars = [0.6, 0.85, 0.95, 0.7, 0.5, 0.9, 0.75, 0.55];
+  const barW = s*0.06, gap = s*0.02, totalW = bars.length*(barW+gap)-gap;
+  const startX = (s - totalW)/2;
+  const baseY = s*0.7;
+  bars.forEach((h, bi) => {
+    const barX = startX + bi*(barW+gap);
+    const barH = h*s*0.35;
+    const rows = Math.floor(barH/(s*0.025));
+    for (let r=0; r<rows; r++) {
+      const x = barX + barW/2;
+      const y = baseY - r*s*0.025;
+      const t = r/rows;
+      const ci = Math.floor(t*(P_OCEAN.length-1));
+      drawDot(ctx, x, y, s*0.012, P_OCEAN[ci]);
+    }
+  });
+  // touch dot on top
+  drawDot(ctx, s*0.5, baseY - bars[2]*s*0.35 - s*0.04, s*0.035, '#f59e0b');
+  drawDot(ctx, s*0.5, baseY - bars[2]*s*0.35 - s*0.04, s*0.018, '#ffffff');
+}
+
+// ═══════════ SCHEME 4: Dot Swirl ═══════════
+// Spiral of colorful dots converging to center (like touch gesture trail)
+function draw4(ctx, s) {
+  const cx = s*0.5, cy = s*0.5;
+  const colors = P_MIX;
+  const total = 55;
+  for (let i=0; i<total; i++) {
+    const t = i/total;
+    const angle = t*Math.PI*4;
+    const r = s*(0.38 - t*0.32);
+    const x = cx + Math.cos(angle)*r;
+    const y = cy + Math.sin(angle)*r;
+    const sz = s*0.02 - t*s*0.008;
+    const ci = Math.floor(t*(colors.length-1));
+    drawDot(ctx, x, y, Math.max(sz, s*0.006), colors[ci]);
+  }
+  // center touch glow
+  drawDot(ctx, cx, cy, s*0.04, '#ffffff', 0.9);
+  drawDot(ctx, cx, cy, s*0.025, '#f59e0b');
+}
+
+// ═══════════ SCHEME 5: Dot Grid Touch ═══════════
+// Uniform grid of dots with colorful accent cluster where "touched"
+function draw5(ctx, s) {
+  const cols=7, rows=7;
+  const margin = s*0.12;
+  const gw = (s-2*margin)/(cols-1), gh = (s-2*margin)/(rows-1);
+
+  for (let c=0; c<cols; c++) {
+    for (let r=0; r<rows; r++) {
+      const x = margin + c*gw;
+      const y = margin + r*gh;
+      const dist = Math.sqrt((c-3)*(c-3) + (r-3)*(r-3));
+      let color, size;
+      if (dist < 1.5) {
+        // touch cluster - bright warm
+        color = ['#f59e0b','#f97316','#ffffff'][Math.floor(dist)];
+        size = s*0.022 - dist*s*0.005;
+      } else if (dist < 2.5) {
+        color = '#d97706';
+        size = s*0.016;
+      } else {
+        color = '#3d3830';
+        size = s*0.01;
+      }
+      drawDot(ctx, x, y, size, color);
+    }
+  }
+}
+
+// ═══════════ SCHEME 6: Dot Starburst ═══════════
+// Rays of colored dots emanating from a central touch point
+function draw6(ctx, s) {
+  const cx = s*0.5, cy = s*0.48;
+  const colors = P_WARM;
+  const rays = 14;
+  for (let ray=0; ray<rays; ray++) {
+    const angle = (ray/rays)*Math.PI*2;
+    const rayLen = s*0.32;
+    const dots = 7;
+    for (let d=0; d<dots; d++) {
+      const t = d/dots;
+      const r = s*0.06 + t*rayLen;
+      const x = cx + Math.cos(angle)*r;
+      const y = cy + Math.sin(angle)*r;
+      const ci = Math.floor(t*(colors.length-1));
+      const sz = s*0.018 - t*s*0.012;
+      drawDot(ctx, x, y, Math.max(sz, s*0.005), colors[ci]);
+    }
+  }
+  // center hit point
+  drawDot(ctx, cx, cy, s*0.06, '#ffffff', 0.3);
+  drawDot(ctx, cx, cy, s*0.04, '#f59e0b', 0.6);
+  drawDot(ctx, cx, cy, s*0.02, '#ffffff');
+}
+
+// ═══════════ BUILD ═══════════
+const schemes = [
+  { id:'1', name:'Dot Hand',     desc:'彩色圆点组成手掌剪影<br>STP 暖色系，食指指向触击点', fn:draw1 },
+  { id:'2', name:'Dot Print',    desc:'同心指纹弧线 · 彩色渐变<br>日落色系，中心白色高光', fn:draw2 },
+  { id:'3', name:'Dot Wave',     desc:'音波柱状图 · 海洋色系<br>柱高变化，顶部橙色触击点', fn:draw3 },
+  { id:'4', name:'Dot Swirl',    desc:'螺旋收敛 · 全色系混搭<br>触控手势轨迹，中心白色光点', fn:draw4 },
+  { id:'5', name:'Dot Grid',     desc:'7×7 规则点阵 · 中心暖色激活<br>触控区域高亮，背景灰色网格', fn:draw5 },
+  { id:'6', name:'Dot Burst',    desc:'放射状彩色圆点 · 暖色系<br>14 条射线从中心触击点炸开', fn:draw6 },
+];
+
+const sizes = [512, 64, 32, 16];
+const grid = document.getElementById('grid');
+
+schemes.forEach((s, i) => {
+  const card = document.createElement('div');
+  card.className = 'icon-card'; card.id = 'card-'+s.id;
+  card.onclick = () => select(s.id);
+
+  const num = document.createElement('div');
+  num.className = 'num'; num.textContent = '0'+(i+1);
+
+  // render 512 preview
+  const big = document.createElement('canvas');
+  big.id = 'icon-'+s.id+'-512'; big.width=512; big.height=512;
+  big.style.cssText = 'width:120px;height:120px;border-radius:22px;display:block;margin:0 auto';
+
+  const sizesRow = document.createElement('div');
+  sizesRow.className = 'sizes-row';
+  [64,32,16].forEach(sz => {
+    const w = document.createElement('div'); w.className = 'size-item';
+    const c = document.createElement('canvas');
+    c.id='icon-'+s.id+'-'+sz; c.width=sz; c.height=sz;
+    c.style.width=(sz===64?28:sz===32?18:14)+'px';
+    c.style.height=(sz===64?28:sz===32?18:14)+'px';
+    w.appendChild(c);
+    const l = document.createElement('div'); l.className='sz'; l.textContent=sz+'px';
+    w.appendChild(l);
+    sizesRow.appendChild(w);
+  });
+
+  const label = document.createElement('div'); label.className = 'label'; label.textContent = s.name;
+  const desc = document.createElement('div'); desc.className = 'desc'; desc.innerHTML = s.desc;
+
+  const btn = document.createElement('button'); btn.className = 'vote-btn';
+  btn.textContent = '选择'; btn.onclick = e => { e.stopPropagation(); select(s.id); };
+
+  card.appendChild(num); card.appendChild(big); card.appendChild(sizesRow);
+  card.appendChild(label); card.appendChild(desc); card.appendChild(btn);
+  grid.appendChild(card);
+});
+
+// ═══════════ RENDER ALL ═══════════
+schemes.forEach(s => {
+  [512,64,32,16].forEach(sz => {
+    const cv = document.getElementById('icon-'+s.id+'-'+sz);
+    if (!cv) return;
+    const ctx = cv.getContext('2d');
+    // dark rounded bg
+    ctx.fillStyle = '#0d0b09';
+    rr(ctx, 0, 0, sz, sz, sz*0.16);
+    ctx.fill();
+    ctx.save();
+    rr(ctx, 0, 0, sz, sz, sz*0.16);
+    ctx.clip();
+    s.fn(ctx, sz);
+    ctx.restore();
+    // subtle border
+    ctx.beginPath();
+    rr(ctx, 0.5, 0.5, sz-1, sz-1, sz*0.16);
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    ctx.lineWidth = 1; ctx.stroke();
+  });
+});
+
+function select(id) {
+  document.querySelectorAll('.icon-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('card-'+id)?.classList.add('selected');
+}
+</script>
+</body>
+</html>
