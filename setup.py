@@ -20,7 +20,12 @@ profile_files = [(str(profiles_dir), [str(f) for f in profiles_dir.glob("*.json"
 bin_files = [("bin", ["bin/SwitchAudioSource"])]
 
 APP = ["server/tray_app.py"]
-DATA_FILES = client_files + profile_files + bin_files
+icons_dir = Path("icons")
+icons_files = [
+    ("icons", ["icons/stp_menubar_icon.png"]),
+]
+
+DATA_FILES = client_files + profile_files + bin_files + icons_files
 
 OPTIONS = {
     "argv_emulation": False,
@@ -63,6 +68,7 @@ OPTIONS = {
     # 所有依赖已通过 packages/includes 完整打入 bundle,必须 False。
     "site_packages": False,
     "strip": False,
+    "iconfile": "icons/AppIcon.icns",
 }
 
 setup(

@@ -9,7 +9,7 @@
 	<key>CFBundleExecutable</key>
 	<string>Smart Touch Panel</string>
 	<key>CFBundleIconFile</key>
-	<string>PythonApplet.icns</string>
+	<string>AppIcon.icns</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.smarttouch.panel</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -73,14 +73,14 @@
 	<array/>
 	<key>PyRuntimeLocations</key>
 	<array>
-		<string>@executable_path/../Frameworks/Python.framework/Versions/3.12/Python</string>
+		<string>@executable_path/../Frameworks/Python.framework/Versions/3.14/Python</string>
 	</array>
 	<key>PythonInfoDict</key>
 	<dict>
 		<key>PythonExecutable</key>
-		<string>/Volumes/WD_BLACK/Claude/projects/smart-touch-panel/server/venv/bin/python3</string>
+		<string>/opt/homebrew/opt/python@3.14/bin/python3.14</string>
 		<key>PythonLongVersion</key>
-		<string>3.12.13 (main, Mar  3 2026, 12:39:30) [Clang 21.0.0 (clang-2100.0.123.102)]</string>
+		<string>3.14.4 (main, Apr  7 2026, 13:13:20) [Clang 21.0.0 (clang-2100.0.123.102)]</string>
 		<key>PythonShortVersion</key>
 		<string>3.1</string>
 		<key>py2app</key>

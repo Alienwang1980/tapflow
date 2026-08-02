@@ -153,14 +153,32 @@ def check_screen_capture() -> bool:
         return False
 
 
+def _icon_path(name="stp_menubar_icon.png"):
+    """Locate generated icon inside py2app bundle or source tree."""
+    if _is_frozen():
+        bundle = os.path.dirname(os.path.dirname(sys.executable))  # Contents/
+        return os.path.join(bundle, "Resources", "icons", name)
+    # Source mode: icons/ at project root
+    return os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", name)
+
+
 def create_icon_image(size=64):
-    """Generate a simple icon: blue circle with 'STP' text."""
+    """Load generated dot-grid menu bar icon. Fallback to blue circle if missing."""
+    path = _icon_path()
+    if os.path.exists(path):
+        try:
+            img = Image.open(path)
+            if img.size != (size, size):
+                img = img.resize((size, size), Image.LANCZOS)
+            return img
+        except Exception:
+            pass
+    # Fallback (source mode, icons/ not yet generated)
     img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
     margin = 4
     draw.ellipse([margin, margin, size - margin, size - margin],
                  fill=(22, 33, 62, 255), outline=(233, 69, 96, 255), width=3)
-    # Draw a simple touch indicator: concentric circles
     cx, cy = size // 2, size // 2
     draw.ellipse([cx - 8, cy - 8, cx + 8, cy + 8], fill=(233, 69, 96, 200))
     return img
@@ -906,27 +924,13 @@ def on_show_qr(icon, item):
     os.system(f"open {url}")  # Open in default browser
 
 
-def on_open_editor(icon, item):
-    """Open the keyboard layout editor in a native window."""
-    import threading
-    threading.Thread(target=open_editor, daemon=True).start()
+# ── Dashboard NSPanel state ──
+_DASH = {"panel": None, "delegate": None}
 
 
-def on_show_health(icon, item):
-    """Show server health."""
-    import urllib.request, json
-    try:
-        resp = urllib.request.urlopen(f"http://localhost:{PORT}/health", timeout=2)
-        data = json.loads(resp.read())
-        print(f"\n  Status: {data.get('status')}")
-        print(f"  Clients: {data.get('clients')}")
-        print(f"  Accessibility: {data.get('accessibility')}")
-        print(f"  Engine: {data.get('engine')}\n")
-    except Exception as e:
-        print(f"\n  Server not reachable: {e}\n")
-
-
-
+def on_open_dashboard(icon, item):
+    """Tray menu callback → open the graphical dashboard."""
+    open_dashboard()
 
 
 def on_quit(icon, item):
@@ -1075,8 +1079,23 @@ try:
                 t.invalidate()
             _SETTINGS.update({"panel": None, "timer": None, "rows": {},
                               "port_field": None, "err_label": None, "save_btn": None})
+    class _StpDashboardDelegate(_NSObject9):
+        def openEditor_(self, sender):
+            import threading
+            threading.Thread(target=open_editor, daemon=True).start()
+
+        def openPanel_(self, sender):
+            ip = get_local_ip()
+            url = f"http://{ip}:{PORT}"
+            os.system(f"open {url}")
+
+        def windowWillClose_(self, note):
+            _DASH["panel"] = None
+            _DASH["delegate"] = None
+
 except Exception:  # 源码模式无 AppKit 时不致命
     _StpSettingsDelegate = None
+    _StpDashboardDelegate = None
 
 
 def open_settings_panel():
@@ -1169,17 +1188,119 @@ def open_settings_panel():
     AppKit.NSApp.activateIgnoringOtherApps_(True)  # LSUIElement app 需显式激活才能到前台
 
 
+# ── Dashboard window (CleanMyMac‑style graphical main interface) ──
+
+def open_dashboard():
+    """🏠 Graphical entry: two cards → Editor + Smart Panel."""
+    import AppKit
+    from Foundation import NSMakeRect
+
+    if _DASH["panel"] is not None:
+        _DASH["panel"].makeKeyAndOrderFront_(None)
+        AppKit.NSApp.activateIgnoringOtherApps_(True)
+        return
+
+    if _StpDashboardDelegate is None:
+        return  # AppKit not available (source mode w/o framework)
+
+    W, H = 400, 390
+    screen = AppKit.NSScreen.mainScreen()
+    sf = screen.visibleFrame()
+    x = int((sf.size.width - W) / 2 + sf.origin.x)
+    y = int((sf.size.height - H) / 2 + sf.origin.y)
+
+    panel = AppKit.NSPanel.alloc().initWithContentRect_styleMask_backing_defer_(
+        NSMakeRect(x, y, W, H),
+        AppKit.NSWindowStyleMaskTitled | AppKit.NSWindowStyleMaskClosable,
+        AppKit.NSBackingStoreBuffered, False,
+    )
+    panel.setTitle_("Smart Touch Panel")
+    panel.setLevel_(AppKit.NSFloatingWindowLevel)
+    panel.setReleasedWhenClosed_(False)
+    panel.setHidesOnDeactivate_(False)
+
+    dele = _StpDashboardDelegate.alloc().init()
+    panel.setDelegate_(dele)
+    _DASH["delegate"] = dele
+
+    content = panel.contentView()
+    content.setWantsLayer_(True)
+    content.layer().setBackgroundColor_(
+        AppKit.NSColor.colorWithRed_green_blue_alpha_(0.082, 0.071, 0.063, 1.0).CGColor())
+
+    def _label(text, x, y, w, h=20, size=13, color=None, bold=False, align=0):
+        from AppKit import NSTextField, NSFont, NSColor as NC
+        f = NSTextField.alloc().initWithFrame_(NSMakeRect(x, y, w, h))
+        f.setStringValue_(text)
+        f.setBezeled_(False); f.setDrawsBackground_(False)
+        f.setEditable_(False); f.setSelectable_(False)
+        fn = NSFont.boldSystemFontOfSize_(size) if bold else NSFont.systemFontOfSize_(size)
+        f.setFont_(fn)
+        f.setAlignment_(align)
+        if color is not None:
+            f.setTextColor_(color)
+        content.addSubview_(f)
+        return f
+
+    def _card(title, desc, emoji, card_y, action):
+        """Create a bordered card button."""
+        from AppKit import NSButton, NSBezelStyle, NSColor as NC, NSMakeRect as R
+        card_w, card_h = W - 60, 120
+        card_x = 30
+
+        btn = NSButton.alloc().initWithFrame_(R(card_x, card_y, card_w, card_h))
+        btn.setTitle_("")
+        btn.setBezelStyle_(NSBezelStyle.NSBezelStyleRegularSquare)
+        btn.setBordered_(False)
+        btn.setWantsLayer_(True)
+        btn.layer().setCornerRadius_(14)
+        btn.layer().setBorderWidth_(1.5)
+        btn.layer().setBackgroundColor_(
+            NC.colorWithRed_green_blue_alpha_(0.10, 0.08, 0.06, 0.95).CGColor())
+        btn.layer().setBorderColor_(
+            NC.colorWithRed_green_blue_alpha_(0.22, 0.18, 0.14, 1.0).CGColor())
+        btn.setTarget_(dele)
+        btn.setAction_(action)
+        content.addSubview_(btn)
+
+        # Use static label overlays (not subviews of btn to avoid event issues)
+        emoji_lbl = NC.textColor = None  # reset
+        _label(emoji, card_x, card_y + card_h - 68, card_w, 48, size=40, align=1)
+        _label(title, card_x + 16, card_y + card_h - 116, card_w - 32, 24, size=14, bold=True,
+               color=NC.colorWithRed_green_blue_alpha_(0.91, 0.88, 0.85, 1.0), align=0)
+        _label(desc, card_x + 16, card_y + card_h - 138, card_w - 32, 16, size=11,
+               color=NC.colorWithRed_green_blue_alpha_(0.50, 0.45, 0.42, 1.0), align=0)
+
+    # Card 1: Open Editor (y=210)
+    _card("Open Editor", "Design custom touch panels, assign keys & macros",
+          "🎛️", 210, "openEditor:")
+    # Card 2: Open Smart Panel (y=72)
+    _card("Open Smart Panel", f"Connect from iPad or browser to use your panels",
+          "📱", 72, "openPanel:")
+
+    # Bottom IP bar
+    ip = get_local_ip()
+    url = f"http://{ip}:{PORT}"
+    _label(url, 0, 20, W, 16, size=10,
+           color=AppKit.NSColor.colorWithRed_green_blue_alpha_(0.40, 0.36, 0.33, 1.0),
+           align=1)
+
+    panel.center()
+    panel.makeKeyAndOrderFront_(None)
+    AppKit.NSApp.activateIgnoringOtherApps_(True)
+    _DASH["panel"] = panel
+
+
 def run_tray():
     """Create and run the system tray icon."""
     ip = get_local_ip()
     url = f"http://{ip}:{PORT}"
 
     menu = pystray.Menu(
-        pystray.MenuItem("✏️ Open Editor", on_open_editor, default=True),
+        pystray.MenuItem("🏠 Dashboard", on_open_dashboard, default=True),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem("⚙️ 设置", lambda icon, item: open_settings_panel()),
         pystray.MenuItem(f"🔗 {url}", on_show_qr),
-        pystray.MenuItem("📋 Health", on_show_health),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem("❌ Quit", on_quit),
     )
