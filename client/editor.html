@@ -474,7 +474,7 @@ function _gradCSS(preset,color){const c=color||'#0f3460';const m={'top-down':'li
 
 function _fitScale(){var ca=document.getElementById("carea");return Math.min(ca.clientWidth*0.85/(profile.deviceWidth||1210),ca.clientHeight*0.85/(profile.deviceHeight||834))}
 function _totalScale(){return _fitScale()*viewZoom}
-function _viewOrigin(){var ca=document.getElementById("carea"),fs=_fitScale(),dw=profile.deviceWidth||1210,dh=profile.deviceHeight||834;return{ox:(ca.clientWidth-dw*fs)/2+viewX,oy:(ca.clientHeight-dh*fs)/2+viewY}}
+function _viewOrigin(){var ca=document.getElementById("carea"),ts=_totalScale(),dw=profile.deviceWidth||1210,dh=profile.deviceHeight||834;return{ox:(ca.clientWidth-dw*ts)/2+viewX,oy:(ca.clientHeight-dh*ts)/2+viewY}}
 
 function _scr2cell(sx,sy){
   const ca=document.getElementById("carea"),rect=ca.getBoundingClientRect(),cw=ca.clientWidth,ch=ca.clientHeight;
