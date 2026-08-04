@@ -202,12 +202,6 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 .lib-item:active{cursor:grabbing}
 .lib-name{font-size:12px;font-weight:600;margin-bottom:1px}
 .lib-desc{font-size:10px;color:var(--dim)}
-/* ── Hand tool mode: suppress all hover effects ── */
-.hand-mode,.hand-mode *{cursor:grab!important}
-.hand-mode.hand-grabbing,.hand-mode.hand-grabbing *{cursor:grabbing!important}
-.hand-mode .ck:hover{border-color:transparent!important}
-.hand-mode .ck:hover .rh{opacity:0!important;pointer-events:none!important}
-.hand-mode .lib-item:hover{border-color:var(--border)!important;background:var(--card)!important;transform:none!important}
 </style></head>
 <body>
 <div class="tb">
@@ -361,8 +355,8 @@ function _patCSS(pid,color,sz){if(!pid||pid==="none")return"";var p=PATTERNS[pid
 function hesc(s){return String(s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
 let ws=null,profile=null,profiles=[],activePage="",activeProfile="Default.json";
 let selKey=null,selKeys=new Set(),selGroup=null,dirty=false,profileLoaded=false;
-let panX=0,panY=0,panning=false,panStartX=0,panStartY=0,mx=0,my=0,panShiftLock=null,copiedStyle=null,spaceHeld=false;
-let viewX=0,viewY=0,viewZoom=1,viewPanning=false,viewPanStartX=0,viewPanStartY=0;
+let panX=0,panY=0,panning=false,panStartX=0,panStartY=0,mx=0,my=0,panShiftLock=null,copiedStyle=null;
+let viewX=0,viewY=0,viewZoom=1;
 let selecting=false,srSX=0,srSY=0,srCX=0,srCY=0;
 let undoStack=[],redoStack=[];
 const MAX_UNDO=200;
@@ -758,31 +752,6 @@ function onRS(e,kid){
 var _libItems=document.querySelectorAll(".lib-item");for(var _li=0;_li<_libItems.length;_li++){_libItems[_li].addEventListener("dragstart",function(e){e.dataTransfer.setData("text/plain",this.dataset.widget);e.dataTransfer.effectAllowed="copy"})}document.addEventListener("dragover",function(e){e.preventDefault();e.dataTransfer.dropEffect="copy";var _ca=document.getElementById("carea"),_rect=_ca.getBoundingClientRect();if(e.clientX>=_rect.left&&e.clientX<=_rect.right&&e.clientY>=_rect.top&&e.clientY<=_rect.bottom){var _gh=document.getElementById("gh");_gh.style.display="block";_gh.style.left=(e.clientX-_rect.left-10)+"px";_gh.style.top=(e.clientY-_rect.top-10)+"px";_gh.style.width="20px";_gh.style.height="20px"}});document.addEventListener("drop",function(e){e.preventDefault();document.getElementById("gh").style.display="none";document.body.style.cursor="";var type=e.dataTransfer.getData("text/plain");if(!type||!profile)return;var _ca2=document.getElementById("carea"),_rect2=_ca2.getBoundingClientRect();var dw=profile.deviceWidth||1210,dh=profile.deviceHeight||834,cs=profile.cellSize||60,gp=profile.gap||0,cpx=cs+gp;var scale=_totalScale();var vo=_viewOrigin();var dx=(e.clientX-_rect2.left-vo.ox)/scale,dy=(e.clientY-_rect2.top-vo.oy)/scale;window._pendingCol=_snap4((dx-dw/2)/cpx-panX);window._pendingRow=_snap4((dy-dh/2)/cpx-panY);var tw=type==="touchpad"?4:1,th=type==="touchpad"?3:1;{if(type==="__clipboard__"){_pasteFromClipboard(window._pendingCol,window._pendingRow)}else{addKeyOfType(type)}}});
 const carea=document.getElementById("carea");
 
-// ── Space key: hand tool (pan mode) ──
-document.addEventListener("keydown",e=>{
-  if(e.key!==" "||e.repeat)return;
-  if(e.target.closest("input,select,textarea"))return;
-  var mm=document.getElementById("macroModal");if(mm&&mm.style.display==="flex")return;
-  if(captureMode)return;
-  e.preventDefault();
-  spaceHeld=true;document.body.classList.add("hand-mode");
-});
-document.addEventListener("keyup",e=>{
-  if(e.key!==" ")return;
-  spaceHeld=false;document.body.classList.remove("hand-mode");
-  if(viewPanning){viewPanning=false}
-  if(panning){panning=false;panShiftLock=null;panX=_snap4(panX);panY=_snap4(panY);rr()}
-});
-
-// ── Space+click capture: block all key interaction in hand mode ──
-carea.addEventListener("mousedown",e=>{
-  if(spaceHeld&&e.button===0){
-    viewPanning=true;viewPanStartX=e.clientX;viewPanStartY=e.clientY;
-    document.body.classList.add("hand-grabbing");
-    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
-  }
-},true);
-
 carea.addEventListener("mousedown",e=>{
   if(e.button===0&&!e.target.closest(".ck")&&!e.target.closest(".grh")){
     selecting=true;
@@ -790,12 +759,12 @@ carea.addEventListener("mousedown",e=>{
     if(!e.shiftKey){selKeys.clear();selKey=null;rr();rpr()}
     e.preventDefault();
   }else if(e.button===2){
-    panning=true;panStartX=e.clientX;panStartY=e.clientY;mx=panX;my=panY;panShiftLock=null;e.preventDefault();
+    panning=true;panStartX=e.clientX;panStartY=e.clientY;mx=viewX;my=viewY;panShiftLock=null;e.preventDefault();
   }
 });
 carea.addEventListener("contextmenu",e=>{e.preventDefault()});
 
-// ── Document mousemove: selection rect, viewport pan, or content pan ──
+// ── Document mousemove: selection rect or viewport pan (right-drag) ──
 document.addEventListener("mousemove",e=>{
   if(selecting){
     srCX=e.clientX;srCY=e.clientY;
@@ -810,31 +779,21 @@ document.addEventListener("mousemove",e=>{
     cp_()?.keys.forEach(k=>{const col=k.col||0,row=k.row||0,w=k.w||1,h=k.h||1;if(col+w>mc&&col<Mc&&row+h>mr&&row<Mr)selKeys.add(k.id)});
     rr();return;
   }
-  if(viewPanning){
-    viewX+=e.clientX-viewPanStartX;viewY+=e.clientY-viewPanStartY;
-    viewPanStartX=e.clientX;viewPanStartY=e.clientY;
-    rr();return;
-  }
   if(!panning)return;
-  const ca=document.getElementById("carea"),cw=ca.clientWidth,ch=ca.clientHeight;
-  const dw=profile.deviceWidth||1210,dh=profile.deviceHeight||834,cs=profile.cellSize||60,gp=profile.gap||0;
-  const cpx=cs+gp;
-  const scale=_totalScale();
   const wasLocked=panShiftLock;
   if(!e.shiftKey){panShiftLock=null}
   else if(panShiftLock===null){
     const adx=Math.abs(e.clientX-panStartX),ady=Math.abs(e.clientY-panStartY);
     if(adx>3||ady>3)panShiftLock=adx>=ady?'x':'y';
   }
-  // On unlock, reset previously-frozen axis baseline to prevent jump
   if(wasLocked==='y'&&!panShiftLock)panStartX=e.clientX;
   if(wasLocked==='x'&&!panShiftLock)panStartY=e.clientY;
-  if(panShiftLock!=='y'){panX+=(e.clientX-panStartX)/(cpx*scale);panStartX=e.clientX}
-  if(panShiftLock!=='x'){panY+=(e.clientY-panStartY)/(cpx*scale);panStartY=e.clientY}
+  if(panShiftLock!=='y'){viewX+=e.clientX-panStartX;panStartX=e.clientX}
+  if(panShiftLock!=='x'){viewY+=e.clientY-panStartY;panStartY=e.clientY}
   rr();
 });
 
-// ── Document mouseup: finalize selection / pan snap ──
+// ── Document mouseup: finalize selection / pan ──
 document.addEventListener("mouseup",e=>{
   if(selecting){
     selecting=false;
@@ -842,12 +801,8 @@ document.addEventListener("mouseup",e=>{
     if(selKeys.size===1)selKey=[...selKeys][0];else selKey=null;
     rr();rpr();
   }
-  if(viewPanning){
-    viewPanning=false;document.body.classList.remove("hand-grabbing");
-  }
   if(panning){
     panning=false;panShiftLock=null;
-    panX=_snap4(panX);panY=_snap4(panY);
     rr();
   }
 });
