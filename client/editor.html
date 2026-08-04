@@ -769,16 +769,20 @@ document.addEventListener("keyup",e=>{
   if(!viewPanning)carea.style.cursor="";
 });
 
+// ── Space+click capture: block all key interaction in hand mode ──
+carea.addEventListener("mousedown",e=>{
+  if(spaceHeld&&e.button===0){
+    viewPanning=true;viewPanStartX=e.clientX;viewPanStartY=e.clientY;carea.style.cursor="grabbing";
+    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+  }
+},true);
+
 carea.addEventListener("mousedown",e=>{
   if(e.button===0&&!e.target.closest(".ck")&&!e.target.closest(".grh")){
-    if(spaceHeld){
-      viewPanning=true;viewPanStartX=e.clientX;viewPanStartY=e.clientY;carea.style.cursor="grabbing";e.preventDefault();
-    }else{
-      selecting=true;
-      srSX=e.clientX;srSY=e.clientY;srCX=e.clientX;srCY=e.clientY;
-      if(!e.shiftKey){selKeys.clear();selKey=null;rr();rpr()}
-      e.preventDefault();
-    }
+    selecting=true;
+    srSX=e.clientX;srSY=e.clientY;srCX=e.clientX;srCY=e.clientY;
+    if(!e.shiftKey){selKeys.clear();selKey=null;rr();rpr()}
+    e.preventDefault();
   }else if(e.button===2){
     panning=true;panStartX=e.clientX;panStartY=e.clientY;mx=panX;my=panY;panShiftLock=null;e.preventDefault();
   }
