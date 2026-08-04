@@ -202,6 +202,12 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 .lib-item:active{cursor:grabbing}
 .lib-name{font-size:12px;font-weight:600;margin-bottom:1px}
 .lib-desc{font-size:10px;color:var(--dim)}
+/* ── Hand tool mode: suppress all hover effects ── */
+.hand-mode,.hand-mode *{cursor:grab!important}
+.hand-mode.hand-grabbing,.hand-mode.hand-grabbing *{cursor:grabbing!important}
+.hand-mode .ck:hover{border-color:transparent!important}
+.hand-mode .ck:hover .rh{opacity:0!important;pointer-events:none!important}
+.hand-mode .lib-item:hover{border-color:var(--border)!important;background:var(--card)!important;transform:none!important}
 </style></head>
 <body>
 <div class="tb">
@@ -759,20 +765,20 @@ document.addEventListener("keydown",e=>{
   var mm=document.getElementById("macroModal");if(mm&&mm.style.display==="flex")return;
   if(captureMode)return;
   e.preventDefault();
-  spaceHeld=true;carea.style.cursor="grab";
+  spaceHeld=true;document.body.classList.add("hand-mode");
 });
 document.addEventListener("keyup",e=>{
   if(e.key!==" ")return;
-  spaceHeld=false;
-  if(viewPanning){viewPanning=false;carea.style.cursor="grab"}
+  spaceHeld=false;document.body.classList.remove("hand-mode");
+  if(viewPanning){viewPanning=false}
   if(panning){panning=false;panShiftLock=null;panX=_snap4(panX);panY=_snap4(panY);rr()}
-  if(!viewPanning)carea.style.cursor="";
 });
 
 // ── Space+click capture: block all key interaction in hand mode ──
 carea.addEventListener("mousedown",e=>{
   if(spaceHeld&&e.button===0){
-    viewPanning=true;viewPanStartX=e.clientX;viewPanStartY=e.clientY;carea.style.cursor="grabbing";
+    viewPanning=true;viewPanStartX=e.clientX;viewPanStartY=e.clientY;
+    document.body.classList.add("hand-grabbing");
     e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
   }
 },true);
@@ -837,13 +843,11 @@ document.addEventListener("mouseup",e=>{
     rr();rpr();
   }
   if(viewPanning){
-    viewPanning=false;
-    if(spaceHeld)carea.style.cursor="grab";
+    viewPanning=false;document.body.classList.remove("hand-grabbing");
   }
   if(panning){
     panning=false;panShiftLock=null;
     panX=_snap4(panX);panY=_snap4(panY);
-    if(spaceHeld)carea.style.cursor="grab";
     rr();
   }
 });
