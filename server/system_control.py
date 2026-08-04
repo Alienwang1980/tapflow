@@ -106,3 +106,9 @@ def get_current_app():
         }
     except Exception:
         return {"name": "Unknown", "bundle_id": ""}
+
+
+def toggle_fullscreen():
+    """Toggle fullscreen on the frontmost window (Cmd+Ctrl+F)."""
+    from .input_engine import press_key
+    press_key("CTRL+CMD+F")

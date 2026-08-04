@@ -36,5 +36,11 @@ def setup_routes(app, profiles, manager):
             return json.loads(body)
         except Exception as e:
             raise HTTPException(500, str(e))
-    
+
+    @app.post("/api/system/toggle-fullscreen")
+    async def toggle_fullscreen():
+        from .system_control import toggle_fullscreen as _tfs
+        _tfs()
+        return {"ok": True}
+
     logger.info("Widget routes registered")
