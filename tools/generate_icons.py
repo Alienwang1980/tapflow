@@ -93,12 +93,45 @@ def make_icns(iconset: Path) -> Path:
     return icns_path
 
 
-def make_menubar_icon(base_img: Image.Image) -> Path:
-    """Generate 44×44 coloured menu bar PNG (pystray doesn't support template images)."""
-    mb = base_img.resize((44, 44), Image.LANCZOS)
-    out = ICONS_DIR / "stp_menubar_icon.png"
-    mb.save(str(out), "PNG")
-    return out
+def make_menubar_icon() -> Path:
+    """Generate 44×44 monochrome menu bar icon — no background, 5×5 dots, white, varied sizes."""
+    S = 88  # render at 2x for retina
+    img = Image.new("RGBA", (S, S), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+
+    cols = rows = 5
+    margin = 0.12 * S
+    gw = (S - 2 * margin) / (cols - 1)
+    gh = (S - 2 * margin) / (rows - 1)
+
+    for c in range(cols):
+        for r in range(rows):
+            x = margin + c * gw
+            y = margin + r * gh
+            dist = math.sqrt((c - 2) ** 2 + (r - 2) ** 2)
+
+            # 4-tier size falloff for rhythm at small scale
+            if dist < 0.5:
+                rad = 0.055 * S   # center ~4.8px
+                alpha = 255
+            elif dist < 1.5:
+                rad = 0.042 * S   # inner ring ~3.7px
+                alpha = 240
+            elif dist < 2.2:
+                rad = 0.030 * S   # middle ring ~2.6px
+                alpha = 210
+            else:
+                rad = 0.018 * S   # corners ~1.6px
+                alpha = 170
+
+            d.ellipse([x - rad, y - rad, x + rad, y + rad], fill=(255, 255, 255, alpha))
+
+    # Downscale to 44×44
+    out = img.resize((44, 44), Image.LANCZOS)
+    path = ICONS_DIR / "stp_menubar_icon.png"
+    out.save(str(path), "PNG")
+    return path
+    return path
 
 
 def main():
@@ -117,8 +150,8 @@ def main():
     icns = make_icns(iconset)
     print(f"  → {icns}  ({icns.stat().st_size} bytes)")
 
-    print("Generating menu bar icon (44×44) …")
-    mb = make_menubar_icon(base)
+    print("Generating menu bar icon (44×44, monochrome 5×5) …")
+    mb = make_menubar_icon()
     print(f"  → {mb}  ({mb.stat().st_size} bytes)")
 
     # Cleanup: remove iconset (intermediate files)

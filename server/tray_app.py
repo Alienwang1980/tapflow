@@ -909,7 +909,7 @@ def run_server():
         raise _HTTPExc4(404, f"icon not found: {name}")
 
     _logger.info("Widget routes registered")
-    
+
     uvicorn.run(app, host="0.0.0.0", port=PORT, log_level="warning")
 
 
@@ -929,8 +929,16 @@ _DASH = {"panel": None, "delegate": None}
 
 
 def on_open_dashboard(icon, item):
-    """Tray menu callback → open the graphical dashboard."""
-    open_dashboard()
+    """Tray menu callback → open the iPad web panel in browser."""
+    ip = get_local_ip()
+    url = f"http://{ip}:{PORT}"
+    os.system(f"open {url}")
+
+
+def on_open_editor(icon, item):
+    """Tray menu callback → open the editor panel."""
+    import threading
+    threading.Thread(target=open_editor, daemon=True).start()
 
 
 def on_quit(icon, item):
@@ -1297,12 +1305,12 @@ def run_tray():
     url = f"http://{ip}:{PORT}"
 
     menu = pystray.Menu(
-        pystray.MenuItem("🏠 Dashboard", on_open_dashboard, default=True),
-        pystray.Menu.SEPARATOR,
         pystray.MenuItem("⚙️ 设置", lambda icon, item: open_settings_panel()),
-        pystray.MenuItem(f"🔗 {url}", on_show_qr),
         pystray.Menu.SEPARATOR,
-        pystray.MenuItem("❌ Quit", on_quit),
+        pystray.MenuItem("Dashboard", on_open_dashboard, default=True),
+        pystray.MenuItem("Open Editor", on_open_editor),
+        pystray.Menu.SEPARATOR,
+        pystray.MenuItem("退出", on_quit),
     )
 
     icon = pystray.Icon(
