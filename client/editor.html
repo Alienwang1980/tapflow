@@ -197,7 +197,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 .btb button{height:28px;background:transparent;color:var(--text);border:none;padding:0 8px;font-size:14px;cursor:pointer;font-weight:500;transition:all 0.15s}
 .btb button:hover{color:var(--accent)}
 .btb span{font-size:11px;font-weight:600;min-width:24px;text-align:center;user-select:none}
-#pmList button:hover{opacity:0.8}#rp-profile>.rp-section,#rp-profile>.rp-divider{opacity:0}
+#pmList button:hover{opacity:0.8}
 
 .lib-item{padding:10px 12px;margin:6px 0;border-radius:8px;border:2px dashed var(--border);cursor:grab;background:var(--card);transition:all 0.15s}
 .lib-item:hover{border-color:var(--accent);background:#33302c;transform:translateY(-1px)}
@@ -215,16 +215,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 </div>
 <div class="main">
 <div class="rp" id="lp-panel">
-</div>
-<div class="carea" id="carea"><div id="tl" style="position:absolute;inset:0;pointer-events:none;z-index:0;display:none"></div>
-  <div class="gh" id="gh"></div>
-  <div class="sr" id="sr"></div><div class="grh" id="grh_b" style="cursor:s-resize"></div><div class="grh" id="grh_l" style="cursor:w-resize"></div><div class="grh" id="grh_r" style="cursor:e-resize"></div>
-  <div class="cwrap" id="cwrap"><div class="canvas" id="canvas"></div></div>
-  <div id="carea-overlay"></div>
-  <div class="btb" id="btb"><button onclick="zoomBy(-1)">−</button><button onclick="zoomBy(1)">+</button><span class="tb-sep">|</span><button onclick="fitAll()" title="Fit to frame">Fit</button><span class="tb-sep">|</span><button onclick="toggleFS()" title="Fullscreen">⛶</button><span class="tb-sep">|</span><button onclick="undo()" title="Undo">↩</button><button onclick="redo()" title="Redo">↪</button></div>
-</div>
-<div class="rp">
-    <div id="rp-profile"><div id="pl" style="display:none"></div>
+<div id="pl" style="display:none"></div>
       <div class="rp-section" id="rp-profiles-sec">
         <h3>Profiles <button onclick="pmCreate()" title="新建 Profile" style="font-size:10px;padding:2px 8px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;float:right;margin-left:4px">+ New</button><button onclick="pmImport()" title="从文件导入 Profile" style="font-size:10px;padding:2px 8px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;float:right;margin-left:4px">导入</button><button onclick="pmExportDialog()" title="导出 Profile" style="font-size:10px;padding:2px 8px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;float:right;margin-left:4px">导出</button></h3><input type="file" id="pmImpF" accept=".json,application/json" style="display:none" onchange="pmImportGo(this)">
         <div id="profList"></div>
@@ -265,8 +256,15 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
         <div class="clip-preview" style="aspect-ratio:1;max-width:180px;background:var(--card);border-radius:6px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;margin-bottom:8px;transition:all 0.15s"></div>
         <button onclick="_copyToClipboard()" style="width:100%;padding:6px 12px;border-radius:6px;border:1px solid var(--accent);background:rgba(217,119,6,0.15);color:var(--accent);cursor:pointer;font-size:11px;font-weight:600">Copy Selected</button>
       </div>
-    </div>
-    
+</div>
+<div class="carea" id="carea"><div id="tl" style="position:absolute;inset:0;pointer-events:none;z-index:0;display:none"></div>
+  <div class="gh" id="gh"></div>
+  <div class="sr" id="sr"></div><div class="grh" id="grh_b" style="cursor:s-resize"></div><div class="grh" id="grh_l" style="cursor:w-resize"></div><div class="grh" id="grh_r" style="cursor:e-resize"></div>
+  <div class="cwrap" id="cwrap"><div class="canvas" id="canvas"></div></div>
+  <div id="carea-overlay"></div>
+  <div class="btb" id="btb"><button onclick="zoomBy(-1)">−</button><button onclick="zoomBy(1)">+</button><span class="tb-sep">|</span><button onclick="fitAll()" title="Fit to frame">Fit</button><span class="tb-sep">|</span><button onclick="toggleFS()" title="Fullscreen">⛶</button><span class="tb-sep">|</span><button onclick="undo()" title="Undo">↩</button><button onclick="redo()" title="Redo">↪</button></div>
+</div>
+<div class="rp">
     <div id="rp-library" class="rp-section">
         <h3>Button Library</h3>
         <p style="font-size:10px;color:var(--dim);margin-bottom:10px">Drag to canvas</p>
@@ -338,7 +336,9 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
         <div id="pc"><p style="font-size:11px;color:var(--dim)">Click key to edit</p></div>
       </div>
     </div>
-  <div class="toast" id="toast"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
 <div class="info" id="edinfo"></div>
 <script>
 "use strict";
@@ -1275,7 +1275,7 @@ function testSnd(nm){if(!nm||nm==="none")return;const s=SND[nm];if(!s)return;try
 function t(msg){const el=document.getElementById("toast");el.textContent=msg;el.className="toast";el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2000)}
 
 window.addEventListener("resize",()=>rr());
-setTimeout(function(){var lp=document.getElementById("lp-panel");var rp=document.getElementById("rp-profile");if(lp&&rp){var children=rp.children;var toMove=[];for(var i=0;i<children.length;i++){var c=children[i];if(c.tagName!=="DIV"||c.id==="pl")continue;if(c.className==="rp-section"||c.className==="rp-divider")toMove.push(c)}for(var i=0;i<toMove.length;i++){lp.appendChild(toMove[i]);toMove[i].style.opacity='1'}buildRatioPresets()}},200);cws();lpl();lp(localStorage.getItem("stp_active")||"Default.json");
+setTimeout(function(){buildRatioPresets()},200);cws();lpl();lp(localStorage.getItem("stp_active")||"Default.json");
 </script>
 <div id="keyTypeModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
 background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center">
