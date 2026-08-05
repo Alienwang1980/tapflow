@@ -197,6 +197,12 @@ carea (flexbox 居中 cwrap)
 
 ## 最近改动
 
+### 2026-08-06
+
+| 提交 | 内容 |
+|------|------|
+| `51167b6` | **fix**: bgOpacity 连续化 — 移除 `transparent` 关键词跳跃，统一用 `rgba(r,g,b,opacity)`；移除 `_bgop<1.0` 门控，所有 hex 颜色始终走 rgba |
+
 ### 2026-08-05
 
 | 提交 | 内容 |
