@@ -1,6 +1,6 @@
 # Smart Touch Panel — 项目全貌 & 进度
 
-> 最后更新: 2026-08-05 | 版本: 1.1.0
+> 最后更新: 2026-08-05 | 版本: 1.2.0
 
 ## 一句话描述
 
@@ -28,8 +28,8 @@ smart-touch-panel/
 │   └── certs/               TLS 自签名证书
 │
 ├── client/                  前端（纯 HTML/JS，无框架）
-│   ├── index.html           ★ iPad 主面板（394 行，Canvas 渲染 + WebSocket）
-│   ├── editor.html          ★ 面板编辑器（1329 行，拖拽布局、属性编辑、按键绑定）
+│   ├── index.html           ★ iPad 主面板（Canvas 渲染 + WebSocket）
+│   ├── editor.html          ★ 面板编辑器（拖拽布局、属性编辑、按键绑定）
 │   ├── thumbnails/          12 个 Widget 缩略图（240×112 2x Retina PNG）
 │   ├── icon-preview.html    图标设计预览
 │   ├── fonts/               像素字体（PressStart2P, Russo One, VT323）
@@ -50,6 +50,7 @@ smart-touch-panel/
 ├── start.sh                 手动启动入口
 ├── keep_alive.sh            守护脚本（30s pgrep）
 ├── CONTEXT.md               项目圣经（详细架构文档）
+├── PROJECT_STATUS.md        本文件 — 项目进度 & 待办
 ├── docs/                    历史计划/设计文档
 ├── logs/                    运行日志（gitignore）
 └── dist/                    构建产物（gitignore）
@@ -194,7 +195,19 @@ carea (flexbox 居中 cwrap)
 
 ---
 
-## 最近改动（2026-08-04 ~ 2026-08-05）
+## 最近改动
+
+### 2026-08-05
+
+| 提交 | 内容 |
+|------|------|
+| `87f0a0a` | **fix**: bgOpacity 推广到全部 widget（复用 Dock 模式）— Editor 通用 CSS bgOpacity + canvas fillRect globalAlpha；Dashboard 通用 CSS bgOpacity + _kcrgba rgba 预计算；0% 设 `transparent` 而非 `rgba(...,0)` |
+| `4cfb571` | **feat**: bgOpacity 滑块加在通用属性面板和 win-ctrl 面板（后被 87f0a0a 修复替换） |
+| `faaac76` | **revert**: 撤回 bgTransparent 方案（改用 bgOpacity） |
+| `3ac26be` | **style**: 颜色选择器改为 30×30 正方形深色背景；pagePatColor 单起一行加 "Pat Color" 标签 |
+| `5e65de6` | **refactor**: 23 个自定义 showCP 色板全部替换为原生 `<input type=color>` |
+
+### 2026-08-04
 
 | 提交 | 内容 |
 |------|------|
@@ -203,11 +216,19 @@ carea (flexbox 居中 cwrap)
 | `eb9245d` | **fix**: fullscreen widget 改为浏览器全屏 API（纯前端，不调后端） |
 | `4cf41d1` | **feat**: 新增 Fullscreen Toggle widget 模块 |
 | `fd06fa3` | **fix**: profile 加载时重置 viewX/viewY=0（临时平移不持久化） |
+
+### 更早（2026-07 ~ 2026-08-03）
+
+| 提交 | 内容 |
+|------|------|
 | `d3475ad` | **fix**: _viewOrigin 用 fitScale 而非 totalScale → 框选错位 |
 | `7a88ca7` | **refactor**: 删除 Audio Visualizer（无音频管线，占位代码） |
 | `8a15225` | **fix**: WIDGET_TYPES 默认 label、补充 switchprofile 到 Key Type Modal |
 | `32595c2` | **refactor**: WIDGET_TYPES 默认值与 vibe profile (Apple.json) 对齐 |
 | `63e18b1` | **refactor**: Button Library 文字预览 → 图片缩略图；移除 app-menu / layout-preset |
+| `e556ee7` | **fix**: Save & Sync 按钮背景色从 #9b8c5a 改为 #6b5c30（WCAG AA 对比度） |
+| `bb5657e` | **refactor**: iconScale/fontScale（float ratio）→ iconSize/fontSize（int px） |
+| `b13f7f1` | **fix**: iconSize/fontSize 加入 addKeyOfType；fontSize stepper 浮点精度修复 |
 
 ---
 
@@ -221,6 +242,9 @@ carea (flexbox 居中 cwrap)
 | 4 | **图标显隐开关** — 设置面板加 showIcon/showLabel | ✅ 已实现 | `editor.html` + `index.html` |
 | 5 | **Editor 框选修复** — _viewOrigin 坐标错位 | ✅ 已修复 | `editor.html` |
 | 6 | **Fullscreen widget** — iPad 浏览器全屏切换按钮 | ✅ 已实现 | `editor.html` + `index.html` |
+| 7 | **通用 bgOpacity** — 所有 widget 背景透明度（复用 Dock 模式） | ✅ 已实现 | `editor.html` + `index.html` |
+| 8 | **STP Profile 按钮图标文字分行 + 图标显隐开关** | 📋 待实现 | `index.html` |
+| 9 | **STP Editor 滚轮缩放视角** | 📋 待实现 | `editor.html` |
 
 ---
 
@@ -232,6 +256,7 @@ carea (flexbox 居中 cwrap)
 | Port 8082 硬编码 | plist / 前端 / 逻辑三处硬编码，改端口需同步 |
 | API 路由在 `tray_app.py` 内联 | `widget_extension.py` 是备用，实际路由在 `run_server()` 里 |
 | 服务端从源码目录运行 | `start.sh` 跑 `server/tray_app.py`，不是 app bundle |
+| 运行 App 在 `/Applications/` | 非 `dist/`！修改后必须 cp 到 `/Applications/Smart Touch Panel.app/Contents/Resources/client/` |
 | 重打包 → 新 cdhash → TCC 重授权 | 先 `tccutil reset` 再重授权 |
 | Editor 必须在 Safari 打开 | 其他浏览器没有原生 `<input type=color>` |
 | py2app 用 server/venv 的 Python | 不能用 `.venv`（缺少 AVFoundation/PyObjC） |
