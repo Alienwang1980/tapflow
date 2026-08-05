@@ -339,7 +339,7 @@ function render(){
       }else{el.style.background="rgba(0,0,0,0.15)"}
       
     }else if(k.action==="volume"||k.action==="mic-mute"||k.action==="active-app"||k.action==="win-shortcuts"||k.action==="win-gesture"||k.action==="fullscreen"||k.action==="audio-out"||k.action==="audio-in"||k.action==="switch-profile"){
-      // Canvas widgets: bgOpacity handled via _keyColor
+      el.style.background='transparent';
     }else{
       var _bgop=k.bgOpacity!==undefined?k.bgOpacity:1.0;
       var _bgc=k.color||null;
