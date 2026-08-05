@@ -229,8 +229,8 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
       </div>
       <div class="rp-section">
         <h3 id="pp-heading">Profile Properties</h3>
-        <div style="margin-top:6px"><div style="display:flex;align-items:center;gap:4px"><label style="font-size:10px;color:var(--dim);white-space:nowrap">Pat</label><select id="pagePat" onchange="upkPagePattern(this.value)" style="flex:1;height:22px;font-size:10px;padding:0 2px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:3px"><option value="none">No Pattern</option><option value="topography">Topography</option><option value="circuit">Circuit</option><option value="dots">Dots</option><option value="diagonal">Diagonal</option><option value="hexagon">Hexagon</option><option value="grid">Grid</option><option value="triangles">Triangles</option><option value="topo">Topography</option><option value="waves">Waves</option></select><input type="color" id="pagePatColor" value="#ffffff" onchange="upkPagePatternColor(this.value)" style="width:22px;height:22px;padding:0;border:1px solid var(--border);border-radius:3px;cursor:pointer;background:transparent"><button onclick="upkPagePatternSize(-10)" style="width:20px;height:22px;font-size:12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:3px;cursor:pointer;line-height:1">-</button><span id="pagePatSz" style="font-size:10px;color:var(--dim);min-width:20px;text-align:center">60</span><button onclick="upkPagePatternSize(10)" style="width:20px;height:22px;font-size:12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:3px;cursor:pointer;line-height:1">+</button></div></div>
-        <div style="margin-top:6px;display:flex;align-items:center;gap:6px"><label style="font-size:10px;color:var(--dim);white-space:nowrap">BG</label><input type="color" id="pageBg" value="#1a1a2e" onchange="upkPageBg(this.value)" style="width:26px;height:22px;padding:0;border:1px solid var(--border);border-radius:3px;cursor:pointer;background:transparent"></div>
+        <div style="margin-top:6px"><div style="display:flex;align-items:center;gap:4px"><label style="font-size:10px;color:var(--dim);white-space:nowrap">Pat</label><select id="pagePat" onchange="upkPagePattern(this.value)" style="flex:1;height:22px;font-size:10px;padding:0 2px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:3px"><option value="none">No Pattern</option><option value="topography">Topography</option><option value="circuit">Circuit</option><option value="dots">Dots</option><option value="diagonal">Diagonal</option><option value="hexagon">Hexagon</option><option value="grid">Grid</option><option value="triangles">Triangles</option><option value="topo">Topography</option><option value="waves">Waves</option></select><button data-cp="pagePatColor" onclick="showCP('pagePatColor')" style="width:22px;height:22px;border-radius:3px;border:1px solid var(--border);cursor:pointer;background:#ffffff"></button><button onclick="upkPagePatternSize(-10)" style="width:20px;height:22px;font-size:12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:3px;cursor:pointer;line-height:1">-</button><span id="pagePatSz" style="font-size:10px;color:var(--dim);min-width:20px;text-align:center">60</span><button onclick="upkPagePatternSize(10)" style="width:20px;height:22px;font-size:12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:3px;cursor:pointer;line-height:1">+</button></div></div>
+        <div style="margin-top:6px;display:flex;align-items:center;gap:6px"><label style="font-size:10px;color:var(--dim);white-space:nowrap">BG</label><button data-cp="pageBg" onclick="showCP('pageBg')" style="width:26px;height:22px;border-radius:3px;border:1px solid var(--border);cursor:pointer;background:#1a1a2e"></button></div>
 
       </div>
       <div class="rp-section" id="rp-ratio-sec">
@@ -460,7 +460,7 @@ function renderAll(){rpl();rpgl();rr();rpr();rgrp()}
 function rpl(){var _pl=document.getElementById("pl");if(_pl)_pl.innerHTML=profiles.map(p=>'<div class="it'+(p.filename===activeProfile?" ac":"")+'" onclick="lp(\''+p.filename+'\')">'+hesc(p.profileName)+'<span class="x" onclick="event.stopPropagation();dp(\''+p.filename+'\')">×</span></div>').join("");var tpf=document.getElementById("tpf");if(tpf){tpf.innerHTML=profiles.map(function(p){return"<option value='"+p.filename+"'>"+p.profileName+"</option>"}).join("")+"<option value='__manage__' style='color:var(--accent)'>Manage...</option></option>";if(activeProfile)tpf.value=activeProfile}renderProfileList()}
 function renderProfileList(){var el=document.getElementById("profList");if(!el)return;if(!profiles||!profiles.length){el.innerHTML='<p style="font-size:10px;color:var(--dim);padding:4px 2px">No profiles</p>';return}el.innerHTML=profiles.map(function(p){return '<div class="it'+(p.filename===activeProfile?" ac":"")+'" onclick="lp(\''+p.filename+'\')"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+hesc(p.profileName)+'</span><span title="重命名" onclick="event.stopPropagation();pmRenamePrompt(\''+p.filename+'\')" style="opacity:0.6;color:var(--dim);cursor:pointer;font-size:12px;padding:2px 6px;border-radius:3px">&#x270E;</span><span class="x" title="删除" onclick="event.stopPropagation();dp(\''+p.filename+'\')">&times;</span></div>'}).join("")}
 function pmRenamePrompt(fn){var p=(profiles||[]).find(function(x){return x.filename===fn});var cur=p?p.profileName:"";var nm=prompt("重命名 profile:",cur);if(nm&&nm.trim()&&nm.trim()!==cur)pmRename(fn,nm.trim())}
-function rpgl(){var h=document.getElementById("pp-heading");if(h)h.textContent=(profile?profile.profileName:"Profile")+" Properties";var _cp=cp_();var _bg=document.getElementById("pageBg");if(_bg&&_cp)_bg.value=_cp.bgColor||"#1a1a2e";var _pt=document.getElementById("pagePat");if(_pt&&_cp)_pt.value=_cp.bgPattern||"none";var _pc=document.getElementById("pagePatColor");if(_pc&&_pc)_pc.value=_cp.bgPatternColor||"#ffffff";var _ps=document.getElementById("pagePatSz");if(_ps&&_ps)_ps.textContent=_cp.bgPatternSize||60}
+function rpgl(){var h=document.getElementById("pp-heading");if(h)h.textContent=(profile?profile.profileName:"Profile")+" Properties";var _cp=cp_();var _bg=document.querySelector('[data-cp="pageBg"]');if(_bg&&_cp)_bg.style.background=_cp.bgColor||"#1a1a2e";var _pt=document.getElementById("pagePat");if(_pt&&_cp)_pt.value=_cp.bgPattern||"none";var _pc=document.querySelector('[data-cp="pagePatColor"]');if(_pc&&_pc)_pc.style.background=_cp.bgPatternColor||"#ffffff";var _ps=document.getElementById("pagePatSz");if(_ps&&_ps)_ps.textContent=_cp.bgPatternSize||60}
 
 function upkShowFlag(flag,val){var k=cp_()?.keys.find(function(x){return x.id===selKey});if(!k)return;if(!k.showFlags)k.showFlags={};k.showFlags[flag]=val;dirty=true;rr()}
 function upkPageBg(v){var p=cp_();if(!p)return;p.bgColor=v;dirty=true;rr()}
@@ -1152,7 +1152,7 @@ function rgbToHsl(R,G,B){R/=255;G/=255;B/=255;var max=Math.max(R,G,B),min=Math.m
 function _cpLoadPresets(){try{_cpPresets=JSON.parse(localStorage.getItem("stp_color_presets"))||[]}catch(e){_cpPresets=[]}while(_cpPresets.length<8)_cpPresets.push("#ff0000")}
 function showCP(prop,hex){
   if(_cpPanel){_cpPanel.remove();_cpPanel=null;}
-  _cpProp=prop;_cpHex=hex;_cpLoadPresets();
+  _cpProp=prop;if(!hex&&prop.indexOf('page')===0){var pg3=cp_();if(pg3){if(prop==='pageBg')hex=pg3.bgColor||'#1a1a2e';else if(prop==='pagePatColor')hex=pg3.bgPatternColor||'#ffffff'}}_cpHex=hex;_cpLoadPresets();
   var d=document.createElement("div");
   d.id="cp-panel";
   d.style.cssText="position:fixed;z-index:99999;background:#2a2a3a;border:1px solid #666;border-radius:8px;padding:12px;box-shadow:0 8px 32px rgba(0,0,0,0.6);width:280px;font-family:-apple-system,sans-serif;user-select:none";
@@ -1209,7 +1209,7 @@ function _cpClose(){
   var p=document.getElementById("cp-panel");
   if(p){p.remove();_cpPanel=null;}
   document.removeEventListener("mousedown",_cpClickOutside,true);
-  if(_cpProp&&_cpProp.indexOf("grp")===0){var _rp=_cpProp.replace("grp","");_rp=_rp.charAt(0).toLowerCase()+_rp.slice(1);upkGroup(_rp,_cpHex)}else{upk(_cpProp,_cpHex)}
+  if(_cpProp&&_cpProp.indexOf("grp")===0){var _rp=_cpProp.replace("grp","");_rp=_rp.charAt(0).toLowerCase()+_rp.slice(1);upkGroup(_rp,_cpHex)}else if(_cpProp==='pageBg'){upkPageBg(_cpHex)}else if(_cpProp==='pagePatColor'){upkPagePatternColor(_cpHex)}else{upk(_cpProp,_cpHex)}
 }
 function cpCanvasPick(e,cv,cr){
   var rect=cv.getBoundingClientRect();
@@ -1225,6 +1225,8 @@ function cpCanvasPick(e,cv,cr){
 }
 
 function upkLive(prop,val){
+  if(prop==='pageBg'){var p2=cp_();if(!p2)return;p2.bgColor=val;dirty=true;rr();return;}
+  if(prop==='pagePatColor'){var p3=cp_();if(!p3)return;p3.bgPatternColor=val;dirty=true;rr();return;}
   const key=cp_()?.keys.find(k=>k.id===selKey);if(!key)return;
   key[prop]=val;dirty=true;rr();
 }
