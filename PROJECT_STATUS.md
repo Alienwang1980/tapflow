@@ -1,6 +1,6 @@
 # Smart Touch Panel — 项目全貌 & 进度
 
-> 最后更新: 2026-08-05 | 版本: 1.2.0
+> 最后更新: 2026-08-06 | 版本: 1.3.0
 
 ## 一句话描述
 
@@ -58,7 +58,7 @@ smart-touch-panel/
 
 ---
 
-## Widget 类型总览（13 种）
+## Widget 类型总览（14 种）
 
 | # | type | 名称 | 默认尺寸 | action | 说明 |
 |---|------|------|---------|--------|------|
@@ -75,6 +75,7 @@ smart-touch-panel/
 | 11 | `dock` | Dock Panel | 9.25×1.5 | dock | macOS Dock 模拟（启动/退出 App） |
 | 12 | `switchprofile` | Switch Profile | 1.5×1.25 | switch-profile | 切换 Profile（⇄ 图标+名称两行布局） |
 | 13 | `balance` | Deepseek Balance | 3.5×1.25 | balance | DeepSeek API 余额显示 |
+| 14 | `textmacro` | Text Macro | 4×2.5 | text-macro | 录制文字，点击逐字回放（Unicode 支持） |
 
 ---
 
@@ -201,6 +202,7 @@ carea (flexbox 居中 cwrap)
 
 | 提交 | 内容 |
 |------|------|
+| `a658139` | **feat**: Text Macro widget — 录制/回放文字，Unicode 支持，editor 录制 + dashboard 一键输入 |
 | `51167b6` | **fix**: bgOpacity 连续化 — 移除 `transparent` 关键词跳跃，统一用 `rgba(r,g,b,opacity)`；移除 `_bgop<1.0` 门控，所有 hex 颜色始终走 rgba |
 
 ### 2026-08-05
@@ -251,6 +253,7 @@ carea (flexbox 居中 cwrap)
 | 7 | **通用 bgOpacity** — 所有 widget 背景透明度（复用 Dock 模式） | ✅ 已实现 | `editor.html` + `index.html` |
 | — | ~~Profile 按钮图标文字分行~~ → 重复 #3 + #4 | — | — |
 | — | ~~Editor 滚轮缩放视角~~ → 重复 #1 | — | — |
+| 8 | **Text Macro widget** — 录制文字，点击逐字敲回 | ✅ 已实现 (2026-08-06) | `editor.html` + `index.html` + `input_engine.py` |
 
 ---
 
