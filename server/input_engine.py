@@ -246,6 +246,20 @@ def scroll_mouse(dx, dy):
 
 
 def type_text(text: str):
-    """Type a string character by character."""
+    """Type a Unicode string character by character.
+
+    Uses CGEventKeyboardSetUnicodeString to post arbitrary Unicode,
+    bypassing the KEYCODE_MAP limitation (supports spaces, symbols, CJK, etc.).
+    """
+    if not HAVE_QUARTZ:
+        logger.info(f"[SIMULATE] Type text: {text!r}")
+        return
+    from Quartz.CoreGraphics import CGEventKeyboardSetUnicodeString
     for char in text:
-        press_key(char)
+        # Use SPACE keycode (0x31) as carrier; the actual character
+        # is injected via CGEventKeyboardSetUnicodeString.
+        down = CGEventCreateKeyboardEvent(None, 0x31, True)
+        CGEventKeyboardSetUnicodeString(down, len(char), char)
+        CGEventPost(kCGHIDEventTap, down)
+        up = CGEventCreateKeyboardEvent(None, 0x31, False)
+        CGEventPost(kCGHIDEventTap, up)
