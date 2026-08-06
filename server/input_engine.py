@@ -9,13 +9,32 @@ logger = logging.getLogger("stp.input")
 try:
     from Quartz.CoreGraphics import (
         CGEventCreateKeyboardEvent, CGEventPost, CGEventSetFlags,
+        CGEventSourceCreate,
         kCGHIDEventTap,
+        kCGEventSourceStatePrivate,
     )
     HAVE_QUARTZ = True
 except ImportError:
     HAVE_QUARTZ = False
     logger.warning("Quartz import failed — running on non-macOS or missing pyobjc")
     kCGHIDEventTap = 0
+    kCGEventSourceStatePrivate = -1
+
+_event_source = None
+
+
+def _get_event_source():
+    """Return a private event source, creating it on first call.
+
+    On macOS 10.15+, CGEventCreateKeyboardEvent(NULL, ...) delivers events
+    ONLY to the creating process. Since STP is an LSUIElement (background)
+    app, those events are silently discarded. A private event source avoids
+    this restriction.
+    """
+    global _event_source
+    if _event_source is None and HAVE_QUARTZ:
+        _event_source = CGEventSourceCreate(kCGEventSourceStatePrivate)
+    return _event_source
 
 # macOS virtual keycode map
 KEYCODE_MAP = {
@@ -63,7 +82,7 @@ def _post_key_event(key_code: int, down: bool, flags: int = 0):
         action = "DOWN" if down else "UP"
         logger.info(f"[SIMULATE] Key{action}: code=0x{key_code:02X}, flags=0x{flags:08X}")
         return
-    event = CGEventCreateKeyboardEvent(None, key_code, down)
+    event = CGEventCreateKeyboardEvent(_get_event_source(), key_code, down)
     if flags or not down:
         CGEventSetFlags(event, flags)
     CGEventPost(kCGHIDEventTap, event)
@@ -248,18 +267,22 @@ def scroll_mouse(dx, dy):
 def type_text(text: str):
     """Type a Unicode string character by character.
 
-    Uses CGEventKeyboardSetUnicodeString to post arbitrary Unicode,
-    bypassing the KEYCODE_MAP limitation (supports spaces, symbols, CJK, etc.).
+    Uses CGEventKeyboardSetUnicodeString with a private event source to post
+    arbitrary Unicode, bypassing the KEYCODE_MAP limitation (supports spaces,
+    symbols, CJK, emoji, etc.). The private event source avoids the macOS
+    10.15+ restriction where NULL-source events are limited to the creating
+    process.
     """
     if not HAVE_QUARTZ:
         logger.info(f"[SIMULATE] Type text: {text!r}")
         return
     from Quartz.CoreGraphics import CGEventKeyboardSetUnicodeString
+    src = _get_event_source()
     for char in text:
         # Use SPACE keycode (0x31) as carrier; the actual character
         # is injected via CGEventKeyboardSetUnicodeString.
-        down = CGEventCreateKeyboardEvent(None, 0x31, True)
+        down = CGEventCreateKeyboardEvent(src, 0x31, True)
         CGEventKeyboardSetUnicodeString(down, len(char), char)
         CGEventPost(kCGHIDEventTap, down)
-        up = CGEventCreateKeyboardEvent(None, 0x31, False)
+        up = CGEventCreateKeyboardEvent(src, 0x31, False)
         CGEventPost(kCGHIDEventTap, up)
