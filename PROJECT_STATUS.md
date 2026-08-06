@@ -249,8 +249,8 @@ carea (flexbox 居中 cwrap)
 | 5 | **Editor 框选修复** — _viewOrigin 坐标错位 | ✅ 已修复 | `editor.html` |
 | 6 | **Fullscreen widget** — iPad 浏览器全屏切换按钮 | ✅ 已实现 | `editor.html` + `index.html` |
 | 7 | **通用 bgOpacity** — 所有 widget 背景透明度（复用 Dock 模式） | ✅ 已实现 | `editor.html` + `index.html` |
-| 8 | **STP Profile 按钮图标文字分行 + 图标显隐开关** | 📋 待实现 | `index.html` |
-| 9 | **STP Editor 滚轮缩放视角** | 📋 待实现 | `editor.html` |
+| — | ~~Profile 按钮图标文字分行~~ → 重复 #3 + #4 | — | — |
+| — | ~~Editor 滚轮缩放视角~~ → 重复 #1 | — | — |
 
 ---
 
