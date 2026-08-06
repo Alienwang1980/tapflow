@@ -14,13 +14,22 @@ from fastapi import Request
 from main import app
 from editor_app import open_editor
 
-# ── 阻止 Python 子进程出现第二个 Dock 图标 ──
-# LSUIElement=True 只对 py2app 启动器 stub 生效,Python 子进程需要显式声明 accessory 模式。
-try:
-    from AppKit import NSApplication, NSApplicationActivationPolicyAccessory
-    NSApplication.sharedApplication().setActivationPolicy_(NSApplicationActivationPolicyAccessory)
-except Exception:
-    pass
+# ── NSApp 延迟到 main() 端口检测之后创建 ──
+# 模块级 import 时创建 NSApp 有副作用:即使 main() 检测到端口冲突立即退出,
+# NSApplication.sharedApplication() 也已向 WindowServer 注册,可能短暂出现第二个
+# 菜单栏图标。改为延迟初始化,重复实例不会触发任何 Cocoa 事件。
+_appkit_ready = False
+def _ensure_appkit_accessory():
+    """Create NSApp with Accessory policy — call ONLY after port guard passes."""
+    global _appkit_ready
+    if _appkit_ready:
+        return
+    try:
+        from AppKit import NSApplication, NSApplicationActivationPolicyAccessory
+        NSApplication.sharedApplication().setActivationPolicy_(NSApplicationActivationPolicyAccessory)
+        _appkit_ready = True
+    except Exception:
+        pass
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelname)s %(message)s")
 logger = logging.getLogger("stp.tray")
@@ -1413,11 +1422,42 @@ def main():
         print(f"launch agent: {result}")
         return
 
-    # Single-instance guard: agent + manual launch must not fight over the port.
-    # 崩溃后 launchd 秒级重启,旧 socket 可能未释放 → 必须重试而非瞬时判定,
-    # 否则新实例 exit 0,KeepAlive={SuccessfulExit:false} 不再拉起(实测踩坑)。
-    # 15s 内端口一直被占 → 真有另一个实例在跑 → 干净退出(launchd 不重启)。
-    import time as _time9
+    # ── Single-instance guard (PID file) ──
+    # PID 文件在 /tmp,避免 py2app 下 expanduser 路径不一致问题。
+    # crash 后 launchd 秒级重启,旧 socket 可能未释放 → 额外重试 15s 等待释放。
+    import time as _time9, atexit as _atexit
+    _pid_file = "/tmp/stp.pid"
+    _duplicate = False
+    try:
+        if os.path.exists(_pid_file):
+            with open(_pid_file) as _f:
+                _old_pid = int(_f.read().strip())
+            try:
+                os.kill(_old_pid, 0)  # 信号 0 只检查进程是否存在
+                logger.info(f"PID file {_pid_file} → pid {_old_pid} alive, duplicate, exiting")
+                _duplicate = True
+            except OSError:
+                logger.info(f"PID file {_pid_file} → pid {_old_pid} stale, removing")
+                os.unlink(_pid_file)
+    except (ValueError, FileNotFoundError):
+        pass
+    if _duplicate:
+        return
+    # Write PID file BEFORE port check,so crash-restart within 15s window can still detect
+    try:
+        with open(_pid_file, "w") as _f:
+            _f.write(str(os.getpid()))
+        logger.info(f"PID file written: {_pid_file} → {os.getpid()}")
+    except Exception as _e:
+        logger.warning(f"Failed to write PID file: {_e}")
+    # Cleanup on exit
+    def _cleanup_pid():
+        try:
+            if os.path.exists(_pid_file):
+                os.unlink(_pid_file)
+        except Exception:
+            pass
+    _atexit.register(_cleanup_pid)
     for _try9 in range(15):
         if not _port_in_use(PORT):
             break
@@ -1425,6 +1465,11 @@ def main():
     else:
         logger.info(f"Port {PORT} still in use after 15s — another instance is running, exiting")
         return
+
+    # ── 端口检测通过,确认是唯一实例后才创建 NSApp ──
+    # 必须在 run_server / run_tray 之前,避免 pystray 或其他 Cocoa 调用时
+    # NSApp 还未设为 Accessory 模式。
+    _ensure_appkit_accessory()
 
     _ensure_config(PORT)
     # Start FastAPI in background thread
