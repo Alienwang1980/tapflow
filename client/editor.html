@@ -632,6 +632,13 @@ const ftb=document.getElementById("ftb");var btb=document.getElementById("btb");
       _c.fillStyle=_ic;var _tf3=(k.fontSize||Math.max(10,Math.round(Math.min(_h*0.35,_w*0.15))));_c.font=_tf3+"px -apple-system,sans-serif";_c.textAlign="center";_c.textBaseline="middle";_c.fillText(_lbl,_cx,_cy)
     }
     el.appendChild(_cv);var _rh=document.createElement("div");_rh.className="rh";el.appendChild(_rh)
+  }else if(k.action==="text-macro"){
+    var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius=br;
+    el.appendChild(_cv);
+    var _kcrgba=k.color;var _bgop2=k.bgOpacity!==undefined?k.bgOpacity:1.0;
+    if(_bgop2<1.0&&_kcrgba&&_kcrgba.charAt(0)==='#'){_kcrgba=_hexToRgba(_kcrgba,_bgop2)}
+    _drawTextMacroBtn(_cv,_kcrgba,k.macroText||"",k.fontColor,k.fontSize);
+    var _rh=document.createElement("div");_rh.className="rh";el.appendChild(_rh)
   }else{el.innerHTML='<span class="kl">'+hesc(k.label)+'</span>'+(w>1||h>1?'<span class="sz">'+w.toFixed(2)+'×'+h.toFixed(2)+'</span>':'')+((selKeys.size<=1?'<div class="rh"></div>':''))}if(k.action!=='dock'){var _bgop=k.bgOpacity!==undefined?k.bgOpacity:1.0;var _bgc=k.color||null;if(!_bgc){el.style.background='transparent'}else if(_bgc.charAt(0)==='#'){el.style.background=_hexToRgba(_bgc,_bgop)}else{el.style.background=_bgc}}    el.addEventListener("mousedown",e=>onKeyDown(e,k.id));
     el.addEventListener("click",e=>onKeyClick(e,k.id));
     const rh=el.querySelector(".rh");if(rh)rh.addEventListener("mousedown",e=>onRS(e,k.id));
@@ -930,6 +937,43 @@ function _drawEditorDock(canvas, key) {
       }, 3000);
     }
   }).catch(function(){ ctx.clearRect(0,0,w,h); ctx.fillText("Dock unavailable", w/2, h/2); });
+}
+// ── Editor Text Macro preview ──
+function _drawTextMacroBtn(canvas,bgColor,text,fontColor,fontSize){
+  var ctx=canvas.getContext("2d"),w=canvas.width,h=canvas.height;
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle=bgColor||"#1a2a1a";ctx.fillRect(0,0,w,h);
+  var fc=fontColor||"#e8e0d8",fs=fontSize||13;
+  var pad=Math.max(6,w*0.04);
+  ctx.fillStyle="rgba(255,255,255,0.3)";
+  ctx.font=(Math.max(8,fs*0.55))+"px -apple-system,sans-serif";
+  ctx.textAlign="left";ctx.textBaseline="top";
+  ctx.fillText("TEXT MACRO",pad,pad);
+  if(text&&text.length>0){
+    var display=text;ctx.fillStyle=fc;ctx.font=fs+"px monospace";
+    ctx.textAlign="left";ctx.textBaseline="middle";
+    var maxW=w-pad*2,lineH=fs*1.35,maxLines=Math.floor((h-pad*3)/lineH);
+    var lines=[];
+    if(display.indexOf("\n")>=0){
+      var raw=display.split("\n");
+      for(var i=0;i<Math.min(raw.length,maxLines);i++){
+        var ln=raw[i];
+        if(ctx.measureText(ln).width>maxW){while(ln.length>1&&ctx.measureText(ln+"…").width>maxW)ln=ln.slice(0,-1);ln+="…"}
+        lines.push(ln)
+      }
+    }else{
+      var ln=display;
+      if(ctx.measureText(ln).width>maxW){while(ln.length>1&&ctx.measureText(ln+"…").width>maxW)ln=ln.slice(0,-1);ln+="…"}
+      lines.push(ln)
+    }
+    var startY=h/2-(lines.length*lineH)/2+lineH*0.3;
+    for(var i=0;i<lines.length;i++){ctx.fillText(lines[i],pad,startY+i*lineH)}
+  }else{
+    ctx.fillStyle="rgba(255,255,255,0.2)";
+    ctx.font=fs+"px -apple-system,sans-serif";
+    ctx.textAlign="center";ctx.textBaseline="middle";
+    ctx.fillText("(empty)",w/2,h/2)
+  }
 }
 // ── Clipboard Panel ──
 
