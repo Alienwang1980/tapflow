@@ -14,6 +14,14 @@ from fastapi import Request
 from main import app
 from editor_app import open_editor
 
+# ── 阻止 Python 子进程出现第二个 Dock 图标 ──
+# LSUIElement=True 只对 py2app 启动器 stub 生效,Python 子进程需要显式声明 accessory 模式。
+try:
+    from AppKit import NSApplication, NSApplicationActivationPolicyAccessory
+    NSApplication.sharedApplication().setActivationPolicy_(NSApplicationActivationPolicyAccessory)
+except Exception:
+    pass
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelname)s %(message)s")
 logger = logging.getLogger("stp.tray")
 
