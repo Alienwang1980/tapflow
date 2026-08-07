@@ -78,17 +78,35 @@ def _resolve_port() -> int:
     return default
 
 def _ensure_config(port: int) -> None:
-    """首次运行写一份默认 config.json,方便用户直接编辑端口。"""
+    """首次运行写一份默认 config.json,方便用户直接编辑端口。同时生成 auth token。"""
     try:
         cp = _config_path()
-        if not os.path.exists(cp):
+        config = _json_cfg.loads(open(cp, "r", encoding="utf-8").read()) if os.path.exists(cp) else {}
+        changed = False
+        if "port" not in config:
+            config["port"] = port
+            changed = True
+        if "auth_token" not in config:
+            import secrets as _secret
+            config["auth_token"] = _secret.token_urlsafe(32)
+            changed = True
+        if changed or not os.path.exists(cp):
+            config["_comment"] = "改端口后重启 Smart Touch Panel 生效(范围 1-65535)。也可用环境变量 STP_PORT 覆盖。auth_token 用于面板认证。"
             with open(cp, "w", encoding="utf-8") as f:
-                _json_cfg.dump(
-                    {"port": port,
-                     "_comment": "改端口后重启 Smart Touch Panel 生效(范围 1-65535)。也可用环境变量 STP_PORT 覆盖。"},
-                    f, ensure_ascii=False, indent=2)
+                _json_cfg.dump(config, f, ensure_ascii=False, indent=2)
     except Exception as e:
         logger.warning("写默认 config.json 失败: %s", e)
+
+def _get_auth_token() -> str:
+    """读取持久化的 auth token。首次启动自动生成。"""
+    try:
+        cp = _config_path()
+        if os.path.exists(cp):
+            with open(cp, "r", encoding="utf-8") as f:
+                return _json_cfg.load(f).get("auth_token", "")
+    except Exception:
+        pass
+    return ""
 
 PORT = _resolve_port()
 # 同步 mDNS 广播端口
@@ -779,10 +797,11 @@ def run_server():
 
     @app.post("/api/system/quit-app")
     async def _sys_quit(body: dict):
+        """Quit an app by exact process name. Uses pkill -x (safe arg list, no shell)."""
         import subprocess as _sp
-        name = body.get("name", "")
+        name = str(body.get("name", "")).strip()
         if name:
-            _sp.run(["osascript", "-e", f'quit app "{name}"'])
+            _sp.run(["pkill", "-x", name])
         return {"status": "ok"}
 
     
@@ -810,16 +829,32 @@ def run_server():
 
     @app.post("/api/system/window/tile")
     async def _sys_tile(body: dict):
-        layout = body.get("layout", "2x2")
-        n = _front_name()
-        # Use osascript to tile the frontmost window
-        _sc.run(["osascript", "-e", f'tell app "System Events" to tell process "{n}"',
-                 "-e", "set sz to get size of front window",
-                 "-e", f'if "{layout}" is "left-right" then',
-                 "-e", "set position of front window to {0, 30}",
-                 "-e", "set size of front window to {item 1 of sz / 2, item 2 of sz}",
-                 "-e", "end if"])
-        return {"status": "ok"}
+        """Tile the frontmost window. Only allowlisted layouts. Uses osascript with fixed templates — no user input interpolation."""
+        layout = str(body.get("layout", "")).strip()
+        if layout not in ("left-right", "top-bottom", "2x2"):
+            from fastapi import HTTPException; raise HTTPException(400, f"Unknown layout: {layout}")
+        # Get frontmost app name via System Events (fixed osascript, no user input)
+        import subprocess as _sp2
+        r = _sp2.run(["osascript", "-e",
+            'tell app "System Events" to set frontApp to name of first process whose frontmost is true',
+            "-e", "return frontApp"], capture_output=True, encoding='utf-8')
+        n = r.stdout.strip()
+        if not n:
+            return {"status": "error", "message": "No frontmost window found"}
+        # Build tile osascript with fixed layout branch (whitelist ensures only valid values)
+        tile_script = (
+            f'tell app "System Events" to tell process "{n}"\n'
+            f'set sz to get size of front window\n'
+        )
+        if layout == "left-right":
+            tile_script += "set position of front window to {0, 30}\nset size of front window to {item 1 of sz / 2, item 2 of sz}\n"
+        elif layout == "top-bottom":
+            tile_script += "set position of front window to {0, 30}\nset size of front window to {item 1 of sz, item 2 of sz / 2}\n"
+        else:
+            tile_script += "set position of front window to {0, 30}\nset size of front window to {item 1 of sz / 2, item 2 of sz / 2}\n"
+        tile_script += "end tell"
+        _sp2.run(["osascript", "-e", tile_script])
+        return {"status": "ok", "layout": layout}
 
     @app.get("/api/system/layouts")
     async def _sys_layouts():
@@ -932,13 +967,15 @@ def run_server():
 
 def on_show_qr(icon, item):
     """Print QR code URL to console."""
+    import subprocess as _sp_open
     ip = get_local_ip()
-    url = f"http://{ip}:{PORT}"
+    token = _get_auth_token()
+    url = f"http://{ip}:{PORT}/?token={token}"
     print(f"\n{'='*50}")
     print(f"  Smart Touch Panel")
     print(f"  Open in iPad browser: {url}")
     print(f"{'='*50}\n")
-    os.system(f"open {url}")  # Open in default browser
+    _sp_open.run(["open", url])  # Open in default browser (safe arg list, no shell)
 
 
 # ── Dashboard NSPanel state ──
@@ -947,9 +984,11 @@ _DASH = {"panel": None, "delegate": None}
 
 def on_open_dashboard(icon, item):
     """Tray menu callback → open the iPad web panel in browser."""
+    import subprocess as _sp_open
     ip = get_local_ip()
-    url = f"http://{ip}:{PORT}"
-    os.system(f"open {url}")
+    token = _get_auth_token()
+    url = f"http://{ip}:{PORT}/?token={token}"
+    _sp_open.run(["open", url])  # Safe arg list, no shell
 
 
 def on_open_editor(icon, item):
@@ -1110,9 +1149,11 @@ try:
             threading.Thread(target=open_editor, daemon=True).start()
 
         def openPanel_(self, sender):
+            import subprocess as _sp_op
             ip = get_local_ip()
-            url = f"http://{ip}:{PORT}"
-            os.system(f"open {url}")
+            token = _get_auth_token()
+            url = f"http://{ip}:{PORT}/?token={token}"
+            _sp_op.run(["open", url])  # Safe arg list, no shell
 
         def windowWillClose_(self, note):
             _DASH["panel"] = None

@@ -7,6 +7,13 @@ from typing import Optional
 
 logger = logging.getLogger("stp.profile")
 
+def _safe_path(profiles_dir: Path, filename: str) -> Path:
+    """Resolve and validate filename stays within profiles_dir. Raises ValueError on traversal."""
+    resolved = (profiles_dir / filename).resolve()
+    if not str(resolved).startswith(str(profiles_dir.resolve()) + os.sep) and resolved != profiles_dir.resolve():
+        raise ValueError(f"Path traversal rejected: {filename!r}")
+    return resolved
+
 def _get_data_dir() -> Path:
     """Get writable data directory. Always uses App Support."""
     base = Path.home() / "Library" / "Application Support" / "Smart Touch Panel"
@@ -113,11 +120,17 @@ class ProfileManager:
         return profiles
 
     def get_profile(self, filename: str) -> Optional[dict]:
-        path = self.dir / filename
+        path = _safe_path(self.dir, filename)
         if not path.exists():
             return None
         profile = json.loads(path.read_text(encoding='utf-8'))
-        return migrate_key_positions(profile)
+        profile = migrate_key_positions(profile)
+        # Strip secrets before serving — never leak apiKey over API/WS
+        for page in profile.get("pages", []):
+            for key in page.get("keys", []):
+                if key.get("action") in ("balance",):
+                    key.pop("apiKey", None)
+        return profile
 
     def save_profile(self, profile: dict, filename: Optional[str] = None) -> str:
         if not filename:
@@ -132,7 +145,7 @@ class ProfileManager:
                     key["id"] = f"{page.get('id', 'p')}_{i}"
         # Migrate to grid positions before saving
         profile = migrate_key_positions(profile)
-        path = self.dir / filename
+        path = _safe_path(self.dir, filename)
         path.write_text(json.dumps(profile, indent=2, ensure_ascii=False), encoding='utf-8')
         logger.info(f"Profile saved: {filename}")
         return filename
@@ -163,7 +176,7 @@ class ProfileManager:
         return self.save_profile(imported, f"{name}.json")
 
     def delete_profile(self, filename: str) -> bool:
-        path = self.dir / filename
+        path = _safe_path(self.dir, filename)
         if path.exists():
             path.unlink()
             logger.info(f"Profile deleted: {filename}")

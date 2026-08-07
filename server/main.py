@@ -8,7 +8,7 @@ import uuid
 import asyncio
 from pathlib import Path
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Query, UploadFile
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Query, UploadFile, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 
@@ -19,7 +19,7 @@ if _server_dir not in sys.path:
 
 from connection_manager import manager
 from input_engine import press_key, press_key_down, release_key, _post_key_event, type_text, is_accessibility_enabled, HAVE_QUARTZ
-from profile_manager import profile_manager as profiles
+from profile_manager import profile_manager as profiles, _safe_path
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelname)s %(message)s")
 logger = logging.getLogger("stp.main")
@@ -49,6 +49,42 @@ try:
     HAVE_ZEROCONF = True
 except ImportError:
     logger.warning("zeroconf not installed — mDNS disabled")
+
+# ── Auth ──
+def _read_auth_token() -> str:
+    """Read the shared auth token from config.json (written by tray_app)."""
+    try:
+        cp = os.path.join(os.path.expanduser("~/Library/Application Support/Smart Touch Panel"), "config.json")
+        if os.path.exists(cp):
+            return json.loads(open(cp, "r", encoding="utf-8").read()).get("auth_token", "")
+    except Exception:
+        pass
+    return ""
+
+AUTH_TOKEN = ""
+
+def _verify_token(token: str) -> bool:
+    """Constant-time token comparison."""
+    import hmac
+    global AUTH_TOKEN
+    if not AUTH_TOKEN:
+        AUTH_TOKEN = _read_auth_token()
+    return hmac.compare_digest(token, AUTH_TOKEN) if token else False
+
+# Auth middleware — validates token on privileged routes
+PRIVILEGED_PREFIXES = ("/api/system", "/api/profiles", "/api/deepseek", "/api/upload", "/api/active-profile", "/api/test-ws-override")
+
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    # Static + health + default pages are always allowed
+    path = request.url.path
+    privileged = any(path.startswith(p) for p in PRIVILEGED_PREFIXES)
+    if privileged:
+        token = request.query_params.get("token", "") or request.headers.get("X-Auth-Token", "")
+        if not _verify_token(token):
+            return HTMLResponse(content='{"error":"unauthorized"}', status_code=401,
+                                headers={"Content-Type": "application/json"})
+    return await call_next(request)
 
 _zeroconf_instance = None
 
@@ -356,7 +392,7 @@ async def import_profile(body: dict):
 @app.patch("/api/profiles/{filename:path}")
 async def update_profile_meta(filename: str, body: dict):
     """Update profile name without renaming the file."""
-    path = profiles.dir / filename
+    path = _safe_path(profiles.dir, filename)
     if not path.exists():
         raise HTTPException(404, f"Profile not found: {filename}")
     profile = json.loads(path.read_text(encoding='utf-8'))
@@ -372,11 +408,11 @@ async def rename_profile(filename: str, body: dict):
     if not new_name:
         raise HTTPException(400, "newName required")
     import os as _os
-    old_path = profiles.dir / filename
+    old_path = _safe_path(profiles.dir, filename)
     if not old_path.exists():
         raise HTTPException(404, f"Profile not found: {filename}")
     new_filename = new_name + ".json" if not new_name.endswith(".json") else new_name
-    new_path = profiles.dir / new_filename
+    new_path = _safe_path(profiles.dir, new_filename)
     if new_path.exists() and new_path != old_path:
         raise HTTPException(409, f"Profile already exists: {new_filename}")
     _os.rename(str(old_path), str(new_path))
@@ -413,8 +449,14 @@ async def get_deepseek_balance(api_key: str = ""):
 
 @app.websocket("/ws")
 async def ws_endpoint(websocket: WebSocket):
+    # Auth check: require valid token as query param
+    token = websocket.query_params.get("token", "")
+    if not _verify_token(token):
+        await websocket.close(code=4001, reason="unauthorized")
+        return
     client_id = str(uuid.uuid4())[:8]
-    await manager.connect(client_id, websocket)
+    if not await manager.connect(client_id, websocket):
+        return
     # Send default profile on connect
     default = profiles.get_profile("Default.json") or profiles.get_profile(
         profiles.list_profiles()[0]["filename"] if profiles.list_profiles() else None
@@ -428,24 +470,33 @@ async def ws_endpoint(websocket: WebSocket):
             if msg_type == "touchpad":
                 action = data.get("action", "move")
                 from input_engine import move_mouse, scroll_mouse, click_mouse, mouse_down, mouse_up
+                # Clamp dx/dy to sane ranges; reject NaN/Inf
+                def _safe_float(v, default=0.0, limit=2000.0):
+                    try:
+                        f = float(v)
+                        if f != f or f == float('inf') or f == float('-inf'):
+                            return default
+                        return max(-limit, min(limit, f))
+                    except (ValueError, TypeError):
+                        return default
+                btn_whitelist = {"left", "right", "middle"}
+                def _safe_btn(b):
+                    return b if b in btn_whitelist else "left"
                 if action == "move":
-                    dx = float(data.get("dx", 0))
-                    dy = float(data.get("dy", 0))
+                    dx = _safe_float(data.get("dx", 0))
+                    dy = _safe_float(data.get("dy", 0))
                     is_drag = data.get("drag", False)
                     move_mouse(dx, dy, drag=is_drag)
                 elif action == "scroll":
-                    dx = float(data.get("dx", 0))
-                    dy = float(data.get("dy", 0))
+                    dx = _safe_float(data.get("dx", 0), limit=500.0)
+                    dy = _safe_float(data.get("dy", 0), limit=500.0)
                     scroll_mouse(dx, dy)
                 elif action == "click":
-                    btn = data.get("button", "left")
-                    click_mouse(btn)
+                    click_mouse(_safe_btn(data.get("button", "left")))
                 elif action == "mousedown":
-                    btn = data.get("button", "left")
-                    mouse_down(btn)
+                    mouse_down(_safe_btn(data.get("button", "left")))
                 elif action == "mouseup":
-                    btn = data.get("button", "left")
-                    mouse_up(btn)
+                    mouse_up(_safe_btn(data.get("button", "left")))
                 await manager.send_to(client_id, {"type": "ack", "action": "touchpad"})
             elif msg_type == "key":
                 keys = data.get("keys", [])

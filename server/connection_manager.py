@@ -8,13 +8,20 @@ logger = logging.getLogger("stp.connection")
 class ConnectionManager:
     """Manage all WebSocket client connections."""
 
+    MAX_CONNECTIONS = 16
+
     def __init__(self):
         self.active: dict[str, WebSocket] = {}  # client_id -> websocket
 
     async def connect(self, client_id: str, websocket: WebSocket):
+        if len(self.active) >= self.MAX_CONNECTIONS:
+            await websocket.close(code=4000, reason="max_connections")
+            logger.warning(f"Connection rejected (max {self.MAX_CONNECTIONS}): {client_id}")
+            return False
         await websocket.accept()
         self.active[client_id] = websocket
         logger.info(f"Client connected: {client_id} (total: {len(self.active)})")
+        return True
 
     def disconnect(self, client_id: str):
         if client_id in self.active:
@@ -30,8 +37,10 @@ class ConnectionManager:
                 self.disconnect(client_id)
 
     async def broadcast(self, message: dict):
+        # Copy items to avoid dict-changed-during-iteration when disconnect runs mid-broadcast
         dead = []
-        for cid, ws in self.active.items():
+        snapshot = list(self.active.items())
+        for cid, ws in snapshot:
             try:
                 await ws.send_json(message)
             except Exception:
