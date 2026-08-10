@@ -333,6 +333,11 @@ async def get_profile(filename: str):
 async def save_profile(body: dict):
     if not body:
         raise HTTPException(400, "Empty body")
+    # DEBUG: log active-app closeSound
+    for p in body.get("pages", []):
+        for k in p.get("keys", []):
+            if k.get("action") == "active-app":
+                logger.info(f"SAVE DEBUG active-app: sound={k.get('sound')!r} closeSound={k.get('closeSound')!r}")
     forced_name = body.pop("_filename", None)
     filename = profiles.save_profile(body, forced_name)
     await broadcast_profile_update(filename)
