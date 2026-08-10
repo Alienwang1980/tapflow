@@ -1,5 +1,9 @@
 # Client Architecture Refactoring Plan v3
 
+> **状态更新 (2026-08-11)**：V3 仍是最新计划。自 V3 编写以来，`d89135f` 引入了窗口枚举重构和 Dashboard 重设计，但这些改动在后端（`ax_bridge.py`、`tray_app.py`），不影响前端的模块拆分方案。D1-D6 / E1-E5 补丁清单仍然准确。
+>
+> **实施前必须确认**：自 `d89135f` 后 `index.html` 和 `editor.html` 若有新增改动，需更新补丁清单和符号检查列表。
+
 ## 审核历史
 
 | 版本 | 发现问题 | 处置 |

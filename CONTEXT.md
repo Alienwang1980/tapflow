@@ -1,7 +1,7 @@
 # Smart Touch Panel — 项目全貌（CONTEXT）
 
 > 本文档为项目领域知识 + 完整现状快照 + 待办计划。后续开发（含 AI）动代码前**必须优先阅读**。
-> 最后更新：2026-07-16（响应式面板 + SwitchProfile 标签 + 纹理修复 + DMG 打包） ｜ 全部数据基于 2026-07-16 实测
+> 最后更新：2026-08-11（macOS 26 CG nil-title 适配 + 窗口枚举重构 + Dashboard 重设计） ｜ 全部数据基于 2026-08-11 实测
 
 ---
 
@@ -38,20 +38,20 @@ Smart Touch Panel（STP）是一个 **macOS 菜单栏应用**：在 Mac 上起�
 
 | 文件 | 行数 | 职责 |
 |------|------|------|
-| `client/index.html` | 387 | iPad 主面板（单文件，压缩长行，canvas 渲染） |
-| `client/editor.html` | 1,341 | 面板编辑器（拖拽布局、控件属性、按键绑定） |
-| `server/tray_app.py` | 1,321 | ★ 入口：菜单栏 app + 端口解析 + NSPanel 设置面板 + `/api/system/*` 路由 |
-| `server/ax_bridge.py` | 816 | 窗口/tab/菜单枚举（CGWindowList + osascript） |
-| `server/main.py` | 479 | FastAPI app、WebSocket 主循环、静态文件 |
-| `server/input_engine.py` | 251 | CGEvent 键鼠模拟 |
-| `server/profile_manager.py` | 179 | Profile 读写、迁移、窗口规则匹配 |
+| `client/index.html` | 402 | iPad 主面板（单文件，压缩长行，canvas 渲染） |
+| `client/editor.html` | 1,371 | 面板编辑器（拖拽布局、控件属性、按键绑定） |
+| `server/tray_app.py` | 1,593 | ★ 入口：菜单栏 app + NSPanel Dashboard/设置 + 全部 `/api/system/*` 路由 |
+| `server/ax_bridge.py` | 998 | 窗口枚举（CGWindowList + AX API）+ 缩略图截取 + 窗口操作 |
+| `server/main.py` | 521 | FastAPI app、WebSocket 主循环、静态文件 |
+| `server/input_engine.py` | 288 | CGEvent 键鼠模拟 |
+| `server/profile_manager.py` | 262 | Profile 读写、迁移、窗口规则匹配 |
 | `server/window_watcher.py` | 119 | 前台 app 切换监听（NSWorkspace 通知） |
-| `server/system_control.py` | 108 | 音量/麦克风/音频设备 |
+| `server/system_control.py` | 114 | 音量/麦克风/音频设备 |
 | `server/balance_poller.py` | 62 | DeepSeek 余额轮询 |
-| `server/connection_manager.py` | 47 | WebSocket 连接池 |
-| `server/widget_extension.py` | 40 | 额外 API 端点 |
+| `server/connection_manager.py` | 56 | WebSocket 连接池 |
+| `server/widget_extension.py` | 46 | 额外 API 端点 |
 | `server/editor_app.py` | 16 | 打开编辑器（Safari） |
-| **总计** | **~5,200** | |
+| **总计** | **~5,800** | |
 
 ---
 
@@ -267,13 +267,21 @@ Active profile 由客户端 `localStorage.getItem("stp_active")` 决定，非服
 
 左右面板固定 `270px` + `flex-shrink:0` → 窄屏下画布被挤压/溢出。已改为 `clamp(160px, 20vw, 270px)` 响应式宽度 + `flex-shrink:1`。
 
+### ✅ 已修复（`d89135f`）：macOS 26 窗口枚举全面修复
+
+System Settings 不出现、缩略图缺失、重复条目、关闭窗口不刷新 — 全部在 2026-08-10 修复。详见 §15。
+
+### ✅ 已修复（`d89135f`）：Dashboard 重设计
+
+两按钮布局 + Cocoa NSBezelStyleRounded + QR 仅 Smart Panel（Editor 无 QR）。
+
 ### 🟠 P1：`keep_alive.sh` 端口硬编码（已退役但脚本残留）
 
 `keep_alive.sh:6` 硬编码 `PORT=8082`。改端口后守护脚本不停误判重启。应改为读 config.json / `STP_PORT`。
 
 ### 🟡 P2：`tools/build.py` 是地雷
 
-用废弃的 `client/ipad/*.js` / `client/editor/*.js` 覆盖权威源。**禁止运行**。重打包用 `setup.py py2app`。
+用废弃的 `client/ipad/*.js` / `client/editor/*.js` 覆盖权威源。**禁止运行**。重打包用 `setup.py py2app`。重构后将替换为新的模块化 build 脚本（见 `docs/refactor-plan.md`）。
 
 ### 🟡 P2：`_winIcons` favicon 缓存按 `global_index` 键控（不稳定）
 
@@ -282,6 +290,10 @@ Active profile 由客户端 `localStorage.getItem("stp_active")` 决定，非服
 ### 🟡 P2：分发限制
 
 arm64 only、adhoc 未公证、需手动 TCC 授权（辅助功能/屏幕录制/麦克风）。
+
+### 🟡 P2：Python `.py` 源文件覆盖 zip `.pyc`
+
+Python 加载 `Resources/*.py` 优先于 `lib/python314.zip` 中的 `.pyc`。部署时必须同步更新两个位置，否则运行旧代码（2026-08-10 Dashboard 重设计踩坑实录）。
 
 ---
 
@@ -451,6 +463,27 @@ CDP 三分辨率验证（900/1280/1680px）：面板 180→270px 自适应，画
 
 使用 Keychain 现有 Apple Development 证书（`wang xinlei, 3PZ5GB6NV9`，2027-06-04 到期），hash `50035AAD0722786A4C024087383B654504F75C33`。TCC 授权跨重建保持（实测验证：重签后 ScreenCapture 仍 granted）。
 
+### 10.8 窗口枚举与缩略图修复（`d89135f`, 2026-08-10）
+
+**问题 1 — System Settings 不出现**：macOS 26 上全部 CG 窗口 `kCGWindowName` 为 nil,Catalyst/SwiftUI app 不暴露 AX 窗口。修复：CG 收集接受 nil-title + owner name 兜底 + 过滤菜单栏代理(高≤30px,宽≥1920)/伪影(任一维度≤1px)。
+
+**问题 2 — 重复条目**：AX 和 CG 返回同一窗口导致两条记录。修复：CG 仅在 AX 返回 0 条目时补充（`ax_count == 0` 条件）。
+
+**问题 3 — 缩略图缺失**：`_resolve_cg_window_id` 只匹配 frontmost 窗口，非前台 app 的 CG 窗口无 title 匹配则返回 0。修复：扩展 fallback 遍历所有 onscreen 窗口按 PID 匹配 + `_is_meaningful()` 过滤。
+
+**问题 4 — 关闭不刷新**：原 close flow 无 Space 切换延迟,跨 Space 关闭窗口后 Switcher 未感知。修复：800ms Space-switch 延迟 + optimistic removal + 2s/5s 多阶段 refetch。
+
+**问题 5 — Dashboard 重设计**：两个 QR Code 卡片→两段式布局（Smart Panel: QR + Open 按钮;Editor: 仅 Open 按钮），NSBezelStyleRounded 按钮反馈。
+
+**问题 6 — `closeSound` 不生效**：`profile_manager.migrate_key_positions()` 缺 `closeSound` setdefault。修复：加 `key.setdefault("closeSound","")`。
+
+**问题 7 — Editor 缩略图消失**：`client/thumbnails/` 未打入 app bundle。修复：部署流程中加入 thumbnails 目录同步。
+
+**部署踩坑（本次修复中发现的通用问题，见 §12.2 表格）**：
+1. Python 加载 `Resources/*.py` 优先于 zip `.pyc` → 必须同步更新两处
+2. `pkill -9` 导致 TCC Screen Recording 权限重置 → 用普通 `kill`
+3. `open -a` 在 launchd 管理下失败 (-600) → 用 `launchctl kickstart`
+
 ---
 
 ## 11. `input_engine.py` 关键约束（CRITICAL）
@@ -510,6 +543,15 @@ STP_REGISTER_ONLY=1 "/Applications/Smart Touch Panel.app/Contents/MacOS/Smart To
 #    新实例端口守卫重试 15s 后干净退出 → kill 老实例 + launchctl kickstart
 ```
 
+**⚠️ 部署踩坑记录（2026-08-10）**：
+
+| 坑 | 现象 | 原因 | 正确做法 |
+|----|------|------|---------|
+| **Python 加载顺序** | 改了 `tray_app.pyc` 但 Dashboard 不变 | Python 优先加载 `Resources/tray_app.py` 源文件而非 zip 中 `.pyc` | 同时更新 `.py` 源文件和 zip 中 `.pyc` |
+| **pkill -9** | 强杀后截图全黑 | TCC Screen Recording 权限在 SIGKILL 后重置 | 用普通 `kill` 或 `launchctl kickstart -k` |
+| **open -a** | 报错 -600 | App 已被 launchd 拉起，`open -a` 无法再启 | 先 `launchctl bootout` 或直接用 `launchctl kickstart` |
+| **thumbnails 目录缺失** | Editor 模块缩略图全部消失 | `client/thumbnails/` 未打入 app bundle Resources | 每次部署检查 `Resources/client/thumbnails/` 存在 |
+
 ### 12.3 打包分发
 
 **py2app 构建：**
@@ -564,6 +606,9 @@ for s in ScreenCapture Accessibility Microphone; do tccutil reset $s com.smartto
 10. **开发期启动归因**：从终端（含 Claude 会话）`nohup` 启动的实例,屏幕捕获走 **Terminal 的 TCC 归因**;Terminal 无屏幕录制授权则截图必失败。验证截图/权限相关功能必须用 cron 拉起（临时 cron 行,起来后删）。生产 cron @reboot 天然正确。
 11. **打包用 `server/venv`**：`.venv` 的 pyobjc 不全（缺 AVFoundation）,用它打包麦克风电平功能静默失效（import 错误被 except 吞掉,只表现为"权限挂不上"）。
 12. **`setup.py` 必须 `site_packages: False`**：True 会把构建机 venv 绝对路径(/Volumes/WD_BLACK/…)烧进 `__boot__.py`,launchd 拉起时 addsitedir→opendir 外置卷永久挂死(faulthandler 实锤)。改回 True 等于把 app 重新拴回外置盘。
+13. **CG 窗口 nil-title 是平台行为**：macOS 26 上所有 `kCGWindowName` 为 None,不要试图"修复"它。用 owner name fallback + CG 补 AX 盲区方案（见 §15）。
+14. **不要 pkill -9**：SIGKILL 导致 TCC 权限在下次启动时被拒。用普通 `kill` 或 `launchctl kickstart -k`（kickstart 的 -k 是干净 kill 不会触发 TCC 重置）。
+15. **部署必须更新两个位置**：改 server 代码 → 更新 `Resources/<file>.py` **和** `lib/python314.zip` 中对应 `.pyc`。漏一个就会跑旧代码且无任何报错。
 
 ---
 
@@ -576,3 +621,50 @@ for s in ScreenCapture Accessibility Microphone; do tccutil reset $s com.smartto
 - **iPad 面板测触控延迟**：`/tmp/ws_lag_test.py`（并发 WS + HTTP 压测）
 
 > ⚠️ Chrome headless 测不出 Safari 专属 bug（实测：pointer-events 行为不同、原生 select 下拉不同）。editor 交互/CSS 必须用 Safari 验证。
+
+---
+
+## 15. macOS 26 窗口枚举 — 平台行为变更 ⚠️
+
+**2026-08-10 实测确认**：macOS 26 (Darwin 25) 上 `CGWindowListCopyWindowInfo` 返回的**所有窗口 `kCGWindowName` 均为 `None` (nil)**。这是系统级行为变更，不是 STP 的 bug。
+
+### 15.1 影响范围
+
+- **全部 app 的 CG 窗口无标题** — 不仅仅是 System Settings
+- **AX API 对 Catalyst/SwiftUI app 无效** — System Settings、News 等不暴露窗口给 Accessibility
+- **结果**：纯 AX 枚举漏掉系统 app，纯 CG 枚举无标题可显示
+
+### 15.2 当前解决方案（`ax_bridge.py` `d89135f`）
+
+**CG 收集阶段**（`_collect_cg_windows`）：
+```
+1. 接受 nil-title 窗口（只要 layer=0 且 owner 非空）
+2. 过滤伪影：高度≤30 且宽度≥1920（菜单栏代理）、任一维度≤1
+3. nil-title 窗口用 owner name 作为显示标题
+```
+
+**AX+CG 去重策略**：
+```
+AX 枚举 → 有结果? → 只用 AX（最可靠）
+            → 无结果? → 用 CG 补充（覆盖 System Settings 等 AX 盲区）
+关键：CG 仅在 AX 返回 0 条目时补充，避免重复条目
+```
+
+**缩略图 resolve**（`_resolve_cg_window_id`）：
+```
+1. 先精确匹配（title 已无意义，跨 Space 窗口不可靠）
+2. 扩展 fallback：遍历 CGWindowList 查找同一 PID 的任意 onscreen 窗口
+3. 用 _is_meaningful() 过滤菜单栏代理和伪影
+```
+
+### 15.3 已知局限
+
+| 局限 | 影响 |
+|------|------|
+| 非当前 Space 窗口无缩略图 | `CGWindowListCreateImage` 返回 None → 前端文字降级 |
+| CG 窗口无法 AX-close | CG-sourced 条目无法通过 AX API 发 Cmd+W |
+| owner name 可能不准确 | 部分 app 的 `kCGWindowOwnerName` 与实际窗口不对应 |
+
+### 15.4 未来方向
+
+如果 Apple 在 macOS 26 后续版本恢复 `kCGWindowName`，CG title 匹配逻辑可重新启用。当前代码在 `_collect_cg_windows` 中保留了 `has_title` 分支 — 有 title 走 title，nil 走 owner name fallback。

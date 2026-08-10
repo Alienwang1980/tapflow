@@ -1,6 +1,6 @@
 # Smart Touch Panel — 项目全貌 & 进度
 
-> 最后更新: 2026-08-06 | 版本: 1.3.0
+> 最后更新: 2026-08-11 | 版本: 1.4.0
 
 ## 一句话描述
 
@@ -225,7 +225,20 @@ carea (flexbox 居中 cwrap)
 | `4cf41d1` | **feat**: 新增 Fullscreen Toggle widget 模块 |
 | `fd06fa3` | **fix**: profile 加载时重置 viewX/viewY=0（临时平移不持久化） |
 
-### 更早（2026-07 ~ 2026-08-03）
+### 2026-08-07 ~ 2026-08-11
+
+| 提交 | 内容 |
+|------|------|
+| `d89135f` | **fix**: Window Switcher 全面修复 — macOS 26 CG nil-title 适配（owner name 兜底）、缩略图 _resolve_cg_window_id 扩展 fallback、关闭窗口流程重构（800ms Space 切换 + optimistic removal + 多阶段 refetch）、CG+AX 去重（仅 AX 返回 0 时补 CG）、Dashboard 重设计（两按钮 + Cocoa NSBezelStyleRounded + QR 仅 Smart Panel） |
+| `c9a287c` | **chore**: pre-refresh-fix 快照 |
+| `ac8c461` | **fix**: 所有 Widget 专属面板加声音预览按钮 |
+| `6ef6e4b` | **feat**: Window Switcher 支持 tap 音效 + close 音效独立设置 |
+| `fc9ff45` | **fix**: Dock running 检测 — helper 进程误判为 app 运行 |
+| `158f23e` | **fix**: 改用 Apple Dev 证书签名 — TCC 权限跨 rebuild 保持 |
+| `9f49a82` | **fix**: closeSound 迁移缺 setdefault + mic monitor 切页关闭 |
+| `bf81336` | **refactor**: 移除客户端数据合并，新增 AX-based 窗口关闭 |
+
+### 更早（2026-07 ~ 2026-08-06）
 
 | 提交 | 内容 |
 |------|------|
@@ -244,16 +257,33 @@ carea (flexbox 居中 cwrap)
 
 | # | 需求 | 状态 | 涉及文件 |
 |---|------|------|---------|
-| 1 | **Editor 滚轮缩放锚定光标** — 滚轮改 viewZoom 时以光标位置为缩放中心 | ✅ 已实现 | `editor.html` |
-| 2 | **Editor 右键拖拽平移视角** — 替代 Space+拖拽 | ✅ 已实现 | `editor.html` |
-| 3 | **Profile 按钮图标/文字两行** — switch-profile 两行布局 | ✅ 已实现 | `index.html` |
-| 4 | **图标显隐开关** — 设置面板加 showIcon/showLabel | ✅ 已实现 | `editor.html` + `index.html` |
-| 5 | **Editor 框选修复** — _viewOrigin 坐标错位 | ✅ 已修复 | `editor.html` |
-| 6 | **Fullscreen widget** — iPad 浏览器全屏切换按钮 | ✅ 已实现 | `editor.html` + `index.html` |
-| 7 | **通用 bgOpacity** — 所有 widget 背景透明度（复用 Dock 模式） | ✅ 已实现 | `editor.html` + `index.html` |
-| — | ~~Profile 按钮图标文字分行~~ → 重复 #3 + #4 | — | — |
-| — | ~~Editor 滚轮缩放视角~~ → 重复 #1 | — | — |
-| 8 | **Text Macro widget** — 录制文字，点击逐字敲回 | ✅ 已实现 (2026-08-06) | `editor.html` + `index.html` + `input_engine.py` |
+| 1 | **Editor 滚轮缩放锚定光标** | ✅ 已实现 | `editor.html` |
+| 2 | **Editor 右键拖拽平移视角** | ✅ 已实现 | `editor.html` |
+| 3 | **Profile 按钮图标/文字两行** | ✅ 已实现 | `index.html` |
+| 4 | **图标显隐开关** | ✅ 已实现 | `editor.html` + `index.html` |
+| 5 | **Editor 框选修复** | ✅ 已修复 | `editor.html` |
+| 6 | **Fullscreen widget** | ✅ 已实现 | `editor.html` + `index.html` |
+| 7 | **通用 bgOpacity** | ✅ 已实现 | `editor.html` + `index.html` |
+| 8 | **Text Macro widget** | ✅ 已实现 | `editor.html` + `index.html` |
+| 9 | **macOS 26 CG nil-title 适配** | ✅ 已修复 (2026-08-10) | `ax_bridge.py` |
+| 10 | **窗口缩略图修复** | ✅ 已修复 (2026-08-10) | `ax_bridge.py` + `index.html` |
+| 11 | **关闭窗口刷新** | ✅ 已修复 (2026-08-10) | `index.html` |
+| 12 | **重复窗口条目** | ✅ 已修复 (2026-08-10) | `ax_bridge.py` |
+| 13 | **closeSound 不生效** | ✅ 已修复 (2026-08-10) | `profile_manager.py` + `editor.html` |
+| 14 | **Dashboard 重设计** | ✅ 已实现 (2026-08-10) | `tray_app.py` |
+| 15 | **Editor 缩略图消失** | ✅ 已修复 (2026-08-10) | 部署流程 |
+| 16 | **前端代码模块化重构** | 🔜 下一阶段 | 见 `docs/refactor-plan.md` |
+| 17 | **tray_app.py 路由拆分** | 🔜 下一阶段 | 见 `CODE_REVIEW_PLAN.md` |
+
+### 已知限制
+
+| # | 限制 | 说明 |
+|---|------|------|
+| L1 | **CG 窗口关闭不可靠** | CG-sourced 窗口 Cmd+W 对浮动笔记、系统面板等 app 类型无效 |
+| L2 | **跨 Space 缩略图失败** | `CGWindowListCreateImage` 对非当前 Space 窗口返回 None，前端文字降级 |
+| L3 | **macOS 26 全部 CG title 为 nil** | 平台级行为变更，用 owner name 作为显示标题兜底 |
+| L4 | **pkill -9 → TCC 权限重置** | 强杀导致下次启动 Screen Recording 被拒，开发调试用普通 `kill` |
+| L5 | **open -a 在 launchd 管理下失败** | app 已被 launchd 拉起时 `open -a` 报 -600，需 `launchctl kickstart` |
 
 ---
 
@@ -271,13 +301,18 @@ carea (flexbox 居中 cwrap)
 | py2app 用 server/venv 的 Python | 不能用 `.venv`（缺少 AVFoundation/PyObjC） |
 | py2app site_packages=False 必须 | 否则 venv 绝对路径烧进 `__boot__.py` → launchd 挂死 |
 | 服务器启动慢（~15s） | 菜单栏图标出现不代表服务就绪 |
+| **⚠️ Python 加载优先级** | `Resources/*.py` 源文件优先于 `lib/python314.zip` 中的 `.pyc`。改 server 代码必须**同时更新源文件和 zip 中 .pyc** |
+| **⚠️ launchd 自动重启** | App 被 `com.smarttouch.panel` LaunchAgent 管理,kill 后自动拉起。需停止用 `launchctl bootout`,不要 `kill -9` |
+| **⚠️ macOS 26 CG nil title** | 所有 `kCGWindowName` 为 None,Catalyst/SwiftUI app 不暴露 AX 窗口。枚举必须用 owner name 兜底 + CG 补 AX 盲区 |
+| **⚠️ ASI 分号陷阱** | `setTimeout(...)` 后接 `delete` 不会触发 JS ASI，必须显式加分号 |
 
 ---
 
 ## 环境信息
 
-- **设备**: Mac mini (Apple Silicon, macOS 25 Sequoia)
+- **设备**: Mac mini (Apple Silicon, macOS 26)
 - **Python**: 3.12 (server/venv) / 3.14 (系统)
 - **局域网 IP**: 192.168.2.20
 - **Git 远端**: NAS `192.168.2.62:/volume1/Git_Station/smart-touch-panel.git`
 - **签名**: Apple Development, `50035AAD0722786A4C024087383B654504F75C33`, Team `7F246MKBN2`
+- **部署**: launchd `com.smarttouch.panel` (KeepAlive + 崩溃自愈)
