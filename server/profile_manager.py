@@ -119,13 +119,48 @@ class ProfileManager:
                 logger.warning(f"Failed to load profile {f.name}: {e}")
         return profiles
 
-    def get_profile(self, filename: str) -> Optional[dict]:
+    def get_profile(self, filename: str, mask_secrets: bool = True) -> Optional[dict]:
         path = _safe_path(self.dir, filename)
         if not path.exists():
             return None
         profile = json.loads(path.read_text(encoding='utf-8'))
         profile = migrate_key_positions(profile)
+        if mask_secrets:
+            for page in profile.get("pages", []):
+                for key in page.get("keys", []):
+                    if key.get("action") == "balance":
+                        key["hasApiKey"] = bool(key.get("apiKey"))
+                        key.pop("apiKey", None)
         return profile
+
+    def get_key_api_key(self, filename: str, key_id: str) -> Optional[str]:
+        """Return the actual apiKey for a balance key (for server-side proxy)."""
+        path = _safe_path(self.dir, filename)
+        if not path.exists():
+            return None
+        profile = json.loads(path.read_text(encoding='utf-8'))
+        for page in profile.get("pages", []):
+            for key in page.get("keys", []):
+                if key.get("id") == key_id and key.get("action") == "balance":
+                    return key.get("apiKey") or None
+        return None
+
+    def set_key_api_key(self, filename: str, key_id: str, api_key: str) -> bool:
+        """Set the apiKey for a specific balance key. Returns True if key found."""
+        path = _safe_path(self.dir, filename)
+        if not path.exists():
+            return False
+        profile = json.loads(path.read_text(encoding='utf-8'))
+        found = False
+        for page in profile.get("pages", []):
+            for key in page.get("keys", []):
+                if key.get("id") == key_id and key.get("action") == "balance":
+                    key["apiKey"] = api_key
+                    found = True
+        if found:
+            path.write_text(json.dumps(profile, indent=2, ensure_ascii=False), encoding='utf-8')
+            logger.info(f"API key updated for key {key_id} in {filename}")
+        return found
 
     def save_profile(self, profile: dict, filename: Optional[str] = None) -> str:
         if not filename:
@@ -138,9 +173,28 @@ class ProfileManager:
             for i, key in enumerate(page.get("keys", [])):
                 if not key.get("id"):
                     key["id"] = f"{page.get('id', 'p')}_{i}"
+        # Preserve existing apiKey values (editor masks them, never sends real value)
+        path = _safe_path(self.dir, filename)
+        if path.exists():
+            try:
+                existing = json.loads(path.read_text(encoding='utf-8'))
+                for ep in existing.get("pages", []):
+                    for ek in ep.get("keys", []):
+                        if ek.get("action") == "balance" and ek.get("apiKey"):
+                            for pp in profile.get("pages", []):
+                                for pk in pp.get("keys", []):
+                                    if pk.get("id") == ek.get("id") and pk.get("action") == "balance":
+                                        if not pk.get("apiKey"):
+                                            pk["apiKey"] = ek["apiKey"]
+            except Exception:
+                pass
+        # Strip virtual hasApiKey (derived from apiKey presence, not a stored field)
+        for page in profile.get("pages", []):
+            for key in page.get("keys", []):
+                if key.get("action") == "balance":
+                    key.pop("hasApiKey", None)
         # Migrate to grid positions before saving
         profile = migrate_key_positions(profile)
-        path = _safe_path(self.dir, filename)
         path.write_text(json.dumps(profile, indent=2, ensure_ascii=False), encoding='utf-8')
         logger.info(f"Profile saved: {filename}")
         return filename

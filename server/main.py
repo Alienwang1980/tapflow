@@ -394,11 +394,14 @@ async def delete_profile(filename: str):
 # ── Deepseek Balance ──
 
 @app.get("/api/deepseek/balance")
-async def get_deepseek_balance(api_key: str = ""):
-    """Query Deepseek balance for given API key."""
+async def get_deepseek_balance(profile: str = "", key_id: str = ""):
+    """Query Deepseek balance. Server reads API key from profile, never exposes it."""
     import urllib.request
+    if not profile or not key_id:
+        raise HTTPException(400, "Missing profile or key_id parameter")
+    api_key = profiles.get_key_api_key(profile, key_id)
     if not api_key:
-        raise HTTPException(400, "Missing api_key parameter")
+        raise HTTPException(400, "No API key configured for this balance key")
     try:
         req = urllib.request.Request(
             "https://api.deepseek.com/user/balance",
@@ -408,6 +411,17 @@ async def get_deepseek_balance(api_key: str = ""):
         return json.loads(body)
     except Exception as e:
         raise HTTPException(500, str(e))
+
+
+@app.put("/api/profiles/{filename}/keys/{key_id}/api-key")
+async def set_key_api_key(filename: str, key_id: str, body: dict):
+    """Set API key for a balance key. The actual value is never returned to clients."""
+    api_key = (body.get("apiKey") or "").strip()
+    if not api_key:
+        raise HTTPException(400, "apiKey is required")
+    if not profiles.set_key_api_key(filename, key_id, api_key):
+        raise HTTPException(404, "Key not found")
+    return {"status": "ok"}
 
 # ── WebSocket ──
 
