@@ -860,6 +860,76 @@ def focus_item(pid, item, bundle_id=""):
     _cf.CFRelease(windows_val)
     return {"success": True, "title": title}
 
+
+def close_window(pid, item, bundle_id=""):
+    """Close a specific window via AX API or CGEvent fallback.
+    item = {window_index, tab_index, type, title, _source}
+    For AX-sourced windows: use AXCloseButton or AXRaise+Cmd+W.
+    For CG-sourced windows: focus app first, then Cmd+W."""
+    is_cg = item.get("_source") == "cg"
+    window_index = item.get("window_index", 0)
+    item_title = item.get("title", "")
+    _ax_log.info(f"[CLOSE] pid={pid} title={item_title[:40]!r} cg={is_cg} wi={window_index}")
+
+    if is_cg:
+        # CG-sourced windows (other Spaces): focus app first, then Cmd+W
+        focus_item(pid, item, bundle_id)
+        import time
+        time.sleep(0.4)
+        from input_engine import press_key
+        press_key("cmd+w")
+        _ax_log.info(f"[CLOSE] CG fallback: focus + Cmd+W")
+        return {"success": True, "method": "cg_focus_cmdw"}
+
+    # AX-sourced: close directly via AX API
+    elem = _as.AXUIElementCreateApplication(pid)
+    if not elem:
+        return {"success": False, "error": "no app element"}
+
+    windows_val = _get_attr(elem, "AXWindows")
+    if not windows_val:
+        return {"success": False, "error": "no windows"}
+
+    try:
+        # Find the window by title (more reliable than index)
+        win = None
+        if item_title:
+            found_wi, found_win = _find_window_by_title(windows_val, item_title, bundle_id)
+            if found_wi >= 0:
+                win = found_win
+                window_index = found_wi
+
+        if win is None:
+            count = _cf.CFArrayGetCount(windows_val)
+            if window_index < 0 or window_index >= count:
+                return {"success": False, "error": f"window_index {window_index} out of range [0,{count})"}
+            win = _cf.CFArrayGetValueAtIndex(windows_val, window_index)
+
+        if not win:
+            return {"success": False, "error": "window element null"}
+
+        # Method 1: Press the close button directly via AX
+        close_btn = _get_attr(win, "AXCloseButton")
+        if close_btn:
+            err = _as.AXUIElementPerformAction(close_btn, _cfstr("AXPress"))
+            _cf.CFRelease(close_btn)
+            if err == 0:
+                _ax_log.info(f"[CLOSE] AXCloseButton success")
+                return {"success": True, "method": "ax_close_button"}
+            _ax_log.info(f"[CLOSE] AXCloseButton failed err={err}, falling back")
+
+        # Method 2: Raise window + Cmd+W
+        _as.AXUIElementPerformAction(win, _cfstr("AXRaise"))
+        import time
+        time.sleep(0.15)
+        from input_engine import press_key
+        press_key("cmd+w")
+        _ax_log.info(f"[CLOSE] AXRaise + Cmd+W fallback")
+        return {"success": True, "method": "ax_raise_cmdw"}
+    finally:
+        _cf.CFRelease(windows_val)
+
+
 def get_current_app_info():
     import AppKit
     a = AppKit.NSWorkspace.sharedWorkspace().frontmostApplication()

@@ -661,7 +661,13 @@ def run_server():
     # ── Window Shortcuts (keyboard only, no osascript) ──
 
     @app.post("/api/system/window/close")
-    async def _wc(): from input_engine import press_key; press_key("cmd+w"); return {"status":"ok"}
+    async def _wc(req: Request):
+        body = await req.json()
+        pid = body.get("pid", 0)
+        bundle_id = body.get("bundle_id", "")
+        item = {"window_index": body.get("window_index", 0), "tab_index": body.get("tab_index"), "type": body.get("type", "window"), "title": body.get("title", ""), "_source": body.get("_source", "")}
+        from ax_bridge import close_window
+        return close_window(pid, item, bundle_id)
 
     @app.post("/api/system/window/fullscreen")
     async def _wf(): from input_engine import press_key; press_key("ctrl+cmd+f"); return {"status":"ok"}
