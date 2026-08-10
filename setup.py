@@ -79,3 +79,15 @@ setup(
     options={"py2app": OPTIONS},
     setup_requires=["py2app"],
 )
+
+# Re-sign bundled python binary with app identifier.
+# py2app includes a standalone python whose Info.plist has identifier
+# org.python.python. TCC attributes screen recording requests to this
+# identifier, not the app bundle → the app never appears in the Screen
+# Recording privacy pane and permission prompts fail silently.
+# Re-signing with --identifier com.smarttouch.panel fixes this.
+import subprocess as _sp
+python_bin = Path("dist/Smart Touch Panel.app/Contents/MacOS/python")
+if python_bin.exists():
+    _sp.run(["codesign", "--force", "--sign", "-", "--identifier", "com.smarttouch.panel", str(python_bin)], check=False)
+    print("✓ Re-signed bundled python with com.smarttouch.panel identifier")

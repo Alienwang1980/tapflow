@@ -660,6 +660,9 @@ def run_server():
 
     # ── Window Shortcuts (keyboard only, no osascript) ──
 
+    @app.post("/api/system/window/close")
+    async def _wc(): from input_engine import press_key; press_key("cmd+w"); return {"status":"ok"}
+
     @app.post("/api/system/window/fullscreen")
     async def _wf(): from input_engine import press_key; press_key("ctrl+cmd+f"); return {"status":"ok"}
 

@@ -260,7 +260,7 @@ def get_app_items(pid, bundle_id=""):
             # No tabs — list the window itself
             # Skip Finder's system-level windows (desktop, etc.)
             title = win_title or ""
-            if bundle_id == "com.apple.finder" and (not title or title == "(untitled)"):
+            if bundle_id == "com.apple.finder" and (not title or title == "(untitled)" or title == "最近使用"):
                 continue
             # Skip windows with no title (fullscreen/minimized artifacts)
             if not title:
@@ -585,6 +585,8 @@ def get_all_app_windows():
             for cg_win in cg_by_pid[pid]:
                 cg_title = cg_win["title"]
                 if cg_title.strip().lower() in _GHOST_TAB_TITLES:
+                    continue
+                if cg_title == "最近使用":
                     continue
                 if cg_win.get("onscreen", True) and ax_count > 0:
                     continue
