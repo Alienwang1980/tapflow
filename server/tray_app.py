@@ -2,6 +2,7 @@
 Smart Touch Panel — macOS system tray app.
 Menu bar icon + FastAPI server + QR code + accessibility check.
 """
+import io
 import logging
 import os
 import socket
@@ -9,6 +10,7 @@ import threading
 
 import pystray
 from PIL import Image, ImageDraw
+import qrcode
 
 from fastapi import Request
 from main import app
@@ -78,7 +80,7 @@ def _resolve_port() -> int:
     return default
 
 def _ensure_config(port: int) -> None:
-    """首次运行写一份默认 config.json,方便用户直接编辑端口。同时生成 auth token。"""
+    """首次运行写一份默认 config.json,方便用户直接编辑端口。"""
     try:
         cp = _config_path()
         config = _json_cfg.loads(open(cp, "r", encoding="utf-8").read()) if os.path.exists(cp) else {}
@@ -86,27 +88,12 @@ def _ensure_config(port: int) -> None:
         if "port" not in config:
             config["port"] = port
             changed = True
-        if "auth_token" not in config:
-            import secrets as _secret
-            config["auth_token"] = _secret.token_urlsafe(32)
-            changed = True
         if changed or not os.path.exists(cp):
-            config["_comment"] = "改端口后重启 Smart Touch Panel 生效(范围 1-65535)。也可用环境变量 STP_PORT 覆盖。auth_token 用于面板认证。"
+            config["_comment"] = "改端口后重启 Smart Touch Panel 生效(范围 1-65535)。也可用环境变量 STP_PORT 覆盖。"
             with open(cp, "w", encoding="utf-8") as f:
                 _json_cfg.dump(config, f, ensure_ascii=False, indent=2)
     except Exception as e:
         logger.warning("写默认 config.json 失败: %s", e)
-
-def _get_auth_token() -> str:
-    """读取持久化的 auth token。首次启动自动生成。"""
-    try:
-        cp = _config_path()
-        if os.path.exists(cp):
-            with open(cp, "r", encoding="utf-8") as f:
-                return _json_cfg.load(f).get("auth_token", "")
-    except Exception:
-        pass
-    return ""
 
 PORT = _resolve_port()
 # 同步 mDNS 广播端口
@@ -969,8 +956,7 @@ def on_show_qr(icon, item):
     """Print QR code URL to console."""
     import subprocess as _sp_open
     ip = get_local_ip()
-    token = _get_auth_token()
-    url = f"http://{ip}:{PORT}/?token={token}"
+    url = f"http://{ip}:{PORT}/"
     print(f"\n{'='*50}")
     print(f"  Smart Touch Panel")
     print(f"  Open in iPad browser: {url}")
@@ -986,8 +972,7 @@ def on_open_dashboard(icon, item):
     """Tray menu callback → open the iPad web panel in browser."""
     import subprocess as _sp_open
     ip = get_local_ip()
-    token = _get_auth_token()
-    url = f"http://{ip}:{PORT}/?token={token}"
+    url = f"http://{ip}:{PORT}/"
     _sp_open.run(["open", url])  # Safe arg list, no shell
 
 
@@ -1151,8 +1136,7 @@ try:
         def openPanel_(self, sender):
             import subprocess as _sp_op
             ip = get_local_ip()
-            token = _get_auth_token()
-            url = f"http://{ip}:{PORT}/?token={token}"
+            url = f"http://{ip}:{PORT}/"
             _sp_op.run(["open", url])  # Safe arg list, no shell
 
         def windowWillClose_(self, note):
@@ -1167,6 +1151,7 @@ except Exception:  # 源码模式无 AppKit 时不致命
 def open_settings_panel():
     """⚙️ 设置:权限状态(2s 自动刷新)+ 端口修改(保存后 exit(1) 由 launchd 拉起)。"""
     import AppKit
+    from AppKit import NSBezelStyleRounded
     from Foundation import NSMakeRect, NSTimer
 
     if _SETTINGS["panel"] is not None:
@@ -1206,7 +1191,7 @@ def open_settings_panel():
     def _button(title, x, y, w, action):
         b = AppKit.NSButton.alloc().initWithFrame_(NSMakeRect(x, y, w, 24))
         b.setTitle_(title)
-        b.setBezelStyle_(AppKit.NSBezelStyleRounded)
+        b.setBezelStyle_(NSBezelStyleRounded)
         b.setTarget_(dele)
         b.setAction_(action)
         content.addSubview_(b)
@@ -1254,10 +1239,30 @@ def open_settings_panel():
     AppKit.NSApp.activateIgnoringOtherApps_(True)  # LSUIElement app 需显式激活才能到前台
 
 
+# ── QR code helpers ──
+
+def _pil_to_nsimage(pil_img):
+    """Convert PIL Image to NSImage for NSPanel display."""
+    from AppKit import NSImage
+    from Foundation import NSData
+    buf = io.BytesIO()
+    pil_img.save(buf, 'PNG')
+    data = NSData.dataWithBytes_length_(buf.getvalue(), len(buf.getvalue()))
+    return NSImage.alloc().initWithData_(data)
+
+def _qr_nsimage(url, size=160):
+    """Generate QR code NSImage for a URL. Pure PIL+qrcode, no network."""
+    qr = qrcode.QRCode(box_size=10, border=2)
+    qr.add_data(url)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color='black', back_color='white').convert('RGBA')
+    img = img.resize((size, size), Image.LANCZOS)
+    return _pil_to_nsimage(img)
+
 # ── Dashboard window (CleanMyMac‑style graphical main interface) ──
 
 def open_dashboard():
-    """🏠 Graphical entry: two cards → Editor + Smart Panel."""
+    """🏠 Start: two cards with QR codes → Editor + Smart Panel. iPad scan to open."""
     import AppKit
     from Foundation import NSMakeRect
 
@@ -1269,7 +1274,11 @@ def open_dashboard():
     if _StpDashboardDelegate is None:
         return  # AppKit not available (source mode w/o framework)
 
-    W, H = 400, 390
+    ip = get_local_ip()
+    panel_url = f"http://{ip}:{PORT}/"
+    editor_url = f"http://{ip}:{PORT}/editor"
+
+    W, H = 560, 440
     screen = AppKit.NSScreen.mainScreen()
     sf = screen.visibleFrame()
     x = int((sf.size.width - W) / 2 + sf.origin.x)
@@ -1308,15 +1317,18 @@ def open_dashboard():
         content.addSubview_(f)
         return f
 
-    def _card(title, desc, emoji, card_y, action):
-        """Create a bordered card button."""
-        from AppKit import NSButton, NSBezelStyle, NSColor as NC, NSMakeRect as R
-        card_w, card_h = W - 60, 120
-        card_x = 30
+    def _card(title, desc, emoji, card_url, card_y, action):
+        """Create a bordered card button + QR code on the right."""
+        from AppKit import NSButton, NSBezelStyleRegularSquare, NSColor as NC, NSMakeRect as R, NSImageView
+        card_w, card_h = 330, 150
+        card_x = 24
+        qr_x = card_x + card_w + 20
+        qr_size = 130
+        qr_y = card_y + (card_h - qr_size) // 2
 
         btn = NSButton.alloc().initWithFrame_(R(card_x, card_y, card_w, card_h))
         btn.setTitle_("")
-        btn.setBezelStyle_(NSBezelStyle.NSBezelStyleRegularSquare)
+        btn.setBezelStyle_(NSBezelStyleRegularSquare)
         btn.setBordered_(False)
         btn.setWantsLayer_(True)
         btn.layer().setCornerRadius_(14)
@@ -1329,25 +1341,39 @@ def open_dashboard():
         btn.setAction_(action)
         content.addSubview_(btn)
 
-        # Use static label overlays (not subviews of btn to avoid event issues)
-        emoji_lbl = NC.textColor = None  # reset
-        _label(emoji, card_x, card_y + card_h - 68, card_w, 48, size=40, align=1)
-        _label(title, card_x + 16, card_y + card_h - 116, card_w - 32, 24, size=14, bold=True,
+        # Static label overlays
+        _label(emoji, card_x, card_y + card_h - 65, card_w, 48, size=40, align=1)
+        _label(title, card_x + 16, card_y + card_h - 123, card_w - 32, 24, size=14, bold=True,
                color=NC.colorWithRed_green_blue_alpha_(0.91, 0.88, 0.85, 1.0), align=0)
-        _label(desc, card_x + 16, card_y + card_h - 138, card_w - 32, 16, size=11,
+        _label(desc, card_x + 16, card_y + card_h - 148, card_w - 32, 16, size=11,
                color=NC.colorWithRed_green_blue_alpha_(0.50, 0.45, 0.42, 1.0), align=0)
 
-    # Card 1: Open Editor (y=210)
-    _card("Open Editor", "Design custom touch panels, assign keys & macros",
-          "🎛️", 210, "openEditor:")
-    # Card 2: Open Smart Panel (y=72)
-    _card("Open Smart Panel", f"Connect from iPad or browser to use your panels",
-          "📱", 72, "openPanel:")
+        # QR code on the right
+        try:
+            qr_img = _qr_nsimage(card_url, qr_size)
+            qr_view = NSImageView.alloc().initWithFrame_(R(qr_x, qr_y, qr_size, qr_size))
+            qr_view.setImage_(qr_img)
+            qr_view.setImageScaling_(2)  # NSImageScaleProportionallyUpOrDown
+            content.addSubview_(qr_view)
+        except Exception:
+            pass
+
+        # URL text below QR
+        short_url = card_url.replace(f"http://{ip}:{PORT}/", "/")
+        _label(f"Scan to open", qr_x, qr_y - 24, qr_size, 20, size=10,
+               color=NC.colorWithRed_green_blue_alpha_(0.40, 0.36, 0.33, 1.0), align=1)
+        _label(card_url, qr_x - 10, qr_y - 48, qr_size + 20, 16, size=9,
+               color=NC.colorWithRed_green_blue_alpha_(0.30, 0.27, 0.25, 1.0), align=1)
+
+    # Card 1: Dashboard (y=230)
+    _card("Smart Panel", "Connect from iPad or browser — virtual touch controls",
+          "📱", panel_url, 230, "openPanel:")
+    # Card 2: Editor (y=56)
+    _card("Panel Editor", "Design custom touch panels, assign keys & macros",
+          "🎛️", editor_url, 56, "openEditor:")
 
     # Bottom IP bar
-    ip = get_local_ip()
-    url = f"http://{ip}:{PORT}"
-    _label(url, 0, 20, W, 16, size=10,
+    _label(f"{ip}:{PORT}", 0, 18, W, 16, size=10,
            color=AppKit.NSColor.colorWithRed_green_blue_alpha_(0.40, 0.36, 0.33, 1.0),
            align=1)
 
@@ -1363,10 +1389,8 @@ def run_tray():
     url = f"http://{ip}:{PORT}"
 
     menu = pystray.Menu(
+        pystray.MenuItem("🚀 Start", lambda icon, item: open_dashboard(), default=True),
         pystray.MenuItem("⚙️ 设置", lambda icon, item: open_settings_panel()),
-        pystray.Menu.SEPARATOR,
-        pystray.MenuItem("Dashboard", on_open_dashboard, default=True),
-        pystray.MenuItem("Open Editor", on_open_editor),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem("退出", on_quit),
     )

@@ -125,11 +125,6 @@ class ProfileManager:
             return None
         profile = json.loads(path.read_text(encoding='utf-8'))
         profile = migrate_key_positions(profile)
-        # Strip secrets before serving — never leak apiKey over API/WS
-        for page in profile.get("pages", []):
-            for key in page.get("keys", []):
-                if key.get("action") in ("balance",):
-                    key.pop("apiKey", None)
         return profile
 
     def save_profile(self, profile: dict, filename: Optional[str] = None) -> str:
@@ -168,11 +163,6 @@ class ProfileManager:
             name = f"{base} ({n})"
 
         imported = dict(profile, profileName=name)
-        # Strip secrets — imported profiles must never carry someone's apiKey
-        for page in imported.get("pages", []):
-            for key in page.get("keys", []):
-                if key.get("action") == "balance":
-                    key.pop("apiKey", None)
         return self.save_profile(imported, f"{name}.json")
 
     def delete_profile(self, filename: str) -> bool:

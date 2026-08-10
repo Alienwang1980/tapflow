@@ -8,7 +8,7 @@ import uuid
 import asyncio
 from pathlib import Path
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Query, UploadFile, Request
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Query, UploadFile
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 
@@ -49,42 +49,6 @@ try:
     HAVE_ZEROCONF = True
 except ImportError:
     logger.warning("zeroconf not installed — mDNS disabled")
-
-# ── Auth ──
-def _read_auth_token() -> str:
-    """Read the shared auth token from config.json (written by tray_app)."""
-    try:
-        cp = os.path.join(os.path.expanduser("~/Library/Application Support/Smart Touch Panel"), "config.json")
-        if os.path.exists(cp):
-            return json.loads(open(cp, "r", encoding="utf-8").read()).get("auth_token", "")
-    except Exception:
-        pass
-    return ""
-
-AUTH_TOKEN = ""
-
-def _verify_token(token: str) -> bool:
-    """Constant-time token comparison."""
-    import hmac
-    global AUTH_TOKEN
-    if not AUTH_TOKEN:
-        AUTH_TOKEN = _read_auth_token()
-    return hmac.compare_digest(token, AUTH_TOKEN) if token else False
-
-# Auth middleware — validates token on privileged routes
-PRIVILEGED_PREFIXES = ("/api/system", "/api/profiles", "/api/deepseek", "/api/upload", "/api/active-profile", "/api/test-ws-override")
-
-@app.middleware("http")
-async def auth_middleware(request: Request, call_next):
-    # Static + health + default pages are always allowed
-    path = request.url.path
-    privileged = any(path.startswith(p) for p in PRIVILEGED_PREFIXES)
-    if privileged:
-        token = request.query_params.get("token", "") or request.headers.get("X-Auth-Token", "")
-        if not _verify_token(token):
-            return HTMLResponse(content='{"error":"unauthorized"}', status_code=401,
-                                headers={"Content-Type": "application/json"})
-    return await call_next(request)
 
 _zeroconf_instance = None
 
@@ -449,11 +413,6 @@ async def get_deepseek_balance(api_key: str = ""):
 
 @app.websocket("/ws")
 async def ws_endpoint(websocket: WebSocket):
-    # Auth check: require valid token as query param
-    token = websocket.query_params.get("token", "")
-    if not _verify_token(token):
-        await websocket.close(code=4001, reason="unauthorized")
-        return
     client_id = str(uuid.uuid4())[:8]
     if not await manager.connect(client_id, websocket):
         return
