@@ -40,11 +40,11 @@ document.addEventListener("keydown",e=>{
 
 async function resetDefault(){
   if(!confirm("Reset to default 89-key keyboard? Current layout will be lost."))return;
-  try{const r=await fetch("/api/default-template");var keepName=profile?profile.profileName:"";profile=await r.json();if(keepName)profile.profileName=keepName;activePage=profile.pages[0]?.id||"";panX=0;panY=0;selKey=null;selKeys.clear();dirty=true;renderAll();t("Default layout loaded")}catch(e){t("Failed: "+e,true)}
+  try{const r=await fetch("/api/default-template");var keepName=profile?profile.profileName:"";profile=await r.json();if(keepName)profile.profileName=keepName;activePage=profile.pages[0]?.id||"";panX=0;panY=0;viewX=0;viewY=0;viewZoom=1;selKey=null;selKeys.clear();dirty=true;renderAll();t("Default layout loaded")}catch(e){t("Failed: "+e,true)}
 }
 function cws(){
   var _p=location.protocol==="https:"?"wss:":"ws:";ws=new WebSocket(_p+"//"+location.hostname+":8082/ws");
   ws.onopen=()=>{document.getElementById("cs").textContent="connected";document.getElementById("cs").className="conn on"};
   ws.onclose=()=>{document.getElementById("cs").textContent="off";document.getElementById("cs").className="conn off";setTimeout(cws,2000)};
-  ws.onmessage=e=>{const m=JSON.parse(e.data);if((m.type==="profile"&&!profileLoaded)||m.type==="profile_update"){profile=m.profile;activeProfile=m.filename||activeProfile;activePage=profile.pages.find(p=>p.id===activePage)?activePage:(profile.pages[0]?.id||"");panX=profile.canvasX||0;panY=profile.canvasY||0;selKey=null;selKeys.clear();undoStack=[];redoStack=[];renderAll()}};
+  ws.onmessage=e=>{const m=JSON.parse(e.data);if((m.type==="profile"&&!profileLoaded)||m.type==="profile_update"){profile=m.profile;profile.pages.forEach(function(pg){pg.keys.forEach(function(k){if(k.action==="switch-profile"&&k.targetProfile){var pf=profiles.find(function(x){return x.filename===k.targetProfile});if(pf)k.label=pf.profileName}})});activeProfile=m.filename||activeProfile;activePage=profile.pages.find(p=>p.id===activePage)?activePage:(profile.pages[0]?.id||"");panX=profile.canvasX||0;panY=profile.canvasY||0;viewX=0;viewY=0;viewZoom=Math.max(0.3,Math.min(3,profile.viewZoom||1));selKey=null;selKeys.clear();undoStack=[];redoStack=[];renderAll()}};
 }

@@ -5,7 +5,7 @@
 :root{
   --bg:#151210;--panel:#1e1b18;--card:#272421;--accent:#d97706;
   --text:#e8e0d8;--dim:#8b8078;--border:rgba(255,255,255,0.05);
-  --success:#9b8c5a;--danger:#5c3028;
+  --success:#6b5c30;--danger:#5c3028;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text)}
@@ -28,7 +28,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 }
 .tb select:hover,.tb button:hover{border-color:var(--accent);background:#33302c}
 .tb .btn-save{background:var(--success);border-color:var(--success);font-weight:600}
-.tb .btn-save:hover{background:#a8955a}
+.tb .btn-save:hover{background:#7d6b3e}
 .tb .btn-new{background:var(--card)}
 
 /* ==== Layout ==== */
@@ -36,10 +36,10 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 
 /* ==== Canvas ==== */
 .carea{
-  flex:1;position:relative;overflow:visible;
+  flex:1;position:relative;overflow:hidden;
   background:var(--bg);
   display:flex;align-items:center;justify-content:center;
-  user-select:none;-webkit-user-select:none;
+  user-select:none;-webkit-user-select:none;min-width:0;
 }
 .cwrap{transform-origin:center center;position:relative;z-index:1}
 .canvas{position:relative;background:transparent;border-radius:4px;border:1.5px solid rgba(255,255,255,0.12);}
@@ -47,7 +47,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 /* ==== Frame Toolbar ==== */
 .ftb{
   position:absolute;display:flex;align-items:center;gap:0;height:36px;
-  z-index:30;pointer-events:none;background:var(--panel);
+  z-index:30;pointer-events:auto;background:var(--panel);
   border:1px solid rgba(255,255,255,0.06);border-bottom:none;
   border-radius:8px 8px 0 0;
 }
@@ -105,8 +105,8 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 
 /* ==== Right Panel ==== */
 .rp{
-  width:270px;flex-shrink:0;background:var(--panel);z-index:15;
-  overflow-y:auto;padding:0;
+  width:clamp(160px,20vw,270px);flex-shrink:1;min-width:0;background:var(--panel);z-index:15;
+  overflow-y:auto;overflow-x:hidden;padding:0;
   box-shadow:-2px 0 24px rgba(0,0,0,0.5);
 }
 .rp-section{padding:12px}.clip-preview:hover{border-color:var(--accent)!important;background:#33302c}.clip-preview:active{cursor:grabbing}
@@ -119,7 +119,9 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
   transition:border-color 0.15s;
 }
 .rp input:focus,.rp select:focus{border-color:var(--accent);outline:none}
-.rp input[type=color]{height:30px;padding:2px;border-radius:5px;cursor:pointer}
+.rp input[type=color]{width:30px;height:30px;padding:2px;border-radius:5px;cursor:pointer;background:var(--card);border:1px solid var(--border)}
+.rp input[type=color]::-webkit-color-swatch-wrapper{padding:3px}
+.rp input[type=color]::-webkit-color-swatch{border:none;border-radius:2px}
 .rp input[type=number]::-webkit-outer-spin-button,
 .rp input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .rp input[type=number]{-moz-appearance:textfield}
@@ -190,12 +192,12 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 @font-face{font-family:"VT323";src:url("/static/fonts/VT323.woff2") format("woff2")}
 @font-face{font-family:"Russo One";src:url("/static/fonts/RussoOne.woff2") format("woff2")}
 
-.btb{position:absolute;display:flex;align-items:center;gap:6px;height:34px;z-index:30;pointer-events:none;background:var(--panel);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:0 8px}
+.btb{position:absolute;display:flex;align-items:center;gap:6px;height:34px;z-index:30;pointer-events:auto;background:var(--panel);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:0 8px}
 .btb>*{pointer-events:auto}
 .btb button{height:28px;background:transparent;color:var(--text);border:none;padding:0 8px;font-size:14px;cursor:pointer;font-weight:500;transition:all 0.15s}
 .btb button:hover{color:var(--accent)}
 .btb span{font-size:11px;font-weight:600;min-width:24px;text-align:center;user-select:none}
-#pmList button:hover{opacity:0.8}#rp-profile>.rp-section,#rp-profile>.rp-divider{opacity:0}
+#pmList button:hover{opacity:0.8}
 
 .lib-item{padding:10px 12px;margin:6px 0;border-radius:8px;border:2px dashed var(--border);cursor:grab;background:var(--card);transition:all 0.15s}
 .lib-item:hover{border-color:var(--accent);background:#33302c;transform:translateY(-1px)}
@@ -207,35 +209,41 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 <div class="tb">
   <h1>Smart <span>Touch</span> Editor</h1>
   <span class="conn off" id="cs">off</span>
-  <span class="tb-sep">|</span>
-  <span class="tb-lbl">Profile</span>
-  <select id="tpf" onchange="var v=this.value;lp(v);if(v==='__manage__')this.value=activeProfile||''" style="min-width:150px"><option value="">loading...</option></select>
-  <span class="tb-sep">|</span>
-  <span class="tb-lbl">&#9834;</span>
-  <select id="tgs" onchange="if(profile){profile.defaultSound=this.value;dirty=true}"><option value="none">None</option><option value="click">Click</option><option value="soft">Soft</option><option value="mechanical">Mechanical</option><option value="deep">Deep</option><option value="red">Red Switch</option><option value="topre">Topre EC</option><option value="glass">Glass Tap</option><option value="bubble">Bubble Pop</option><option value="blip">8-bit Blip</option><option value="spark">Electric Spark</option></select> <button onclick="testSnd(document.getElementById('tgs').value)" style="padding:4px 8px;font-size:12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'" title="Preview">&#x25B6;</button>
   <button class="btn-save" onclick="saveProfile()">Save &amp; Sync</button>
   <button class="btn-new" onclick="saveAs()">Save As</button>
   <button class="btn-new" onclick="resetDefault()">Reset</button><button class="btn-new" onclick="copyStyle()">&#x2398; Copy Style</button><button class="btn-new" onclick="pasteStyle()">&#x2399; Paste Style</button>
 </div>
 <div class="main">
 <div class="rp" id="lp-panel">
-</div>
-<div class="carea" id="carea"><div id="tl" style="position:absolute;inset:0;pointer-events:none;z-index:0;display:none"></div>
-  <div class="gh" id="gh"></div>
-  <div class="ftb" id="ftb"><select id="fdev" onchange="onFDev()"><option value="iPad 11&quot;" selected>iPad 11"</option><option value="iPad 4:3">iPad 4:3</option><option value="iPad mini">iPad mini</option><option value="Android 16:10">Android 16:10</option></select><button class="btn-ori" onclick="toggleOri()" title="Toggle"><svg width="16" height="16" viewBox="0 0 48 48" fill="none" style="vertical-align:middle"><path d="M4 24C4 35.0457 12.9543 44 24 44L19 39" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M44 24C44 12.9543 35.0457 4 24 4L29 9" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M30 41L7 18L18 7L41 30L30 41Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
-  <div class="sr" id="sr"></div><div class="grh" id="grh_b" style="cursor:s-resize"></div><div class="grh" id="grh_l" style="cursor:w-resize"></div><div class="grh" id="grh_r" style="cursor:e-resize"></div>
-  <div class="cwrap" id="cwrap"><div class="canvas" id="canvas"></div></div>
-  <div id="carea-overlay"></div>
-  <div class="btb" id="btb"><button onclick="zoomBy(-1)">−</button><button onclick="zoomBy(1)">+</button><span class="tb-sep">|</span><button onclick="fitAll()" title="Fit to frame">Fit</button><span class="tb-sep">|</span><button onclick="undo()" title="Undo">↩</button><button onclick="redo()" title="Redo">↪</button></div>
-</div>
-<div class="rp">
-    <div id="rp-profile"><div id="pl" style="display:none"></div>
+<div id="pl" style="display:none"></div>
+      <div class="rp-section" id="rp-profiles-sec">
+        <h3>Profiles <button onclick="pmCreate()" title="新建 Profile" style="font-size:10px;padding:2px 8px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;float:right;margin-left:4px">+ New</button><button onclick="pmImport()" title="从文件导入 Profile" style="font-size:10px;padding:2px 8px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;float:right;margin-left:4px">导入</button><button onclick="pmExportDialog()" title="导出 Profile" style="font-size:10px;padding:2px 8px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;float:right;margin-left:4px">导出</button></h3><input type="file" id="pmImpF" accept=".json,application/json" style="display:none" onchange="pmImportGo(this)">
+        <div id="profList"></div>
+      </div>
       <div class="rp-section">
-        <h3>Pages</h3>
-        <div id="pgl"></div>
-        <div style="margin-top:6px"><div style="display:flex;align-items:center;gap:4px"><label style="font-size:10px;color:var(--dim);white-space:nowrap">Pat</label><select id="pagePat" onchange="upkPagePattern(this.value)" style="flex:1;height:22px;font-size:10px;padding:0 2px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:3px"><option value="none">No Pattern</option><option value="topography">Topography</option><option value="circuit">Circuit</option><option value="dots">Dots</option><option value="diagonal">Diagonal</option><option value="hexagon">Hexagon</option><option value="grid">Grid</option><option value="triangles">Triangles</option><option value="topo">Topography</option><option value="waves">Waves</option></select><input type="color" id="pagePatColor" value="#ffffff" onchange="upkPagePatternColor(this.value)" style="width:22px;height:22px;padding:0;border:1px solid var(--border);border-radius:3px;cursor:pointer;background:transparent"><button onclick="upkPagePatternSize(-10)" style="width:20px;height:22px;font-size:12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:3px;cursor:pointer;line-height:1">-</button><span id="pagePatSz" style="font-size:10px;color:var(--dim);min-width:20px;text-align:center">60</span><button onclick="upkPagePatternSize(10)" style="width:20px;height:22px;font-size:12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:3px;cursor:pointer;line-height:1">+</button></div></div>
-        <div style="margin-top:6px;display:flex;align-items:center;gap:6px"><label style="font-size:10px;color:var(--dim);white-space:nowrap">BG</label><input type="color" id="pageBg" value="#1a1a2e" onchange="upkPageBg(this.value)" style="width:26px;height:22px;padding:0;border:1px solid var(--border);border-radius:3px;cursor:pointer;background:transparent"></div>
-        <div class="ar"><input id="npl" placeholder="Label"><button onclick="apg()">+</button></div>
+        <h3 id="pp-heading">Profile Properties</h3>
+        <div style="margin-top:6px"><div style="display:flex;align-items:center;gap:4px"><label style="font-size:10px;color:var(--dim);white-space:nowrap">Pat</label><select id="pagePat" onchange="upkPagePattern(this.value)" style="flex:1;height:22px;font-size:10px;padding:0 2px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:3px"><option value="none">No Pattern</option><option value="topography">Topography</option><option value="circuit">Circuit</option><option value="dots">Dots</option><option value="diagonal">Diagonal</option><option value="hexagon">Hexagon</option><option value="grid">Grid</option><option value="triangles">Triangles</option><option value="topo">Topography</option><option value="waves">Waves</option></select><button onclick="upkPagePatternSize(-10)" style="width:20px;height:22px;font-size:12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:3px;cursor:pointer;line-height:1">-</button><span id="pagePatSz" style="font-size:10px;color:var(--dim);min-width:20px;text-align:center">60</span><button onclick="upkPagePatternSize(10)" style="width:20px;height:22px;font-size:12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:3px;cursor:pointer;line-height:1">+</button></div><div style="margin-top:4px;display:flex;align-items:center;gap:6px"><label style="font-size:10px;color:var(--dim);white-space:nowrap">Pat Color</label><input type="color" id="pagePatColor" value="#ffffff" onchange="upkPagePatternColor(this.value)" style="width:30px;height:30px;padding:0;border:1px solid var(--border);border-radius:3px;cursor:pointer"></div>
+        </div>
+        <div style="margin-top:6px;display:flex;align-items:center;gap:6px"><label style="font-size:10px;color:var(--dim);white-space:nowrap">BG</label><input type="color" id="pageBg" value="#1a1a2e" onchange="upkPageBg(this.value)" style="width:30px;height:30px;padding:0;border:1px solid var(--border);border-radius:3px;cursor:pointer"></div>
+
+      </div>
+      <div class="rp-section" id="rp-ratio-sec">
+        <h3>显示比例</h3>
+        <div id="ratioInfo" style="font-size:10px;color:var(--dim);margin-bottom:6px">—</div>
+        <div id="ratioBox" style="margin-top:0">
+          <div id="ratioPresets" style="display:flex;flex-wrap:wrap;gap:4px"></div>
+          <div style="display:flex;gap:4px;margin-top:6px">
+            <button onclick="applyCustomRatio()" style="flex:1;padding:5px;font-size:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer">自定义像素…</button>
+            <button onclick="toggleOri()" title="切换横竖屏" style="flex:1;padding:5px;font-size:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer">⟳ 横竖屏</button>
+          </div>
+        </div>
+      </div>
+      <div class="rp-section" id="rp-sound-sec">
+        <h3>默认声音</h3>
+        <div style="display:flex;gap:4px;align-items:center">
+          <select id="tgs" onchange="if(profile){profile.defaultSound=this.value;dirty=true}"><option value="none">None</option><option value="click">Click</option><option value="soft">Soft</option><option value="mechanical">Mechanical</option><option value="deep">Deep</option><option value="red">Red Switch</option><option value="topre">Topre EC</option><option value="glass">Glass Tap</option><option value="bubble">Bubble Pop</option><option value="blip">8-bit Blip</option><option value="spark">Electric Spark</option></select>
+          <button onclick="testSnd(document.getElementById('tgs').value)" style="padding:4px 8px;font-size:12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;flex-shrink:0" title="Preview">&#x25B6;</button>
+        </div>
       </div>
       <div class="rp-divider"></div>
       <div class="rp-section">
@@ -249,84 +257,83 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
         <div class="clip-preview" style="aspect-ratio:1;max-width:180px;background:var(--card);border-radius:6px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;margin-bottom:8px;transition:all 0.15s"></div>
         <button onclick="_copyToClipboard()" style="width:100%;padding:6px 12px;border-radius:6px;border:1px solid var(--accent);background:rgba(217,119,6,0.15);color:var(--accent);cursor:pointer;font-size:11px;font-weight:600">Copy Selected</button>
       </div>
-    </div>
+</div>
+<div class="carea" id="carea"><div id="tl" style="position:absolute;inset:0;pointer-events:none;z-index:0;display:none"></div>
+  <div class="gh" id="gh"></div>
+  <div class="sr" id="sr"></div><div class="grh" id="grh_b" style="cursor:s-resize"></div><div class="grh" id="grh_l" style="cursor:w-resize"></div><div class="grh" id="grh_r" style="cursor:e-resize"></div>
+  <div class="cwrap" id="cwrap"><div class="canvas" id="canvas"></div></div>
+  <div id="carea-overlay"></div>
+  <div class="btb" id="btb"><button onclick="zoomBy(-1)">−</button><button onclick="zoomBy(1)">+</button><span class="tb-sep">|</span><button onclick="fitAll()" title="Fit to frame">Fit</button><span class="tb-sep">|</span><button onclick="toggleFS()" title="Fullscreen">⛶</button><span class="tb-sep">|</span><button onclick="undo()" title="Undo">↩</button><button onclick="redo()" title="Redo">↪</button></div>
+</div>
+<div class="rp">
+    
     
     <div id="rp-library" class="rp-section">
         <h3>Button Library</h3>
         <p style="font-size:10px;color:var(--dim);margin-bottom:10px">Drag to canvas</p>
         <div class="lib-item" draggable="true" data-widget="key">
-          <div class="lib-preview" style="background:var(--card);border-radius:4px;height:56px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;margin-bottom:8px">A</div>
+          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/key.png" width="120" height="56" style="display:block;border-radius:4px"></div>
           <div class="lib-name">Regular Key</div>
           <div class="lib-desc">Press / Hold</div>
         </div>
-        <div class="lib-item" draggable="true" data-widget="visualizer">
-          <div class="lib-preview" style="background:#0d1117;border-radius:4px;height:56px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;margin-bottom:8px;color:#4ade80;border:1px solid rgba(255,255,255,0.08)">Spectrum</div>
-          <div class="lib-name">Audio Visualizer</div>
-          <div class="lib-desc">4x2 . Mic-powered spectrum</div>
-        </div>
         <div class="lib-item" draggable="true" data-widget="volume">
-          <div class="lib-preview" style="background:#1a2a1a;border-radius:4px;height:56px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;margin-bottom:8px;color:#4ade80;border:1px solid rgba(255,255,255,0.08)">Volume</div>
+          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/volume.png" width="120" height="56" style="display:block;border-radius:4px"></div>
           <div class="lib-name">Volume Slider</div>
           <div class="lib-desc">2x1 . System volume control</div>
         </div>
         
         <div class="lib-item" draggable="true" data-widget="micmute">
-          <div class="lib-preview" style="background:#1a2a2a;border-radius:4px;height:56px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;margin-bottom:8px;color:#ef4444;border:1px solid rgba(255,255,255,0.08)">🎤 Mute</div>
+          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/micmute.png" width="120" height="56" style="display:block;border-radius:4px"></div>
           <div class="lib-name">Mic Mute</div>
           <div class="lib-desc">1x1 . Mic mute toggle</div>
         </div>
         <div class="lib-item" draggable="true" data-widget="audioout">
-          <div class="lib-preview" style="background:#1a2a1a;border-radius:4px;height:56px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;margin-bottom:8px;color:#4ade80">🎵 Output</div>
+          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/audioout.png" width="120" height="56" style="display:block;border-radius:4px"></div>
           <div class="lib-name">Audio Output</div>
           <div class="lib-desc">3x1 . Switch output device</div>
         </div>
         <div class="lib-item" draggable="true" data-widget="audioin">
-          <div class="lib-preview" style="background:#1a2a2a;border-radius:4px;height:56px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;margin-bottom:8px;color:#4ade80">🎙 Input</div>
+          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/audioin.png" width="120" height="56" style="display:block;border-radius:4px"></div>
           <div class="lib-name">Audio Input</div>
           <div class="lib-desc">3x1 . Switch input device</div>
         </div>
-<div class="lib-item" draggable="true" data-widget="mute">
-          <div class="lib-preview" style="background:#2a1a1a;border-radius:4px;height:56px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;margin-bottom:8px;color:#ef4444;border:1px solid rgba(255,255,255,0.08)">MUTE</div>
-          <div class="lib-name">Mute Toggle</div>
-          <div class="lib-desc">1x1 . Output mute toggle</div>
-        </div>
         <div class="lib-item" draggable="true" data-widget="activeapp">
-          <div class="lib-preview" style="background:#1a1a1a;border-radius:4px;height:56px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;margin-bottom:8px;color:#888">Mac: Safari</div>
-          <div class="lib-name">Active App</div>
-          <div class="lib-desc">3x1 . Current Mac app name</div>
+          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/activeapp.png" width="120" height="56" style="display:block;border-radius:4px"></div>
+          <div class="lib-name">Window Switcher</div>
+          <div class="lib-desc">3x1 . Tap to cycle windows</div>
         </div>
         <div class="lib-item" draggable="true" data-widget="winshortcuts">
-          <div class="lib-preview" style="background:#1a2a2a;border-radius:4px;height:56px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;margin-bottom:8px;color:#ccc;border:1px solid rgba(255,255,255,0.08)">Win Controls</div>
+          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/winshortcuts.png" width="120" height="56" style="display:block;border-radius:4px"></div>
           <div class="lib-name">Win Shortcuts</div>
           <div class="lib-desc">4x2 . Full/Min/MC/Desktop</div>
         </div>
+        <div class="lib-item" draggable="true" data-widget="fullscreen">
+          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/fullscreen.png" width="120" height="56" style="display:block;border-radius:4px"></div>
+          <div class="lib-name">Fullscreen Toggle</div>
+          <div class="lib-desc">1x1 . Toggle fullscreen</div>
+        </div>
         <div class="lib-item" draggable="true" data-widget="dock">
-          <div class="lib-preview" style="background:#1a1a1a;border-radius:4px;height:56px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;margin-bottom:8px;color:#4ade80;border:1px solid rgba(255,255,255,0.08)">Dock Apps</div>
+          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/dock.png" width="120" height="56" style="display:block;border-radius:4px"></div>
           <div class="lib-name">Dock Panel</div>
           <div class="lib-desc">4x4 . Launch bar with status</div>
         </div>
-        <div class="lib-item" draggable="true" data-widget="appmenu">
-          <div class="lib-preview" style="background:#1a1a2a;border-radius:4px;height:56px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;margin-bottom:8px;color:#f59e0b;border:1px solid rgba(255,255,255,0.08)">Menus</div>
-          <div class="lib-name">Dynamic Menu</div>
-          <div class="lib-desc">4x5 . App menu + shortcuts</div>
-        </div>
-        <div class="lib-item" draggable="true" data-widget="layoutpreset">
-          <div class="lib-preview" style="background:#1a1a3a;border-radius:4px;height:56px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;margin-bottom:8px;color:#4ade80;border:1px solid rgba(255,255,255,0.08)">Save/Restore</div>
-          <div class="lib-name">Layout Presets</div>
-          <div class="lib-desc">4x4 . Save/restore window layouts</div>
-        </div>
         <div class="lib-item" draggable="true" data-widget="switchprofile">
-          <div class="lib-preview" style="background:#2a1a3a;border-radius:4px;height:56px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;margin-bottom:8px;color:#a78bfa;border:1px solid rgba(255,255,255,0.08)">Switch Profile</div>
+          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/switchprofile.png" width="120" height="56" style="display:block;border-radius:4px"></div>
           <div class="lib-name">Switch Profile</div>
           <div class="lib-desc">2x1 . Switch to another profile</div>
         </div>
         <div class="lib-item" draggable="true" data-widget="balance">
-          <div class="lib-preview" style="background:#0d1117;border-radius:4px;height:56px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;margin-bottom:8px;color:#f59e0b;border:1px solid rgba(255,255,255,0.08)">Balance</div>
+          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/balance.png" width="120" height="56" style="display:block;border-radius:4px"></div>
           <div class="lib-name">Deepseek Balance</div>
           <div class="lib-desc">4x1 . API credit display</div>
         </div>
+        <div class="lib-item" draggable="true" data-widget="textmacro">
+          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/textmacro.png" width="120" height="56" style="display:block;border-radius:4px"></div>
+          <div class="lib-name">Text Macro</div>
+          <div class="lib-desc">4x2.5 . Record & replay text</div>
+        </div>
         <div class="lib-item" draggable="true" data-widget="touchpad">
-          <div class="lib-preview" style="background:#2a2a30;border-radius:4px;height:56px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;margin-bottom:8px;color:var(--accent);border:1px solid rgba(255,255,255,0.08)">Track Pad</div>
+          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/touchpad.png" width="120" height="56" style="display:block;border-radius:4px"></div>
           <div class="lib-name">Touch Pad</div>
           <div class="lib-desc">4x3 . Move + Scroll + Click</div>
         </div>
@@ -337,6 +344,8 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
         <div id="pc"><p style="font-size:11px;color:var(--dim)">Click key to edit</p></div>
       </div>
     </div>
+  </div>
+</div>
   <div class="toast" id="toast"></div>
 <div class="info" id="edinfo"></div>
 <script id="bundle"></script>
@@ -346,11 +355,14 @@ background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center
 <h3 style="margin-bottom:12px">New Key</h3>
 <p style="color:var(--dim);margin-bottom:12px">Select key type:</p>
 <button onclick="addKeyOfType('key')" style="display:block;width:100%;margin:4px 0;padding:10px;
-background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Regular Key (Press)</button><button onclick="addKeyOfType('visualizer')" style="display:block;width:100%;margin:4px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Audio Visualizer</button><button onclick="addKeyOfType('volume')" style="display:block;width:100%;margin:4px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Volume Slider</button><button onclick="addKeyOfType('micmute') style="display:block;width:100%;margin:4px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Mic Mute</button><button onclick="addKeyOfType('audioout') style="display:block;width:100%;margin:4px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Audio Output</button><button onclick="addKeyOfType('audioin') style="display:block;width:100%;margin:4px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Audio Input</button><button onclick="addKeyOfType('mute')" style="display:block;width:100%;margin:4px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Mute Toggle</button><button onclick="addKeyOfType('activeapp')" style="display:block;width:100%;margin:4px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Active App</button><button onclick="addKeyOfType('winshortcuts')" style="display:block;width:100%;margin:4px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Win Shortcuts</button><button onclick="addKeyOfType('dock')" style="display:block;width:100%;margin:4px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Dock Panel</button><button onclick="addKeyOfType('appmenu')" style="display:block;width:100%;margin:4px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Dynamic Menu</button><button onclick="addKeyOfType('layoutpreset')" style="display:block;width:100%;margin:4px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Layout Preset</button><button onclick="addKeyOfType('balance')" style="display:block;width:100%;margin:4px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Deepseek Balance</button><button onclick="addKeyOfType('touchpad')" style="display:block;width:100%;margin:4px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Touch Pad</button>
+background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Regular Key (Press)</button><button onclick="addKeyOfType('textmacro')" style="display:block;width:100%;margin:4px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Text Macro</button><button onclick="addKeyOfType('volume')" style="display:block;width:100%;margin:4px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Volume Slider</button><button onclick="addKeyOfType('micmute')" style="display:block;width:100%;margin:4px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Mic Mute</button><button onclick="addKeyOfType('audioout')" style="display:block;width:100%;margin:4px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Audio Output</button><button onclick="addKeyOfType('audioin')" style="display:block;width:100%;margin:4px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Audio Input</button><button onclick="addKeyOfType('activeapp')" style="display:block;width:100%;margin:4px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Window Switcher</button><button onclick="addKeyOfType('winshortcuts')" style="display:block;width:100%;margin:4px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">窗口控制·点击</button><button onclick="addKeyOfType('wingesture')" style="display:block;width:100%;margin:4px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">窗口控制·滑动</button><button onclick="addKeyOfType('fullscreen')" style="display:block;width:100%;margin:4px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Fullscreen Toggle</button><button onclick="addKeyOfType('dock')" style="display:block;width:100%;margin:4px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Dock Panel</button><button onclick="addKeyOfType('switchprofile')" style="display:block;width:100%;margin:4px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Switch Profile</button><button onclick="addKeyOfType('balance')" style="display:block;width:100%;margin:4px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Deepseek Balance</button><button onclick="addKeyOfType('touchpad')" style="display:block;width:100%;margin:4px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left">Touch Pad</button>
 <button onclick="closeKeyTypeModal()" style="margin-top:12px;width:100%;padding:8px;
 background:transparent;color:var(--dim);border:1px solid var(--border);border-radius:4px;cursor:pointer">Cancel</button>
 </div></div>
 
 <div id="profileManagerModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center"><div style="background:var(--panel);padding:24px;border-radius:8px;border:1px solid var(--accent);width:420px"><h3 style="margin-bottom:16px">Manage Profiles</h3><div id="pmList"></div><div style="display:flex;gap:8px;justify-content:space-between;margin-top:16px"><button onclick="pmCreate()" style="padding:8px 16px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:12px;font-weight:500">+ New Profile</button><button onclick="document.getElementById('profileManagerModal').style.display='none'" style="padding:8px 16px;background:transparent;color:var(--dim);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:12px">Close</button></div></div></div>
 <div id="macroModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center"><div style="background:var(--panel);padding:24px;border-radius:8px;border:1px solid var(--accent);width:520px"><h3>Macro Recorder</h3><p id="mkl" style="color:var(--dim);margin:8px 0"></p><div id="mtc" tabindex="0" onclick="this.focus()" style="min-height:44px;border:2px dashed var(--accent);outline:none;padding:8px;border-radius:4px;background:var(--bg);display:flex;flex-wrap:wrap;gap:4px;align-items:center"><span style="color:var(--dim);font-size:11px">Click here and type keys, or click modifiers...</span></div><div style="display:flex;gap:4px;margin:8px 0"><div style="display:flex;gap:4px;flex-wrap:wrap"><button onclick="addMT('LCOMMAND')" style="padding:5px 10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:11px">⌘L</button><button onclick="addMT('RCOMMAND')" style="padding:5px 10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:11px">⌘R</button><button onclick="addMT('LOPTION')" style="padding:5px 10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:11px">⌥L</button><button onclick="addMT('ROPTION')" style="padding:5px 10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:11px">⌥R</button><button onclick="addMT('LCONTROL')" style="padding:5px 10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:11px">⌃L</button><button onclick="addMT('RCONTROL')" style="padding:5px 10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:11px">⌃R</button><button onclick="addMT('LSHIFT')" style="padding:5px 10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:11px">⇧L</button><button onclick="addMT('RSHIFT')" style="padding:5px 10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:11px">⇧R</button><button onclick="addMT('FN')" style="padding:5px 10px;background:var(--card);color:var(--accent);border:1px solid var(--accent);border-radius:4px;cursor:pointer;font-size:11px">fn</button></div></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button onclick="closeMM()" style="padding:8px 16px;background:transparent;color:var(--dim);border:1px solid var(--border);border-radius:4px;cursor:pointer">Cancel</button><button onclick="saveMacro()" style="padding:8px 16px;background:var(--green);color:#fff;border:none;border-radius:4px;cursor:pointer">Save</button></div></div></div>
+
+<div id="textMacroModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center"><div style="background:var(--panel);padding:24px;border-radius:8px;border:1px solid var(--accent);width:520px"><h3 style="margin-bottom:4px">Text Macro Recorder</h3><p style="color:var(--dim);margin:4px 0;font-size:11px">Editing: <span id="tmModalKeyLabel">—</span></p><div id="tmModalPreview" style="margin:12px 0;padding:12px;background:var(--bg);border-radius:6px;border:2px solid var(--border);min-height:60px;max-height:200px;overflow-y:auto;font-family:monospace;font-size:14px;color:var(--text);white-space:pre-wrap;word-break:break-word">(empty)</div><div id="tmModalStatus" style="font-size:11px;color:var(--dim);margin-bottom:8px;min-height:18px"></div><div style="display:flex;gap:8px;margin-bottom:8px"><button id="tmBtnRecord" onclick="tmStartRecord()" style="flex:1;padding:10px;background:var(--accent);color:#1a1a1a;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:13px">Record</button><button id="tmBtnClear" onclick="tmClearText()" style="padding:10px 16px;background:transparent;color:var(--dim);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:13px">Clear</button></div><div style="display:flex;gap:8px;justify-content:flex-end"><button onclick="closeTextMacroModal(false)" style="padding:8px 16px;background:transparent;color:var(--dim);border:1px solid var(--border);border-radius:4px;cursor:pointer">Cancel</button><button onclick="closeTextMacroModal(true)" style="padding:8px 16px;background:var(--green);color:#fff;border:none;border-radius:4px;cursor:pointer">Save</button></div></div></div>
+<div id="apiKeyModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:201;align-items:center;justify-content:center"><div style="background:var(--panel);padding:24px;border-radius:8px;border:1px solid #f59e0b;width:480px"><h3 style="margin-bottom:4px;color:#f59e0b">DeepSeek API Key</h3><p id="apiKeyModalHint" style="color:var(--dim);margin:4px 0 12px;font-size:11px"></p><input type="password" id="apiKeyModalInput" placeholder="sk-..." style="width:100%;padding:10px;background:var(--bg);color:var(--text);border:2px solid var(--border);border-radius:6px;font-size:14px;font-family:monospace;box-sizing:border-box"><p id="apiKeyModalMsg" style="font-size:11px;color:var(--dim);margin:8px 0;min-height:18px">Your key is stored locally and never sent to any third party.</p><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button onclick="closeApiKeyModal()" style="padding:8px 16px;background:transparent;color:var(--dim);border:1px solid var(--border);border-radius:4px;cursor:pointer">Cancel</button><button onclick="saveApiKey()" style="padding:8px 16px;background:#f59e0b;color:#1a1a1a;border:none;border-radius:4px;cursor:pointer;font-weight:600">Save</button></div></div></div>
 </body></html>

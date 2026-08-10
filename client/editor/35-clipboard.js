@@ -165,4 +165,4 @@ function _pasteFromClipboard(col, row) {
 
 // Update panel on init
 setTimeout(_updateClipboardPanel, 500);
-
+// ── Props ──
