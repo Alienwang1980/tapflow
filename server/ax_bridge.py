@@ -337,18 +337,26 @@ def _resolve_cg_window_id(pid, title):
     for t, wid in cands:
         if target in t or t in target:
             return wid
-    # Frontmost fallback: focused item's window IS the frontmost window,
-    # even when its CG name lags behind the requested title (e.g. just-switched tab)
-    try:
-        import AppKit
-        front_pid = AppKit.NSWorkspace.sharedWorkspace().frontmostApplication().processIdentifier()
-    except Exception:
-        front_pid = -1
-    if front_pid == pid:
-        onscreen = CGWindowListCopyWindowInfo(1, kCGNullWindowID) or []  # kCGWindowListOptionOnScreenOnly=1
-        for w in onscreen:
-            if w.get('kCGWindowLayer', -1) == 0 and w.get('kCGWindowOwnerPID', -1) == pid:
-                return w.get('kCGWindowNumber', 0)
+    # Fallback: find ANY onscreen window for the target PID.
+    # On macOS ≥26, CGWindowList reports nil kCGWindowName for ALL apps,
+    # so title matching never matches — we must fall through to PID-only lookup.
+    def _is_meaningful(win):
+        """Window is not a menu-bar proxy or invisible artifact."""
+        b = win.get('kCGWindowBounds', {})
+        bh, bw = b.get('Height', 0), b.get('Width', 0)
+        return not (bh <= 30 and bw >= 1920) and not (bh <= 1 or bw <= 1)
+
+    # 1) On-screen windows only (most likely to be the right one)
+    onscreen = CGWindowListCopyWindowInfo(1, kCGNullWindowID) or []
+    for w in onscreen:
+        if w.get('kCGWindowLayer', -1) == 0 and w.get('kCGWindowOwnerPID', -1) == pid and _is_meaningful(w):
+            return w.get('kCGWindowNumber', 0)
+
+    # 2) Any Space (e.g. minimized / fullscreen apps)
+    for w in wl:
+        if w.get('kCGWindowLayer', -1) == 0 and w.get('kCGWindowOwnerPID', -1) == pid and _is_meaningful(w):
+            return w.get('kCGWindowNumber', 0)
+
     return 0
 
 
@@ -498,11 +506,27 @@ def get_all_app_windows():
                     layer = w.get('kCGWindowLayer', -1)
                     cg_title = w.get('kCGWindowName', None)
                     owner = w.get('kCGWindowOwnerName', '')
-                    if layer != 0 or not cg_title or not str(cg_title).strip() or not owner:
+                    if layer != 0 or not owner:
                         continue
+                    # Some apps (System Settings, Catalyst/SwiftUI) have windows
+                    # with nil kCGWindowName. Use owner name as fallback title.
+                    # Filter menu-bar proxies (height ≤ 30 spanning full width)
+                    # and invisible artifacts (≤ 1×1 px).
+                    has_title = bool(cg_title and str(cg_title).strip())
+                    if not has_title:
+                        bounds = w.get('kCGWindowBounds', {})
+                        bh = bounds.get('Height', 0)
+                        bw = bounds.get('Width', 0)
+                        if bh <= 30 and bw >= 1920:
+                            continue  # menu bar proxy, skip
+                        if bh <= 1 or bw <= 1:
+                            continue  # invisible artifact (Chrome 1×1 tracker, 0×0 render)
+                        display_title = owner
+                    else:
+                        display_title = str(cg_title).strip()
                     wid = w.get('kCGWindowNumber', 0)
                     cg_by_pid.setdefault(pid_w, []).append({
-                        "title": str(cg_title).strip(),
+                        "title": display_title,
                         "owner": owner,
                         "window_id": wid,
                         "bounds": w.get('kCGWindowBounds', {}),
@@ -571,15 +595,12 @@ def get_all_app_windows():
                     items = [it for it in items if it.get("window_index") not in dup_wins]
                     _ax_log.info(f"[DEDUP] {name}: removed {len(dup_wins)} duplicate AX windows")
 
-        # CG supplement: add windows from OTHER Spaces that AX can't see.
-        # kCGWindowIsOnscreen=False means the window is on a different Space.
-        # If AX returned nothing, also accept onscreen CG windows as fallback —
-        # AX may be slow to update after a Space switch (focus_item).
-        if has_sc and pid in cg_by_pid:
-            # 已被 AX 展开的条目(tab/window)标题集合 —— CG 补充时用于去重。
-            # Finder 多 tab:非活动 tab 在 CG 里是 offscreen 独立窗口,标题=该 tab,
-            # 会和 AX 展开的 tab 撞车 → 窗口切换器出现重复板块(总是未选中那个)。
-            # ponytail: 按标题去重; 若同 app 有两个真实同名窗口会漏一个 —— Finder tab 场景罕见,YAGNI
+        # CG supplement: only used when AX returned NOTHING for this app.
+        # macOS ≥26 reports nil kCGWindowName for all CG windows, so CG
+        # fallback titles (owner name) never match AX real titles → dedup
+        # breaks and every app shows duplicate entries (one AX + one CG).
+        # Rule: AX wins. CG only fills in for apps AX can't see at all.
+        if has_sc and pid in cg_by_pid and ax_count == 0:
             existing_titles = {it["title"].strip().lower() for it in items}
             new_cnt = 0
             for cg_win in cg_by_pid[pid]:
@@ -588,10 +609,8 @@ def get_all_app_windows():
                     continue
                 if cg_title == "最近使用":
                     continue
-                if cg_win.get("onscreen", True) and ax_count > 0:
-                    continue
                 if cg_title.strip().lower() in existing_titles:
-                    continue  # 标题已被 AX 条目占用 → 跳过重复 (修 Finder tab 重复板块)
+                    continue
                 items.append({
                     "title": cg_title,
                     "type": "window",

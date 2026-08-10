@@ -1284,7 +1284,7 @@ def _qr_nsimage(url, size=160):
 # ── Dashboard window (CleanMyMac‑style graphical main interface) ──
 
 def open_dashboard():
-    """🏠 Start: two cards with QR codes → Editor + Smart Panel. iPad scan to open."""
+    """🏠 Start: Smart Panel card (QR + button) + Editor card (button only)."""
     import AppKit
     from Foundation import NSMakeRect
 
@@ -1298,9 +1298,8 @@ def open_dashboard():
 
     ip = get_local_ip()
     panel_url = f"http://{ip}:{PORT}/"
-    editor_url = f"http://{ip}:{PORT}/editor"
 
-    W, H = 560, 440
+    W, H = 480, 420
     screen = AppKit.NSScreen.mainScreen()
     sf = screen.visibleFrame()
     x = int((sf.size.width - W) / 2 + sf.origin.x)
@@ -1320,13 +1319,15 @@ def open_dashboard():
     panel.setDelegate_(dele)
     _DASH["delegate"] = dele
 
+    from AppKit import NSColor as NC
+
     content = panel.contentView()
     content.setWantsLayer_(True)
     content.layer().setBackgroundColor_(
-        AppKit.NSColor.colorWithRed_green_blue_alpha_(0.082, 0.071, 0.063, 1.0).CGColor())
+        NC.colorWithRed_green_blue_alpha_(0.082, 0.071, 0.063, 1.0).CGColor())
 
     def _label(text, x, y, w, h=20, size=13, color=None, bold=False, align=0):
-        from AppKit import NSTextField, NSFont, NSColor as NC
+        from AppKit import NSTextField, NSFont
         f = NSTextField.alloc().initWithFrame_(NSMakeRect(x, y, w, h))
         f.setStringValue_(text)
         f.setBezeled_(False); f.setDrawsBackground_(False)
@@ -1339,65 +1340,67 @@ def open_dashboard():
         content.addSubview_(f)
         return f
 
-    def _card(title, desc, emoji, card_url, card_y, action):
-        """Create a bordered card button + QR code on the right."""
-        from AppKit import NSButton, NSBezelStyleRegularSquare, NSColor as NC, NSMakeRect as R, NSImageView
-        card_w, card_h = 330, 150
-        card_x = 24
-        qr_x = card_x + card_w + 20
-        qr_size = 130
-        qr_y = card_y + (card_h - qr_size) // 2
+    def _btn(title, bx, by, bw, bh, action, is_primary=False):
+        """Standard Cocoa button with built-in hover/click feedback."""
+        from AppKit import NSButton, NSBezelStyleRounded
+        b = NSButton.alloc().initWithFrame_(NSMakeRect(bx, by, bw, bh))
+        b.setTitle_(title)
+        b.setBezelStyle_(NSBezelStyleRounded)
+        b.setTarget_(dele)
+        b.setAction_(action)
+        b.setWantsLayer_(True)
+        if is_primary:
+            b.setKeyEquivalent_("\r")  # Enter key triggers primary action
+        content.addSubview_(b)
+        return b
 
-        btn = NSButton.alloc().initWithFrame_(R(card_x, card_y, card_w, card_h))
-        btn.setTitle_("")
-        btn.setBezelStyle_(NSBezelStyleRegularSquare)
-        btn.setBordered_(False)
-        btn.setWantsLayer_(True)
-        btn.layer().setCornerRadius_(14)
-        btn.layer().setBorderWidth_(1.5)
-        btn.layer().setBackgroundColor_(
-            NC.colorWithRed_green_blue_alpha_(0.10, 0.08, 0.06, 0.95).CGColor())
-        btn.layer().setBorderColor_(
-            NC.colorWithRed_green_blue_alpha_(0.22, 0.18, 0.14, 1.0).CGColor())
-        btn.setTarget_(dele)
-        btn.setAction_(action)
-        content.addSubview_(btn)
+    # ── Top section: Smart Panel with QR ──
+    top_y = H - 210
+    _label("📱 Smart Panel", 0, top_y + 150, W, 24, size=16,
+           color=NC.colorWithRed_green_blue_alpha_(0.95, 0.92, 0.89, 1.0), bold=True, align=1)
+    _label("Scan QR code from iPad", 0, top_y + 127, W, 16, size=11,
+           color=NC.colorWithRed_green_blue_alpha_(0.45, 0.40, 0.37, 1.0), align=1)
 
-        # Static label overlays
-        _label(emoji, card_x, card_y + card_h - 65, card_w, 48, size=40, align=1)
-        _label(title, card_x + 16, card_y + card_h - 123, card_w - 32, 24, size=14, bold=True,
-               color=NC.colorWithRed_green_blue_alpha_(0.91, 0.88, 0.85, 1.0), align=0)
-        _label(desc, card_x + 16, card_y + card_h - 148, card_w - 32, 16, size=11,
-               color=NC.colorWithRed_green_blue_alpha_(0.50, 0.45, 0.42, 1.0), align=0)
+    # QR code
+    qr_size = 120
+    qr_x = (W - qr_size) // 2
+    qr_y = top_y + 2
+    try:
+        from AppKit import NSImageView
+        qr_img = _qr_nsimage(panel_url, qr_size)
+        qr_view = NSImageView.alloc().initWithFrame_(NSMakeRect(qr_x, qr_y, qr_size, qr_size))
+        qr_view.setImage_(qr_img)
+        qr_view.setImageScaling_(2)
+        content.addSubview_(qr_view)
+    except Exception:
+        pass
 
-        # QR code on the right
-        try:
-            qr_img = _qr_nsimage(card_url, qr_size)
-            qr_view = NSImageView.alloc().initWithFrame_(R(qr_x, qr_y, qr_size, qr_size))
-            qr_view.setImage_(qr_img)
-            qr_view.setImageScaling_(2)  # NSImageScaleProportionallyUpOrDown
-            content.addSubview_(qr_view)
-        except Exception:
-            pass
+    _label(panel_url, qr_x - 20, qr_y - 18, qr_size + 40, 14, size=9,
+           color=NC.colorWithRed_green_blue_alpha_(0.35, 0.30, 0.27, 1.0), align=1)
 
-        # URL text below QR
-        short_url = card_url.replace(f"http://{ip}:{PORT}/", "/")
-        _label(f"Scan to open", qr_x, qr_y - 24, qr_size, 20, size=10,
-               color=NC.colorWithRed_green_blue_alpha_(0.40, 0.36, 0.33, 1.0), align=1)
-        _label(card_url, qr_x - 10, qr_y - 48, qr_size + 20, 16, size=9,
-               color=NC.colorWithRed_green_blue_alpha_(0.30, 0.27, 0.25, 1.0), align=1)
+    # Open Smart Panel button
+    btn_w = 180
+    _btn("Open Smart Panel", (W - btn_w) // 2, qr_y - 42, btn_w, 30, "openPanel:", is_primary=True)
 
-    # Card 1: Dashboard (y=230)
-    _card("Smart Panel", "Connect from iPad or browser — virtual touch controls",
-          "📱", panel_url, 230, "openPanel:")
-    # Card 2: Editor (y=56)
-    _card("Panel Editor", "Design custom touch panels, assign keys & macros",
-          "🎛️", editor_url, 56, "openEditor:")
+    # ── Divider ──
+    div_y = qr_y - 80
+    from AppKit import NSBox
+    div = NSBox.alloc().initWithFrame_(NSMakeRect(30, div_y, W - 60, 1))
+    div.setBoxType_(2)  # NSBoxSeparator
+    content.addSubview_(div)
 
-    # Bottom IP bar
-    _label(f"{ip}:{PORT}", 0, 18, W, 16, size=10,
-           color=AppKit.NSColor.colorWithRed_green_blue_alpha_(0.40, 0.36, 0.33, 1.0),
-           align=1)
+    # ── Bottom section: Editor (no QR) ──
+    edit_y = div_y - 100
+    _label("🎛️ Panel Editor", 0, edit_y + 70, W, 22, size=14,
+           color=NC.colorWithRed_green_blue_alpha_(0.95, 0.92, 0.89, 1.0), bold=True, align=1)
+    _label("Design custom touch panels", 0, edit_y + 50, W, 14, size=10,
+           color=NC.colorWithRed_green_blue_alpha_(0.45, 0.40, 0.37, 1.0), align=1)
+
+    _btn("Open Panel Editor", (W - btn_w) // 2, edit_y + 10, btn_w, 30, "openEditor:")
+
+    # ── Bottom IP bar ──
+    _label(f"{ip}:{PORT}", 0, 10, W, 16, size=10,
+           color=NC.colorWithRed_green_blue_alpha_(0.35, 0.30, 0.27, 1.0), align=1)
 
     panel.center()
     panel.makeKeyAndOrderFront_(None)
