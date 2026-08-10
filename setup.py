@@ -80,14 +80,22 @@ setup(
     setup_requires=["py2app"],
 )
 
-# Re-sign bundled python binary with app identifier.
+# Re-sign bundled python binary with app identifier AND persistent code sign identity.
 # py2app includes a standalone python whose Info.plist has identifier
 # org.python.python. TCC attributes screen recording requests to this
 # identifier, not the app bundle → the app never appears in the Screen
 # Recording privacy pane and permission prompts fail silently.
 # Re-signing with --identifier com.smarttouch.panel fixes this.
+# Adhoc signing (--sign -) changes on every build, breaking TCC persistence.
+# Apple Developer identity is persistent → TCC permissions survive rebuilds.
 import subprocess as _sp
+DEV_CERT = "Apple Development: alienwangxinlei1980@gmail.com (LBV29FCU3H)"
 python_bin = Path("dist/Smart Touch Panel.app/Contents/MacOS/python")
 if python_bin.exists():
-    _sp.run(["codesign", "--force", "--sign", "-", "--identifier", "com.smarttouch.panel", str(python_bin)], check=False)
-    print("✓ Re-signed bundled python with com.smarttouch.panel identifier")
+    _sp.run(["codesign", "--force", "--sign", DEV_CERT, "--identifier", "com.smarttouch.panel", str(python_bin)], check=False)
+    print("✓ Re-signed bundled python with persistent dev identity")
+# Also re-sign main executable with same identity
+main_bin = Path("dist/Smart Touch Panel.app/Contents/MacOS/Smart Touch Panel")
+if main_bin.exists():
+    _sp.run(["codesign", "--force", "--deep", "--sign", DEV_CERT, str(Path("dist/Smart Touch Panel.app"))], check=False)
+    print("✓ Re-signed app bundle with persistent dev identity")
