@@ -742,44 +742,57 @@ def run_server():
         try:
             with open(dock_plist, "rb") as f:
                 dock = _pl.load(f)
-            # Get running app bundle paths
-            _running_paths = set()
+            # Collect running regular GUI apps only (filter out background helpers/daemons)
+            # activationPolicy 0=Regular (visible Dock app), 1=Accessory (menu bar/helper), 2=Prohibited
+            _running_ids = set()   # bundle identifiers for precise match
+            _running_paths = set() # exact bundle paths (fallback)
             try:
                 from Cocoa import NSWorkspace as _NSW2
                 for _ra in _NSW2.sharedWorkspace().runningApplications():
+                    if _ra.activationPolicy() != 0:  # only Regular GUI apps
+                        continue
+                    _bid = _ra.bundleIdentifier()
+                    if _bid:
+                        _running_ids.add(str(_bid))
                     _rurl = _ra.bundleURL()
                     if _rurl:
                         _rp = str(_rurl.path() or "").lower().rstrip("/")
                         if _rp: _running_paths.add(_rp)
             except Exception:
                 pass
-            def _check_running(bundle_path):
+            def _check_running(bundle_id, bundle_path):
+                # Primary: exact bundle identifier match (avoids substring false positives with nested helpers)
+                if bundle_id and bundle_id in _running_ids:
+                    return True
+                # Fallback: exact path match (not substring — substring matches helpers inside main bundle)
                 _p = bundle_path.replace("file://","").replace("%20"," ").rstrip("/").lower()
-                return any(_p in rp or rp.endswith(_p) for rp in _running_paths)
-            def _make_item(label, url):
+                return _p in _running_paths
+            def _make_item(label, url, bundle_id=None):
                 _path = url.replace("file://", "").replace("%20"," ").rstrip("/")
                 _bundle = url.rstrip("/").split("/")[-1].replace("%20"," ").replace(".app","")
-                return {"name": label, "path": _path, "bundle": _bundle, "running": _check_running(url)}
+                return {"name": label, "path": _path, "bundle": _bundle, "running": _check_running(bundle_id, url)}
             # 1. Finder (always in Dock, not in plist)
             finder_url = "file:///System/Library/CoreServices/Finder.app/"
-            items.append(_make_item("Finder", finder_url))
+            items.append(_make_item("Finder", finder_url, "com.apple.finder"))
             # 2. Pinned apps (persistent-apps)
             for app in dock.get("persistent-apps", []):
                 td = app.get("tile-data", {})
                 fd = td.get("file-data", {})
                 url = fd.get("_CFURLString", "")
                 label = td.get("file-label", url.split("/")[-1].replace("%20"," ").replace(".app",""))
-                items.append(_make_item(label, url))
+                bid = td.get("bundle-identifier", None)
+                items.append(_make_item(label, url, bid))
             # 3. Recent apps (running but not pinned)
             for app in dock.get("recent-apps", []):
                 td = app.get("tile-data", {})
                 fd = td.get("file-data", {})
                 url = fd.get("_CFURLString", "")
                 label = td.get("file-label", url.split("/")[-1].replace("%20"," ").replace(".app",""))
+                bid = td.get("bundle-identifier", None)
                 # Skip if already in the list (check by bundle)
                 _b = url.rstrip("/").split("/")[-1].replace("%20"," ").replace(".app","")
                 if not any(it["bundle"] == _b for it in items):
-                    items.append(_make_item(label, url))
+                    items.append(_make_item(label, url, bid))
         except: pass
         return items
 
