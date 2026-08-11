@@ -5,6 +5,20 @@ import os
 import socket
 import threading
 
+# ── One-time data migration (Smart Touch Panel → Tapflow) ──
+# CRITICAL: Must run BEFORE any import that triggers _get_data_dir() in profile_manager.
+# Import chain: tray_app → main → profile_manager (creates Tapflow/ at module level).
+# If migration runs after, _NEW_DATA already exists and the check silently skips.
+_OLD_DATA = os.path.expanduser("~/Library/Application Support/Smart Touch Panel")
+_NEW_DATA = os.path.expanduser("~/Library/Application Support/Tapflow")
+if os.path.isdir(_OLD_DATA) and not os.path.isdir(_NEW_DATA):
+    try:
+        os.rename(_OLD_DATA, _NEW_DATA)
+        # logging not yet configured at this point — print directly
+        print(f"[tapflow] data migrated: {_OLD_DATA} → {_NEW_DATA}")
+    except Exception as _e_mig:
+        print(f"[tapflow] data migration failed: {_e_mig}")
+
 import pystray
 from PIL import Image, ImageDraw
 import qrcode
@@ -41,17 +55,6 @@ TOOLTIP = "Tapflow — Tap points, flowing keys"
 # 优先级: 环境变量 STP_PORT > config.json 的 "port" > 默认 8082。
 # config.json 路径: ~/Library/Application Support/Tapflow/config.json
 import json as _json_cfg
-
-# ── One-time data migration (Smart Touch Panel → Tapflow) ──
-# Must run BEFORE _config_dir() creates the new path.
-_OLD_DATA = os.path.expanduser("~/Library/Application Support/Smart Touch Panel")
-_NEW_DATA = os.path.expanduser("~/Library/Application Support/Tapflow")
-if os.path.isdir(_OLD_DATA) and not os.path.isdir(_NEW_DATA):
-    try:
-        os.rename(_OLD_DATA, _NEW_DATA)
-        logger.info("Migrated data dir: %s → %s", _OLD_DATA, _NEW_DATA)
-    except Exception as _e_mig:
-        logger.warning("Data migration failed: %s", _e_mig)
 
 def _config_dir() -> str:
     d = os.path.expanduser("~/Library/Application Support/Tapflow")
