@@ -1,4 +1,4 @@
-"""py2app setup for Smart Touch Panel macOS menu bar app."""
+"""py2app setup for Tapflow macOS menu bar app."""
 from pathlib import Path
 from setuptools import setup
 
@@ -60,16 +60,16 @@ OPTIONS = {
         "tkinter", "PyQt5", "PySide2", "wx", "test", "unittest",
     ],
     "plist": {
-        "CFBundleName": "Smart Touch Panel",
-        "CFBundleDisplayName": "Smart Touch Panel",
-        "CFBundleIdentifier": "com.smarttouch.panel",
+        "CFBundleName": "Tapflow",
+        "CFBundleDisplayName": "Tapflow",
+        "CFBundleIdentifier": "com.tapflow.app",
         "CFBundleVersion": "1.0.0",
         "CFBundleShortVersionString": "1.0.0",
         "NSHighResolutionCapable": True,
         "LSUIElement": True,
-        "NSAppleEventsUsageDescription": "Smart Touch Panel needs Accessibility access to simulate keyboard input.",
-        "NSMicrophoneUsageDescription": "Smart Touch Panel needs Microphone access to show input audio levels.",
-        "NSScreenCaptureUsageDescription": "Smart Touch Panel needs Screen Recording access to show window titles and thumbnails across all Spaces.",
+        "NSAppleEventsUsageDescription": "Tapflow needs Accessibility access to simulate keyboard input.",
+        "NSMicrophoneUsageDescription": "Tapflow needs Microphone access to show input audio levels.",
+        "NSScreenCaptureUsageDescription": "Tapflow needs Screen Recording access to show window titles and thumbnails across all Spaces.",
     },
     # site_packages=True 会把构建机 venv 的绝对路径(/Volumes/WD_BLACK/...)烧进
     # __boot__.py → launchd 拉起时 opendir 外置卷挂死(实测,2026-07-15)。
@@ -80,7 +80,7 @@ OPTIONS = {
 }
 
 setup(
-    name="SmartTouchPanel",
+    name="Tapflow",
     version="1.0.0",
     app=APP,
     data_files=DATA_FILES,
@@ -93,17 +93,17 @@ setup(
 # org.python.python. TCC attributes screen recording requests to this
 # identifier, not the app bundle → the app never appears in the Screen
 # Recording privacy pane and permission prompts fail silently.
-# Re-signing with --identifier com.smarttouch.panel fixes this.
+# Re-signing with --identifier com.tapflow.app fixes this.
 # Adhoc signing (--sign -) changes on every build, breaking TCC persistence.
 # Apple Developer identity is persistent → TCC permissions survive rebuilds.
 import subprocess as _sp
 DEV_CERT = "Apple Development: alienwangxinlei1980@gmail.com (LBV29FCU3H)"
-python_bin = Path("dist/Smart Touch Panel.app/Contents/MacOS/python")
+python_bin = Path("dist/Tapflow.app/Contents/MacOS/python")
 if python_bin.exists():
-    _sp.run(["codesign", "--force", "--sign", DEV_CERT, "--identifier", "com.smarttouch.panel", str(python_bin)], check=False)
+    _sp.run(["codesign", "--force", "--sign", DEV_CERT, "--identifier", "com.tapflow.app", str(python_bin)], check=False)
     print("✓ Re-signed bundled python with persistent dev identity")
 # Also re-sign main executable with same identity
-main_bin = Path("dist/Smart Touch Panel.app/Contents/MacOS/Smart Touch Panel")
+main_bin = Path("dist/Tapflow.app/Contents/MacOS/Tapflow")
 if main_bin.exists():
-    _sp.run(["codesign", "--force", "--deep", "--sign", DEV_CERT, str(Path("dist/Smart Touch Panel.app"))], check=False)
+    _sp.run(["codesign", "--force", "--deep", "--sign", DEV_CERT, str(Path("dist/Tapflow.app"))], check=False)
     print("✓ Re-signed app bundle with persistent dev identity")

@@ -1,7 +1,4 @@
-"""
-Smart Touch Panel — macOS system tray app.
-Menu bar icon + FastAPI server + QR code + accessibility check.
-"""
+"""Tapflow — macOS menu bar app. Tap points flow across your panel."""
 import io
 import logging
 import os
@@ -36,8 +33,8 @@ def _ensure_appkit_accessory():
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelname)s %(message)s")
 logger = logging.getLogger("stp.tray")
 
-TITLE = "Smart Touch Panel"
-TOOLTIP = "Smart Touch Panel — Touch Input Server"
+TITLE = "Tapflow"
+TOOLTIP = "Tapflow — Tap points, flowing keys"
 
 
 # ── 端口配置(可在任意机器上修改)──────────────────────────────
@@ -89,7 +86,7 @@ def _ensure_config(port: int) -> None:
             config["port"] = port
             changed = True
         if changed or not os.path.exists(cp):
-            config["_comment"] = "改端口后重启 Smart Touch Panel 生效(范围 1-65535)。也可用环境变量 STP_PORT 覆盖。"
+            config["_comment"] = "改端口后重启 Tapflow 生效(范围 1-65535)。也可用环境变量 STP_PORT 覆盖。"
             with open(cp, "w", encoding="utf-8") as f:
                 _json_cfg.dump(config, f, ensure_ascii=False, indent=2)
     except Exception as e:
@@ -281,7 +278,7 @@ def on_show_qr(icon, item):
     ip = get_local_ip()
     url = f"http://{ip}:{PORT}/"
     print(f"\n{'='*50}")
-    print(f"  Smart Touch Panel")
+    print(f"  Tapflow")
     print(f"  Open in iPad browser: {url}")
     print(f"{'='*50}\n")
     _sp_open.run(["open", url])  # Open in default browser (safe arg list, no shell)
@@ -401,7 +398,7 @@ def _save_port_and_restart():
     try:
         with open(_config_path(), "w", encoding="utf-8") as f:
             _json9.dump({"port": port,
-                         "_comment": "改端口后重启 Smart Touch Panel 生效(范围 1-65535)。也可用环境变量 STP_PORT 覆盖。"},
+                         "_comment": "改端口后重启 Tapflow 生效(范围 1-65535)。也可用环境变量 STP_PORT 覆盖。"},
                         f, ensure_ascii=False, indent=2)
     except Exception as e:
         err.setStringValue_(f"写入失败: {e}")
@@ -491,7 +488,7 @@ def open_settings_panel():
         NSMakeRect(0, 0, W, 316),
         AppKit.NSWindowStyleMaskTitled | AppKit.NSWindowStyleMaskClosable,
         AppKit.NSBackingStoreBuffered, False)
-    panel.setTitle_("Smart Touch Panel 设置")
+    panel.setTitle_("Tapflow 设置")
     panel.setLevel_(AppKit.NSFloatingWindowLevel)
     panel.setReleasedWhenClosed_(False)
     # NSPanel 默认 app 失活即隐藏 —— 点"去授权"跳系统设置时窗口会消失,必须关掉
@@ -641,7 +638,7 @@ def open_dashboard():
         AppKit.NSWindowStyleMaskTitled | AppKit.NSWindowStyleMaskClosable,
         AppKit.NSBackingStoreBuffered, False,
     )
-    panel.setTitle_("Smart Touch Panel")
+    panel.setTitle_("Tapflow")
     panel.setLevel_(AppKit.NSFloatingWindowLevel)
     panel.setReleasedWhenClosed_(False)
     panel.setHidesOnDeactivate_(False)
@@ -763,7 +760,7 @@ def run_tray():
     )
 
     icon = pystray.Icon(
-        "smart-touch-panel",
+        "tapflow",
         create_icon_image(),
         TOOLTIP,
         menu,
@@ -773,7 +770,7 @@ def run_tray():
     icon.run()
 
 
-AGENT_LABEL = "com.smarttouch.panel"
+AGENT_LABEL = "com.tapflow.app"
 AGENT_PLIST_PATH = os.path.expanduser(f"~/Library/LaunchAgents/{AGENT_LABEL}.plist")
 
 
