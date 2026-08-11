@@ -86,31 +86,7 @@ class ProfileManager:
 
     def __init__(self, profiles_dir: Path = PROFILES_DIR):
         self.dir = profiles_dir
-        self._ensure_defaults()
         self._dedup()  # fix any duplicates from earlier versions
-
-    def _ensure_defaults(self):
-        """On first launch, copy bundled default profiles into user's profiles dir."""
-        # Only copy if profiles dir is empty (first launch)
-        if list(self.dir.glob("*.json")):
-            return
-        bd = self._bundled_dir()
-        if bd:
-            copied = 0
-            for pf in bd.glob("*.json"):
-                dest = self.dir / pf.name
-                try:
-                    dest.write_text(pf.read_text(encoding="utf-8"), encoding="utf-8")
-                    copied += 1
-                except Exception:
-                    pass
-            if copied:
-                logger.info(f"Copied {copied} default profile(s) from {bd} to {self.dir}")
-                return
-        # Fallback: no bundled dir (e.g. running from source without Default_Profile/)
-        import json as _json
-        fallback = {"profileName":"Default","version":"1.0","device":"iPad 11\" (landscape)","deviceWidth":1210,"deviceHeight":834,"cellSize":60,"canvasX":0,"canvasY":0,"defaultSound":"click","windowRules":[],"pages":[{"id":"main","label":"Main","keys":[]}]}
-        (self.dir / "Default.json").write_text(_json.dumps(fallback, indent=2, ensure_ascii=False), encoding="utf-8")
 
     # ── Bundled default profiles (shipped in app, available for import) ──
 
