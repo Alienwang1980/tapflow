@@ -449,104 +449,15 @@ def run_server():
             _start_mic_sampler()
         return {"level": round(_mic_level, 4)}
 
-    def _ensure_switch_audio_source() -> str | None:
-        """Ensure SwitchAudioSource binary is installed in App Support.
-        On first run (or when missing), copies from bundle Resources/bin.
-        Returns the binary path or None if unavailable."""
-        import shutil as _sh11
-        dst = os.path.expanduser("~/Library/Application Support/Smart Touch Panel/bin/SwitchAudioSource")
-        if os.path.isfile(dst) and os.access(dst, os.X_OK):
-            return dst
-        src = None
-        if _is_frozen():
-            bundle = os.path.dirname(os.path.dirname(sys.executable))  # Contents
-            candidate = os.path.join(bundle, "Resources", "bin", "SwitchAudioSource")
-            if os.path.isfile(candidate):
-                src = candidate
-        else:
-            for cand in [os.path.join(os.path.dirname(__file__), "..", "bin", "SwitchAudioSource"),
-                         "/opt/homebrew/bin/SwitchAudioSource",
-                         "/usr/local/bin/SwitchAudioSource"]:
-                if os.path.isfile(cand):
-                    src = cand
-                    break
-        if not src:
-            return None
-        try:
-            os.makedirs(os.path.dirname(dst), exist_ok=True)
-            _sh11.copy2(src, dst)
-            os.chmod(dst, 0o755)
-            logger.info("SwitchAudioSource installed: %s -> %s", src, dst)
-            return dst
-        except Exception as e:
-            logger.warning("SwitchAudioSource install failed: %s", e)
-            return src  # fallback: use from bundle/project tree
+    # ── Audio Device Routes (injected) ──
+    from routes_audio import create_router as _audio_router
+    app.include_router(_audio_router(state, _is_frozen))
 
-    @app.get("/api/system/audio-devices")
-    def _sys_adev():
-        sw = _ensure_switch_audio_source()
-        if not sw: return []
-        env = {"LANG":"C","PATH":os.environ.get("PATH","")}
-        devs = []
-        for dtype, dlabel in [("output","output"),("input","input")]:
-            cur_r = _sc.run([sw, "-c", "-t", dtype], capture_output=True, encoding="utf-8", env=env)
-            cur_name = cur_r.stdout.strip()
-            r2 = _sc.run([sw, "-a", "-t", dtype], capture_output=True, encoding="utf-8", env=env)
-            for line in r2.stdout.strip().splitlines():
-                ls = line.strip()
-                if not ls: continue
-                devs.append({"name": ls, "type": dlabel, "current": ls == cur_name})
-        return devs
-
-    @app.post("/api/system/audio-output")
-    async def _sys_aout(body: dict):
-        sw = os.path.expanduser("~/Library/Application Support/Smart Touch Panel/bin/SwitchAudioSource")
-        if os.path.exists(sw):
-            _sc.run([sw, "-t", "output", "-s", body.get("name", "")])
-        return {"status": "ok"}
-
-    @app.post("/api/system/audio-input")
-    async def _sys_ain(body: dict):
-        sw = os.path.expanduser("~/Library/Application Support/Smart Touch Panel/bin/SwitchAudioSource")
-        if os.path.exists(sw):
-            _sc.run([sw, "-t", "input", "-s", body.get("name", "")])
-        return {"status": "ok"}
-
-    def _cycle_audio_device(dtype: str):
-        """Cycle to the next audio device of the given type. Returns status + new name."""
-        sw = _ensure_switch_audio_source()
-        if not sw:
-            return {"status": "error", "reason": "SwitchAudioSource not found"}
-        env = {"LANG":"C","PATH":os.environ.get("PATH","")}
-        cur_r = _sc.run([sw, "-c", "-t", dtype], capture_output=True, encoding="utf-8", env=env)
-        cur_name = cur_r.stdout.strip()
-        r = _sc.run([sw, "-a", "-t", dtype], capture_output=True, encoding="utf-8", env=env)
-        names = []
-        for line in r.stdout.strip().splitlines():
-            ls = line.strip()
-            if not ls: continue
-            names.append(ls)
-        if not names: return {"status": "error", "reason": "no devices"}
-        try: cur_idx = names.index(cur_name)
-        except ValueError: cur_idx = 0
-        next_name = names[(cur_idx + 1) % len(names)]
-        _sc.run([sw, "-t", dtype, "-s", next_name])
-        return {"status": "ok", "current": next_name}
-
-    @app.post("/api/system/audio-input/cycle")
-    async def _sys_ain_cycle():
-        return _cycle_audio_device("input")
-
-    @app.post("/api/system/audio-output/cycle")
-    async def _sys_aout_cycle():
-        return _cycle_audio_device("output")
     # ── Window + Thumbnail Routes (injected) ──
     from routes_window import create_router as _window_router
     app.include_router(_window_router(state))
     from routes_thumbnail import create_router as _thumbnail_router
     app.include_router(_thumbnail_router(state))
-    from routes_window import create_router as _window_router
-    app.include_router(_window_router(state))
 
     # ── Dock Panel (injected) ──
     from routes_dock import create_router as _dock_router
