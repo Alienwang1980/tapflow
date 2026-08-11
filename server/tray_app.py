@@ -867,66 +867,9 @@ def run_server():
         return {"status": "ok"}
 
     
-    # ── App Icon ──
-
-    @app.get("/api/system/app-icon")
-    def _sys_icon(name: str = ""):
-        import os as _os4
-        if not name: return {"error": "missing name"}
-        cache_dir = _os4.path.expanduser("~/Library/Application Support/Smart Touch Panel/icon_cache")
-        _os4.makedirs(cache_dir, exist_ok=True)
-        cp = _os4.path.join(cache_dir, name.replace("/","_") + ".png")
-        if _os4.path.exists(cp):
-            from fastapi.responses import FileResponse
-            return FileResponse(cp, media_type="image/png")
-        # Find app bundle
-        ap = None
-        for b in ["/Applications","/System/Applications","/System/Applications/Utilities","/System/Library/CoreServices","/System/Volumes/Preboot/Cryptexes/App/System/Applications"]:
-            t = _os4.path.join(b, name+".app")
-            if _os4.path.exists(t): ap = t; break
-        if not ap:
-            # 固定目录没命中(如 ~/Applications、DMG 直启等)→ 问 LaunchServices
-            try:
-                from Cocoa import NSWorkspace as _NSW0
-                p = _NSW0.sharedWorkspace().fullPathForApplication_(name)
-                if p and _os4.path.exists(p): ap = str(p)
-            except Exception:
-                pass
-        if ap:
-            ic = None
-            for fn in ["AppIcon.icns","ApplicationIcon.icns","app.icns","icon.icns", name+".icns"]:
-                t = _os4.path.join(ap,"Contents/Resources",fn)
-                if _os4.path.exists(t): ic = t; break
-            if ic:
-                _sc.run(["sips","-s","format","png",ic,"--out",cp,"-Z","64"], capture_output=True)
-                if _os4.path.exists(cp):
-                    from fastapi.responses import FileResponse
-                    return FileResponse(cp, media_type="image/png")
-            # Fallback: use NSWorkspace for apps with Assets.car (no .icns)
-            try:
-                from Cocoa import NSWorkspace as _NSW, NSImage as _NSI, NSBitmapImageRep as _NSB
-                _icon = _NSW.sharedWorkspace().iconForFile_(ap)
-                if _icon:
-                    _sz = (64.0, 64.0)
-                    _new = _NSI.alloc().initWithSize_(_sz)
-                    _new.lockFocus()
-                    _src = _icon.size()
-                    _icon.drawInRect_fromRect_operation_fraction_(
-                        ((0.0, 0.0), _sz), ((0.0, 0.0), _src), 2, 1.0)
-                    _new.unlockFocus()
-                    _tiff = _new.TIFFRepresentation()
-                    if _tiff:
-                        _bm = _NSB.imageRepWithData_(_tiff)
-                        if _bm:
-                            _png = _bm.representationUsingType_properties_(4, None)
-                            _png.writeToFile_atomically_(cp, True)
-                            if _os4.path.exists(cp):
-                                from fastapi.responses import FileResponse
-                                return FileResponse(cp, media_type="image/png")
-            except Exception:
-                pass
-        from fastapi import HTTPException as _HTTPExc4
-        raise _HTTPExc4(404, f"icon not found: {name}")
+    # ── App Icon (injected) ──
+    from routes_app_icon import create_router as _app_icon_router
+    app.include_router(_app_icon_router(state))
 
     _logger.info("Widget routes registered")
 
