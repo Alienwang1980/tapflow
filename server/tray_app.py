@@ -462,6 +462,9 @@ try:
             url = f"http://{ip}:{PORT}/"
             _sp_op.run(["open", url])  # Safe arg list, no shell
 
+        def toggleAutoStart_(self, sender):
+            _set_skip_startup_dashboard(bool(sender.state()))
+
         def windowWillClose_(self, note):
             _DASH["panel"] = None
             _DASH["delegate"] = None
@@ -582,6 +585,38 @@ def _qr_nsimage(url, size=160):
     img = img.resize((size, size), Image.LANCZOS)
     return _pil_to_nsimage(img)
 
+# ── Dashboard / Startup preferences ──
+
+def _config_path():
+    import os as _os
+    d = _os.path.join(_os.path.expanduser("~"), "Library", "Application Support", "Smart Touch Panel")
+    _os.makedirs(d, exist_ok=True)
+    return _os.path.join(d, "config.json")
+
+def _read_config():
+    import json as _json
+    try:
+        with open(_config_path()) as f:
+            return _json.load(f)
+    except Exception:
+        return {}
+
+def _write_config(cfg):
+    import json as _json
+    try:
+        with open(_config_path(), "w") as f:
+            _json.dump(cfg, f)
+    except Exception:
+        pass
+
+def _should_auto_show_dashboard():
+    return not _read_config().get("skip_startup_dashboard")
+
+def _set_skip_startup_dashboard(skip):
+    cfg = _read_config()
+    cfg["skip_startup_dashboard"] = bool(skip)
+    _write_config(cfg)
+
 # ── Dashboard window (CleanMyMac‑style graphical main interface) ──
 
 def open_dashboard():
@@ -600,7 +635,7 @@ def open_dashboard():
     ip = get_local_ip()
     panel_url = f"http://{ip}:{PORT}/"
 
-    W, H = 480, 420
+    W, H = 480, 460
     screen = AppKit.NSScreen.mainScreen()
     sf = screen.visibleFrame()
     x = int((sf.size.width - W) / 2 + sf.origin.x)
@@ -699,8 +734,17 @@ def open_dashboard():
 
     _btn("Open Panel Editor", (W - btn_w) // 2, edit_y + 10, btn_w, 30, "openEditor:")
 
+    # ── Bottom: auto-start checkbox ──
+    from AppKit import NSButton
+    chk = NSButton.alloc().initWithFrame_(NSMakeRect(20, 20, W - 40, 22))
+    chk.setTitle_("下次不自动打开")
+    chk.setButtonType_(2)  # NSSwitchButton (checkbox)
+    chk.setTarget_(dele)
+    chk.setAction_("toggleAutoStart:")
+    content.addSubview_(chk)
+
     # ── Bottom IP bar ──
-    _label(f"{ip}:{PORT}", 0, 10, W, 16, size=10,
+    _label(f"{ip}:{PORT}", 0, 42, W, 16, size=10,
            color=NC.colorWithRed_green_blue_alpha_(0.35, 0.30, 0.27, 1.0), align=1)
 
     panel.center()
@@ -871,6 +915,14 @@ def main():
 
     # Self-register as launchd agent (KeepAlive) — idempotent, bundle mode only
     logger.info(f"Launch agent: {register_launch_agent()}")
+
+    # Auto-open dashboard on startup (unless user checked "下次不自动打开")
+    try:
+        if _should_auto_show_dashboard():
+            open_dashboard()
+            logger.info("Auto-opened dashboard")
+    except Exception:
+        pass
 
     # Startup check: if accessibility not granted, trigger system dialog + open Settings
     try:
