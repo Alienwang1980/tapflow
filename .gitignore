@@ -10,3 +10,4 @@ logs/
 .eggs/
 build/
 dist/
+*.dmg

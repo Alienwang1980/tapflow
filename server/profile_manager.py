@@ -92,16 +92,23 @@ class ProfileManager:
     def _ensure_default(self):
         default_path = self.dir / "Default.json"
         if not default_path.exists():
-            # Try to copy from bundled app resources first
+            # Try to copy ALL bundled profiles from app resources first
             import sys
             if getattr(sys, 'frozen', False):
                 # py2app: resources are ../Resources relative to executable
                 resource_dir = Path(sys.executable).parent.parent / "Resources"
-                resource_default = resource_dir / "server" / "profiles" / "Default.json"
-                if resource_default.exists():
+                bundled_profiles = resource_dir / "server" / "profiles"
+                if bundled_profiles.exists():
                     import shutil
-                    default_path.write_text(resource_default.read_text(encoding='utf-8'), encoding='utf-8')
-                    return
+                    copied = 0
+                    for pf in bundled_profiles.glob("*.json"):
+                        dest = self.dir / pf.name
+                        if not dest.exists():
+                            dest.write_text(pf.read_text(encoding='utf-8'), encoding='utf-8')
+                            copied += 1
+                    if copied > 0:
+                        logger.info(f"Copied {copied} bundled profile(s) to {self.dir}")
+                        return
             self.save_profile(DEFAULT_PROFILE, "Default.json")
 
     def list_profiles(self) -> list[dict]:
