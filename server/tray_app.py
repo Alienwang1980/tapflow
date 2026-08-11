@@ -792,7 +792,7 @@ def open_about():
     if _StpAboutDelegate is None:
         return
 
-    W, H = 360, 280
+    W, H = 360, 340
     panel = AppKit.NSPanel.alloc().initWithContentRect_styleMask_backing_defer_(
         NSMakeRect(0, 0, W, H),
         AppKit.NSWindowStyleMaskTitled | AppKit.NSWindowStyleMaskClosable,
@@ -820,27 +820,43 @@ def open_about():
         content.addSubview_(f)
         return f
 
-    from AppKit import NSButton, NSBezelStyleRounded, NSBox
+    from AppKit import NSButton, NSBezelStyleRounded, NSBox, NSImageView, NSImage
+    from Foundation import NSData
 
-    y_ = H - 40
+    # ── Logo (same as tray icon, 64×64) ──
+    logo_size = 64
+    logo_x = (W - logo_size) // 2
+    logo_y = H - 48 - logo_size
+    logo_pil = create_icon_image(logo_size)
+    buf = io.BytesIO()
+    logo_pil.save(buf, format='PNG')
+    ns_data = NSData.dataWithBytes_length_(buf.getvalue(), buf.tell())
+    ns_img = NSImage.alloc().initWithData_(ns_data)
+    logo_view = NSImageView.alloc().initWithFrame_(NSMakeRect(logo_x, logo_y, logo_size, logo_size))
+    logo_view.setImage_(ns_img)
+    logo_view.setImageScaling_(2)  # NSImageScaleProportionallyUpOrDown
+    content.addSubview_(logo_view)
+
+    y_ = logo_y - 14
     _l("Tapflow / 点流", 0, y_, W, 28, size=20, bold=True, align=1)
-    y_ -= 30
+    y_ -= 24
     _l("Tap points, flowing keys.", 0, y_, W, 16, size=11, align=1)
-    y_ -= 30
+    y_ -= 28
 
     # Divider
-    div = NSBox.alloc().initWithFrame_(NSMakeRect(30, y_, W - 60, 1))
+    div = NSBox.alloc().initWithFrame_(NSMakeRect(50, y_, W - 100, 1))
     div.setBoxType_(2)
     content.addSubview_(div)
     y_ -= 24
 
-    _l("版本: 1.0.0", 30, y_, W - 60, 20, size=12)
+    _l("版本: 1.0.0", 50, y_, W - 100, 20, size=12)
     y_ -= 22
-    _l("作者: mini (Alienwang1980)", 30, y_, W - 60, 20, size=12)
-    y_ -= 30
+    _l("作者: Alienwang", 50, y_, W - 100, 20, size=12)
+    y_ -= 38
 
-    # GitHub link button
-    gh_btn = NSButton.alloc().initWithFrame_(NSMakeRect(80, y_ - 30, 200, 30))
+    # GitHub link button (centered)
+    btn_w = 200
+    gh_btn = NSButton.alloc().initWithFrame_(NSMakeRect((W - btn_w) // 2, y_, btn_w, 30))
     gh_btn.setTitle_("GitHub → tapflow")
     gh_btn.setBezelStyle_(NSBezelStyleRounded)
     gh_btn.setTarget_(dele)
