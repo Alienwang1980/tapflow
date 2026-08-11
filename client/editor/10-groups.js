@@ -39,8 +39,12 @@ document.addEventListener("keydown",e=>{
 });
 
 async function resetDefault(){
-  if(!confirm("Reset to default 89-key keyboard? Current layout will be lost."))return;
-  try{const r=await fetch("/api/default-template");var keepName=profile?profile.profileName:"";profile=await r.json();if(keepName)profile.profileName=keepName;activePage=profile.pages[0]?.id||"";panX=0;panY=0;viewX=0;viewY=0;viewZoom=1;selKey=null;selKeys.clear();dirty=true;renderAll();t("Default layout loaded")}catch(e){t("Failed: "+e,true)}
+  if(!confirm("Clear current profile? All keys will be removed."))return;
+  if(!profile)return;
+  profile.pages=[{id:"main",label:"Main",keys:[]}];
+  profile.canvasX=0;profile.canvasY=0;profile.viewX=0;profile.viewY=0;profile.viewZoom=1;
+  activePage="main";selKey=null;selKeys.clear();
+  dirty=true;renderAll();t("Profile cleared")
 }
 function cws(){
   var _p=location.protocol==="https:"?"wss:":"ws:";ws=new WebSocket(_p+"//"+location.hostname+":8082/ws");
