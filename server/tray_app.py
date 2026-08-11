@@ -587,35 +587,27 @@ def _qr_nsimage(url, size=160):
 
 # ── Dashboard / Startup preferences ──
 
-def _config_path():
-    import os as _os
-    d = _os.path.join(_os.path.expanduser("~"), "Library", "Application Support", "Smart Touch Panel")
-    _os.makedirs(d, exist_ok=True)
-    return _os.path.join(d, "config.json")
-
-def _read_config():
-    import json as _json
+def _should_auto_show_dashboard():
     try:
-        with open(_config_path()) as f:
-            return _json.load(f)
-    except Exception:
-        return {}
-
-def _write_config(cfg):
-    import json as _json
-    try:
-        with open(_config_path(), "w") as f:
-            _json.dump(cfg, f)
+        if os.path.exists(_config_path()):
+            with open(_config_path(), "r", encoding="utf-8") as f:
+                return not json.loads(f.read()).get("skip_startup_dashboard")
     except Exception:
         pass
-
-def _should_auto_show_dashboard():
-    return not _read_config().get("skip_startup_dashboard")
+    return True
 
 def _set_skip_startup_dashboard(skip):
-    cfg = _read_config()
-    cfg["skip_startup_dashboard"] = bool(skip)
-    _write_config(cfg)
+    try:
+        cfg = {}
+        cp = _config_path()
+        if os.path.exists(cp):
+            with open(cp, "r", encoding="utf-8") as f:
+                cfg = json.loads(f.read())
+        cfg["skip_startup_dashboard"] = bool(skip)
+        with open(cp, "w", encoding="utf-8") as f:
+            json.dump(cfg, f, indent=2)
+    except Exception:
+        pass
 
 # ── Dashboard window (CleanMyMac‑style graphical main interface) ──
 
