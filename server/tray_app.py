@@ -42,6 +42,17 @@ TOOLTIP = "Tapflow — Tap points, flowing keys"
 # config.json 路径: ~/Library/Application Support/Tapflow/config.json
 import json as _json_cfg
 
+# ── One-time data migration (Smart Touch Panel → Tapflow) ──
+# Must run BEFORE _config_dir() creates the new path.
+_OLD_DATA = os.path.expanduser("~/Library/Application Support/Smart Touch Panel")
+_NEW_DATA = os.path.expanduser("~/Library/Application Support/Tapflow")
+if os.path.isdir(_OLD_DATA) and not os.path.isdir(_NEW_DATA):
+    try:
+        os.rename(_OLD_DATA, _NEW_DATA)
+        logger.info("Migrated data dir: %s → %s", _OLD_DATA, _NEW_DATA)
+    except Exception as _e_mig:
+        logger.warning("Data migration failed: %s", _e_mig)
+
 def _config_dir() -> str:
     d = os.path.expanduser("~/Library/Application Support/Tapflow")
     try:
@@ -992,16 +1003,6 @@ def main():
     # 必须在 run_server / run_tray 之前,避免 pystray 或其他 Cocoa 调用时
     # NSApp 还未设为 Accessory 模式。
     _ensure_appkit_accessory()
-
-    # ── Migrate old data directory (Smart Touch Panel → Tapflow) ──
-    _old_data = os.path.expanduser("~/Library/Application Support/Smart Touch Panel")
-    _new_data = os.path.expanduser("~/Library/Application Support/Tapflow")
-    try:
-        if os.path.isdir(_old_data) and not os.path.isdir(_new_data):
-            os.rename(_old_data, _new_data)
-            logger.info("Migrated data dir: %s → %s", _old_data, _new_data)
-    except Exception as _e_mig:
-        logger.warning("Data migration skipped: %s", _e_mig)
 
     _ensure_config(PORT)
     # Start FastAPI in background thread
