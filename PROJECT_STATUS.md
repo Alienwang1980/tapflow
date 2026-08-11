@@ -1,10 +1,10 @@
-# Smart Touch Panel — 项目全貌 & 进度
+# Tapflow（原 Smart Touch Panel）— 项目全貌 & 进度
 
-> 最后更新: 2026-08-11 | 版本: 1.5.0
+> 最后更新: 2026-08-11 | 版本: 1.5.0 | 已 rebrand: Smart Touch Panel → Tapflow
 
 ## 一句话描述
 
-**Smart Touch Panel** 是一个 macOS 菜单栏应用。在 Mac 上启动 HTTP + WebSocket 服务（端口 8082），iPad 通过局域网浏览器连接，将 iPad 屏幕变成可自定义的虚拟触控面板。所有触摸操作通过 Quartz CoreGraphics `CGEvent` 注入 macOS，模拟键盘/鼠标输入。
+**Tapflow**（原名 Smart Touch Panel）是一个 macOS 菜单栏应用。在 Mac 上启动 HTTP + WebSocket 服务（端口 8082），iPad 通过局域网浏览器连接，将 iPad 屏幕变成可自定义的虚拟触控面板。所有触摸操作通过 Quartz CoreGraphics `CGEvent` 注入 macOS，模拟键盘/鼠标输入。
 
 ---
 
@@ -303,14 +303,14 @@ carea (flexbox 居中 cwrap)
 | Port 8082 硬编码 | plist / 前端 / 逻辑三处硬编码，改端口需同步 |
 | API 路由在 `tray_app.py` 内联 | `widget_extension.py` 是备用，实际路由在 `run_server()` 里 |
 | 服务端从源码目录运行 | `start.sh` 跑 `server/tray_app.py`，不是 app bundle |
-| 运行 App 在 `/Applications/` | 非 `dist/`！修改后必须 cp 到 `/Applications/Smart Touch Panel.app/Contents/Resources/client/` |
+| 运行 App 在 `/Applications/` | 非 `dist/`！修改后必须 cp 到 `/Applications/Tapflow.app/Contents/Resources/client/` |
 | 重打包 → 新 cdhash → TCC 重授权 | 先 `tccutil reset` 再重授权 |
 | Editor 必须在 Safari 打开 | 其他浏览器没有原生 `<input type=color>` |
 | py2app 用 server/venv 的 Python | 不能用 `.venv`（缺少 AVFoundation/PyObjC） |
 | py2app site_packages=False 必须 | 否则 venv 绝对路径烧进 `__boot__.py` → launchd 挂死 |
 | 服务器启动慢（~15s） | 菜单栏图标出现不代表服务就绪 |
 | **⚠️ Python 加载优先级** | `Resources/*.py` 源文件优先于 `lib/python314.zip` 中的 `.pyc`。改 server 代码必须**同时更新源文件和 zip 中 .pyc** |
-| **⚠️ launchd 自动重启** | App 被 `com.smarttouch.panel` LaunchAgent 管理,kill 后自动拉起。需停止用 `launchctl bootout`,不要 `kill -9` |
+| **⚠️ launchd 自动重启** | App 被 `com.tapflow.app` LaunchAgent 管理,kill 后自动拉起。需停止用 `launchctl bootout`,不要 `kill -9` |
 | **⚠️ macOS 26 CG nil title** | 所有 `kCGWindowName` 为 None,Catalyst/SwiftUI app 不暴露 AX 窗口。枚举必须用 owner name 兜底 + CG 补 AX 盲区 |
 | **⚠️ ASI 分号陷阱** | `setTimeout(...)` 后接 `delete` 不会触发 JS ASI，必须显式加分号 |
 
@@ -323,4 +323,4 @@ carea (flexbox 居中 cwrap)
 - **局域网 IP**: 192.168.2.20
 - **Git 远端**: NAS `192.168.2.62:/volume1/Git_Station/smart-touch-panel.git`
 - **签名**: Apple Development, `50035AAD0722786A4C024087383B654504F75C33`, Team `7F246MKBN2`
-- **部署**: launchd `com.smarttouch.panel` (KeepAlive + 崩溃自愈)
+- **部署**: launchd `com.tapflow.app` (KeepAlive + 崩溃自愈)

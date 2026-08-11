@@ -1,22 +1,22 @@
-# Smart Touch Panel — 项目全貌（CONTEXT）
+# Tapflow（原 Smart Touch Panel）— 项目全貌（CONTEXT）
 
 > 本文档为项目领域知识 + 完整现状快照 + 待办计划。后续开发（含 AI）动代码前**必须优先阅读**。
-> 最后更新：2026-08-11（macOS 26 CG nil-title 适配 + 窗口枚举重构 + Dashboard 重设计） ｜ 全部数据基于 2026-08-11 实测
+> 最后更新：2026-08-11（macOS 26 CG nil-title 适配 + 窗口枚举重构 + Dashboard 重设计 + rebrand Tapflow） ｜ 全部数据基于 2026-08-11 实测
 
 ---
 
 ## 1. 项目是什么
 
-Smart Touch Panel（STP）是一个 **macOS 菜单栏应用**：在 Mac 上起一个 HTTP + WebSocket 服务（端口 **8082**），iPad 用浏览器连入后，屏幕变成可自定义的**虚拟触控控制面板**。所有触控/按键通过 macOS Quartz CoreGraphics `CGEvent` 注入系统，模拟真实键鼠输入。
+**Tapflow**（原名 Smart Touch Panel，STP）是一个 **macOS 菜单栏应用**：在 Mac 上起一个 HTTP + WebSocket 服务（端口 **8082**），iPad 用浏览器连入后，屏幕变成可自定义的**虚拟触控控制面板**。所有触控/按键通过 macOS Quartz CoreGraphics `CGEvent` 注入系统，模拟真实键鼠输入。
 
 - **平台**：仅 Apple Silicon（arm64），macOS 15 Sequoia
 - **连接**：iPad 与 Mac 同一局域网，iPad 打开 `http://<Mac-IP>:8082`，编辑器 `/editor`
 - **编辑器**：必须用 **Safari** 打开（macOS 原生颜色选择器），Chrome 不支持
 - **两种运行形态**：
-  1. **生产**：launchd 自托管 `~/Library/LaunchAgents/com.smarttouch.panel.plist`（KeepAlive + 崩溃自愈）
+  1. **生产**：launchd 自托管 `~/Library/LaunchAgents/com.tapflow.app.plist`（KeepAlive + 崩溃自愈）
   2. **分发**：py2app 打包 `.app` + Apple Development 签名（`dist/`），DMG 安装
 
-**当前运行状态（2026-07-16）**：`.app` 版正在运行，端口 8082，Mac IP `192.168.2.20`。launchd 自托管 + Apple Development 签名。
+**当前运行状态（2026-08-11）**：Tapflow.app 正在运行（PID 40298），端口 8082，Mac IP `192.168.2.20`。launchd 自托管 + Apple Development 签名。Active profile: vibe.json。
 
 ---
 
@@ -86,7 +86,7 @@ smart-touch-panel/
 └── logs/                            # keep_alive.log, stp.pid
 ```
 
-**用户数据目录**：`~/Library/Application Support/Smart Touch Panel/`
+**用户数据目录**：`~/Library/Application Support/Tapflow/`
 
 ```
 ├── config.json                      # {"port": 8082}
@@ -515,30 +515,30 @@ CGEvent 单独按下修饰键（如只按 LSHIFT）→ macOS **可能不识别�
 
 ### 12.1 运行模型（2026-07-15 起:launchd 自托管）
 
-- **运行时标准位置:`/Applications/Smart Touch Panel.app`**(内置盘)。`dist/` 只是构建产物。
+- **运行时标准位置:`/Applications/Tapflow.app`**(内置盘)。`dist/` 只是构建产物。
   - ⚠️ launchd 拉起的进程读 WD_BLACK(外置卷)会永久挂死在 opendir(实测,sample 实锤)
 - 开机自启 + 崩溃自愈:app 启动时 `register_launch_agent()` 自安装
-  `~/Library/LaunchAgents/com.smarttouch.panel.plist`(KeepAlive SuccessfulExit=false,ThrottleInterval 10)
+  `~/Library/LaunchAgents/com.tapflow.app.plist`(KeepAlive SuccessfulExit=false,ThrottleInterval 10)
   - 正常启动只写 plist 不 bootout(避免杀自己);`STP_REGISTER_ONLY=1` 模式才 bootout+bootstrap
 - keep_alive.sh / cron @reboot 已退役(c77e1c0);SMAppService 不可用(macOS 26 + adhoc:LWCR 0x3 / BundleProgram 0x6f)
 
 ```bash
 # 查看
 lsof -ti:8082                                  # pid
-launchctl print gui/501/com.smarttouch.panel   # job 状态
+launchctl print gui/501/com.tapflow.app        # job 状态
 tail -f /tmp/stp_agent.log                     # 日志
 
 # 手动重启(kill -9 会被 launchd 自动拉起;干净退出/kickstart -k 见下)
-launchctl kickstart -k gui/501/com.smarttouch.panel
+launchctl kickstart -k gui/501/com.tapflow.app
 ```
 
 ### 12.2 更新部署流程(重打包后)
 
 ```bash
-launchctl bootout gui/501/com.smarttouch.panel
-rm -rf "/Applications/Smart Touch Panel.app"
-ditto "dist/Smart Touch Panel.app" "/Applications/Smart Touch Panel.app"
-STP_REGISTER_ONLY=1 "/Applications/Smart Touch Panel.app/Contents/MacOS/Smart Touch Panel"
+launchctl bootout gui/501/com.tapflow.app
+rm -rf "/Applications/Tapflow.app"
+ditto "dist/Tapflow.app" "/Applications/Tapflow.app"
+STP_REGISTER_ONLY=1 "/Applications/Tapflow.app/Contents/MacOS/Tapflow"
 # ⚠️ 验证监听的是新实例(curl /openapi.json 查新路由):遗留老实例占着 8082 时,
 #    新实例端口守卫重试 15s 后干净退出 → kill 老实例 + launchctl kickstart
 ```
@@ -564,22 +564,22 @@ server/venv/bin/python3 setup.py py2app      # ⚠️ 必须 server/venv(.venv �
 # 证书: Apple Development: wang xinlei (3PZ5GB6NV9)
 # hash: 50035AAD0722786A4C024087383B654504F75C33
 # 到期: 2027-06-04
-codesign --force --deep -s 50035AAD0722786A4C024087383B654504F75C33 "dist/Smart Touch Panel.app"
-codesign --verify --deep --strict "dist/Smart Touch Panel.app"
+codesign --force --deep -s 50035AAD0722786A4C024087383B654504F75C33 "dist/Tapflow.app"
+codesign --verify --deep --strict "dist/Tapflow.app"
 ```
 
 **DMG 打包：**
 ```bash
 mkdir /tmp/stp_dmg_root
-ditto "dist/Smart Touch Panel.app" "/tmp/stp_dmg_root/Smart Touch Panel.app"
+ditto "dist/Tapflow.app" "/tmp/stp_dmg_root/Tapflow.app"
 ln -s /Applications /tmp/stp_dmg_root/Applications
-hdiutil create -volname "Smart Touch Panel" -srcfolder /tmp/stp_dmg_root -ov -format UDZO ~/Desktop/STP.dmg
+hdiutil create -volname "Tapflow" -srcfolder /tmp/stp_dmg_root -ov -format UDZO ~/Desktop/Tapflow.dmg
 rm -rf /tmp/stp_dmg_root
 ```
 
 **rebuild 后 TCC 重授权流程**（每次重打包必做,见 §13.9）：
 ```bash
-for s in ScreenCapture Accessibility Microphone; do tccutil reset $s com.smarttouch.panel; done
+for s in ScreenCapture Accessibility Microphone; do tccutil reset $s com.tapflow.app; done
 # cron/launchd 归因启动 app → 触发一次截屏/录音尝试 → 系统设置里重新授权三项
 ```
 
