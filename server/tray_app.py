@@ -208,7 +208,7 @@ def create_icon_image(size=64):
 
 def run_server():
     """Run FastAPI server in background thread."""
-    import uvicorn, json as _json, os as _os, re as _re, logging as _logging
+    import uvicorn, os as _os, re as _re, logging as _logging
     from profile_manager import profile_manager as _pm
     from state import ServerState
     _logger = _logging.getLogger("stp.widgets")
@@ -231,57 +231,13 @@ def run_server():
     from routes_profile import create_router as _profile_router
     app.include_router(_profile_router(state, _pm))
 
-    @app.get("/api/deepseek/balance")
-    def _get_balance(api_key: str = ""):
-        import urllib.request, logging as _log2
-        _log2.getLogger("stp.widgets").info(f"Balance API called, key={api_key[:12] if api_key else 'NONE'}...")
-        if not api_key:
-            from fastapi import HTTPException; raise HTTPException(400, "Missing api_key")
-        try:
-            req = urllib.request.Request(
-                "https://api.deepseek.com/user/balance",
-                headers={"Authorization": f"Bearer {api_key}", "Accept": "application/json"})
-            body = urllib.request.urlopen(req, timeout=10).read()
-            result = _json.loads(body)
-            _log2.getLogger("stp.widgets").info(f"Balance API success: {result}")
-            return result
-        except Exception as e:
-            _log2.getLogger("stp.widgets").error(f"Balance API failed: {e}")
-            from fastapi import HTTPException; raise HTTPException(500, str(e))
-    
-    # ── System Control routes ──
+    # ── Volume + Balance Routes (injected) ──
+    from routes_volume import create_router as _volume_router
+    app.include_router(_volume_router(state))
+
+    # ── System Control routes (mic remainder, will move to routes_mic) ──
     import subprocess as _sc
-    _state = {"muted": False, "mic_pre": None}
-
-    @app.get("/api/system/volume")
-    def _sys_vol():
-        r = _sc.run(["osascript", "-e", "get volume settings"], capture_output=True, encoding='utf-8')
-        res = {"output_volume": 75, "input_volume": 50, "output_muted": False}
-        for part in r.stdout.strip().split(","):
-            p = part.strip()
-            try:
-                if "output volume" in p:
-                    v = p.split(":")[1].strip()
-                    if v != "missing value": res["output_volume"] = int(v)
-                elif "input volume" in p:
-                    v = p.split(":")[1].strip()
-                    if v != "missing value": res["input_volume"] = int(v)
-                elif "output muted" in p:
-                    pass
-            except: pass
-        res["output_muted"] = _state["muted"]; return res
-
-    @app.post("/api/system/volume")
-    async def _sys_vol_set(body: dict):
-        v = max(0, min(100, int(body.get("value", 75))))
-        _sc.run(["osascript", "-e", f"set volume output volume {v}"])
-        return {"status": "ok"}
-
-    @app.post("/api/system/mute")
-    async def _sys_mute():
-        _state["muted"] = not _state["muted"]
-        _sc.run(["osascript", "-e", f"set volume output muted {str(_state['muted']).lower()}"])
-        return {"muted": _state["muted"]}
+    _state = {"mic_pre": None, "mic_muted": False}
 
     @app.post("/api/system/mic-mute")
     async def _sys_mic_mute():
