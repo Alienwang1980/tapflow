@@ -197,4 +197,4 @@ function _addSndPreviews(){var _ss=document.querySelectorAll("#pc select");for(v
 function t(msg){const el=document.getElementById("toast");el.textContent=msg;el.className="toast";el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2000)}
 
 window.addEventListener("resize",()=>rr());
-setTimeout(function(){buildRatioPresets()},200);cws();lpl().then(function(){var saved=localStorage.getItem("stp_active");if(saved&&profiles.some(function(p){return p.filename===saved})){lp(saved)}else if(profiles.length>0){lp(profiles[0].filename)}else{profile=null;profileLoaded=true;renderAll()}})
+setTimeout(function(){buildRatioPresets()},200);cws();lpl().then(function(){var saved=localStorage.getItem("stp_active");if(saved&&profiles.some(function(p){return p.filename===saved})){lp(saved)}else if(profiles.length>0){lp(profiles[0].filename)}else{activeProfile="";profile=null;profileLoaded=true;renderAll()}})
