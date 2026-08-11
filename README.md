@@ -1,26 +1,33 @@
-# Tapflow / 点流
+# 🎛️ Tapflow / 点流
 
 > **Turn your tablet into a customizable touch control panel for vibe coding.**
 > **把平板变成可定制的触控面板，为 vibe coding 而生。**
 
-Tapflow is a macOS menu bar app that serves a virtual touch panel to any tablet browser (iPad, Android — anything with a modern browser). It works **alongside your tablet's physical keyboard**: your fingers handle shortcuts, window management, media controls, macros, and quick actions on the touch panel while your keyboard stays focused on code. Zero installation on the tablet — just open a URL.
+<p align="center">
+  <img src="https://img.shields.io/badge/platform-macOS%2015%2B%20ARM64-silver?logo=apple" alt="platform">
+  <img src="https://img.shields.io/badge/tablet-iPad%20%7C%20Android-blue" alt="tablet">
+  <img src="https://img.shields.io/badge/license-MIT-green" alt="license">
+  <img src="https://img.shields.io/badge/built%20with-Python%20%7C%20Vanilla%20JS-yellow" alt="tech">
+</p>
 
-Tapflow 是一个 macOS 菜单栏应用。它在 Mac 上启动一个 Web 服务，任何平板（iPad、Android，有浏览器就行）连上来就变成一个虚拟触控面板。它和**平板的物理键盘协同工作**：手指在面板上处理快捷键、窗口管理、媒体控制、宏指令、快捷操作，键盘专注于写代码。平板上零安装——打开网页即用。
+Tapflow is a macOS menu bar app that turns **any tablet** (iPad, Android — anything with a browser) into a virtual touch control panel. It works **alongside your tablet's physical keyboard**: your fingers handle shortcuts, window management, media controls, macros, and quick actions on the touch panel while your keyboard stays focused on code. **Zero installation on the tablet** — just open a URL.
+
+Tapflow 是一个 macOS 菜单栏应用。它在 Mac 上启动一个 Web 服务，任何平板（iPad、Android，有浏览器就行）连上来就变成一个虚拟触控面板。它和**平板的物理键盘协同工作**：手指在面板上处理快捷键、窗口管理、媒体控制、宏指令、快捷操作，键盘专注于写代码。平板上**零安装**——打开网页即用。
 
 ---
 
-## How It Works / 工作原理
+## 📡 How It Works / 工作原理
 
 ```
-┌─────────────────────┐         HTTP + WebSocket        ┌──────────────────────┐
-│  Tablet (iPad/Android) │ ←────────────────────────── │  Mac (Tapflow)       │
-│  browser               │     LAN :8082               │  menu bar app        │
-│                        │                              │                      │
-│  · Canvas-rendered     │   Touch events via WS        │  · CGEvent injection  │
-│    control panel       │   Profile sync via WS        │  · System audio ctl   │
-│  · Profile editor      │                              │  · Window management  │
-│  · Zero install        │                              │  · Menu bar tray      │
-└─────────────────────┘                                └──────────────────────┘
+┌──────────────────────┐         HTTP + WebSocket         ┌──────────────────────┐
+│   Tablet (any OS)    │ ◄────────────────────────────── │   Mac (Tapflow)      │
+│   browser            │           LAN :8082             │   menu bar app       │
+│                      │                                  │                      │
+│   · Canvas-rendered  │    Touch events via WS           │   · CGEvent inject   │
+│     control panel    │    Profile sync via WS           │   · System audio     │
+│   · Profile editor   │                                  │   · Window mgmt      │
+│   · Zero install     │                                  │   · Tray icon        │
+└──────────────────────┘                                  └──────────────────────┘
 ```
 
 Every touch on the tablet is sent to the Mac in real time via WebSocket and injected into macOS as native keyboard/mouse events through Quartz CoreGraphics (`CGEvent`). The tablet feels like a native extension of your Mac.
@@ -29,196 +36,223 @@ Every touch on the tablet is sent to the Mac in real time via WebSocket and inje
 
 ---
 
-## Why Tapflow? / 为什么用 Tapflow？
+## ✨ Why Tapflow? / 为什么用 Tapflow？
 
-| With Tapflow | Without Tapflow |
-|--------------|-----------------|
-| One tap = any shortcut or macro | Memorize dozens of key combinations |
-| Swipe to manage windows | Reach for the trackpad constantly |
-| Visual audio device switcher | Dig through System Settings |
-| One tap to switch profiles (contexts) | Manually reconfigure everything |
-| Your keyboard stays on code | Context-switching breaks flow |
+| With Tapflow ✅ | Without Tapflow ❌ |
+|----------------|-------------------|
+| **One tap** = any shortcut or macro | Memorize dozens of key combinations |
+| **Swipe** to tile windows | Reach for trackpad, drag, resize |
+| **Tap** to switch audio devices | Dig through System Settings |
+| **One tap** to switch workspace profiles | Manually reconfigure everything |
+| **Keyboard stays on code** | Context-switching breaks flow |
 
-Tapflow keeps you **in flow**. Your keyboard writes code. Your fingers tap commands. No context switching.
-
-Tapflow 让你**保持心流**。键盘写代码，手指下指令。无需切换上下文。
+> **Vibe coding 场景：** 你在 Mac 上用 AI 工具（Claude Code、Cursor、Windsurf 等）vibe coding，iPad 架在旁边当触控面板。键盘专注写 prompt 和审查代码，手指在 iPad 上盲操快捷键、切歌、调音量、切换窗口——不用打断键盘流。就像给 Mac 加了一块可定制的 Touch Bar，但更大、更灵活、任何平板都能用。
 
 ---
 
-## Features / 功能
+## 🚀 Quick Start / 快速开始
 
-### Control Widgets (14 types)
-
-| Widget | What It Does |
-|--------|-------------|
-| **Regular Key** | Any keyboard key — tap, hold, or turbo-repeat. Custom label, color, border radius, sound. |
-| **Macro Key** | Multi-key combos like `⌘⇧A`, `⌃⌘Space`. Tap once, fire a sequence. |
-| **Text Macro** | Record a text snippet, replay character-by-character on tap. Full Unicode support. |
-| **Touch Pad** | Mac trackpad emulation — single-finger move, two-finger scroll, tap to click, drag support. |
-| **Volume Slider** | Horizontal or vertical system volume control. Tap to mute/unmute. |
-| **Mic Mute** | Toggle microphone mute. Optional real-time audio level visualization with animated rings. |
-| **Audio Out / Audio In** | Switch audio devices. Tap for a device picker popup, long-press to cycle. |
-| **Window Switcher** | Visual window/tab switcher with real-time thumbnails. Grouped by app, scroll horizontally. Tap to focus any window. |
-| **Window Control (Click)** | Five-zone click pad: fullscreen, top-half, bottom-half, left-half, right-half. Instant window tiling. |
-| **Window Control (Swipe)** | Joystick-style gesture pad. Swipe to snap windows to edges, tap to maximize/restore, long-press for fullscreen. |
-| **Dock Panel** | macOS Dock simulation — launch and quit apps directly from the tablet. Detects running state. |
-| **Fullscreen Toggle** | Toggle iPad browser fullscreen mode. Pure frontend, no backend call. |
-| **Switch Profile** | Switch between profiles (workspace contexts) with one tap. Long-press shows the profile picker. Custom icon color, show/hide label. |
-| **Balance** | DeepSeek API credit balance display. Auto-refreshes every 30s. |
-
-### 控制组件（14 种）
-
-| 组件 | 功能 |
-|------|------|
-| **普通按键** | 任意键盘按键——点按、长按、Turbo 连发。自定义标签、颜色、圆角、音效。 |
-| **组合键宏** | 多键组合如 `⌘⇧A`、`⌃⌘Space`。一键触发序列。 |
-| **文字宏** | 录制文字片段，点击逐字回放。完整 Unicode 支持。 |
-| **触控板** | Mac 触控板模拟——单指移动、双指滚动、点击、拖拽。 |
-| **音量滑块** | 横向或竖向系统音量控制。点击静音/取消静音。 |
-| **麦克风静音** | 切换麦克风静音。可选实时音频电平动画显示。 |
-| **音频输出/输入** | 切换音频设备。点击弹出设备菜单，长按轮换。 |
-| **窗口切换器** | 可视化窗口/标签页切换器，含实时缩略图。按应用分组，横向滚动。点击聚焦任意窗口。 |
-| **窗口控制（点击）** | 五区域点击板：全屏、上半、下半、左半、右半。即时窗口贴靠。 |
-| **窗口控制（滑动）** | 摇杆式手势板。滑动贴边，点击最大化/恢复，长按全屏。 |
-| **Dock 面板** | macOS Dock 模拟——直接从平板启动和退出应用。检测运行状态。 |
-| **全屏切换** | 切换 iPad 浏览器全屏模式。纯前端，无后端调用。 |
-| **切换 Profile** | 一键切换 Profile（工作区上下文）。长按显示 Profile 选择器。自定义图标颜色、显示/隐藏标签。 |
-| **余额显示** | DeepSeek API 余额显示。每 30 秒自动刷新。 |
-
-### Editor / 编辑器
-
-A full visual editor (open `/editor` on your Mac in Safari) lets you:
-
-- **Drag & drop** widgets from a library onto a canvas
-- **Position freely** on an infinite grid — no snapping unless you want it
-- **Customize every widget**: colors, sizes, fonts, border radius, sounds, icons, labels
-- **Multi-select, group, clipboard** — rearrange your panel like a design tool
-- **Undo/redo** — full history stack
-- **Device presets** — iPad / Android tablet aspect ratios, or custom dimensions
-- **Scroll to zoom** — zoom the viewport without changing content size
-- **Profiles** — save multiple layouts, switch between them on the tablet with one tap
-- **Window rules** — auto-switch profiles when you open a specific app on Mac
-
-完整的可视化编辑器（Mac 上用 Safari 打开 `/editor`）：
-
-- **拖拽布局**——从组件库拖到画布
-- **自由定位**——无限网格，无强制对齐
-- **深度定制**——颜色、尺寸、字体、圆角、音效、图标、标签
-- **多选、成组、剪贴板**——像设计工具一样重新排列面板
-- **撤销/重做**——完整历史栈
-- **设备预设**——iPad / Android 平板比例，或自定义尺寸
-- **滚轮缩放**——缩放视角不改变内容尺寸
-- **Profiles**——保存多套布局，平板上点击切换
-- **窗口规则**——打开特定 Mac 应用时自动切换 Profile
-
----
-
-## Widget Showcase / 组件一览
-
-```
-┌──────────┬──────────┬──────────┬──────────┬──────────────┐
-│ REGULAR  │  MACRO   │  VOLUME  │ MIC MUTE │ AUDIO OUT/IN │
-│   KEY    │   KEY    │  SLIDER  │  +LEVEL  │   SWITCHER   │
-│  Tap /   │ ⌘⇧A one │ Horizontal│ Animated │  Tap=menu    │
-│  Hold /  │   tap    │  /Vert    │  rings   │  Hold=cycle  │
-│  Turbo   │          │          │          │              │
-├──────────┼──────────┼──────────┼──────────┼──────────────┤
-│  WINDOW  │  TOUCH   │ WINDOW   │ WINDOW   │  FULLSCREEN  │
-│ SWITCHER │   PAD    │  CTRL    │  SWIPE   │   TOGGLE     │
-│Thumbnails│  Move/   │ 5-zone   │Joystick  │  Browser     │
-│+tab list │ Scroll/  │  click   │  snap    │  fullscreen  │
-│          │  Drag    │          │          │              │
-├──────────┼──────────┼──────────┼──────────┼──────────────┤
-│   DOCK   │  SWITCH  │  TEXT    │ BALANCE  │              │
-│  PANEL   │ PROFILE  │  MACRO   │ DISPLAY  │              │
-│ Launch/  │ 1-tap to │ Record & │ DeepSeek │              │
-│ Quit app │  switch  │  replay  │ credits  │              │
-└──────────┴──────────┴──────────┴──────────┴──────────────┘
+### 1. Mac 端安装
+```bash
+# 下载 DMG → 拖入 /Applications → 启动
+open /Applications/Tapflow.app
 ```
 
----
+### 2. 授予权限
+首次启动会弹出系统权限请求，**全部允许**：
+- **辅助功能**（Accessibility）— 模拟键盘输入
+- **屏幕录制**（Screen Recording）— 窗口缩略图
+- **麦克风**（Microphone）— 音频电平显示（可选）
 
-## Installation / 安装
+### 3. 平板连接
+平板和 Mac 在**同一局域网**，浏览器打开：
+```
+http://<Mac-IP-地址>:8082
+```
+Mac IP 可以在菜单栏图标下拉菜单中找到，也可以用 `ifconfig` 查看。
 
-### Requirements / 环境要求
+### 4. 定制面板（可选）
+Mac 上 Safari 打开编辑器：
+```
+http://localhost:8082/editor
+```
+从组件库拖拽组件到画布，自由布局，保存为 Profile。
 
-- **Mac**: Apple Silicon (arm64), macOS 15+
-- **Tablet**: Any tablet with a modern browser — iPad (Safari), Android (Chrome), etc.
-- **Network**: Mac and tablet on the same LAN
-
-### Install / 安装步骤
-
-1. Download `Tapflow.dmg` from [Releases](https://github.com/Alienwang1980/tapflow/releases)
-2. Open the DMG, drag `Tapflow.app` to `Applications`
-3. Launch Tapflow — a menu bar icon will appear
-4. Grant permissions when prompted:
-   - **Accessibility** (辅助功能) — for keyboard simulation
-   - **Screen Recording** (屏幕录制) — for window thumbnails
-   - **Microphone** (麦克风) — for audio level display (optional)
-5. On your tablet, open a browser and go to `http://<Mac-IP>:8082`
-6. On your Mac, open Safari and go to `http://localhost:8082/editor` to customize your panel
-
----
-
-## Tech Stack / 技术栈
-
-| Layer | Tech |
-|-------|------|
-| Web framework | FastAPI + Starlette |
-| Real-time | WebSocket (uvicorn, single event loop) |
-| Input injection | Quartz CoreGraphics `CGEvent` |
-| System integration | PyObjC (AppKit / Quartz / Foundation / AVFoundation) |
-| Menu bar | pystray (`LSUIElement=True`) |
-| Service discovery | zeroconf (mDNS) |
-| Packaging | py2app (arm64, Apple Development signed) |
-| Frontend | Vanilla HTML5 Canvas + JavaScript (zero framework) |
+### 5. 开始 vibe coding 🎉
+平板放旁边，键盘写代码，手指下指令。Flow 不断。
 
 ---
 
-## Architecture / 架构
+## 🎛️ Widget Library / 组件库（14 种）
+
+### ⌨️ Input / 输入类
+
+| Widget | EN | CN |
+|--------|----|----|
+| **Regular Key** | Any key — tap, hold (repeat), or turbo. Custom color, label, border radius, sound. | 任意按键——点按、长按连发、Turbo 急速连发。自定义颜色、标签、圆角、音效。 |
+| **Macro Key** | Multi-key combos like `⌘⇧A`, `⌃⌘Space`. One tap fires the whole sequence. | 组合键宏如 `⌘⇧A`、`⌃⌘Space`。一键触发完整序列。 |
+| **Text Macro** | Record a text snippet, replay character-by-character. Full Unicode. | 录制文字片段，点击逐字回放。完整 Unicode 支持。 |
+| **Touch Pad** | Mac trackpad emulation — move, scroll, tap, drag. Relative positioning. | Mac 触控板模拟——移动、滚动、点击、拖拽。相对位移模式。 |
+
+### 🔊 Audio / 音频类
+
+| Widget | EN | CN |
+|--------|----|----|
+| **Volume Slider** | Horizontal/vertical system volume. Tap to mute/unmute. Real-time level feedback. | 横向/竖向系统音量滑块。点击静音/取消。实时电平反馈。 |
+| **Mic Mute** | Toggle mic mute. Optional animated audio level rings (configurable `showLevel`). | 切换麦克风静音。可选实时音频电平动画环（`showLevel` 可配）。 |
+| **Audio Out** | Switch audio output device. Tap = picker popup, long-press = cycle next. | 切换音频输出设备。点击 = 弹出选择器，长按 = 轮换下一个。 |
+| **Audio In** | Switch audio input device. Same tap/hold behavior as Audio Out. | 切换音频输入设备。点击/长按行为同 Audio Out。 |
+
+### 🪟 Window / 窗口类
+
+| Widget | EN | CN |
+|--------|----|----|
+| **Window Switcher** | Visual switcher with real-time window thumbnails. Grouped by app, horizontal scroll. Tap any window to focus. | 可视化切换器，实时窗口缩略图。按应用分组，横向滚动。点击聚焦任意窗口。 |
+| **Window Click** | Five-zone click pad: fullscreen, top-half, bottom-half, left-half, right-half. Instant window tiling. | 五区域点击板：全屏、上半、下半、左半、右半。即时窗口贴靠。 |
+| **Window Swipe** | Joystick-style gesture pad. Swipe to snap edges, tap to maximize/restore, long-press for fullscreen. | 摇杆式手势板。滑动贴边，点击最大化/恢复，长按全屏。 |
+| **Fullscreen** | Toggle browser fullscreen (pure frontend, no backend call). | 切换浏览器全屏（纯前端，无后端调用）。 |
+
+### ⚡ System / 系统类
+
+| Widget | EN | CN |
+|--------|----|----|
+| **Dock Panel** | macOS Dock simulation — launch/quit apps from tablet. Detects running state. | macOS Dock 模拟——从平板启动/退出应用。检测运行状态。 |
+| **Switch Profile** | One-tap profile switch. Long-press shows profile picker. Configurable icon, color, label visibility. | 一键切换 Profile。长按显示选择器。可配图标、颜色、标签显隐。 |
+| **Balance** | DeepSeek API credit balance display. Auto-refresh every 30s. Tap to force refresh. | DeepSeek API 余额显示。每 30 秒自动刷新。点击强制刷新。 |
+
+---
+
+## 🎨 Editor / 可视化编辑器
+
+在 Mac 上打开 `http://localhost:8082/editor`（Safari 或 Chrome）：
+
+- **拖拽布局** — 从右侧组件库拖到无限画布
+- **自由定位** — 无强制对齐网格，像素级精度
+- **深度定制** — 每个组件的颜色、尺寸、字体、圆角、音效、图标、标签
+- **多选操作** — 框选、成组、复制粘贴（内部剪贴板）
+- **撤销/重做** — 完整历史栈，放心试
+- **设备预设** — iPad / Android 平板比例一键适配画布
+- **滚轮缩放** — 缩放视角不改变内容实际尺寸
+- **Profile 管理** — 保存/加载/导入/导出多套布局
+- **窗口规则** — 打开特定 Mac App → 自动切换到对应 Profile 页面
+
+---
+
+## 🏗️ Architecture / 项目架构
 
 ```
 tapflow/
-├── server/                  # Python backend
-│   ├── tray_app.py          ★ Entry point — menu bar + dashboard
-│   ├── main.py              FastAPI app + WebSocket + profile CRUD
-│   ├── input_engine.py      CGEvent keyboard/mouse injection
-│   ├── ax_bridge.py         macOS Accessibility bridge (windows/menus)
-│   ├── profile_manager.py   Profile JSON CRUD + window rules
-│   ├── system_control.py    Volume / mute / audio devices
-│   ├── window_watcher.py    Foreground app change detection
-│   ├── state.py             Shared mutable state
-│   └── routes_*.py          11 route modules (audio, mic, window, dock...)
+├── server/                       # Python backend
+│   ├── tray_app.py               ★ Entry point — menu bar + dashboard
+│   ├── main.py                   FastAPI app + WebSocket + REST API
+│   ├── input_engine.py           CGEvent keyboard/mouse injection
+│   ├── ax_bridge.py              macOS Accessibility bridge (windows/menus)
+│   ├── profile_manager.py        Profile JSON CRUD + window rules
+│   ├── system_control.py         Volume / mute / audio device switching
+│   ├── window_watcher.py         Foreground app change → auto-switch
+│   ├── state.py                  AppState dataclass (shared mutable state)
+│   └── routes_*.py               11 route modules (audio, mic, window, dock...)
 │
-├── client/                  # Frontend (static HTML/JS)
-│   ├── index.html           ★ Tablet control panel (WebSocket client)
-│   ├── editor.html          ★ Visual panel editor (drag-drop layout)
-│   └── thumbnails/          Widget preview thumbnails
+├── client/                       # Frontend (zero framework)
+│   ├── index.html                ★ Tablet control panel (WebSocket client)
+│   ├── editor.html               ★ Visual panel editor (drag-drop layout)
+│   ├── ipad/                     iPad-optimized JS modules
+│   └── thumbnails/               Widget preview thumbnails (14 icons)
 │
-├── Default_Profile/         Bundled default profiles
-├── setup.py                 py2app packaging config
-└── docs/                    Design & architecture docs
+├── Default_Profile/              Bundled default profiles
+├── docs/                         Design docs & architecture decisions
+├── icons/                        App icon & menu bar icon
+├── setup.py                      py2app packaging config
+└── README.md
 ```
 
 ---
 
-## Profile System / Profile 系统
+## 📦 Installation / 安装详解
 
-Profiles are JSON files that define a complete panel layout. Each profile contains:
+### Requirements / 环境要求
 
-- **Pages**: Multiple pages within a profile (auto-switched by window rules)
-- **Keys**: Widget instances with full configuration (type, position, size, colors, sounds...)
-- **Window Rules**: Auto-switch to a page when a specific Mac app is frontmost
+| Requirement | Detail |
+|------------|--------|
+| **Mac** | Apple Silicon (arm64), macOS 15+ |
+| **Tablet** | Any modern browser — iPad (Safari), Android (Chrome), etc. |
+| **Network** | Same LAN — Mac and tablet on the same WiFi |
 
-Profiles can be imported/exported via the editor. Bundled defaults include a full 68-key Keyboard profile and a curated 25-key vibe profile.
+### Steps / 安装步骤
+
+1. 从 [Releases](https://github.com/Alienwang1980/tapflow/releases) 下载 `Tapflow.dmg`
+2. 打开 DMG，拖 `Tapflow.app` 到 `Applications`
+3. 启动 Tapflow — 菜单栏出现图标
+4. 按提示授予三项系统权限
+5. 平板浏览器打开 `http://<Mac-IP>:8082`
+6. Mac Safari 打开 `http://localhost:8082/editor` 定制面板
+
+### Permissions / 权限说明
+
+| Permission | Why Needed | Optional? |
+|-----------|-----------|:---------:|
+| Accessibility（辅助功能） | Inject keyboard/mouse events via CGEvent | **Required** |
+| Screen Recording（屏幕录制） | Capture window thumbnails for switcher | **Required** |
+| Microphone（麦克风） | Audio level display on Mic Mute widget | Optional |
+
+### Auto-start / 开机自启
+
+Tapflow 安装后自动注册 LaunchAgent (`com.tapflow.app`)，开机自启 + 崩溃自动重启。通过 launchd 启动确保 TCC 权限归因正确。
+
+```bash
+# 查看状态
+launchctl list | grep tapflow
+
+# 手动重启
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.tapflow.app.plist
+```
 
 ---
 
-## License / 许可证
+## 🛠️ Tech Stack / 技术栈
 
-MIT
+| Layer | Tech | Notes |
+|-------|------|-------|
+| Web framework | FastAPI + Starlette | Async, WebSocket native |
+| Real-time | WebSocket (uvicorn) | Single event loop, sync ops via `run_in_executor` |
+| Input injection | Quartz CoreGraphics | `CGEvent` — keyboard, mouse, scroll |
+| System bridge | PyObjC | AppKit, Quartz, Foundation, AVFoundation |
+| Menu bar | pystray | `LSUIElement=True` (no Dock icon) |
+| Discovery | zeroconf (mDNS) | Bonjour service advertisement |
+| Packaging | py2app | arm64, Apple Development signed |
+| Frontend | Vanilla HTML5 Canvas + JS | Zero framework, <200KB total |
 
 ---
 
-> *Tap points. Flow keys.*
-> *触点成流。*
+## ❓ FAQ / 常见问题
+
+### Q: 平板连不上？
+确认 Mac 和平板在**同一 WiFi**，检查 Mac 防火墙是否放行 `:8082`。菜单栏图标下拉菜单会显示 Mac 当前 IP。
+
+### Q: 按键没反应？
+检查 **辅助功能** 权限：系统设置 → 隐私与安全性 → 辅助功能 → 确保 Tapflow 已勾选。
+
+### Q: 窗口缩略图不显示？
+检查 **屏幕录制** 权限：系统设置 → 隐私与安全性 → 屏幕录制 → 确保 Tapflow 已勾选。
+
+### Q: 怎么添加自定义 Profile？
+编辑器里做好布局 → 右上角 Save → 输入名字。也可以直接编辑 `~/Library/Application Support/Tapflow/profiles/` 下的 JSON 文件。
+
+### Q: 支持 Windows / Linux 吗？
+目前只支持 macOS（核心依赖 CGEvent + PyObjC）。Windows/Linux 需要替换输入注入层，暂不在路线图上。
+
+### Q: 平板需要装 App 吗？
+**不需要。**纯浏览器，零安装。iPad Safari、Android Chrome 都行。PWA 支持可添加到主屏幕。
+
+### Q: 多个平板能同时连吗？
+技术上可以（WebSocket 广播），但同一时间只有**一个活跃连接**的 touch 事件会被处理。多平板场景可用不同 Profile。
+
+---
+
+## 📄 License / 许可证
+
+MIT — 随便用，随便改，随便分发。
+
+---
+
+> *Tap points. Flow keys. 触点成流。*
