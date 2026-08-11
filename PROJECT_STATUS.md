@@ -1,6 +1,6 @@
 # Smart Touch Panel — 项目全貌 & 进度
 
-> 最后更新: 2026-08-11 | 版本: 1.4.0
+> 最后更新: 2026-08-11 | 版本: 1.5.0
 
 ## 一句话描述
 
@@ -13,8 +13,9 @@
 ```
 smart-touch-panel/
 ├── server/                  # Python 后端（FastAPI + WebSocket）
-│   ├── tray_app.py          ★ 入口 — 菜单栏图标 + 全部 API 路由 + 服务器启动
-│   ├── main.py              FastAPI app 创建 + WebSocket 主循环 + 静态文件
+│   ├── tray_app.py          ★ 入口 — 菜单栏图标 + 设置面板 + Dashboard + main()
+│   ├── main.py              FastAPI app 创建 + WebSocket + profiles CRUD + 静态文件
+│   ├── state.py             ServerState — 跨路由共享可变状态
 │   ├── input_engine.py      CGEvent 键盘/鼠标注入引擎
 │   ├── profile_manager.py   面板配置文件的 CRUD + 窗口自动切换
 │   ├── connection_manager.py WebSocket 连接池管理
@@ -23,7 +24,8 @@ smart-touch-panel/
 │   ├── system_control.py    音量/静音/音频设备/窗口管理
 │   ├── window_watcher.py    前台应用切换监听
 │   ├── balance_poller.py    DeepSeek API 余额轮询
-│   ├── widget_extension.py  备用 Widget 路由（实际路由在 tray_app.py 内联）
+│   ├── widget_extension.py  备用 Widget 路由
+│   ├── routes_*.py          ★ 11 个路由模块（按领域拆分，依赖注入）
 │   ├── profiles/            面板配置文件（JSON）
 │   └── certs/               TLS 自签名证书
 │
@@ -279,7 +281,7 @@ carea (flexbox 居中 cwrap)
 | 14 | **Dashboard 重设计** | ✅ 已实现 (2026-08-10) | `tray_app.py` |
 | 15 | **Editor 缩略图消失** | ✅ 已修复 (2026-08-10) | 部署流程 |
 | 16 | **前端代码模块化重构** | ✅ 已实现 (2026-08-11) | `client/ipad/` (11) + `client/editor/` (6) + `tools/build.py` |
-| 17 | **tray_app.py 路由拆分** | 🔜 下一阶段 | 见 `CODE_REVIEW_PLAN.md` |
+| 17 | **tray_app.py 路由拆分** | ✅ 已实现 (2026-08-11) | 760 行闭包 → 66 行 + 11 个路由模块 + `state.py`; 见 `docs/refactor-tray-routes.md` |
 
 ### 已知限制
 
