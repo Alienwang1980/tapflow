@@ -380,8 +380,40 @@ async function _showProfilePopup(currentFn){
 }
 async function switchToProfile(fn){
   try{
-    const r=await fetch("/api/profiles/"+fn);
-    if(!r.ok){console.log("switchToProfile fetch failed:",fn);return}
+    var r=await fetch("/api/profiles/"+fn);
+    if(!r.ok){
+      var clean=fn.replace(/\.json$/i,"");
+      // Try matching in existing profiles list (by filename or profileName)
+      try{
+        var listR=await fetch("/api/profiles");
+        var list=await listR.json();
+        var match=list.profiles?.find(function(p){
+          return p.filename===fn||p.filename.toLowerCase()===fn.toLowerCase()||
+                 p.profileName===fn||p.profileName===clean||
+                 p.filename.replace(/\.json$/i,"").toLowerCase()===clean.toLowerCase()||
+                 p.profileName.toLowerCase()===clean.toLowerCase();
+        });
+        if(match){fn=match.filename;r=await fetch("/api/profiles/"+fn)}
+      }catch(_e){}
+      // Try bundled profiles
+      if(!r||!r.ok){
+        try{
+          var bundledR=await fetch("/api/bundled-profiles");
+          var bundled=await bundledR.json();
+          var bMatch=bundled.profiles?.find(function(p){
+            return p.filename===fn||p.filename.toLowerCase()===fn.toLowerCase()||
+                   p.profileName===fn||p.profileName===clean||
+                   p.filename.replace(/\.json$/i,"").toLowerCase()===clean.toLowerCase()||
+                   p.profileName.toLowerCase()===clean.toLowerCase();
+          });
+          if(bMatch){
+            var impR=await fetch("/api/bundled-profiles/"+encodeURIComponent(bMatch.filename),{method:"POST"});
+            if(impR.ok){var impD=await impR.json();fn=impD.filename||bMatch.filename;r=await fetch("/api/profiles/"+fn)}
+          }
+        }catch(_e2){}
+      }
+      if(!r||!r.ok){_showProfilePopup(activeProfile);return}
+    }
     profile=await r.json();
     activeProfile=fn;
     activePage=profile.pages[0]?.id||"";
