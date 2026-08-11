@@ -44,6 +44,12 @@ OPTIONS = {
         "connection_manager", "input_engine", "profile_manager",
         "window_watcher", "editor_app", "ax_bridge",
         "system_control", "balance_poller", "widget_extension",
+        # Route modules (2026-08-11: extracted from tray_app run_server closure)
+        "state",
+        "routes_system", "routes_profile", "routes_mic",
+        "routes_audio", "routes_volume", "routes_window",
+        "routes_thumbnail", "routes_dock", "routes_menu",
+        "routes_layout", "routes_app_icon",
         "typing_extensions", "six",
         "PyObjCTools.MachSignals", "PyObjCTools.AppHelper",
         "logging", "json", "uuid", "asyncio", "threading", "webbrowser",
