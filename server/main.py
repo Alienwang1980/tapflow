@@ -1,4 +1,4 @@
-"""Smart Touch Panel — FastAPI WebSocket server with profile CRUD, window watcher, and mDNS."""
+"""Tapflow — FastAPI WebSocket server with profile CRUD, window watcher, and mDNS."""
 import json
 import logging
 import os
@@ -24,7 +24,7 @@ from profile_manager import profile_manager as profiles, _safe_path
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelname)s %(message)s")
 logger = logging.getLogger("stp.main")
 
-app = FastAPI(title="Smart Touch Panel")
+app = FastAPI(title="Tapflow")
 
 # Bundle-aware resource path
 def _get_resource_dir() -> str:
@@ -42,7 +42,7 @@ app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR, check_dir=False), name="
 app.mount("/static", StaticFiles(directory=CLIENT_DIR, check_dir=False), name="static")
 
 # ── mDNS state ──
-mdns_info = {"enabled": False, "service_name": "Smart Touch Panel", "port": 8082, "addresses": []}
+mdns_info = {"enabled": False, "service_name": "Tapflow", "port": 8082, "addresses": []}
 HAVE_ZEROCONF = False
 try:
     from zeroconf import ServiceInfo, Zeroconf
@@ -261,7 +261,7 @@ async def root():
         with open(index_path, encoding='utf-8') as f:
             from fastapi.responses import HTMLResponse as HR
             return HR(content=f.read(), headers={"Cache-Control":"no-cache, no-store, must-revalidate"})
-    return HTMLResponse("<h1>Smart Touch Panel</h1><p>Client files missing.</p>")
+    return HTMLResponse("<h1>Tapflow</h1><p>Client files missing.</p>")
 
 
 

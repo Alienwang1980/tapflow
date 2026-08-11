@@ -747,6 +747,97 @@ def open_dashboard():
     _DASH["panel"] = panel
 
 
+# ── About panel ──
+_ABOUT_PANEL = None
+
+def open_about():
+    """ℹ️ About Tapflow — version, author, GitHub link."""
+    global _ABOUT_PANEL
+    import AppKit
+    from Foundation import NSMakeRect
+
+    if _ABOUT_PANEL is not None:
+        try:
+            _ABOUT_PANEL.makeKeyAndOrderFront_(None)
+            AppKit.NSApp.activateIgnoringOtherApps_(True)
+            return
+        except Exception:
+            _ABOUT_PANEL = None
+
+    W, H = 360, 280
+    screen = AppKit.NSScreen.mainScreen()
+    sf = screen.visibleFrame()
+    x = int((sf.size.width - W) / 2 + sf.origin.x)
+    y = int((sf.size.height - H) / 2 + sf.origin.y)
+
+    panel = AppKit.NSPanel.alloc().initWithContentRect_styleMask_backing_defer_(
+        NSMakeRect(x, y, W, H),
+        AppKit.NSWindowStyleMaskTitled | AppKit.NSWindowStyleMaskClosable,
+        AppKit.NSBackingStoreBuffered, False,
+    )
+    panel.setTitle_("关于 Tapflow")
+    panel.setLevel_(AppKit.NSFloatingWindowLevel)
+    panel.setReleasedWhenClosed_(True)
+
+    content = panel.contentView()
+
+    def _l(text, bx, by, bw, bh=20, size=13, bold=False, align=0):
+        from AppKit import NSTextField, NSFont, NSColor as NC2
+        f = NSTextField.alloc().initWithFrame_(NSMakeRect(bx, by, bw, bh))
+        f.setStringValue_(text)
+        f.setBezeled_(False); f.setDrawsBackground_(False)
+        f.setEditable_(False); f.setSelectable_(False)
+        fn = NSFont.boldSystemFontOfSize_(size) if bold else NSFont.systemFontOfSize_(size)
+        f.setFont_(fn)
+        f.setAlignment_(align)
+        content.addSubview_(f)
+        return f
+
+    y_ = H - 40
+    _l("Tapflow / 点流", 0, y_, W, 28, size=20, bold=True, align=2)
+    y_ -= 30
+    _l("Tap points, flowing keys.", 0, y_, W, 16, size=11, align=2)
+    y_ -= 30
+
+    # Divider
+    from AppKit import NSBox
+    div = NSBox.alloc().initWithFrame_(NSMakeRect(30, y_, W - 60, 1))
+    div.setBoxType_(2)
+    content.addSubview_(div)
+    y_ -= 24
+
+    _l("版本: 1.0.0", 30, y_, W - 60, 20, size=12)
+    y_ -= 22
+    _l("作者: mini (Alienwang1980)", 30, y_, W - 60, 20, size=12)
+    y_ -= 30
+
+    # GitHub link
+    from AppKit import NSButton, NSBezelStyleRounded
+    gh_btn = NSButton.alloc().initWithFrame_(NSMakeRect(80, y_ - 30, 200, 30))
+    gh_btn.setTitle_("GitHub → tapflow")
+    gh_btn.setBezelStyle_(NSBezelStyleRounded)
+    gh_btn.setTarget_(gh_btn)
+
+    def _open_gh(_):
+        import subprocess as _sp_gh
+        _sp_gh.run(["open", "https://github.com/Alienwang1980/tapflow"])
+    # Use a simple button subclass to handle the click
+    class _GhDelegate(AppKit.NSObject):
+        def openGH_(self, sender):
+            _open_gh(None)
+    _gh_del = _GhDelegate.alloc().init()
+    gh_btn.setTarget_(_gh_del)
+    gh_btn.setAction_("openGH:")
+    # Attach delegate to panel so it stays alive
+    panel._gh_del = _gh_del
+    content.addSubview_(gh_btn)
+
+    panel.center()
+    panel.makeKeyAndOrderFront_(None)
+    AppKit.NSApp.activateIgnoringOtherApps_(True)
+    _ABOUT_PANEL = panel
+
+
 def run_tray():
     """Create and run the system tray icon."""
     ip = get_local_ip()
@@ -755,6 +846,7 @@ def run_tray():
     menu = pystray.Menu(
         pystray.MenuItem("🚀 Start", lambda icon, item: open_dashboard(), default=True),
         pystray.MenuItem("⚙️ 设置", lambda icon, item: open_settings_panel()),
+        pystray.MenuItem("ℹ️ 关于 Tapflow", lambda icon, item: open_about()),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem("退出", on_quit),
     )

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Smart Touch Panel — start with menu bar icon (GUI mode)
+# Tapflow — start with menu bar icon (GUI mode)
 set -e
 DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$DIR"

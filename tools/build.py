@@ -4,7 +4,7 @@ import sys, os, re, subprocess, shutil
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DIST = ROOT / "dist/Smart Touch Panel.app/Contents/Resources/client"
+DIST = ROOT / "dist/Tapflow.app/Contents/Resources/client"
 
 IPAD_CHECKS = [
     '"use strict"', 'profile=null', 'ws=null', 'profileLoaded',
@@ -72,7 +72,7 @@ def build(target):
     out_path = ROOT / "client" / out_name
     out_path.write_text(html)
     
-    dist_dir = ROOT / "dist/Smart Touch Panel.app/Contents/Resources"
+    dist_dir = ROOT / "dist/Tapflow.app/Contents/Resources"
     if dist_dir.exists():
         shutil.copy(out_path, DIST / out_name)
         for pycache in dist_dir.rglob('__pycache__'):

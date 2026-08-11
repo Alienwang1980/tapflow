@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="zh-CN"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Smart Touch Panel</title>
+<title>Tapflow</title>
 <style>
 @font-face{font-family:"Press Start 2P";src:url("/static/fonts/PressStart2P.woff2") format("woff2")}
 @font-face{font-family:"VT323";src:url("/static/fonts/VT323.woff2") format("woff2")}

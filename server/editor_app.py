@@ -1,4 +1,4 @@
-"""Open the Smart Touch Panel editor in the default browser."""
+"""Open the Tapflow editor in the default browser."""
 import logging
 import time
 import urllib.request

@@ -1,4 +1,4 @@
-"""WebSocket connection manager for Smart Touch Panel."""
+"""WebSocket connection manager for Tapflow."""
 import logging
 from fastapi import WebSocket
 
