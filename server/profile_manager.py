@@ -88,6 +88,40 @@ class ProfileManager:
     def __init__(self, profiles_dir: Path = PROFILES_DIR):
         self.dir = profiles_dir
         self._ensure_default()
+        self._dedup()  # fix any duplicates from earlier versions
+
+    def _dedup(self):
+        """Auto-rename duplicate profile names with (2), (3), ... suffixes."""
+        import json as _json
+        profiles = []
+        for f in sorted(self.dir.glob("*.json")):
+            try:
+                data = _json.loads(f.read_text(encoding='utf-8'))
+                profiles.append((f, data))
+            except Exception:
+                continue
+        seen = {}  # lower_name -> [(file, data, display_name)]
+        for f, data in profiles:
+            name = str(data.get("profileName", f.stem)).strip()
+            lower = name.lower()
+            seen.setdefault(lower, []).append((f, data, name))
+        for lower, group in list(seen.items()):
+            if len(group) <= 1:
+                continue
+            for i, (f, data, original_name) in enumerate(group):
+                if i == 0:
+                    continue
+                n = i + 1
+                new_name = f"{original_name} ({n})"
+                while new_name.lower() in seen:
+                    n += 1
+                    new_name = f"{original_name} ({n})"
+                data["profileName"] = new_name
+                f.write_text(_json.dumps(data, indent=2, ensure_ascii=False), encoding='utf-8')
+                seen.setdefault(new_name.lower(), []).append((f, data, new_name))
+                logger.info(f"Dedup: renamed '{original_name}' → '{new_name}' in {f.name}")
+                # Remove from old group for clean iteration
+                group[i] = (f, data, new_name)
 
     def _ensure_default(self):
         default_path = self.dir / "Default.json"
@@ -172,7 +206,17 @@ class ProfileManager:
 
     def save_profile(self, profile: dict, filename: Optional[str] = None) -> str:
         if not filename:
-            name = profile.get("profileName", "untitled")
+            name = str(profile.get("profileName", "untitled")).strip() or "untitled"
+            # Auto-suffix on name conflict (prevent duplicate profileNames)
+            taken_names = {p["profileName"].strip().lower() for p in self.list_profiles()}
+            taken_files = {f.name.lower() for f in self.dir.glob("*.json")}
+            base = name
+            n = 1
+            while name.lower() in taken_names or f"{name}.json".lower() in taken_files:
+                n += 1
+                name = f"{base} ({n})"
+            if name != base:
+                profile["profileName"] = name
             filename = f"{name}.json"
         if not filename.endswith(".json"):
             filename += ".json"
