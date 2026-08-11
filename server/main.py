@@ -316,6 +316,19 @@ async def default_template():
     from profile_manager import _load_default_template
     return _load_default_template()
 
+@app.get("/api/bundled-profiles")
+async def list_bundled_profiles():
+    """List default profiles shipped inside the app bundle (available for import)."""
+    return {"profiles": profiles.list_bundled()}
+
+@app.post("/api/bundled-profiles/{filename}")
+async def import_bundled_profile(filename: str):
+    """Import a bundled default profile into the user's profiles directory."""
+    saved = profiles.import_bundled(filename)
+    if not saved:
+        raise HTTPException(404, f"Bundled profile not found: {filename}")
+    return {"status": "imported", "filename": saved}
+
 @app.get("/api/profiles")
 async def list_profiles():
     return {"profiles": profiles.list_profiles()}

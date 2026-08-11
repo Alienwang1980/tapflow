@@ -45,8 +45,7 @@ def _load_default_template():
         return json.loads(template_path.read_text(encoding='utf-8'))
     return {"profileName":"Default","version":"1.0","device":"iPad 11\" (landscape)","deviceWidth":1210,"deviceHeight":834,"cellSize":60,"canvasX":0,"canvasY":0,"defaultSound":"click","windowRules":[],"pages":[{"id":"main","label":"Main","keys":[]}]}
 
-# Default profile that ships with the app
-DEFAULT_PROFILE = _load_default_template()
+# Default profile template (used by /api/default-template endpoint)
 
 def migrate_key_positions(profile: dict) -> dict:
     """Ensure profile has required fields + keys have col/row/w/h."""
@@ -87,8 +86,77 @@ class ProfileManager:
 
     def __init__(self, profiles_dir: Path = PROFILES_DIR):
         self.dir = profiles_dir
-        self._ensure_default()
+        self._ensure_defaults()
         self._dedup()  # fix any duplicates from earlier versions
+
+    def _ensure_defaults(self):
+        """On first launch, copy bundled default profiles into user's profiles dir."""
+        # Only copy if profiles dir is empty (first launch)
+        if list(self.dir.glob("*.json")):
+            return
+        bd = self._bundled_dir()
+        if bd:
+            copied = 0
+            for pf in bd.glob("*.json"):
+                dest = self.dir / pf.name
+                try:
+                    dest.write_text(pf.read_text(encoding="utf-8"), encoding="utf-8")
+                    copied += 1
+                except Exception:
+                    pass
+            if copied:
+                logger.info(f"Copied {copied} default profile(s) from {bd} to {self.dir}")
+                return
+        # Fallback: no bundled dir (e.g. running from source without Default_Profile/)
+        import json as _json
+        fallback = {"profileName":"Default","version":"1.0","device":"iPad 11\" (landscape)","deviceWidth":1210,"deviceHeight":834,"cellSize":60,"canvasX":0,"canvasY":0,"defaultSound":"click","windowRules":[],"pages":[{"id":"main","label":"Main","keys":[]}]}
+        (self.dir / "Default.json").write_text(_json.dumps(fallback, indent=2, ensure_ascii=False), encoding="utf-8")
+
+    # ── Bundled default profiles (shipped in app, available for import) ──
+
+    @staticmethod
+    def _bundled_dir() -> Optional[Path]:
+        """Resolve the bundled Default_Profile directory (app bundle or source)."""
+        import sys
+        if getattr(sys, 'frozen', False):
+            d = Path(sys.executable).parent.parent / "Resources" / "Default_Profile"
+        else:
+            d = Path(__file__).parent.parent / "Default_Profile"
+        return d if d.exists() else None
+
+    def list_bundled(self) -> list[dict]:
+        """Return summaries of the bundled default profiles available for import."""
+        bd = self._bundled_dir()
+        if not bd:
+            return []
+        out = []
+        for f in sorted(bd.glob("*.json")):
+            try:
+                data = json.loads(f.read_text(encoding='utf-8'))
+                out.append({
+                    "profileName": data.get("profileName", f.stem),
+                    "filename": f.name,
+                    "keyCount": sum(len(p.get("keys", [])) for p in data.get("pages", [])),
+                    "pageCount": len(data.get("pages", [])),
+                })
+            except Exception:
+                pass
+        return out
+
+    def import_bundled(self, filename: str) -> Optional[str]:
+        """Copy a bundled default profile into the user profiles dir.
+        Auto-renames on name conflict. Returns the saved filename or None."""
+        bd = self._bundled_dir()
+        if not bd:
+            return None
+        src = bd / filename
+        if not src.exists():
+            return None
+        try:
+            data = json.loads(src.read_text(encoding='utf-8'))
+        except Exception:
+            return None
+        return self.import_profile(data)
 
     def _dedup(self):
         """Auto-rename duplicate profile names with (2), (3), ... suffixes."""
@@ -122,28 +190,6 @@ class ProfileManager:
                 logger.info(f"Dedup: renamed '{original_name}' → '{new_name}' in {f.name}")
                 # Remove from old group for clean iteration
                 group[i] = (f, data, new_name)
-
-    def _ensure_default(self):
-        default_path = self.dir / "Default.json"
-        if not default_path.exists():
-            # Try to copy ALL bundled profiles from app resources first
-            import sys
-            if getattr(sys, 'frozen', False):
-                # py2app: resources are ../Resources relative to executable
-                resource_dir = Path(sys.executable).parent.parent / "Resources"
-                bundled_profiles = resource_dir / "server" / "profiles"
-                if bundled_profiles.exists():
-                    import shutil
-                    copied = 0
-                    for pf in bundled_profiles.glob("*.json"):
-                        dest = self.dir / pf.name
-                        if not dest.exists():
-                            dest.write_text(pf.read_text(encoding='utf-8'), encoding='utf-8')
-                            copied += 1
-                    if copied > 0:
-                        logger.info(f"Copied {copied} bundled profile(s) to {self.dir}")
-                        return
-            self.save_profile(DEFAULT_PROFILE, "Default.json")
 
     def list_profiles(self) -> list[dict]:
         profiles = []

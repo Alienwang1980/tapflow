@@ -12,8 +12,9 @@ client_files = [
     (str(client_dir / "thumbnails"), [str(f) for f in (client_dir / "thumbnails").glob("*") if f.is_file()]),
 ]
 
-profiles_dir = Path("server/profiles")
-profile_files = [(str(profiles_dir), [str(f) for f in profiles_dir.glob("*.json")])]
+# Bundled default profiles (Keyboard + vibe), available for import in the editor.
+default_profile_dir = Path("Default_Profile")
+default_profile_files = [(str(default_profile_dir), [str(f) for f in default_profile_dir.glob("*.json")])]
 
 # SwitchAudioSource(arm64,仅链系统框架):音源列表/切换依赖它。
 # 运行时由 _ensure_switch_audio_source() 从 Resources/bin 拷到 App Support,
@@ -26,7 +27,7 @@ icons_files = [
     ("icons", ["icons/stp_menubar_icon.png"]),
 ]
 
-DATA_FILES = client_files + profile_files + bin_files + icons_files
+DATA_FILES = client_files + default_profile_files + bin_files + icons_files
 
 OPTIONS = {
     "argv_emulation": False,
