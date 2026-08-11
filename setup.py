@@ -9,6 +9,7 @@ client_dir = Path("client")
 client_files = [
     (str(client_dir), [str(f) for f in client_dir.glob("*") if f.is_file() and not f.name.startswith(".") and not f.name.endswith(".template")]),
     (str(client_dir / "fonts"), [str(f) for f in (client_dir / "fonts").glob("*") if f.is_file()]),
+    (str(client_dir / "thumbnails"), [str(f) for f in (client_dir / "thumbnails").glob("*") if f.is_file()]),
 ]
 
 profiles_dir = Path("server/profiles")
