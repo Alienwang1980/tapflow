@@ -453,8 +453,9 @@ try:
                               "port_field": None, "err_label": None, "save_btn": None})
     class _StpDashboardDelegate(_NSObject9):
         def openEditor_(self, sender):
-            import threading
-            threading.Thread(target=open_editor, daemon=True).start()
+            import subprocess as _sp_op
+            ip = get_local_ip()
+            _sp_op.run(["open", f"http://{ip}:{PORT}/editor"])
 
         def openPanel_(self, sender):
             import subprocess as _sp_op
