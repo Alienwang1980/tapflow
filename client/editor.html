@@ -514,7 +514,7 @@ function _scr2cell(sx,sy){
   return {col:(dx-dw/2)/cpx-panX,row:(dy-dh/2)/cpx-panY};
 }
 function rr(){
-  if(!profile)return;
+  if(!profile){var ca=document.getElementById("carea");if(ca){ca.style.backgroundImage="none";ca.style.backgroundColor="#1a1a2e"}var cv=document.getElementById("canvas");if(cv){cv.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;color:var(--dim);font-size:16px;gap:14px"><span>&#x1F4C4; 建立新的 profile</span><button onclick="pmCreate()" style="padding:10px 24px;font-size:14px;background:var(--accent);color:#1a1a1a;border:none;border-radius:6px;cursor:pointer;font-weight:600">+ Create New Profile</button></div>'}var wr=document.getElementById("cwrap");if(wr){wr.style.width="1210px";wr.style.height="834px";wr.style.transform="scale(0.5)"}return}
   updateRatioInfo();
   const dw=profile.deviceWidth||1210,dh=profile.deviceHeight||834,cs=profile.cellSize||60,gp=profile.gap||0;
   var ca=document.getElementById("carea"),cw=ca.clientWidth,ch=ca.clientHeight;
