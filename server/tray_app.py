@@ -612,7 +612,7 @@ def _set_auto_show_dashboard(enabled):
 # ── Dashboard window (CleanMyMac‑style graphical main interface) ──
 
 def open_dashboard():
-    """🏠 Start: Smart Panel card (QR + button) + Editor card (button only)."""
+    """🏠 Start: Tap Panel card (QR + button) + Editor card (button only)."""
     import AppKit
     from Foundation import NSMakeRect
 
@@ -682,9 +682,9 @@ def open_dashboard():
         content.addSubview_(b)
         return b
 
-    # ── Top section: Smart Panel with QR ──
+    # ── Top section: Tap Panel with QR ──
     top_y = H - 210
-    _label("📱 Smart Panel", 0, top_y + 150, W, 24, size=16,
+    _label("📱 Tap Panel", 0, top_y + 150, W, 24, size=16,
            color=NC.colorWithRed_green_blue_alpha_(0.95, 0.92, 0.89, 1.0), bold=True, align=1)
     _label("Scan QR code from iPad", 0, top_y + 127, W, 16, size=11,
            color=NC.colorWithRed_green_blue_alpha_(0.45, 0.40, 0.37, 1.0), align=1)
@@ -706,9 +706,9 @@ def open_dashboard():
     _label(panel_url, qr_x - 20, qr_y - 18, qr_size + 40, 14, size=9,
            color=NC.colorWithRed_green_blue_alpha_(0.35, 0.30, 0.27, 1.0), align=1)
 
-    # Open Smart Panel button
+    # Open Tap Panel button
     btn_w = 180
-    _btn("Open Smart Panel", (W - btn_w) // 2, qr_y - 42, btn_w, 30, "openPanel:", is_primary=True)
+    _btn("Open Tap Panel", (W - btn_w) // 2, qr_y - 42, btn_w, 30, "openPanel:", is_primary=True)
 
     # ── Divider ──
     div_y = qr_y - 80
@@ -748,41 +748,55 @@ def open_dashboard():
 
 
 # ── About panel ──
-_ABOUT_PANEL = None
+_ABOUT = {"panel": None, "delegate": None}
+
+try:
+    from Foundation import NSObject as _NSObjA
+
+    class _StpAboutDelegate(_NSObjA):
+        def openGitHub_(self, sender):
+            import subprocess as _sp_gh
+            _sp_gh.run(["open", "https://github.com/Alienwang1980/tapflow"])
+
+        def windowWillClose_(self, note):
+            _ABOUT["panel"] = None
+            _ABOUT["delegate"] = None
+
+except Exception:
+    _StpAboutDelegate = None
+
 
 def open_about():
     """ℹ️ About Tapflow — version, author, GitHub link."""
-    global _ABOUT_PANEL
     import AppKit
     from Foundation import NSMakeRect
 
-    if _ABOUT_PANEL is not None:
-        try:
-            _ABOUT_PANEL.makeKeyAndOrderFront_(None)
-            AppKit.NSApp.activateIgnoringOtherApps_(True)
-            return
-        except Exception:
-            _ABOUT_PANEL = None
+    if _ABOUT["panel"] is not None:
+        _ABOUT["panel"].makeKeyAndOrderFront_(None)
+        AppKit.NSApp.activateIgnoringOtherApps_(True)
+        return
+
+    if _StpAboutDelegate is None:
+        return
 
     W, H = 360, 280
-    screen = AppKit.NSScreen.mainScreen()
-    sf = screen.visibleFrame()
-    x = int((sf.size.width - W) / 2 + sf.origin.x)
-    y = int((sf.size.height - H) / 2 + sf.origin.y)
-
     panel = AppKit.NSPanel.alloc().initWithContentRect_styleMask_backing_defer_(
-        NSMakeRect(x, y, W, H),
+        NSMakeRect(0, 0, W, H),
         AppKit.NSWindowStyleMaskTitled | AppKit.NSWindowStyleMaskClosable,
         AppKit.NSBackingStoreBuffered, False,
     )
     panel.setTitle_("关于 Tapflow")
     panel.setLevel_(AppKit.NSFloatingWindowLevel)
-    panel.setReleasedWhenClosed_(True)
+    panel.setReleasedWhenClosed_(False)
+
+    dele = _StpAboutDelegate.alloc().init()
+    panel.setDelegate_(dele)
+    _ABOUT["delegate"] = dele
 
     content = panel.contentView()
 
     def _l(text, bx, by, bw, bh=20, size=13, bold=False, align=0):
-        from AppKit import NSTextField, NSFont, NSColor as NC2
+        from AppKit import NSTextField, NSFont
         f = NSTextField.alloc().initWithFrame_(NSMakeRect(bx, by, bw, bh))
         f.setStringValue_(text)
         f.setBezeled_(False); f.setDrawsBackground_(False)
@@ -793,6 +807,8 @@ def open_about():
         content.addSubview_(f)
         return f
 
+    from AppKit import NSButton, NSBezelStyleRounded, NSBox
+
     y_ = H - 40
     _l("Tapflow / 点流", 0, y_, W, 28, size=20, bold=True, align=2)
     y_ -= 30
@@ -800,7 +816,6 @@ def open_about():
     y_ -= 30
 
     # Divider
-    from AppKit import NSBox
     div = NSBox.alloc().initWithFrame_(NSMakeRect(30, y_, W - 60, 1))
     div.setBoxType_(2)
     content.addSubview_(div)
@@ -811,31 +826,18 @@ def open_about():
     _l("作者: mini (Alienwang1980)", 30, y_, W - 60, 20, size=12)
     y_ -= 30
 
-    # GitHub link
-    from AppKit import NSButton, NSBezelStyleRounded
+    # GitHub link button
     gh_btn = NSButton.alloc().initWithFrame_(NSMakeRect(80, y_ - 30, 200, 30))
     gh_btn.setTitle_("GitHub → tapflow")
     gh_btn.setBezelStyle_(NSBezelStyleRounded)
-    gh_btn.setTarget_(gh_btn)
-
-    def _open_gh(_):
-        import subprocess as _sp_gh
-        _sp_gh.run(["open", "https://github.com/Alienwang1980/tapflow"])
-    # Use a simple button subclass to handle the click
-    class _GhDelegate(AppKit.NSObject):
-        def openGH_(self, sender):
-            _open_gh(None)
-    _gh_del = _GhDelegate.alloc().init()
-    gh_btn.setTarget_(_gh_del)
-    gh_btn.setAction_("openGH:")
-    # Attach delegate to panel so it stays alive
-    panel._gh_del = _gh_del
+    gh_btn.setTarget_(dele)
+    gh_btn.setAction_("openGitHub:")
     content.addSubview_(gh_btn)
 
     panel.center()
     panel.makeKeyAndOrderFront_(None)
     AppKit.NSApp.activateIgnoringOtherApps_(True)
-    _ABOUT_PANEL = panel
+    _ABOUT["panel"] = panel
 
 
 def run_tray():
