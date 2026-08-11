@@ -10,9 +10,9 @@
   <img src="https://img.shields.io/badge/built%20with-Python%20%7C%20Vanilla%20JS-yellow" alt="tech">
 </p>
 
-Tapflow is a macOS menu bar app that turns **any tablet** (iPad, Android — anything with a browser) into a virtual touch control panel. It works **alongside your tablet's physical keyboard**: your fingers handle shortcuts, window management, media controls, macros, and quick actions on the touch panel while your keyboard stays focused on code. **Zero installation on the tablet** — just open a URL.
+Tapflow is a macOS menu bar app that turns **any tablet** (iPad, Android — anything with a browser) into a visual shortcut panel. Every app has its own keyboard shortcuts — powerful, but **impossible to remember** across different apps. Tapflow puts them on your tablet as **labeled buttons you can see**: tap once to fire a shortcut that would otherwise take 2-4 keys. Physical keyboards can't relabel themselves; Tapflow buttons always show what they do, and update instantly when you reconfigure. **Zero installation on the tablet** — just open a URL.
 
-Tapflow 是一个 macOS 菜单栏应用。它在 Mac 上启动一个 Web 服务，任何平板（iPad、Android，有浏览器就行）连上来就变成一个虚拟触控面板。它和**平板的物理键盘协同工作**：手指在面板上处理快捷键、窗口管理、媒体控制、宏指令、快捷操作，键盘专注于写代码。平板上**零安装**——打开网页即用。
+Tapflow 是一个 macOS 菜单栏应用。它在 Mac 上启动一个 Web 服务，任何平板（iPad、Android，有浏览器就行）连上来就变成一个**可视化快捷键面板**。每个应用都有自己的快捷键——功能强大，但**跨应用根本记不住**。Tapflow 把它们变成平板上的**带标签按钮，看得见、点得到**：原本要按 2-4 个键的组合键，现在一下触发。实体键盘没法改键帽标签，设了宏两天就忘；Tapflow 的按钮始终显示当前功能，改了立刻生效。平板上**零安装**——打开网页即用。
 
 ---
 
@@ -38,15 +38,18 @@ Every touch on the tablet is sent to the Mac in real time via WebSocket and inje
 
 ## ✨ Why Tapflow? / 为什么用 Tapflow？
 
-| With Tapflow ✅ | Without Tapflow ❌ |
-|----------------|-------------------|
-| **One tap** = any shortcut or macro | Memorize dozens of key combinations |
-| **Swipe** to tile windows | Reach for trackpad, drag, resize |
-| **Tap** to switch audio devices | Dig through System Settings |
-| **One tap** to switch workspace profiles | Manually reconfigure everything |
-| **Keyboard stays on code** | Context-switching breaks flow |
+键盘很强大，但也很复杂。几十个快捷键、不同应用各有各的习惯——**记不住才是常态**。你可能设过宏键，但过两天就忘了它干嘛的，因为键帽上什么都没写。
 
-> **Vibe coding 场景：** 你在 Mac 上用 AI 工具（Claude Code、Cursor、Windsurf 等）vibe coding，iPad 架在旁边当触控面板。键盘专注写 prompt 和审查代码，手指在 iPad 上盲操快捷键、切歌、调音量、切换窗口——不用打断键盘流。就像给 Mac 加了一块可定制的 Touch Bar，但更大、更灵活、任何平板都能用。
+Tapflow 的思路是：**做一个只属于你自己的、精简的键盘**。你只放用得着的按钮，每个都带着名字，一眼就知道是干嘛的。改了立刻生效，标签跟着更新。它不替代键盘——它帮你**把键盘上记不住的部分，变成平板上看得见的东西**。
+
+| Tapflow ✅ | 不用 Tapflow ❌ |
+|-----------|--------------|
+| **一个按钮**，标签写着功能，点一下触发 | 背几十个组合键，换一个应用就忘 |
+| 只放**你需要的**，越用越顺手 | 键盘上 100+ 个键，90% 你用不上 |
+| 改了功能**标签立刻更新**，不会忘 | 设了个宏键，两天后忘了是干嘛的 |
+| 每个 Profile 一套布局，**换应用自动切** | 手动记住每个应用的快捷键体系 |
+
+> **Vibe coding 场景：** 你在 Mac 上用 Claude Code / Cursor / Windsurf 做 vibe coding。过程中你需要的快捷键就那几组——运行、审查、提交、切换文件。在编辑器里把这些拖成按钮，iPad 放旁边，每个按钮标得清清楚楚。不用背，不用记，不用翻 cheat sheet。这就是 Tapflow：**一个你自己定义、自己命名、一眼就知道点哪的可视化键盘。**
 
 ---
 
@@ -78,8 +81,8 @@ http://localhost:8082/editor
 ```
 从组件库拖拽组件到画布，自由布局，保存为 Profile。
 
-### 5. 开始 vibe coding 🎉
-平板放旁边，键盘写代码，手指下指令。Flow 不断。
+### 5. 定制你自己的快捷键面板 🎉
+只放你用得到的按钮，每个都标清楚。键盘负责打字，面板负责那些记不住的快捷键。不用背，不用翻 cheat sheet。
 
 ---
 
