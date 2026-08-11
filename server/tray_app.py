@@ -39,11 +39,11 @@ TOOLTIP = "Tapflow — Tap points, flowing keys"
 
 # ── 端口配置(可在任意机器上修改)──────────────────────────────
 # 优先级: 环境变量 STP_PORT > config.json 的 "port" > 默认 8082。
-# config.json 路径: ~/Library/Application Support/Smart Touch Panel/config.json
+# config.json 路径: ~/Library/Application Support/Tapflow/config.json
 import json as _json_cfg
 
 def _config_dir() -> str:
-    d = os.path.expanduser("~/Library/Application Support/Smart Touch Panel")
+    d = os.path.expanduser("~/Library/Application Support/Tapflow")
     try:
         os.makedirs(d, exist_ok=True)
     except Exception:
@@ -214,7 +214,7 @@ def run_server():
     state = ServerState()
 
     # Restore persisted active profile into state
-    _profile_state_file = _os.path.join(_os.path.expanduser("~/Library/Application Support/Smart Touch Panel"), "active_profile.txt")
+    _profile_state_file = _os.path.join(_os.path.expanduser("~/Library/Application Support/Tapflow"), "active_profile.txt")
     try:
         if _os.path.exists(_profile_state_file):
             with open(_profile_state_file) as _f:
@@ -639,7 +639,6 @@ def open_dashboard():
         AppKit.NSBackingStoreBuffered, False,
     )
     panel.setTitle_("Tapflow")
-    panel.setLevel_(AppKit.NSFloatingWindowLevel)
     panel.setReleasedWhenClosed_(False)
     panel.setHidesOnDeactivate_(False)
 
@@ -810,9 +809,9 @@ def open_about():
     from AppKit import NSButton, NSBezelStyleRounded, NSBox
 
     y_ = H - 40
-    _l("Tapflow / 点流", 0, y_, W, 28, size=20, bold=True, align=2)
+    _l("Tapflow / 点流", 0, y_, W, 28, size=20, bold=True, align=1)
     y_ -= 30
-    _l("Tap points, flowing keys.", 0, y_, W, 16, size=11, align=2)
+    _l("Tap points, flowing keys.", 0, y_, W, 16, size=11, align=1)
     y_ -= 30
 
     # Divider
@@ -993,6 +992,16 @@ def main():
     # 必须在 run_server / run_tray 之前,避免 pystray 或其他 Cocoa 调用时
     # NSApp 还未设为 Accessory 模式。
     _ensure_appkit_accessory()
+
+    # ── Migrate old data directory (Smart Touch Panel → Tapflow) ──
+    _old_data = os.path.expanduser("~/Library/Application Support/Smart Touch Panel")
+    _new_data = os.path.expanduser("~/Library/Application Support/Tapflow")
+    try:
+        if os.path.isdir(_old_data) and not os.path.isdir(_new_data):
+            os.rename(_old_data, _new_data)
+            logger.info("Migrated data dir: %s → %s", _old_data, _new_data)
+    except Exception as _e_mig:
+        logger.warning("Data migration skipped: %s", _e_mig)
 
     _ensure_config(PORT)
     # Start FastAPI in background thread

@@ -7,7 +7,7 @@ import time
 
 from fastapi import APIRouter
 
-_LAYOUT_DIR = os.path.expanduser("~/Library/Application Support/Smart Touch Panel/layouts")
+_LAYOUT_DIR = os.path.expanduser("~/Library/Application Support/Tapflow/layouts")
 os.makedirs(_LAYOUT_DIR, exist_ok=True)
 
 

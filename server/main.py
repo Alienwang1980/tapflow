@@ -37,7 +37,7 @@ def _get_resource_dir() -> str:
 
 RESOURCE_DIR = _get_resource_dir()
 CLIENT_DIR = os.path.join(RESOURCE_DIR, "client")
-UPLOAD_DIR = os.path.join(os.path.expanduser("~/Library/Application Support/Smart Touch Panel"), "uploads")
+UPLOAD_DIR = os.path.join(os.path.expanduser("~/Library/Application Support/Tapflow"), "uploads")
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR, check_dir=False), name="uploads")
 app.mount("/static", StaticFiles(directory=CLIENT_DIR, check_dir=False), name="static")
 

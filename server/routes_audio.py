@@ -15,7 +15,7 @@ def _ensure_switch_audio_source(is_frozen) -> str | None:
     """Ensure SwitchAudioSource binary is installed in App Support.
     On first run (or when missing), copies from bundle Resources/bin.
     Returns the binary path or None if unavailable."""
-    dst = os.path.expanduser("~/Library/Application Support/Smart Touch Panel/bin/SwitchAudioSource")
+    dst = os.path.expanduser("~/Library/Application Support/Tapflow/bin/SwitchAudioSource")
     if os.path.isfile(dst) and os.access(dst, os.X_OK):
         return dst
     src = None
@@ -72,7 +72,7 @@ def create_router(state, is_frozen):
     @router.post("/api/system/audio-output")
     async def sys_aout(body: dict):
         sw = os.path.expanduser(
-            "~/Library/Application Support/Smart Touch Panel/bin/SwitchAudioSource")
+            "~/Library/Application Support/Tapflow/bin/SwitchAudioSource")
         if os.path.exists(sw):
             subprocess.run([sw, "-t", "output", "-s", body.get("name", "")])
         return {"status": "ok"}
@@ -80,7 +80,7 @@ def create_router(state, is_frozen):
     @router.post("/api/system/audio-input")
     async def sys_ain(body: dict):
         sw = os.path.expanduser(
-            "~/Library/Application Support/Smart Touch Panel/bin/SwitchAudioSource")
+            "~/Library/Application Support/Tapflow/bin/SwitchAudioSource")
         if os.path.exists(sw):
             subprocess.run([sw, "-t", "input", "-s", body.get("name", "")])
         return {"status": "ok"}

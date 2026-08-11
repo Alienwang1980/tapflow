@@ -5,7 +5,7 @@ import os
 from fastapi import APIRouter, HTTPException
 
 _PROFILE_STATE_FILE = os.path.join(
-    os.path.expanduser("~/Library/Application Support/Smart Touch Panel"),
+    os.path.expanduser("~/Library/Application Support/Tapflow"),
     "active_profile.txt")
 
 

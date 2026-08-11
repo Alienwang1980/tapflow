@@ -16,7 +16,7 @@ def _safe_path(profiles_dir: Path, filename: str) -> Path:
 
 def _get_data_dir() -> Path:
     """Get writable data directory. Always uses App Support."""
-    base = Path.home() / "Library" / "Application Support" / "Smart Touch Panel"
+    base = Path.home() / "Library" / "Application Support" / "Tapflow"
     base.mkdir(parents=True, exist_ok=True)
     return base
 

@@ -2,7 +2,7 @@
 import subprocess, os, json, logging
 
 logger = logging.getLogger("stp.system")
-BIN_DIR = os.path.expanduser("~/Library/Application Support/Smart Touch Panel/bin")
+BIN_DIR = os.path.expanduser("~/Library/Application Support/Tapflow/bin")
 SWITCH_AUDIO = os.path.join(BIN_DIR, "SwitchAudioSource")
 
 # ══════════ Volume / Mute ══════════

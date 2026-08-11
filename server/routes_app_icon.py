@@ -16,7 +16,7 @@ def create_router(state):
     def sys_icon(name: str = ""):
         if not name:
             return {"error": "missing name"}
-        cache_dir = os.path.expanduser("~/Library/Application Support/Smart Touch Panel/icon_cache")
+        cache_dir = os.path.expanduser("~/Library/Application Support/Tapflow/icon_cache")
         os.makedirs(cache_dir, exist_ok=True)
         cp = os.path.join(cache_dir, name.replace("/", "_") + ".png")
         if os.path.exists(cp):
