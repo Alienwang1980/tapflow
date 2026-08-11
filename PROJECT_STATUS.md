@@ -198,6 +198,12 @@ carea (flexbox 居中 cwrap)
 
 ## 最近改动
 
+### 2026-08-11
+
+| 提交 | 内容 |
+|------|------|
+| `2cdcde7` | **refactor**: 前端模块化重构完成 — iPad 11 模块 + Editor 6 模块从当前代码精确提取，`build.py` 构建通过，部署 `/Applications/` |
+
 ### 2026-08-06
 
 | 提交 | 内容 |
@@ -272,7 +278,7 @@ carea (flexbox 居中 cwrap)
 | 13 | **closeSound 不生效** | ✅ 已修复 (2026-08-10) | `profile_manager.py` + `editor.html` |
 | 14 | **Dashboard 重设计** | ✅ 已实现 (2026-08-10) | `tray_app.py` |
 | 15 | **Editor 缩略图消失** | ✅ 已修复 (2026-08-10) | 部署流程 |
-| 16 | **前端代码模块化重构** | 🔜 下一阶段 | 见 `docs/refactor-plan.md` |
+| 16 | **前端代码模块化重构** | ✅ 已实现 (2026-08-11) | `client/ipad/` (11) + `client/editor/` (6) + `tools/build.py` |
 | 17 | **tray_app.py 路由拆分** | 🔜 下一阶段 | 见 `CODE_REVIEW_PLAN.md` |
 
 ### 已知限制
