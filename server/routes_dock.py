@@ -71,12 +71,36 @@ def create_router(state):
                 url = fd.get("_CFURLString", "")
                 label = td.get("file-label", url.split("/")[-1].replace("%20", " ").replace(".app", ""))
                 bid = td.get("bundle-identifier", None)
-                # Skip if already in the list (check by bundle)
                 b = url.rstrip("/").split("/")[-1].replace("%20", " ").replace(".app", "")
                 if not any(it["bundle"] == b for it in items):
                     items.append(_make_item(label, url, bid))
         except:
             pass
+
+        # 4. Running GUI apps not yet in the list (temporary apps, not pinned)
+        try:
+            from Cocoa import NSWorkspace
+            for ra in NSWorkspace.sharedWorkspace().runningApplications():
+                if ra.activationPolicy() != 0:
+                    continue
+                rurl = ra.bundleURL()
+                if not rurl:
+                    continue
+                rp = str(rurl.path() or "").rstrip("/")
+                if not rp:
+                    continue
+                bname = rp.split("/")[-1].replace(".app", "")
+                if not bname:
+                    continue
+                if any(it["bundle"] == bname for it in items):
+                    continue
+                bid = ra.bundleIdentifier()
+                label = str(ra.localizedName() or bname)
+                url = "file://" + rp
+                items.append(_make_item(label, url, str(bid) if bid else None))
+        except Exception:
+            pass
+
         return items
 
     @router.post("/api/system/launch-app")
