@@ -463,7 +463,7 @@ try:
             _sp_op.run(["open", url])  # Safe arg list, no shell
 
         def toggleAutoStart_(self, sender):
-            _set_skip_startup_dashboard(bool(sender.state()))
+            _set_auto_show_dashboard(sender.state() == 1)
 
         def windowWillClose_(self, note):
             _DASH["panel"] = None
@@ -587,23 +587,24 @@ def _qr_nsimage(url, size=160):
 
 # ── Dashboard / Startup preferences ──
 
-def _should_auto_show_dashboard():
+def _auto_show_dashboard():
+    """Return whether dashboard should auto-open on startup (default True)."""
     try:
         if os.path.exists(_config_path()):
             with open(_config_path(), "r", encoding="utf-8") as f:
-                return not json.loads(f.read()).get("skip_startup_dashboard")
+                return json.loads(f.read()).get("auto_show_dashboard", True)
     except Exception:
         pass
     return True
 
-def _set_skip_startup_dashboard(skip):
+def _set_auto_show_dashboard(enabled):
     try:
         cfg = {}
         cp = _config_path()
         if os.path.exists(cp):
             with open(cp, "r", encoding="utf-8") as f:
                 cfg = json.loads(f.read())
-        cfg["skip_startup_dashboard"] = bool(skip)
+        cfg["auto_show_dashboard"] = bool(enabled)
         with open(cp, "w", encoding="utf-8") as f:
             json.dump(cfg, f, indent=2)
     except Exception:
@@ -726,11 +727,13 @@ def open_dashboard():
 
     _btn("Open Panel Editor", (W - btn_w) // 2, edit_y + 10, btn_w, 30, "openEditor:")
 
-    # ── Bottom: auto-start checkbox ──
+    # ── Bottom: auto-start checkbox (default checked) ──
     from AppKit import NSButton
     chk = NSButton.alloc().initWithFrame_(NSMakeRect(20, 20, W - 40, 22))
-    chk.setTitle_("下次不自动打开")
+    chk.setTitle_("Auto-open this window at startup")
     chk.setButtonType_(2)  # NSSwitchButton (checkbox)
+    auto_show = _auto_show_dashboard()
+    chk.setState_(1 if auto_show else 0)
     chk.setTarget_(dele)
     chk.setAction_("toggleAutoStart:")
     content.addSubview_(chk)
@@ -910,7 +913,7 @@ def main():
 
     # Auto-open dashboard on startup (unless user checked "下次不自动打开")
     try:
-        if _should_auto_show_dashboard():
+        if _auto_show_dashboard():
             open_dashboard()
             logger.info("Auto-opened dashboard")
     except Exception:
