@@ -216,41 +216,21 @@ def run_server():
     # Shared mutable state — replaces nonlocal variables as modules are migrated
     state = ServerState()
 
-    _current_profile = "Default.json"
-    # Load persisted active profile (both legacy + new state)
+    # Restore persisted active profile into state
     _profile_state_file = _os.path.join(_os.path.expanduser("~/Library/Application Support/Smart Touch Panel"), "active_profile.txt")
     try:
         if _os.path.exists(_profile_state_file):
             with open(_profile_state_file) as _f:
                 _saved = _f.read().strip()
                 if _saved and _pm.get_profile(_saved):
-                    _current_profile = _saved
                     state.current_profile = _saved
-                    _logger.info(f"Restored active profile: {_current_profile}")
+                    _logger.info(f"Restored active profile: {state.current_profile}")
     except Exception: pass
-    
-    
-    @app.get("/api/test-ws-override")
-    async def _test_ws():
-        return {"ws_override": True, "active": _current_profile}
 
-    @app.get("/api/active-profile")
-    async def _get_active_profile():
-        nonlocal _current_profile
-        p = _pm.get_profile(_current_profile)
-        if p: return {"profile": p, "filename": _current_profile}
-        from fastapi import HTTPException; raise HTTPException(404, "No active profile")
-    
-    @app.post("/api/active-profile")
-    async def _set_active_profile(body: dict):
-        nonlocal _current_profile
-        _current_profile = body.get("filename", "Default.json")
-        try:
-            with open(_profile_state_file, "w") as _f:
-                _f.write(_current_profile)
-        except Exception: pass
-        return {"active": _current_profile}
-    
+    # ── Profile Routes (injected) ──
+    from routes_profile import create_router as _profile_router
+    app.include_router(_profile_router(state, _pm))
+
     @app.get("/api/deepseek/balance")
     def _get_balance(api_key: str = ""):
         import urllib.request, logging as _log2
