@@ -773,23 +773,10 @@ def run_server():
         return {"status": "ok"}
 
     
-    # ── Dynamic Menu ──
+    # ── Dynamic Menu (injected) ──
+    from routes_menu import create_router as _menu_router
+    app.include_router(_menu_router(state))
 
-    @app.get("/api/system/current-menus")
-    def _sys_menus():
-        import sys as _sys, os as _os; _sys.path.insert(0, _os.environ.get("RESOURCEPATH", _os.path.dirname(_os.path.abspath(__file__)))); from ax_bridge import get_current_app_info, get_all_menus
-        name, pid = get_current_app_info()
-        menus = get_all_menus(pid)
-        return {"app": name, "menus": menus}
-
-    @app.post("/api/system/execute-shortcut")
-    async def _sys_exec(body: dict):
-        from input_engine import press_key
-        keys = body.get("keys", "")
-        if keys: press_key(keys)
-        return {"status": "ok"}
-
-    
     # ── Window Tile + Layout Presets ──
     import json as _json, os as _os3
     _LAYOUT_DIR = _os3.path.expanduser("~/Library/Application Support/Smart Touch Panel/layouts")
