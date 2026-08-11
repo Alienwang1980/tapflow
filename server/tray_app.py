@@ -593,23 +593,24 @@ def _auto_show_dashboard():
     try:
         if os.path.exists(_config_path()):
             with open(_config_path(), "r", encoding="utf-8") as f:
-                return json.loads(f.read()).get("auto_show_dashboard", True)
-    except Exception:
-        pass
+                return _json_cfg.loads(f.read()).get("auto_show_dashboard", True)
+    except Exception as e:
+        logger.warning("读取 auto_show_dashboard 失败: %s", e)
     return True
 
 def _set_auto_show_dashboard(enabled):
     try:
-        cfg = {}
         cp = _config_path()
+        cfg = {}
         if os.path.exists(cp):
             with open(cp, "r", encoding="utf-8") as f:
-                cfg = json.loads(f.read())
+                cfg = _json_cfg.loads(f.read())
         cfg["auto_show_dashboard"] = bool(enabled)
         with open(cp, "w", encoding="utf-8") as f:
-            json.dump(cfg, f, indent=2)
-    except Exception:
-        pass
+            _json_cfg.dump(cfg, f, indent=2)
+        logger.info("auto_show_dashboard set to %s", bool(enabled))
+    except Exception as e:
+        logger.warning("写入 auto_show_dashboard 失败: %s", e)
 
 # ── Dashboard window (CleanMyMac‑style graphical main interface) ──
 
