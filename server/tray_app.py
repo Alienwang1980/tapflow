@@ -728,10 +728,10 @@ def open_dashboard():
     _btn("Open Panel Editor", (W - btn_w) // 2, edit_y + 10, btn_w, 30, "openEditor:")
 
     # ── Bottom: auto-start checkbox (default checked) ──
-    from AppKit import NSButton
+    from AppKit import NSButton, NSButtonTypeSwitch
     chk = NSButton.alloc().initWithFrame_(NSMakeRect(20, 20, W - 40, 22))
-    chk.setTitle_("Auto-open this window at startup")
-    chk.setButtonType_(2)  # NSSwitchButton (checkbox)
+    chk.setButtonType_(NSButtonTypeSwitch)
+    chk.setTitle_("下次自动打开此窗口")
     auto_show = _auto_show_dashboard()
     chk.setState_(1 if auto_show else 0)
     chk.setTarget_(dele)
