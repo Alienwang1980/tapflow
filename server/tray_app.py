@@ -837,22 +837,23 @@ def open_about():
     logo_view.setImageScaling_(2)  # NSImageScaleProportionallyUpOrDown
     content.addSubview_(logo_view)
 
-    y_ = logo_y - 14
+    # Title below logo: logo_y is logo bottom, title needs 28px + 12px gap
+    y_ = logo_y - 12 - 28
     _l("Tapflow / 点流", 0, y_, W, 28, size=20, bold=True, align=1)
-    y_ -= 24
+    y_ -= 20
     _l("Tap points, flowing keys.", 0, y_, W, 16, size=11, align=1)
-    y_ -= 28
+    y_ -= 24
 
     # Divider
     div = NSBox.alloc().initWithFrame_(NSMakeRect(50, y_, W - 100, 1))
     div.setBoxType_(2)
     content.addSubview_(div)
-    y_ -= 24
+    y_ -= 22
 
     _l("版本: 1.0.0", 50, y_, W - 100, 20, size=12)
-    y_ -= 22
+    y_ -= 20
     _l("作者: Alienwang", 50, y_, W - 100, 20, size=12)
-    y_ -= 38
+    y_ -= 36
 
     # GitHub link button (centered)
     btn_w = 200
