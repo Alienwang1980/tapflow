@@ -414,7 +414,7 @@ async def delete_profile(filename: str):
 @app.get("/api/deepseek/balance")
 async def get_deepseek_balance(profile: str = "", key_id: str = ""):
     """Query Deepseek balance. Server reads API key from profile, never exposes it."""
-    import urllib.request
+    import urllib.request, urllib.error
     if not profile or not key_id:
         raise HTTPException(400, "Missing profile or key_id parameter")
     api_key = profiles.get_key_api_key(profile, key_id)
@@ -427,6 +427,11 @@ async def get_deepseek_balance(profile: str = "", key_id: str = ""):
         )
         body = urllib.request.urlopen(req, timeout=10).read()
         return json.loads(body)
+    except urllib.error.HTTPError as e:
+        # 401 = the API key itself was rejected — not a network problem
+        if e.code == 401:
+            raise HTTPException(400, "Invalid API key (DeepSeek rejected it)")
+        raise HTTPException(502, f"DeepSeek API error {e.code}")
     except Exception as e:
         raise HTTPException(500, str(e))
 

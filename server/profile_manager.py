@@ -199,7 +199,8 @@ class ProfileManager:
 
     def get_key_api_key(self, filename: str, key_id: str) -> Optional[str]:
         """Return the actual apiKey for a balance key (for server-side proxy)."""
-        path = _safe_path(self.dir, filename)
+        # Tolerate profileName without extension (frontend sometimes sends "vibe")
+        path = _safe_path(self.dir, filename if filename.endswith(".json") else filename + ".json")
         if not path.exists():
             return None
         profile = json.loads(path.read_text(encoding='utf-8'))
@@ -211,7 +212,8 @@ class ProfileManager:
 
     def set_key_api_key(self, filename: str, key_id: str, api_key: str) -> bool:
         """Set the apiKey for a specific balance key. Returns True if key found."""
-        path = _safe_path(self.dir, filename)
+        # Tolerate profileName without extension (frontend sometimes sends "vibe")
+        path = _safe_path(self.dir, filename if filename.endswith(".json") else filename + ".json")
         if not path.exists():
             return False
         profile = json.loads(path.read_text(encoding='utf-8'))

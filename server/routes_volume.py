@@ -1,11 +1,10 @@
-"""Volume control routes — output volume get/set, mute toggle, DeepSeek balance."""
+"""Volume control routes — output volume get/set, mute toggle.
+DeepSeek balance lives in main.py (profile+key_id proxy, masks the key)."""
 
-import json
 import logging
 import subprocess
-import urllib.request
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
 _logger = logging.getLogger("stp.widgets")
 
@@ -50,22 +49,5 @@ def create_router(state):
         subprocess.run(["osascript", "-e",
                         f"set volume output muted {str(state.output_muted).lower()}"])
         return {"muted": state.output_muted}
-
-    @router.get("/api/deepseek/balance")
-    def get_balance(api_key: str = ""):
-        _logger.info(f"Balance API called, key={api_key[:12] if api_key else 'NONE'}...")
-        if not api_key:
-            raise HTTPException(400, "Missing api_key")
-        try:
-            req = urllib.request.Request(
-                "https://api.deepseek.com/user/balance",
-                headers={"Authorization": f"Bearer {api_key}", "Accept": "application/json"})
-            body = urllib.request.urlopen(req, timeout=10).read()
-            result = json.loads(body)
-            _logger.info(f"Balance API success: {result}")
-            return result
-        except Exception as e:
-            _logger.error(f"Balance API failed: {e}")
-            raise HTTPException(500, str(e))
 
     return router
