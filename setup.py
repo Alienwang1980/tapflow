@@ -58,6 +58,10 @@ OPTIONS = {
     ],
     "excludes": [
         "tkinter", "PyQt5", "PySide2", "wx", "test", "unittest",
+        # numpy: 34MB dead weight pulled in by py2app's dependency scanner
+        # (zero imports in server/client). Excluded to shrink the notarization
+        # payload — Apple's scanner stalls on oversized Python bundles.
+        "numpy",
     ],
     "plist": {
         "CFBundleName": "Tapflow",
@@ -75,7 +79,9 @@ OPTIONS = {
     # __boot__.py → launchd 拉起时 opendir 外置卷挂死(实测,2026-07-15)。
     # 所有依赖已通过 packages/includes 完整打入 bundle,必须 False。
     "site_packages": False,
-    "strip": False,
+    # Strip debug symbols from bundled Mach-O files — shrinks the notarization
+    # payload (131MB -> ~90MB bundle) and speeds up Apple's scanner.
+    "strip": True,
     "iconfile": "icons/AppIcon.icns",
 }
 
