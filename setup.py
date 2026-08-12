@@ -97,13 +97,17 @@ setup(
 # Adhoc signing (--sign -) changes on every build, breaking TCC persistence.
 # Apple Developer identity is persistent → TCC permissions survive rebuilds.
 import subprocess as _sp
-DEV_CERT = "Apple Development: alienwangxinlei1980@gmail.com (LBV29FCU3H)"
+# Developer ID (distribution) identity + hardened runtime + notarization → app
+# passes Gatekeeper on any Mac. Apple Development certs are always spctl-rejected.
+DEV_CERT = "Developer ID Application: wang xinlei (7F246MKBN2)"
+ENTITLEMENTS = Path("entitlements.plist")
+SIGN_COMMON = ["--force", "--options", "runtime", "--entitlements", str(ENTITLEMENTS)]
 python_bin = Path("dist/Tapflow.app/Contents/MacOS/python")
 if python_bin.exists():
-    _sp.run(["codesign", "--force", "--sign", DEV_CERT, "--identifier", "com.tapflow.app", str(python_bin)], check=False)
-    print("✓ Re-signed bundled python with persistent dev identity")
+    _sp.run(["codesign"] + SIGN_COMMON + ["--sign", DEV_CERT, "--identifier", "com.tapflow.app", str(python_bin)], check=False)
+    print("✓ Re-signed bundled python with Developer ID identity (hardened runtime)")
 # Also re-sign main executable with same identity
 main_bin = Path("dist/Tapflow.app/Contents/MacOS/Tapflow")
 if main_bin.exists():
-    _sp.run(["codesign", "--force", "--deep", "--sign", DEV_CERT, str(Path("dist/Tapflow.app"))], check=False)
-    print("✓ Re-signed app bundle with persistent dev identity")
+    _sp.run(["codesign"] + SIGN_COMMON + ["--deep", "--sign", DEV_CERT, str(Path("dist/Tapflow.app"))], check=False)
+    print("✓ Re-signed app bundle with Developer ID identity (hardened runtime)")
