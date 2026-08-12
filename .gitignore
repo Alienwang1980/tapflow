@@ -11,3 +11,4 @@ logs/
 build/
 dist/
 *.dmg
+AuthKey_*.p8
