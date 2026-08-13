@@ -5,8 +5,8 @@
 > 语言规则:中文平台(v2ex/chiphell)用 zh,英文平台(reddit/hn)用 en。
 
 [titles]
-v2ex: 分享创造:Tapflow —— 把 iPad 变成你的 Mac 触控面板(免装 App,网页即用)
-chiphell: Tapflow:把 iPad 变成你的 Mac 触控面板 —— 免装 App,网页即用(新版更新)
+v2ex: 分享创造:Tapflow —— 把 iPad 变成你的 Mac 触控面板
+chiphell: Tapflow:把 iPad 变成你的 Mac 触控面板(新版更新)
 reddit: Tapflow — Turn your iPad into a fully custom control panel for your Mac (no iPad app required)
 
 [body]
@@ -109,7 +109,7 @@ alt_zh: 面板
 alt_en: panel
 
 ## text
-zh: 一个可以完全定制的,用于操作电脑的输入界面。不需要在 iPad 上安装软件,就能定制按键控制你的 Mac,当然有个运行在 MacOS 上的服务端,然后通过网页端连接,仅此而已。提供了一个用于定制的网页编辑器;
+zh: 一个可以完全定制的,用于操作电脑的输入界面。有个运行在 MacOS 上的服务端,然后通过网页端连接,仅此而已。提供了一个用于定制的网页编辑器;
 en: A fully customizable input surface. **No app to install on the iPad** — a small server runs on your Mac, the iPad connects through the browser, that's it. There's a web-based editor:
 
 ## img

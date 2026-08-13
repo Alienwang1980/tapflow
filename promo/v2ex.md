@@ -1,4 +1,4 @@
-# 分享创造:Tapflow —— 把 iPad 变成你的 Mac 触控面板(免装 App,网页即用)
+# 分享创造:Tapflow —— 把 iPad 变成你的 Mac 触控面板
 
 > 📌 [待补充:新版本变更亮点 —— 把变更清单给 Claude 后插入到这里]
 
@@ -36,7 +36,7 @@ Mac 快捷键不完全图:背的下来么?
 
 我想能做出改变的,不是花大力气憋出完美的产品,而是从细微入手解决一个小问题,用最轻的方式送到用户手中,然后再和需求一起成长,于是我做了这个:
 
-![Tapflow](https://img.tapflow.work/tapflow-09.jpg)
+![Tapflow](https://img.tapflow.work/tapflow-01.jpg)
 
 ## Tapflow:点流 —— 你的个性化控制层
 
@@ -46,7 +46,7 @@ Tapflow 的思路不是做一个"更好的键盘"。是让你不用脑子记快�
 
 ![面板](https://img.tapflow.work/tapflow-11.jpg)
 
-一个可以完全定制的,用于操作电脑的输入界面。不需要在 iPad 上安装软件,就能定制按键控制你的 Mac,当然有个运行在 MacOS 上的服务端,然后通过网页端连接,仅此而已。提供了一个用于定制的网页编辑器;
+一个可以完全定制的,用于操作电脑的输入界面。有个运行在 MacOS 上的服务端,然后通过网页端连接,仅此而已。提供了一个用于定制的网页编辑器;
 
 ![编辑器](https://img.tapflow.work/tapflow-12.jpg)
 

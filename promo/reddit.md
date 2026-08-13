@@ -36,7 +36,7 @@ Then someone will say: "What about a Stream Deck?" Fair — and then look at the
 
 I don't think the answer is another perfect product polished in a lab. It's solving one small problem with the lightest possible thing, getting it into users' hands, and growing with real needs. So I made this:
 
-![Tapflow](https://img.tapflow.work/tapflow-09.jpg)
+![Tapflow](https://img.tapflow.work/tapflow-01.jpg)
 
 ## Tapflow — your personal control layer
 
