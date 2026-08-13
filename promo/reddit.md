@@ -98,7 +98,7 @@ Buttons that can change and update in real time aren't just inputs — they're o
 
 ## Try it
 
-macOS only for now: https://github.com/Alienwang1980/tapflow — the package ships with 2 preset profiles, import them in the editor and you're up in ~5 minutes.
+macOS only for now: [https://github.com/Alienwang1980/tapflow](https://github.com/Alienwang1980/tapflow) — the package ships with 2 preset profiles, import them in the editor and you're up in ~5 minutes.
 
 This is still just a small slice of it. It's a first release, built to validate whether this idea has universal appeal — or if it's just my own itch.
 

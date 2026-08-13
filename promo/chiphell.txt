@@ -98,7 +98,7 @@ macOS 的 Dock 长年占着屏幕底下一排。隐藏了又不方便。把 Dock
 
 [b][size=4]5 分钟上手,然后就可以开始定义你自己的 Tapflow![/size][/b]
 
-应用目前是只有 macOS 版本:GITHUB: https://github.com/Alienwang1980/tapflow 。国内下载:百度网盘 https://pan.baidu.com/s/1nMrRw4-q3FYKJQfGRo9nAA?pwd=qw3m 提取码: qw3m 。打包文件中含有 2 个我做的预设的 Profile,下载后在编辑器中导入即可试用
+应用目前是只有 macOS 版本:GITHUB: [url]https://github.com/Alienwang1980/tapflow[/url] 。国内下载:百度网盘 [url]https://pan.baidu.com/s/1nMrRw4-q3FYKJQfGRo9nAA?pwd=qw3m[/url] 提取码: qw3m 。打包文件中含有 2 个我做的预设的 Profile,下载后在编辑器中导入即可试用
 
 这还只是一些很小的一部分,这些模块的自由度比键盘高了几个维度,尽管我从未想过这东西能替代键盘,但是目前我几乎不怎么碰键盘了。习惯了根据自己需求定义的简单的方法,突然还得用快捷键去激活各种功能的时候,就真的回不去了
 

@@ -7,6 +7,7 @@
 """
 import json
 import os
+import re
 
 from parse_source import parse_source
 
@@ -30,6 +31,18 @@ HN_HEADER = ('> Posting notes (from my channel research, verify before use):\n'
              '\n---\n\n')
 
 
+URL_RE = re.compile(r'https?://[^\s。，、;；!！"\'<>()\[\]{}]+')
+
+
+def linkify(text, fmt):
+    """裸 URL → 平台链接语法;md: [URL](URL),bbcode: [url]URL[/url],纯文本原样。"""
+    if fmt == 'md':
+        return URL_RE.sub(lambda m: f'[{m.group(0)}]({m.group(0)})', text)
+    if fmt == 'bbcode':
+        return URL_RE.sub(lambda m: f'[url]{m.group(0)}[/url]', text)
+    return text
+
+
 def load_mapping():
     return json.load(open(os.path.join(DIR, 'mapping.json'), encoding='utf-8'))
 
@@ -41,7 +54,7 @@ def render_blocks(blocks, mapping, fmt, lang):
     for b in blocks:
         t = b['type']
         if t == 'text':
-            out.append(b[lang])
+            out.append(linkify(b[lang], fmt))
         elif t == 'img':
             url = f'{BASE}/{mapping[b["slot"]]}'
             out.append(f'![{b[alt_key]}]({url})' if fmt == 'md' else f'[img]{url}[/img]')
@@ -71,4 +84,11 @@ def main():
 
 
 if __name__ == '__main__':
+    # 自检: linkify 三种格式
+    assert URL_RE.search('https://pan.baidu.com/s/1nMrRw4-q3FYKJQfGRo9nAA?pwd=qw3m 提取码')
+    assert linkify('https://x.com/a', 'md') == '[https://x.com/a](https://x.com/a)'
+    assert linkify('https://x.com/a', 'bbcode') == '[url]https://x.com/a[/url]'
+    assert linkify('https://x.com/a', 'txt') == 'https://x.com/a'
+    # ? 参数必须留在 URL 内
+    assert linkify('https://pan.baidu.com/s/1?pwd=ab 提取码', 'md') == '[https://pan.baidu.com/s/1?pwd=ab](https://pan.baidu.com/s/1?pwd=ab) 提取码'
     main()
