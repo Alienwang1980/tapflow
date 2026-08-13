@@ -7,6 +7,7 @@
 
 [titles]
 v2ex: 分享创造:Tapflow —— 把 iPad 变成你的 Mac 触控面板
+zfrontier: Tapflow:把 iPad 变成客制化触控面板 —— 与键盘鼠标搭档的 Mac 输入方案
 reddit: Tapflow — Turn your iPad into a fully custom control panel for your Mac (no iPad app required)
 
 [body]

@@ -2,7 +2,7 @@
 """从 source.md(唯一源文件)+ mapping.json 生成各平台帖子。
 
 用法: python3 generator.py
-生成: v2ex.md(中文) reddit.md(英文) hn.txt(英文)
+生成: v2ex.md(中文) zfrontier.md(中文) reddit.md(英文) hn.txt(英文)
 语言规则: 中文平台用 zh,英文平台用 en。
 """
 import json
@@ -18,6 +18,8 @@ PENDING_CN = '> 📌 [待补充:新版本变更亮点 —— 把变更清单给 
 PENDING_EN = '> 📌 [Pending: new-version highlights — send the changelog to Claude and it gets inserted here]'
 
 V2EX_FOOTER = '\n---\n\n> 发布提示:发在 V2EX【分享创造】节点;正文发帖时选 Markdown 模式,图片链接才能显示。\n'
+ZFRONTIER_FOOTER = ('\n\n---\n\n> 发布提示:zFrontier 装备前线社区;发帖前先看社区规则,选合适的圈子(外设/桌面装备相关);'
+                   '若编辑器不支持外链图再退回本地上传;语气对键盘玩家友好,评论区被问"和键盘比如何"时按定位答:配合,不替代。\n')
 REDDIT_FOOTER = ('\n\n---\n\n> Posting notes: r/macapps allows maker posts with disclosure '
                  '(already included at the end). Check each sub\'s self-promo rules before posting. '
                  'Use the Markdown editor.\n')
@@ -66,14 +68,16 @@ def main():
 
     v2ex = ['# ' + src['titles']['v2ex'], '', PENDING_CN, '',
             render_blocks(src['blocks'], mapping, 'zh'), V2EX_FOOTER]
+    zfrontier = ['# ' + src['titles']['zfrontier'], '',
+                 render_blocks(src['blocks'], mapping, 'zh'), ZFRONTIER_FOOTER]
     reddit = ['# ' + src['titles']['reddit'], '', PENDING_EN, '',
               render_blocks(src['blocks'], mapping, 'en'), REDDIT_FOOTER]
     hn = ['Show HN: Tapflow — turn an iPad into a custom control panel for macOS (no iPad app)',
           '', HN_HEADER + src['hn']]
 
-    for name, parts in (('v2ex.md', v2ex), ('reddit.md', reddit), ('hn.txt', hn)):
+    for name, parts in (('v2ex.md', v2ex), ('zfrontier.md', zfrontier), ('reddit.md', reddit), ('hn.txt', hn)):
         open(os.path.join(DIR, name), 'w', encoding='utf-8').write('\n'.join(parts))
-    print('生成完毕: v2ex.md / reddit.md / hn.txt')
+    print('生成完毕: v2ex.md / zfrontier.md / reddit.md / hn.txt')
 
 
 if __name__ == '__main__':
