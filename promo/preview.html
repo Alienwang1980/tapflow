@@ -19,18 +19,34 @@
   .block-h2 { font-size: 18px; font-weight: 700; margin: 20px 0 8px; }
   .block-h3 { font-size: 16px; font-weight: 600; margin: 16px 0 6px; }
   .img-row { margin: 14px 0; padding: 12px; background: #fafbfc; border: 1px solid #e8eaed; border-radius: 8px; }
-  .img-row img { max-width: 100%; border-radius: 6px; display: block; margin-bottom: 8px; }
+  .img-row > img { max-width: 100%; border-radius: 6px; display: block; margin-bottom: 8px; }
   .img-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; }
-  .img-controls select { max-width: 340px; padding: 5px 8px; border: 1px solid #ccc; border-radius: 6px; background: #fff; }
-  .img-controls .url { color: #888; font-size: 12px; word-break: break-all; }
+  .img-controls .thumb-preview { width: 56px; height: 40px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; }
   .img-controls .slot-tag { background: #eef1f6; color: #556; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+  .img-controls .fname { color: #555; }
+  .img-controls button { padding: 5px 12px; border: 1px solid #3b82f6; background: #fff; color: #3b82f6; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .img-controls button:hover { background: #eff6ff; }
   pre { background: #fafbfc; border: 1px solid #e8eaed; border-radius: 8px; padding: 14px; overflow-x: auto; white-space: pre-wrap; font-size: 13px; line-height: 1.6; }
+
+  /* 缩略图选择面板 */
+  .picker { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: none; z-index: 100; }
+  .picker.show { display: flex; }
+  .picker-inner { margin: auto; background: #fff; border-radius: 10px; padding: 16px; width: min(900px, 94vw); max-height: 86vh; display: flex; flex-direction: column; }
+  .picker-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .picker-head b { font-size: 15px; }
+  .picker-head button { border: none; background: none; font-size: 20px; cursor: pointer; color: #888; }
+  .picker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; overflow-y: auto; }
+  .pick-item { border: 2px solid transparent; border-radius: 8px; padding: 6px; cursor: pointer; text-align: center; background: #fafbfc; }
+  .pick-item:hover { background: #eef4ff; }
+  .pick-item img { width: 100%; height: 88px; object-fit: cover; border-radius: 6px; display: block; }
+  .pick-item .k { font-size: 11px; color: #555; word-break: break-all; margin-top: 4px; }
+  .pick-item.active { border-color: #3b82f6; background: #eff6ff; }
 </style>
 </head>
 <body>
 <header>
   <h1>Tapflow 宣发帖预览 & 图片校对</h1>
-  <span class="hint">正文只改 source.md 一个文件;换图用图片旁下拉框,自动保存</span>
+  <span class="hint">正文只改 source.md 一个文件;换图点图片下方缩略图或「换图」</span>
   <span id="save-status">已保存 ✓</span>
 </header>
 <div class="wrap">
@@ -39,9 +55,22 @@
   <section id="sec-reddit"></section>
   <section id="sec-hn"><h2>hn.txt(HN Show HN,纯文本无图)</h2><pre id="hn-pre">加载中…</pre></section>
 </div>
+
+<div class="picker" id="picker">
+  <div class="picker-inner">
+    <div class="picker-head">
+      <b id="picker-title">选择图片</b>
+      <button id="picker-close" title="关闭">✕</button>
+    </div>
+    <div class="picker-grid" id="picker-grid"></div>
+  </div>
+</div>
+
 <script>
 const BASE = 'https://img.tapflow.work';
 let mapping = {}, manifest = {}, structure = null;
+let pickerSlot = null;
+const sortedKeys = [];
 
 async function load() {
   [structure, mapping, manifest] = await Promise.all([
@@ -50,6 +79,11 @@ async function load() {
     fetch('/manifest.json').then(r => r.json()),
   ]);
   document.getElementById('hn-pre').textContent = structure.hn;
+  sortedKeys.push(...Object.keys(manifest).sort((a, b) => {
+    const ta = a.startsWith('tapflow-'), tb = b.startsWith('tapflow-');
+    if (ta !== tb) return ta ? -1 : 1;
+    return a < b ? -1 : 1;
+  }));
   render();
 }
 
@@ -60,37 +94,37 @@ function el(tag, cls, text) {
   return e;
 }
 
-function imgBlock(slot, lang) {
+function refreshSlotUI(slot) {
+  // 同一槽位在 3 个平台各出现一次,全部刷新
+  document.querySelectorAll(`[data-slot="${slot}"]`).forEach(row => {
+    row.querySelector('.slot-img').src = `${BASE}/${mapping[slot]}`;
+    row.querySelector('.thumb-preview').src = `/thumb/${encodeURIComponent(mapping[slot])}`;
+    row.querySelector('.fname').textContent = mapping[slot];
+  });
+}
+
+function imgBlock(slot) {
   const row = el('div', 'img-row');
+  row.dataset.slot = slot;
   const img = document.createElement('img');
+  img.className = 'slot-img';
   img.src = `${BASE}/${mapping[slot]}`;
   img.alt = slot;
   row.appendChild(img);
 
   const ctrl = el('div', 'img-controls');
+  const thumb = document.createElement('img');
+  thumb.className = 'thumb-preview';
+  thumb.src = `/thumb/${encodeURIComponent(mapping[slot])}`;
+  thumb.alt = slot;
+  ctrl.appendChild(thumb);
   ctrl.appendChild(el('span', 'slot-tag', slot));
-  const sel = document.createElement('select');
-  const keys = Object.keys(manifest).sort((a, b) => {
-    const ta = a.startsWith('tapflow-'), tb = b.startsWith('tapflow-');
-    if (ta !== tb) return ta ? -1 : 1;
-    return a < b ? -1 : 1;
-  });
-  for (const k of keys) {
-    const opt = document.createElement('option');
-    opt.value = k;
-    opt.textContent = `${manifest[k]}`;
-    if (k === mapping[slot]) opt.selected = true;
-    sel.appendChild(opt);
-  }
-  const urlSpan = el('span', 'url', `${BASE}/${mapping[slot]}`);
-  sel.addEventListener('change', async () => {
-    mapping[slot] = sel.value;
-    img.src = `${BASE}/${mapping[slot]}`;
-    urlSpan.textContent = `${BASE}/${mapping[slot]}`;
-    await save();
-  });
-  ctrl.appendChild(sel);
-  ctrl.appendChild(urlSpan);
+  ctrl.appendChild(el('span', 'fname', mapping[slot]));
+  const btn = el('button', '', '换图');
+  const open = () => openPicker(slot);
+  thumb.addEventListener('click', open);
+  btn.addEventListener('click', open);
+  ctrl.appendChild(btn);
   row.appendChild(ctrl);
   return row;
 }
@@ -98,11 +132,14 @@ function imgBlock(slot, lang) {
 async function save() {
   const st = document.getElementById('save-status');
   try {
-    await fetch('/save', {
+    const r = await fetch('/save', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(mapping),
     });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    st.textContent = '已保存 ✓';
+    st.style.color = '#7ee787';
     st.classList.add('show');
     clearTimeout(save._t);
     save._t = setTimeout(() => st.classList.remove('show'), 1500);
@@ -113,6 +150,51 @@ async function save() {
   }
 }
 
+/* ---- 缩略图选择面板 ---- */
+function updateActive() {
+  document.querySelectorAll('.pick-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.key === mapping[pickerSlot]);
+  });
+}
+
+function openPicker(slot) {
+  pickerSlot = slot;
+  document.getElementById('picker-title').textContent = `为 ${slot} 选择图片(点击即换并保存)`;
+  const grid = document.getElementById('picker-grid');
+  if (grid.dataset.built !== '1') {
+    grid.dataset.built = '1';
+    for (const k of sortedKeys) {
+      const item = el('div', 'pick-item');
+      item.dataset.key = k;
+      const im = document.createElement('img');
+      im.src = `/thumb/${encodeURIComponent(k)}`;
+      im.loading = 'lazy';
+      im.alt = k;
+      item.appendChild(im);
+      item.appendChild(el('div', 'k', k));
+      item.addEventListener('click', async () => {
+        mapping[pickerSlot] = k;
+        document.getElementById('picker').classList.remove('show');
+        refreshSlotUI(pickerSlot);
+        await save();
+      });
+      grid.appendChild(item);
+    }
+  }
+  updateActive();
+  document.getElementById('picker').classList.add('show');
+}
+
+document.getElementById('picker-close').addEventListener('click', () => {
+  document.getElementById('picker').classList.remove('show');
+});
+document.getElementById('picker').addEventListener('click', e => {
+  if (e.target.id === 'picker') document.getElementById('picker').classList.remove('show');
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.getElementById('picker').classList.remove('show');
+});
+
 function renderPost(containerId, platform, lang) {
   const sec = document.getElementById(containerId);
   sec.innerHTML = '';
@@ -122,13 +204,13 @@ function renderPost(containerId, platform, lang) {
     if (b.type === 'text') sec.appendChild(el('div', 'block-text', b[lang]));
     else if (b.type === 'h2') sec.appendChild(el('div', 'block-h2', b[lang]));
     else if (b.type === 'h3') sec.appendChild(el('div', 'block-h3', b[lang]));
-    else if (b.type === 'img') sec.appendChild(imgBlock(b.slot, lang));
+    else if (b.type === 'img') sec.appendChild(imgBlock(b.slot));
   }
 }
 
 function render() {
-  renderPost('sec-v2ex', 'v2ex', 'cn');
-  renderPost('sec-chiphell', 'chiphell', 'cn');
+  renderPost('sec-v2ex', 'v2ex', 'zh');
+  renderPost('sec-chiphell', 'chiphell', 'zh');
   renderPost('sec-reddit', 'reddit', 'en');
 }
 
