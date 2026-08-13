@@ -13,7 +13,7 @@ Hi HN,
 
 I made Tapflow: a macOS menu-bar server + a web client that turns an iPad (or any tablet) into a fully customizable touch control panel for your Mac. No app to install on the iPad — it just opens a web page on your LAN.
 
-Why: keyboards are designed so anyone can type, not so you can control *your* computer efficiently. Shortcuts force you to remember function + key position + hunt for it. In 2026 that felt wrong. I wanted "recognize, don't memorize": buttons you can see, with your own labels, colors, and positions — not 100 identical keys.
+Why: keyboards are excellent for typing, but a lot of everyday computer control is shortcut-heavy. Enough shortcuts and you're remembering function + position + hunting for keys. I wanted to move some of that load from memory to the screen: buttons you can see, with your own labels, colors, and positions — recognition instead of recall.
 
 How it works:
 - A small server runs on the Mac (menu bar app), serving a web editor + panel over HTTP/WebSocket on your LAN.
@@ -22,7 +22,7 @@ How it works:
 
 Widgets I built so far: voice-input button (for vibe coding with Claude Code/Cursor), a window-swipe "joystick" (tiling via gestures), window switcher with live thumbnails, Dock panel (move your Dock to the tablet), audio output switcher, app launcher, key macro pads, a trackpad area, and a live DeepSeek API balance display (buttons can show data, not just send commands).
 
-What it isn't: a Stream Deck clone. Those cost real money and are physical buttons — same "immutable key" problem with a nicer keycap.
+What it isn't: a keyboard replacement. Tapflow is designed to complement keyboard and mouse — high-frequency actions move to the panel, typing stays on the keyboard. (Functionally it's closer to a Stream Deck's job than a keyboard's; it also costs less than a Stream Deck since it uses hardware you may already own.)
 
 It's macOS-only, built to test whether my own itch is general. 5-minute setup, ships with 2 preset profiles. [VERSION PLACEHOLDER: fill in current release version here — see note below]
 

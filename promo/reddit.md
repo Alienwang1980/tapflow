@@ -2,21 +2,21 @@
 
 > 📌 [Pending: new-version highlights — send the changelog to Claude and it gets inserted here]
 
-A keyboard is a "universal tool" — designed so that *anyone* can type, not so that *you* can control your computer efficiently.
+Keyboards are excellent general-purpose tools for typing. But plenty of high-frequency actions — switching windows, changing audio output, launching apps — aren't always the most intuitive with shortcuts or multi-level menus.
 
 ![keyboard](https://img.tapflow.work/tapflow-02.jpg)
 
-100+ keys, and they all look the same. Shortcuts live in your head: what does ⌘⌥⇧K do again? You have to recall the function, recall the key position, then hunt for it with your fingers. Your brain — the most powerful biocomputer on Earth — is being used as a shortcut memo pad.
+Shortcut count easily outgrows memory. What does ⌘⌥⇧K do? Recall the function, recall the position, hunt with your fingers — once you have enough shortcuts, this process interrupts your flow.
 
-Mac shortcuts cheat sheet — can you memorize all this?
+This incomplete Mac shortcuts cheat sheet is already a lot to memorize.
 
 ![Mac shortcuts](https://img.tapflow.work/tapflow-03.jpg)
 
-Recognize, memorize, recall. That's not thinking — that's waste.
+Recognition beats recall: seeing a labeled button is faster than remembering a key combination. That's the starting point of Tapflow.
 
-It's 2026. Your phone recognizes your face. Your Mac recognizes your fingerprint. But the way you control your computer is still... memorizing key positions.
+Visual interfaces are everywhere today — phones recognize faces, Macs recognize fingerprints. Making common actions visible is hardly radical.
 
-The landscape has shifted though. AI-era vibe coding demands less from keyboards, and products like the Worklouder Creator Micro 2 have appeared:
+The AI era and vibe coding are changing input needs, and products like the Worklouder Creator Micro 2 have appeared:
 
 ![Creator Micro 2](https://img.tapflow.work/tapflow-04.jpg)
 
@@ -24,23 +24,23 @@ The landscape has shifted though. AI-era vibe coding demands less from keyboards
 
 ![Creator Micro 2](https://img.tapflow.work/tapflow-06.jpg)
 
-They address the voice-input side of vibe coding, but the physical keys remain "immutable": you can remap a key, but it won't change shape or size. Not visual, not flexible — you'll forget your macros in days.
+They address voice input for vibe coding, but the physical keys stay fixed: you can remap a key, but it won't change shape or size — and after enough customization, remembering each key's purpose becomes a burden again.
 
-Set up a vibe keyboard and you'll forget what each key does within days.
+After enough custom macros, forgetting what each key does is common.
 
 ![forgotten macros](https://img.tapflow.work/tapflow-07.jpg)
 
-Then someone will say: "What about a Stream Deck?" Fair — and then look at the price tag.
+Another established option is the Elgato Stream Deck: physical keys with tiny screens. Works well, priced from three figures.
 
 ![Stream Deck XL](https://img.tapflow.work/tapflow-08.jpg)
 
-I don't think the answer is another perfect product polished in a lab. It's solving one small problem with the lightest possible thing, getting it into users' hands, and growing with real needs. So I made this:
+My approach was to solve one small problem with the lightest possible thing, then grow with real needs. So I made this:
 
 ![Tapflow](https://img.tapflow.work/tapflow-01.jpg)
 
 ## Tapflow — your personal control layer
 
-Tapflow isn't a "better keyboard." It's: *stop memorizing shortcuts, and start using it today.*
+Tapflow isn't a keyboard replacement — it works alongside keyboard and mouse: common actions become visible buttons, reducing what you have to memorize.
 
 ![panel](https://img.tapflow.work/tapflow-10.jpg)
 
@@ -50,7 +50,7 @@ A fully customizable input surface. **No app to install on the iPad** — a smal
 
 ![editor](https://img.tapflow.work/tapflow-12.jpg)
 
-Drag a few buttons out. Each one gets its own name, color, size, position. Change a function, the label changes instantly. Your brain only has to *recognize* — never *memorize*.
+Drag out buttons in the editor; each gets its own name, color, size, position. Change a function and the label updates instantly — see it, use it, nothing to memorize.
 
 ## Some scenarios
 
@@ -58,7 +58,7 @@ Drag a few buttons out. Each one gets its own name, color, size, position. Chang
 
 ![voice button](https://img.tapflow.work/tapflow-13.jpg)
 
-You're in Claude Code / Cursor, AI is writing, you need to dictate the next prompt. On a keyboard: which key was voice input again? On Tapflow: there's a button that literally says "🎤 Talk". Tap it, start speaking. It's not about pressing fewer keys — it's about never breaking your train of thought.
+You're vibe coding in Claude Code / Cursor and need to dictate the next prompt. On Tapflow there's a button labeled "🎤 Talk". Tap and speak — no hunting for the voice-input shortcut.
 
 ### 🕹️ Window tiling as a gamepad joystick
 
@@ -66,13 +66,13 @@ You're in Claude Code / Cursor, AI is writing, you need to dictate the next prom
 
 ![Window Swipe animation](https://img.tapflow.work/tapflow-window-swiper.gif)
 
-macOS window snapping is powerful — but triggering it means memorizing shortcuts or dragging to screen edges. Tapflow's Window Swipe turns it into a joystick: swipe up for fullscreen, left for left-half, down-right for bottom-right corner. It feels like a game. Arranging windows shouldn't involve shortcuts at all.
+macOS window snapping is powerful, but triggering it usually means shortcuts or dragging to screen edges. Tapflow's Window Swipe turns it into a joystick: swipe up for fullscreen, left for left-half, down-right for bottom corner; tap to maximize, long-press for fullscreen.
 
 ### 🖼️ Window thumbnails at a glance
 
 ![Window Switcher](https://img.tapflow.work/tapflow-15.jpg)
 
-⌘Tab is blind guessing — you see app icons, not window contents. Three VS Code windows open? Good luck. Window Switcher lays out live thumbnails of every window, grouped by app, swipeable. You see exactly what's inside, tap to switch.
+⌘Tab shows app icons, not window contents — with three VS Code windows open you have to guess. Window Switcher lays out live thumbnails of every window, grouped by app, swipeable: see exactly what's inside, tap to switch.
 
 ### 📱 Your Dock, on the tablet
 
@@ -84,7 +84,7 @@ The macOS Dock eats a row of screen space. Hide it and it's annoying; keep it an
 
 ![Audio Out](https://img.tapflow.work/tapflow-17.jpg)
 
-AirPods in a meeting, speakers in the studio, headset for gaming. The usual path: System Settings → Sound → Output → find the device → click. Every single time. Tapflow's Audio Out widget: one button pops the device list, long-press cycles. One second.
+AirPods in a meeting, speakers in the studio, headset for gaming. The usual path: System Settings → Sound → Output → find the device. Tapflow's Audio Out widget: one tap pops the device list, long-press cycles.
 
 ### ⌨️ The whole iPad as a keyboard
 
@@ -96,13 +96,13 @@ You can even watch your DeepSeek API balance right on the panel:
 
 ![balance widget](https://img.tapflow.work/tapflow-19.jpg)
 
-Buttons that can change and update in real time aren't just inputs — they're outputs too. Isn't that the seamless information connection we've always wanted?
+Buttons that update in real time aren't just inputs — they're outputs too.
 
 ## Try it
 
 macOS only for now: [https://github.com/Alienwang1980/tapflow](https://github.com/Alienwang1980/tapflow) — the package ships with 2 preset profiles, import them in the editor and you're up in ~5 minutes.
 
-This is still just a small slice of it. It's a first release, built to validate whether this idea has universal appeal — or if it's just my own itch.
+This is only part of what's built. To be clear: it was never meant to replace the keyboard — for typing, a keyboard is still the right tool. Tapflow is designed to work alongside keyboard and mouse, taking over high-frequency actions. Some users report barely touching their keyboard in certain scenarios — that's an incidental use case, not the design goal.
 
 ![outro](https://img.tapflow.work/tapflow-20.jpg)
 

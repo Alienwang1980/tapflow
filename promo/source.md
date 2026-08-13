@@ -3,6 +3,7 @@
 > 改完保存后运行 `python3 generator.py`,自动重新生成 v2ex.md / reddit.md / hn.txt。
 > 图片替换不用改这里 —— 打开预览页 http://localhost:8092 ,点图片下方缩略图或「换图」按钮,自动保存到 mapping.json。
 > 语言规则:中文平台(v2ex)用 zh,英文平台(reddit/hn)用 en。(chiphell 已发过,不再生成)
+> 基调:客观介绍,不贬低键盘/竞品;定位是配合键盘鼠标提效,不是替代。
 
 [titles]
 v2ex: 分享创造:Tapflow —— 把 iPad 变成你的 Mac 触控面板
@@ -10,8 +11,8 @@ reddit: Tapflow — Turn your iPad into a fully custom control panel for your Ma
 
 [body]
 ## text
-zh: 键盘是一个"通用工具"——它被设计来让任何人能打字,而不是让你高效地操控你的电脑。
-en: A keyboard is a "universal tool" — designed so that *anyone* can type, not so that *you* can control your computer efficiently.
+zh: 键盘是打字的通用工具,大多数情况下它做得很好。但电脑操作里还有大量高频动作——切换窗口、调音频、启动应用——这些用快捷键或鼠标多级菜单并不总是最直观的。
+en: Keyboards are excellent general-purpose tools for typing. But plenty of high-frequency actions — switching windows, changing audio output, launching apps — aren't always the most intuitive with shortcuts or multi-level menus.
 
 ## img
 slot: img-01
@@ -19,12 +20,12 @@ alt_zh: 键盘
 alt_en: keyboard
 
 ## text
-zh: 100 多个键,每一个长得差不多。快捷键全靠脑子记。⌘⌥⇧K 是什么?你得先回忆它的功能,再回忆它的键位,再让手指找过去。你的大脑——这台地球上最强大的生物计算机——在被当成快捷键备忘录用。
-en: 100+ keys, and they all look the same. Shortcuts live in your head: what does ⌘⌥⇧K do again? You have to recall the function, recall the key position, then hunt for it with your fingers. Your brain — the most powerful biocomputer on Earth — is being used as a shortcut memo pad.
+zh: 快捷键的数量很容易超出记忆负担。⌘⌥⇧K 是什么?先回忆功能,再回忆键位,再让手指找过去——当快捷键多到一定程度,这个过程就会打断思路。
+en: Shortcut count easily outgrows memory. What does ⌘⌥⇧K do? Recall the function, recall the position, hunt with your fingers — once you have enough shortcuts, this process interrupts your flow.
 
 ## text
-zh: Mac 快捷键不完全图:背的下来么?
-en: Mac shortcuts cheat sheet — can you memorize all this?
+zh: 这张 Mac 快捷键图还不完整,数量已经相当可观。
+en: This incomplete Mac shortcuts cheat sheet is already a lot to memorize.
 
 ## img
 slot: img-02
@@ -32,16 +33,16 @@ alt_zh: Mac 快捷键不完全图
 alt_en: Mac shortcuts
 
 ## text
-zh: 识别、记忆、回忆。这不是思考,这是浪费。
-en: Recognize, memorize, recall. That's not thinking — that's waste.
+zh: 相比之下,识别比回忆更快:看见一个写着功能的按钮,比回忆一个组合键快得多。这是 Tapflow 的出发点。
+en: Recognition beats recall: seeing a labeled button is faster than remembering a key combination. That's the starting point of Tapflow.
 
 ## text
-zh: 都 2026 年了。你的手机认得你的脸。你的 Mac 认得你的指纹。但你控制电脑的方式,还停留在背键位。
-en: It's 2026. Your phone recognizes your face. Your Mac recognizes your fingerprint. But the way you control your computer is still... memorizing key positions.
+zh: 视觉界面在今天的设备上已经无处不在——手机认脸、Mac 认指纹。把常用操作做成看得见的东西,并不超前。
+en: Visual interfaces are everywhere today — phones recognize faces, Macs recognize fingerprints. Making common actions visible is hardly radical.
 
 ## text
-zh: 然而情况也变了。如今 AI 时代,Vibe Code 更是对键盘的需求进一步降低,市面上也有很多为此而生的键盘变体产品,例如:Worklouder: Creator Micro 2
-en: The landscape has shifted though. AI-era vibe coding demands less from keyboards, and products like the Worklouder Creator Micro 2 have appeared:
+zh: 如今 AI 时代,Vibe Code 对输入方式提出了新需求,市面上也出现了相应的产品,例如 Worklouder Creator Micro 2:
+en: The AI era and vibe coding are changing input needs, and products like the Worklouder Creator Micro 2 have appeared:
 
 ## img
 slot: img-03
@@ -59,12 +60,12 @@ alt_zh: Creator Micro 2
 alt_en: Creator Micro 2
 
 ## text
-zh: 可以看出,这些都在试图满足今天 Vibe Code 对语音而不是键盘需求的改变,但是其并未改变实体按键这个「不可变」的痛点。当然:实体按键可以自定义,但是按键不会改变样子,大小不会变,不直观又不灵活,分分钟忘记定义的宏,这样的产品更像是在"补救"而不是改变!
-en: They address the voice-input side of vibe coding, but the physical keys remain "immutable": you can remap a key, but it won't change shape or size. Not visual, not flexible — you'll forget your macros in days.
+zh: 这类产品回应了 Vibe Code 的语音输入需求,但它们仍是实体按键:按键可以自定义,样子和大小却不会变,自定义多了以后,记住每个键的用途依然是个负担。
+en: They address voice input for vibe coding, but the physical keys stay fixed: you can remap a key, but it won't change shape or size — and after enough customization, remembering each key's purpose becomes a burden again.
 
 ## text
-zh: 设置了个 Vibe 键盘,没多久就想不起来设置的按键是什么
-en: Set up a vibe keyboard and you'll forget what each key does within days.
+zh: 自定义宏多了以后,忘记每个按键的用途是常见的事。
+en: After enough custom macros, forgetting what each key does is common.
 
 ## img
 slot: img-06
@@ -72,8 +73,8 @@ alt_zh: 忘记宏的 Vibe 键盘
 alt_en: forgotten macros
 
 ## text
-zh: 这时候就一定会说了:不是有这个神器吗?那么不得不提 StreamDeck,同时也不能无视这东西的价格
-en: Then someone will say: "What about a Stream Deck?" Fair — and then look at the price tag.
+zh: 另一类成熟产品是 Elgato Stream Deck:实体按键 + 小屏幕,体验不错,价格从千元级起步。
+en: Another established option is the Elgato Stream Deck: physical keys with tiny screens. Works well, priced from three figures.
 
 ## img
 slot: img-07
@@ -81,8 +82,8 @@ alt_zh: Stream Deck
 alt_en: Stream Deck XL
 
 ## text
-zh: 我想能做出改变的,不是花大力气憋出完美的产品,而是从细微入手解决一个小问题,用最轻的方式送到用户手中,然后再和需求一起成长,于是我做了这个:
-en: I don't think the answer is another perfect product polished in a lab. It's solving one small problem with the lightest possible thing, getting it into users' hands, and growing with real needs. So I made this:
+zh: 我的做法是从一个小问题入手,做一个轻量的方案,和用户的需求一起成长。于是我做了这个:
+en: My approach was to solve one small problem with the lightest possible thing, then grow with real needs. So I made this:
 
 ## img
 slot: img-08
@@ -94,8 +95,8 @@ zh: Tapflow:点流 —— 你的个性化控制层
 en: Tapflow — your personal control layer
 
 ## text
-zh: Tapflow 的思路不是做一个"更好的键盘"。是让你不用脑子记快捷键,而且你现在就能开始用。
-en: Tapflow isn't a "better keyboard." It's: *stop memorizing shortcuts, and start using it today.*
+zh: Tapflow 不是要替代键盘,而是与键盘鼠标配合:把高频操作做成看得见的按钮,减少记忆负担。
+en: Tapflow isn't a keyboard replacement — it works alongside keyboard and mouse: common actions become visible buttons, reducing what you have to memorize.
 
 ## img
 slot: img-09
@@ -117,8 +118,8 @@ alt_zh: 编辑器
 alt_en: editor
 
 ## text
-zh: 你在编辑器里拖几个按钮出来。每个按钮可以定义自己的名字、颜色、尺寸、位置。按你的需要,你不需要回忆它是什么——你一眼就看到了。改了功能?标签立刻跟着变。你的大脑只负责"识别",不用负责"记忆"。
-en: Drag a few buttons out. Each one gets its own name, color, size, position. Change a function, the label changes instantly. Your brain only has to *recognize* — never *memorize*.
+zh: 你在编辑器里拖出按钮,每个按钮可以定义名字、颜色、尺寸、位置。改了功能,标签立刻跟着变——看见即用,不用记。
+en: Drag out buttons in the editor; each gets its own name, color, size, position. Change a function and the label updates instantly — see it, use it, nothing to memorize.
 
 ## h2
 zh: 几个使用场景,感受一下
@@ -134,8 +135,8 @@ alt_zh: 语音按钮
 alt_en: voice button
 
 ## text
-zh: 你在用 Claude Code / Cursor 做 vibe coding。AI 在写代码,你要说下一段 prompt。键盘上:找到语音输入快捷键(是哪个来着?)Tapflow 上:有一个按钮,上面写着"🎤 说话"。点一下,开始说。不是"少按了几个键"的问题。是你不用打断思路去想那个快捷键是什么的问题。
-en: You're in Claude Code / Cursor, AI is writing, you need to dictate the next prompt. On a keyboard: which key was voice input again? On Tapflow: there's a button that literally says "🎤 Talk". Tap it, start speaking. It's not about pressing fewer keys — it's about never breaking your train of thought.
+zh: 你用 Claude Code / Cursor 做 vibe coding,AI 在写代码,你要说下一段 prompt。在 Tapflow 上,一个写着"🎤 说话"的按钮,点一下就开始说,不用在键盘上找语音输入快捷键。
+en: You're vibe coding in Claude Code / Cursor and need to dictate the next prompt. On Tapflow there's a button labeled "🎤 Talk". Tap and speak — no hunting for the voice-input shortcut.
 
 ## h3
 zh: 🕹️ 窗口排列 = 游戏手柄摇杆
@@ -152,8 +153,8 @@ alt_zh: Window Swipe 动图
 alt_en: Window Swipe animation
 
 ## text
-zh: macOS 的窗口贴靠功能很强——全屏、左半、右半、上半、下半。但触发方式呢?要么背快捷键,要么用鼠标拖到屏幕边缘。Tapflow 的 Window Swipe 组件把它做成了一个摇杆。手指在平板上往上滑 → 窗口全屏。往左滑 → 贴左半。往右下滑 → 右下角。就跟打游戏一样。点一下最大化,长按全屏。排列窗口这件事,根本就不应该用快捷键。
-en: macOS window snapping is powerful — but triggering it means memorizing shortcuts or dragging to screen edges. Tapflow's Window Swipe turns it into a joystick: swipe up for fullscreen, left for left-half, down-right for bottom-right corner. It feels like a game. Arranging windows shouldn't involve shortcuts at all.
+zh: macOS 的窗口贴靠功能很强——全屏、左半、右半、上半、下半。触发方式通常是快捷键或把窗口拖到屏幕边缘。Tapflow 的 Window Swipe 把它做成了摇杆:手指往上滑窗口全屏,往左滑贴左半,往右下滑贴右下角,点一下最大化,长按全屏。
+en: macOS window snapping is powerful, but triggering it usually means shortcuts or dragging to screen edges. Tapflow's Window Swipe turns it into a joystick: swipe up for fullscreen, left for left-half, down-right for bottom corner; tap to maximize, long-press for fullscreen.
 
 ## h3
 zh: 🖼️ 窗口缩略图,一眼切换
@@ -165,8 +166,8 @@ alt_zh: Window Switcher
 alt_en: Window Switcher
 
 ## text
-zh: ⌘Tab 切窗口是盲猜——你只能看到 App 图标,看不到窗口内容。开了三个 VS Code 窗口?猜吧,看哪个是你想要的。Window Switcher 把所有窗口的实时缩略图排出来。按应用分组,横向滑动。哪个窗口里有什么,看得一清二楚。点一下,切过去。
-en: ⌘Tab is blind guessing — you see app icons, not window contents. Three VS Code windows open? Good luck. Window Switcher lays out live thumbnails of every window, grouped by app, swipeable. You see exactly what's inside, tap to switch.
+zh: ⌘Tab 切窗口只能看到 App 图标,看不到窗口内容;开了三个 VS Code 窗口时,得逐个试。Window Switcher 把所有窗口的实时缩略图排出来,按应用分组,横向滑动,窗口内容一目了然,点一下切过去。
+en: ⌘Tab shows app icons, not window contents — with three VS Code windows open you have to guess. Window Switcher lays out live thumbnails of every window, grouped by app, swipeable: see exactly what's inside, tap to switch.
 
 ## h3
 zh: 📱 Dock 上平板,屏幕更干净
@@ -178,7 +179,7 @@ alt_zh: Dock Panel
 alt_en: Dock Panel
 
 ## text
-zh: macOS 的 Dock 长年占着屏幕底下一排。隐藏了又不方便。把 Dock Panel 放到 iPad 上。从平板启动 App、退出 App。Mac 屏幕上的 Dock 直接隐藏——每一寸屏幕都留给你的工作。
+zh: macOS 的 Dock 常年占着屏幕底下一排,隐藏了又不方便。把 Dock Panel 放到 iPad 上,从平板启动 App、退出 App,Mac 屏幕上的 Dock 可以隐藏起来,屏幕全部留给工作。
 en: The macOS Dock eats a row of screen space. Hide it and it's annoying; keep it and it's in the way. Put the Dock Panel on your iPad — launch and quit apps from the tablet, hide the Mac's Dock entirely. Every inch of screen goes to your work.
 
 ## h3
@@ -191,8 +192,8 @@ alt_zh: Audio Out
 alt_en: Audio Out
 
 ## text
-zh: 会议室里要切 AirPods。工作室里要切外放。打游戏切耳机。通常的做法:系统设置 → 声音 → 输出 → 找到设备 → 点一下。每次都这样。Tapflow 的 Audio Out 组件:平板上一个按钮,点一下弹出所有设备列表,选一个。长按直接轮换。一秒。
-en: AirPods in a meeting, speakers in the studio, headset for gaming. The usual path: System Settings → Sound → Output → find the device → click. Every single time. Tapflow's Audio Out widget: one button pops the device list, long-press cycles. One second.
+zh: 会议室切 AirPods,工作室切外放,打游戏切耳机。通常的路径是:系统设置 → 声音 → 输出 → 找到设备。Tapflow 的 Audio Out 组件:平板上一键弹出设备列表,选一个;长按直接轮换。
+en: AirPods in a meeting, speakers in the studio, headset for gaming. The usual path: System Settings → Sound → Output → find the device. Tapflow's Audio Out widget: one tap pops the device list, long-press cycles.
 
 ## h3
 zh: ⌨️ 把 iPad 变成一整个键盘
@@ -204,7 +205,7 @@ alt_zh: 全键盘面板
 alt_en: full panel
 
 ## text
-zh: 平板屏幕足够大。在上面铺满按键、触控板、手势区、窗口摇杆——你的 iPad 就是一块完全按你的习惯定制的输入面板。配合平板的物理键盘打字,触控面板处理一切操作。这不是在键盘上"加按钮",这是完全按你自己的方式重新设计输入。
+zh: 平板屏幕足够大。在上面铺满按键、触控板、手势区、窗口摇杆——iPad 变成一块按你的习惯定制的输入面板。配合平板物理键盘打字,触控面板处理其他操作。
 en: A tablet screen is big enough. Cover it with keys, a trackpad area, gesture zones, the window joystick — your iPad becomes an input panel designed entirely around *your* habits.
 
 ## text
@@ -217,8 +218,8 @@ alt_zh: 余额显示
 alt_en: balance widget
 
 ## text
-zh: 按钮可变了,实时更新了,那就不仅可以作为指令的输入,同时可以输出信息,这不就是我们一直在追求的与信息无缝连接的终极需求吗?
-en: Buttons that can change and update in real time aren't just inputs — they're outputs too. Isn't that the seamless information connection we've always wanted?
+zh: 按钮可以实时变化,就不只是输入指令,还能输出信息。
+en: Buttons that update in real time aren't just inputs — they're outputs too.
 
 ## h2
 zh: 5 分钟上手,然后就可以开始定义你自己的 Tapflow!
@@ -229,8 +230,8 @@ zh: 应用目前是只有 macOS 版本:GITHUB: https://github.com/Alienwang1980/
 en: macOS only for now: https://github.com/Alienwang1980/tapflow — the package ships with 2 preset profiles, import them in the editor and you're up in ~5 minutes.
 
 ## text
-zh: 这还只是一些很小的一部分,这些模块的自由度比键盘高了几个维度,尽管我从未想过这东西能替代键盘,但是目前我几乎不怎么碰键盘了。习惯了根据自己需求定义的简单的方法,突然还得用快捷键去激活各种功能的时候,就真的回不去了
-en: This is still just a small slice of it. It's a first release, built to validate whether this idea has universal appeal — or if it's just my own itch.
+zh: 上面只是功能的一部分。需要说明的是:我从未打算让它替代键盘——打字这类任务键盘依然是最合适的工具,Tapflow 的定位是与键盘鼠标配合,分担高频操作,提升效率。当然,也有用户告诉我,在特定场景下他们几乎不再碰键盘——这是意外的使用方式,不是设计目标。
+en: This is only part of what's built. To be clear: it was never meant to replace the keyboard — for typing, a keyboard is still the right tool. Tapflow is designed to work alongside keyboard and mouse, taking over high-frequency actions. Some users report barely touching their keyboard in certain scenarios — that's an incidental use case, not the design goal.
 
 ## img
 slot: img-19
@@ -246,7 +247,7 @@ Hi HN,
 
 I made Tapflow: a macOS menu-bar server + a web client that turns an iPad (or any tablet) into a fully customizable touch control panel for your Mac. No app to install on the iPad — it just opens a web page on your LAN.
 
-Why: keyboards are designed so anyone can type, not so you can control *your* computer efficiently. Shortcuts force you to remember function + key position + hunt for it. In 2026 that felt wrong. I wanted "recognize, don't memorize": buttons you can see, with your own labels, colors, and positions — not 100 identical keys.
+Why: keyboards are excellent for typing, but a lot of everyday computer control is shortcut-heavy. Enough shortcuts and you're remembering function + position + hunting for keys. I wanted to move some of that load from memory to the screen: buttons you can see, with your own labels, colors, and positions — recognition instead of recall.
 
 How it works:
 - A small server runs on the Mac (menu bar app), serving a web editor + panel over HTTP/WebSocket on your LAN.
@@ -255,7 +256,7 @@ How it works:
 
 Widgets I built so far: voice-input button (for vibe coding with Claude Code/Cursor), a window-swipe "joystick" (tiling via gestures), window switcher with live thumbnails, Dock panel (move your Dock to the tablet), audio output switcher, app launcher, key macro pads, a trackpad area, and a live DeepSeek API balance display (buttons can show data, not just send commands).
 
-What it isn't: a Stream Deck clone. Those cost real money and are physical buttons — same "immutable key" problem with a nicer keycap.
+What it isn't: a keyboard replacement. Tapflow is designed to complement keyboard and mouse — high-frequency actions move to the panel, typing stays on the keyboard. (Functionally it's closer to a Stream Deck's job than a keyboard's; it also costs less than a Stream Deck since it uses hardware you may already own.)
 
 It's macOS-only, built to test whether my own itch is general. 5-minute setup, ships with 2 preset profiles. [VERSION PLACEHOLDER: fill in current release version here — see note below]
 
