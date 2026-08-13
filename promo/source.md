@@ -1,12 +1,11 @@
 # Tapflow 宣发帖源文件(只改这一个文件)
 
-> 改完保存后运行 `python3 generator.py`,自动重新生成 v2ex.md / chiphell.txt / reddit.md / hn.txt。
-> 图片替换不用改这里 —— 打开预览页 http://localhost:8092 ,在图片旁的下拉框换图,自动保存到 mapping.json。
-> 语言规则:中文平台(v2ex/chiphell)用 zh,英文平台(reddit/hn)用 en。
+> 改完保存后运行 `python3 generator.py`,自动重新生成 v2ex.md / reddit.md / hn.txt。
+> 图片替换不用改这里 —— 打开预览页 http://localhost:8092 ,点图片下方缩略图或「换图」按钮,自动保存到 mapping.json。
+> 语言规则:中文平台(v2ex)用 zh,英文平台(reddit/hn)用 en。(chiphell 已发过,不再生成)
 
 [titles]
 v2ex: 分享创造:Tapflow —— 把 iPad 变成你的 Mac 触控面板
-chiphell: Tapflow:把 iPad 变成你的 Mac 触控面板(新版更新)
 reddit: Tapflow — Turn your iPad into a fully custom control panel for your Mac (no iPad app required)
 
 [body]
@@ -146,6 +145,11 @@ en: 🕹️ Window tiling as a gamepad joystick
 slot: img-13
 alt_zh: Window Swipe
 alt_en: Window Swipe
+
+## img
+slot: img-20
+alt_zh: Window Swipe 动图
+alt_en: Window Swipe animation
 
 ## text
 zh: macOS 的窗口贴靠功能很强——全屏、左半、右半、上半、下半。但触发方式呢?要么背快捷键,要么用鼠标拖到屏幕边缘。Tapflow 的 Window Swipe 组件把它做成了一个摇杆。手指在平板上往上滑 → 窗口全屏。往左滑 → 贴左半。往右下滑 → 右下角。就跟打游戏一样。点一下最大化,长按全屏。排列窗口这件事,根本就不应该用快捷键。

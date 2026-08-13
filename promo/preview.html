@@ -51,7 +51,6 @@
 </header>
 <div class="wrap">
   <section id="sec-v2ex"></section>
-  <section id="sec-chiphell"></section>
   <section id="sec-reddit"></section>
   <section id="sec-hn"><h2>hn.txt(HN Show HN,纯文本无图)</h2><pre id="hn-pre">加载中…</pre></section>
 </div>
@@ -95,7 +94,7 @@ function el(tag, cls, text) {
 }
 
 function refreshSlotUI(slot) {
-  // 同一槽位在 3 个平台各出现一次,全部刷新
+  // 同一槽位在 2 个平台各出现一次,全部刷新
   document.querySelectorAll(`[data-slot="${slot}"]`).forEach(row => {
     row.querySelector('.slot-img').src = `${BASE}/${mapping[slot]}`;
     row.querySelector('.thumb-preview').src = `/thumb/${encodeURIComponent(mapping[slot])}`;
@@ -210,7 +209,6 @@ function renderPost(containerId, platform, lang) {
 
 function render() {
   renderPost('sec-v2ex', 'v2ex', 'zh');
-  renderPost('sec-chiphell', 'chiphell', 'zh');
   renderPost('sec-reddit', 'reddit', 'en');
 }
 

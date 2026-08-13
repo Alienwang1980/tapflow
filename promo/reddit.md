@@ -64,6 +64,8 @@ You're in Claude Code / Cursor, AI is writing, you need to dictate the next prom
 
 ![Window Swipe](https://img.tapflow.work/tapflow-14.jpg)
 
+![Window Swipe animation](https://img.tapflow.work/tapflow-window-swiper.gif)
+
 macOS window snapping is powerful — but triggering it means memorizing shortcuts or dragging to screen edges. Tapflow's Window Swipe turns it into a joystick: swipe up for fullscreen, left for left-half, down-right for bottom-right corner. It feels like a game. Arranging windows shouldn't involve shortcuts at all.
 
 ### 🖼️ Window thumbnails at a glance

@@ -64,6 +64,8 @@ Tapflow 的思路不是做一个"更好的键盘"。是让你不用脑子记快�
 
 ![Window Swipe](https://img.tapflow.work/tapflow-14.jpg)
 
+![Window Swipe 动图](https://img.tapflow.work/tapflow-window-swiper.gif)
+
 macOS 的窗口贴靠功能很强——全屏、左半、右半、上半、下半。但触发方式呢?要么背快捷键,要么用鼠标拖到屏幕边缘。Tapflow 的 Window Swipe 组件把它做成了一个摇杆。手指在平板上往上滑 → 窗口全屏。往左滑 → 贴左半。往右下滑 → 右下角。就跟打游戏一样。点一下最大化,长按全屏。排列窗口这件事,根本就不应该用快捷键。
 
 ### 🖼️ 窗口缩略图,一眼切换

@@ -5,7 +5,6 @@ source.md 格式(只改这一个文件,其他平台帖子由 generator.py 生成
 
     [titles]
     v2ex: 中文标题
-    chiphell: 中文标题
     reddit: English title
 
     [body]
@@ -29,7 +28,7 @@ source.md 格式(只改这一个文件,其他平台帖子由 generator.py 生成
     [hn]
     Show HN 纯文本正文(英文,原样保留,不支持图片)
 
-语言规则: 中文平台(v2ex/chiphell)渲染 zh,英文平台(reddit/hn)渲染 en。
+语言规则: 中文平台(v2ex)渲染 zh,英文平台(reddit/hn)渲染 en。
 """
 import os
 
@@ -83,7 +82,6 @@ def parse_source(path=None):
 if __name__ == '__main__':
     r = parse_source()
     assert r['titles'].get('v2ex'), '缺少 v2ex 标题'
-    assert r['titles'].get('chiphell'), '缺少 chiphell 标题'
     assert r['titles'].get('reddit'), '缺少 reddit 标题'
     assert r['blocks'], 'blocks 为空'
     assert r['hn'], 'hn 为空'
