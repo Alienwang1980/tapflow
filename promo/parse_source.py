@@ -1,82 +1,99 @@
 #!/usr/bin/env python3
-"""解析 source.md(唯一源文件)→ {titles, blocks, hn}。
+"""解析 draft.md(用户唯一编辑文件,纯中文原稿)+ translations.json(Claude 维护的英文翻译)。
 
-source.md 格式(只改这一个文件,其他平台帖子由 generator.py 生成):
+draft.md 格式(用户只改这一个文件):
 
-    [titles]
-    v2ex: 中文标题
-    reddit: English title
+    # 注释 / > 说明 —— 跳过
+    [标题: v2ex]         ← 下一行是标题文本
+    [正文]               ← 正文:普通段落 / ## 小节 / ### 小标题 / [图N] 图片占位
+    [hn]                 ← HN 英文纯文本(Claude 维护,用户不改)
 
-    [body]
-    ## text
-    zh: 中文段落(可多行,换行继续写即可)
-    en: English paragraph
-
-    ## h2
-    zh: 小节标题
-    en: Section heading
-
-    ## h3
-    zh: ...
-    en: ...
-
-    ## img
-    slot: img-01
-    alt_zh: 键盘
-    alt_en: keyboard
-
-    [hn]
-    Show HN 纯文本正文(英文,原样保留,不支持图片)
-
-语言规则: 中文平台(v2ex)渲染 zh,英文平台(reddit/hn)渲染 en。
+英文翻译不在此文件: translations.json 以中文原文为 key 存英文;用户改了某段后
+key 失配,该段在英文平台输出 ⚠️[待翻译] 占位,提醒 Claude 重新翻译。
 """
+import json
 import os
+import re
 
 DIR = os.path.dirname(os.path.abspath(__file__))
-SECTIONS = ('titles', 'body', 'hn')
-FIELDS = ('zh', 'en', 'slot', 'alt_zh', 'alt_en')
-BLOCK_TYPES = ('text', 'h2', 'h3', 'img')
+IMG_RE = re.compile(r'^\[图(\d+)\]$')
+SECTIONS = ('正文', 'hn')
 
 
-def parse_source(path=None):
-    path = path or os.path.join(DIR, 'source.md')
-    titles, blocks, hn_lines = {}, [], []
+def parse_draft(path=None):
+    """draft.md → {titles, blocks, hn};blocks 内 text/h2/h3 只含 zh,img 只含 slot。"""
+    path = path or os.path.join(DIR, 'draft.md')
+    titles, hn_lines, blocks = {}, [], []
     section = None
-    cur = None          # 当前 body block
-    last_field = None   # 续行追加到哪个字段
+    pending_title = None
+    cur_lines = []  # 攒当前段落(空行/新块 flush)
+
+    def flush():
+        nonlocal cur_lines
+        if cur_lines:
+            blocks.append({'type': 'text', 'zh': '\n'.join(cur_lines)})
+            cur_lines = []
+
     for raw in open(path, encoding='utf-8'):
         line = raw.rstrip('\n')
         s = line.strip()
-        if s.startswith('[') and s.endswith(']') and s.count('[') == 1 \
-                and s[1:-1] in SECTIONS:
-            section = s[1:-1]
-            cur = None
-            last_field = None
+        if s.startswith('[标题: ') and s.endswith(']'):
+            pending_title = s[len('[标题: '):-1]
             continue
-        if section == 'titles':
-            if ':' in s:
-                k, v = s.split(':', 1)
-                titles[k.strip()] = v.strip()
-        elif section == 'body':
-            if s.startswith('## '):
-                btype = s[3:].strip().split()[0]
-                assert btype in BLOCK_TYPES, f'未知块类型: {line}'
-                cur = {'type': btype}
-                blocks.append(cur)
-                last_field = None
-            elif cur is not None and s:
-                for f in FIELDS:
-                    if s.startswith(f + ':'):
-                        cur[f] = s[len(f) + 1:].strip()
-                        last_field = f
-                        break
-                else:  # 无前缀 → 续行,追加到上一个字段
-                    if last_field:
-                        cur[last_field] += '\n' + s
-        elif section == 'hn':
-            hn_lines.append(line)
-    hn = '\n'.join(hn_lines).strip()
-    return {'titles': titles, 'blocks': blocks, 'hn': hn}
+        if s.startswith('[') and s.endswith(']') and s[1:-1] in SECTIONS:
+            section = s[1:-1]
+            continue
+        if section == 'hn':
+            hn_lines.append(line)  # hn 空行也要保留
+            continue
+        if pending_title:
+            titles[pending_title] = s
+            pending_title = None
+            continue
+        if not s:
+            flush()  # 正文空行分段
+            continue
+        if section != '正文':
+            continue
+        m = IMG_RE.match(s)
+        if m:
+            flush()
+            blocks.append({'type': 'img', 'slot': f'img-{int(m.group(1)):02d}'})
+            continue
+        if s.startswith('### '):
+            flush()
+            blocks.append({'type': 'h3', 'zh': s[4:].strip()})
+            continue
+        if s.startswith('## '):
+            flush()
+            blocks.append({'type': 'h2', 'zh': s[3:].strip()})
+            continue
+        if s.startswith('#'):
+            continue  # 正文内注释行(## / ### 已在上方处理)
+        cur_lines.append(s)
+    flush()
+    return {'titles': titles, 'blocks': blocks, 'hn': '\n'.join(hn_lines).strip()}
+
+
+def load_translations():
+    p = os.path.join(DIR, 'translations.json')
+    return json.load(open(p, encoding='utf-8')) if os.path.isfile(p) else {}
+
+
+def parse_source(path=None):
+    """draft + translations 组装:给每块注入 en(缺失 → ⚠️[待翻译] 占位)和图片 alt。"""
+    draft = parse_draft(path)
+    tr = load_translations()
+    paras = tr.get('paragraphs', {})
+    alts = tr.get('alt', {})
+    for b in draft['blocks']:
+        if b['type'] == 'img':
+            alt = alts.get(b['slot'], {})
+            b['alt_zh'] = alt.get('zh', b['slot'])
+            b['alt_en'] = alt.get('en', b['slot'])
+        else:
+            b['en'] = paras.get(b['zh'], '⚠️[待翻译] ' + b['zh'])
+    return draft
 
 
 if __name__ == '__main__':
@@ -86,13 +103,15 @@ if __name__ == '__main__':
     assert r['titles'].get('reddit'), '缺少 reddit 标题'
     assert r['blocks'], 'blocks 为空'
     assert r['hn'], 'hn 为空'
-    assert all(b['type'] in BLOCK_TYPES for b in r['blocks'])
+    missing = []
     for b in r['blocks']:
         if b['type'] == 'img':
-            assert 'slot' in b, f'img 块缺 slot: {b}'
             assert 'alt_zh' in b and 'alt_en' in b, f'img 块缺 alt: {b}'
         else:
             assert 'zh' in b and 'en' in b, f'{b["type"]} 块缺 zh/en: {b}'
+            if b['en'].startswith('⚠️'):
+                missing.append(b['zh'][:20])
     n_img = sum(1 for b in r['blocks'] if b['type'] == 'img')
-    n_txt = len(r['blocks']) - n_img
-    print(f'OK: {len(r["blocks"])} blocks ({n_txt} 文本/标题, {n_img} 图片), hn {len(r["hn"])} 字符')
+    print(f'OK: {len(r["blocks"])} blocks ({n_img} 图片), hn {len(r["hn"])} 字符, 待翻译 {len(missing)} 段')
+    if missing:
+        print('待翻译段落:', *missing, sep='\n  ')
