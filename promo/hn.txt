@@ -1,0 +1,31 @@
+Show HN: Tapflow — turn an iPad into a custom control panel for macOS (no iPad app)
+
+> Posting notes (from my channel research, verify before use):
+> - Show HN posts must link to something people can actually try — the GitHub repo has downloads.
+> - Submit between midnight–8am UTC for best exposure window; don't post mid-day US time.
+> - No images in the post body — HN strips them. The GitHub README is where visuals live.
+> - Respond to every comment. Don't mention voting or use multiple accounts.
+> - Title suggestion (80 chars max): "Show HN: Tapflow – turn an iPad into a custom control panel for macOS"
+
+---
+
+Hi HN,
+
+I made Tapflow: a macOS menu-bar server + a web client that turns an iPad (or any tablet) into a fully customizable touch control panel for your Mac. No app to install on the iPad — it just opens a web page on your LAN.
+
+Why: keyboards are designed so anyone can type, not so you can control *your* computer efficiently. Shortcuts force you to remember function + key position + hunt for it. In 2026 that felt wrong. I wanted "recognize, don't memorize": buttons you can see, with your own labels, colors, and positions — not 100 identical keys.
+
+How it works:
+- A small server runs on the Mac (menu bar app), serving a web editor + panel over HTTP/WebSocket on your LAN.
+- The iPad opens the panel in Safari; every touch is injected into macOS via CoreGraphics CGEvent (keyboard/mouse simulation).
+- The editor is browser-based: drag buttons, set name/color/size/position, bind actions. Labels update when you change a function.
+
+Widgets I built so far: voice-input button (for vibe coding with Claude Code/Cursor), a window-swipe "joystick" (tiling via gestures), window switcher with live thumbnails, Dock panel (move your Dock to the tablet), audio output switcher, app launcher, key macro pads, a trackpad area, and a live DeepSeek API balance display (buttons can show data, not just send commands).
+
+What it isn't: a Stream Deck clone. Those cost real money and are physical buttons — same "immutable key" problem with a nicer keycap.
+
+It's macOS-only, built to test whether my own itch is general. 5-minute setup, ships with 2 preset profiles. [VERSION PLACEHOLDER: fill in current release version here — see note below]
+
+Repo: https://github.com/Alienwang1980/tapflow
+
+What would make you (not) use something like this? The floor is yours — especially the critical kind of feedback.

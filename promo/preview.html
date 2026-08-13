@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Tapflow 宣发帖预览 & 图片校对</title>
+<link rel="icon" href="data:,">
+<style>
+  body { font-family: -apple-system, "PingFang SC", sans-serif; margin: 0; background: #f5f6f8; color: #222; }
+  header { background: #1a1a2e; color: #fff; padding: 14px 24px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10; }
+  header h1 { font-size: 18px; margin: 0; font-weight: 600; }
+  .hint { font-size: 12px; color: #9aa4b8; }
+  #save-status { font-size: 13px; color: #7ee787; opacity: 0; transition: opacity .3s; }
+  #save-status.show { opacity: 1; }
+  .wrap { max-width: 860px; margin: 20px auto; padding: 0 16px; }
+  section { background: #fff; border-radius: 10px; padding: 20px 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  section h2 { font-size: 15px; margin: 0 0 14px; color: #555; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+  .post-title { font-size: 20px; font-weight: 700; margin: 4px 0 14px; }
+  .block-text { line-height: 1.75; margin: 12px 0; white-space: pre-wrap; }
+  .block-h2 { font-size: 18px; font-weight: 700; margin: 20px 0 8px; }
+  .block-h3 { font-size: 16px; font-weight: 600; margin: 16px 0 6px; }
+  .img-row { margin: 14px 0; padding: 12px; background: #fafbfc; border: 1px solid #e8eaed; border-radius: 8px; }
+  .img-row img { max-width: 100%; border-radius: 6px; display: block; margin-bottom: 8px; }
+  .img-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; }
+  .img-controls select { max-width: 340px; padding: 5px 8px; border: 1px solid #ccc; border-radius: 6px; background: #fff; }
+  .img-controls .url { color: #888; font-size: 12px; word-break: break-all; }
+  .img-controls .slot-tag { background: #eef1f6; color: #556; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+  pre { background: #fafbfc; border: 1px solid #e8eaed; border-radius: 8px; padding: 14px; overflow-x: auto; white-space: pre-wrap; font-size: 13px; line-height: 1.6; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Tapflow 宣发帖预览 & 图片校对</h1>
+  <span class="hint">正文只改 source.md 一个文件;换图用图片旁下拉框,自动保存</span>
+  <span id="save-status">已保存 ✓</span>
+</header>
+<div class="wrap">
+  <section id="sec-v2ex"></section>
+  <section id="sec-chiphell"></section>
+  <section id="sec-reddit"></section>
+  <section id="sec-hn"><h2>hn.txt(HN Show HN,纯文本无图)</h2><pre id="hn-pre">加载中…</pre></section>
+</div>
+<script>
+const BASE = 'https://img.tapflow.work';
+let mapping = {}, manifest = {}, structure = null;
+
+async function load() {
+  [structure, mapping, manifest] = await Promise.all([
+    fetch('/structure').then(r => r.json()),
+    fetch('/mapping.json').then(r => r.json()),
+    fetch('/manifest.json').then(r => r.json()),
+  ]);
+  document.getElementById('hn-pre').textContent = structure.hn;
+  render();
+}
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+function imgBlock(slot, lang) {
+  const row = el('div', 'img-row');
+  const img = document.createElement('img');
+  img.src = `${BASE}/${mapping[slot]}`;
+  img.alt = slot;
+  row.appendChild(img);
+
+  const ctrl = el('div', 'img-controls');
+  ctrl.appendChild(el('span', 'slot-tag', slot));
+  const sel = document.createElement('select');
+  const keys = Object.keys(manifest).sort((a, b) => {
+    const ta = a.startsWith('tapflow-'), tb = b.startsWith('tapflow-');
+    if (ta !== tb) return ta ? -1 : 1;
+    return a < b ? -1 : 1;
+  });
+  for (const k of keys) {
+    const opt = document.createElement('option');
+    opt.value = k;
+    opt.textContent = `${manifest[k]}`;
+    if (k === mapping[slot]) opt.selected = true;
+    sel.appendChild(opt);
+  }
+  const urlSpan = el('span', 'url', `${BASE}/${mapping[slot]}`);
+  sel.addEventListener('change', async () => {
+    mapping[slot] = sel.value;
+    img.src = `${BASE}/${mapping[slot]}`;
+    urlSpan.textContent = `${BASE}/${mapping[slot]}`;
+    await save();
+  });
+  ctrl.appendChild(sel);
+  ctrl.appendChild(urlSpan);
+  row.appendChild(ctrl);
+  return row;
+}
+
+async function save() {
+  const st = document.getElementById('save-status');
+  try {
+    await fetch('/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(mapping),
+    });
+    st.classList.add('show');
+    clearTimeout(save._t);
+    save._t = setTimeout(() => st.classList.remove('show'), 1500);
+  } catch (e) {
+    st.textContent = '保存失败!请确认 save_server.py 正在运行';
+    st.style.color = '#f66';
+    st.classList.add('show');
+  }
+}
+
+function renderPost(containerId, platform, lang) {
+  const sec = document.getElementById(containerId);
+  sec.innerHTML = '';
+  sec.appendChild(el('h2', '', platform));
+  sec.appendChild(el('div', 'post-title', structure.titles[platform]));
+  for (const b of structure.blocks) {
+    if (b.type === 'text') sec.appendChild(el('div', 'block-text', b[lang]));
+    else if (b.type === 'h2') sec.appendChild(el('div', 'block-h2', b[lang]));
+    else if (b.type === 'h3') sec.appendChild(el('div', 'block-h3', b[lang]));
+    else if (b.type === 'img') sec.appendChild(imgBlock(b.slot, lang));
+  }
+}
+
+function render() {
+  renderPost('sec-v2ex', 'v2ex', 'cn');
+  renderPost('sec-chiphell', 'chiphell', 'cn');
+  renderPost('sec-reddit', 'reddit', 'en');
+}
+
+load().catch(e => {
+  document.body.innerHTML = '<p style="padding:40px">加载失败:' + e + '<br>请确认 save_server.py 正在运行,并刷新本页。</p>';
+});
+</script>
+</body>
+</html>
