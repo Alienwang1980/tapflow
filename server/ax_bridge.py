@@ -32,14 +32,17 @@ _AS_TAB_FOCUS = {
 }
 
 def _favicon_url(url):
-    """Extract domain from URL and return Google favicon service URL."""
+    """Extract domain from URL and return the local favicon proxy URL.
+
+    The client draws tab icons onto canvas with crossOrigin=anonymous; direct
+    google.com URLs get CORS-blocked there, so route through the server proxy."""
     if not url: return ""
     try:
         from urllib.parse import urlparse
         parsed = urlparse(url)
         domain = parsed.netloc
         if domain:
-            return f"https://www.google.com/s2/favicons?domain={domain}&sz=64"
+            return f"/api/system/favicon?domain={domain}&sz=64"
     except: pass
     return ""
 
@@ -329,25 +332,25 @@ _GHOST_TAB_TITLES = {"new tab", "newtab", "新标签页", "新しいタブ", "no
 def _resolve_cg_window_id(pid, title):
     """Find CG window_id for (pid, title). Exact title match first, then substring.
     Falls back to the frontmost app's first onscreen window when pid is frontmost.
-    Returns 0 when unresolvable."""
+    Returns 0 when unresolvable. Pass title=None to skip matching and use the
+    PID-only fallback directly (used when the title-matched window is uncapturable)."""
     from Quartz import CGWindowListCopyWindowInfo, kCGWindowListOptionAll, kCGNullWindowID
     target = (title or "").strip().lower()
-    if not target:
-        return 0
     wl = CGWindowListCopyWindowInfo(kCGWindowListOptionAll, kCGNullWindowID) or []
-    cands = []  # [(title_lower, window_id)]
-    for w in wl:
-        if w.get('kCGWindowLayer', -1) != 0 or w.get('kCGWindowOwnerPID', -1) != pid:
-            continue
-        t = str(w.get('kCGWindowName') or '').strip()
-        if t:
-            cands.append((t.lower(), w.get('kCGWindowNumber', 0)))
-    for t, wid in cands:
-        if t == target:
-            return wid
-    for t, wid in cands:
-        if target in t or t in target:
-            return wid
+    if target:
+        cands = []  # [(title_lower, window_id)]
+        for w in wl:
+            if w.get('kCGWindowLayer', -1) != 0 or w.get('kCGWindowOwnerPID', -1) != pid:
+                continue
+            t = str(w.get('kCGWindowName') or '').strip()
+            if t:
+                cands.append((t.lower(), w.get('kCGWindowNumber', 0)))
+        for t, wid in cands:
+            if t == target:
+                return wid
+        for t, wid in cands:
+            if target in t or t in target:
+                return wid
     # Fallback: find ANY onscreen window for the target PID.
     # On macOS ≥26, CGWindowList reports nil kCGWindowName for ALL apps,
     # so title matching never matches — we must fall through to PID-only lookup.
@@ -415,6 +418,16 @@ def capture_window_thumbnail(pid, title, max_w=256):
             return None
         img = CGWindowListCreateImage(CGRectNull, kCGWindowListOptionIncludingWindow,
                                       wid, kCGWindowImageBoundsIgnoreFraming)
+        if img is None:
+            # The title-matched window can live on another Space or minimized —
+            # CGWindowListCreateImage fails there. Retry with the PID-only
+            # fallback (first onscreen window of the app).
+            wid2 = _resolve_cg_window_id(pid, None)
+            if wid2:
+                _ax_log.info(f"[THUMB] title-matched wid={wid} uncapturable; "
+                             f"retry PID fallback wid={wid2}")
+                img = CGWindowListCreateImage(CGRectNull, kCGWindowListOptionIncludingWindow,
+                                              wid2, kCGWindowImageBoundsIgnoreFraming)
         if img is None:
             _ax_log.info(f"[THUMB] CGWindowListCreateImage returned None for wid={wid}")
             return None

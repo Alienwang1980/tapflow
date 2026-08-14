@@ -2,9 +2,11 @@
 
 import os
 import subprocess
+import time
+import urllib.request
 
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 
 
 def create_router(state):
@@ -75,5 +77,34 @@ def create_router(state):
             except Exception:
                 pass
         raise HTTPException(404, f"icon not found: {name}")
+
+    @router.get("/api/system/favicon")
+    def sys_favicon(domain: str = "", sz: int = 64):
+        """Proxy Google's favicon service so browser-tab icons are same-origin.
+
+        The client draws these icons onto canvas with crossOrigin=anonymous, which
+        CORS-blocks the direct google.com URL. Server-side fetch has no such
+        restriction. Host is fixed (google s2); redirects are allowed so sites
+        whose favicon s2 doesn't know still resolve. Cached in memory for 1h."""
+        if not domain.strip():
+            return JSONResponse({"error": "missing domain"}, status_code=400)
+        domain = domain.strip().lower()
+        if sz not in (16, 32, 64, 128):
+            sz = 64
+        now = time.time()
+        hit = state.favicon_cache.get(domain)
+        if hit and now - hit[1] < 3600:
+            return Response(content=hit[0], media_type=hit[2])
+        try:
+            req = urllib.request.Request(
+                f"https://www.google.com/s2/favicons?domain={domain}&sz={sz}",
+                headers={"User-Agent": "Mozilla/5.0 (Macintosh) Tapflow"})
+            with urllib.request.urlopen(req, timeout=5) as r:
+                data = r.read()
+                ct = r.headers.get("Content-Type") or "image/png"
+            state.favicon_cache[domain] = (data, now, ct)
+            return Response(content=data, media_type=ct)
+        except Exception:
+            return JSONResponse({"error": "favicon fetch failed"}, status_code=502)
 
     return router

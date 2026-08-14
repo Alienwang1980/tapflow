@@ -23,3 +23,5 @@ class ServerState:
 
     # Window thumbnail cache — key: (pid, title_lower) → (jpeg_bytes, timestamp)
     thumb_cache: dict = field(default_factory=dict)
+    # Favicon proxy cache — key: domain → (bytes, timestamp, content_type)
+    favicon_cache: dict = field(default_factory=dict)
