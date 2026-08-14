@@ -307,12 +307,14 @@ function render(){
   const cx=profile.canvasX||0,cy=profile.canvasY||0;
   const vw=window.innerWidth,vh=window.innerHeight;
 
-  // Scale canvas to fit viewport (flexbox handles centering)
+  // Scale canvas to fit viewport, bottom-aligned: the title bar zone sits at the
+  // top (canvas topInset area slides under the fullscreen status bar), keys
+  // placed at the bottom of the editor end up exactly at the viewport bottom.
   const scale=Math.min(vw/dw,vh/dh);
   const wrap=document.getElementById("wrap");
   wrap.style.width=dw+"px";wrap.style.height=dh+"px";
   wrap.style.transform=`scale(${scale})`;
-  // no translate — flexbox on body handles centering
+  wrap.style.marginTop=Math.max(0,vh-dh*scale)+"px";
 
   // Set canvas size
   const canvas=document.getElementById("canvas");
