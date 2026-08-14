@@ -11,7 +11,7 @@ html,body{width:100%;height:100%;overflow:clip;background:#1a1a2e;font-family:-a
 /* Flexbox centering — body is the centering container */
 body{display:flex;align-items:center;justify-content:center}
 /* Canvas container — scaled to fit viewport, centered by flexbox */
-.canvas-wrap{flex-shrink:0;transform-origin:center center}
+.canvas-wrap{flex-shrink:0;transform-origin:center bottom}
 /* Fixed-size canvas at device dimensions */
 .canvas{position:relative}
 .key-btn{position:absolute;border:none;border-radius:5px;display:flex;align-items:center;justify-content:center;font-weight:500;transition:transform 0.04s;overflow:hidden}
@@ -314,7 +314,6 @@ function render(){
   const wrap=document.getElementById("wrap");
   wrap.style.width=dw+"px";wrap.style.height=dh+"px";
   wrap.style.transform=`scale(${scale})`;
-  wrap.style.marginTop=Math.max(0,vh-dh*scale)+"px";
 
   // Set canvas size
   const canvas=document.getElementById("canvas");
