@@ -209,33 +209,29 @@ function renderPost(containerId, platform, lang) {
   }
 }
 
-function linkifyBBCode(text) {
-  return text.replace(/https?:\/\/[^\s。，、;；!！"'<>()\[\]{}]+/g, '[url]$&[/url]');
-}
-
-function bbcodeBody() {
+function plainBody() {
   const out = [];
   for (const b of structure.blocks) {
-    if (b.type === 'text') out.push(linkifyBBCode(b.zh));
-    else if (b.type === 'h2') out.push('[size=5][b]' + b.zh + '[/b][/size]');
-    else if (b.type === 'h3') out.push('[size=4][b]' + b.zh + '[/b][/size]');
-    else if (b.type === 'img') out.push('[img]' + BASE + '/' + mapping[b.slot] + '[/img]');
+    if (b.type === 'text') out.push(b.zh);
+    else if (b.type === 'h2') out.push(b.zh);
+    else if (b.type === 'h3') out.push(b.zh);
+    else if (b.type === 'img') out.push('【插图: ' + b.slot + ' → ' + BASE + '/' + mapping[b.slot] + '】');
   }
   return out.join('\n\n');
 }
 
-function renderPostBBCode(containerId) {
+function renderPostPlain(containerId) {
   const sec = document.getElementById(containerId);
   sec.innerHTML = '';
-  sec.appendChild(el('h2', '', 'zfrontier · BBCode 代码(直接复制)'));
+  sec.appendChild(el('h2', '', 'zfrontier · 纯文本+插图标记(直接复制)'));
   sec.appendChild(el('div', 'post-title', structure.titles.zfrontier));
-  sec.appendChild(el('pre', '', bbcodeBody()));
+  sec.appendChild(el('pre', '', plainBody()));
 }
 
 function render() {
   renderPost('sec-v2ex', 'v2ex', 'zh');
   renderPost('sec-2libra', '2libra', 'zh');
-  renderPostBBCode('sec-zfrontier');
+  renderPostPlain('sec-zfrontier');
   renderPost('sec-reddit', 'reddit', 'en');
 }
 
