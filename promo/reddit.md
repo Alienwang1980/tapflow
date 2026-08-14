@@ -2,7 +2,7 @@
 
 > 📌 [Pending: new-version highlights — send the changelog to Claude and it gets inserted here]
 
-Keyboards are excellent general-purpose tools for typing. But plenty of high-frequency actions — switching windows, changing audio output, launching apps — aren't always the most intuitive with shortcuts or multi-level menus.
+The keyboard — a general-purpose tool invented last century for typing — does its job well in most cases. But as computing has evolved, it has had to take on new roles: high-frequency actions (switching windows, changing audio, launching apps) gradually became shortcuts, mostly key combinations, and shortcuts or multi-level mouse menus aren't always the most intuitive. As personalization demands grew, those shortcuts became customizable — but the keyboard itself cannot change. The contradiction is plain, and while people have learned to endure it, for most it remains a steep learning curve.
 
 ![keyboard](https://img.tapflow.work/tapflow-02.jpg)
 
@@ -12,11 +12,11 @@ This incomplete Mac shortcuts cheat sheet is already a lot to memorize.
 
 ![Mac shortcuts](https://img.tapflow.work/tapflow-03.jpg)
 
-Recognition beats recall: seeing a labeled button is faster than remembering a key combination. That's the starting point of Tapflow.
+Your phone recognizes your face, your computer recognizes your fingerprint — yet you still operate your computer by memorizing shortcuts. Your brain, the most powerful computing capability on Earth, spent on memorizing shortcuts is a waste of resources.
 
-Visual interfaces are everywhere today — phones recognize faces, Macs recognize fingerprints. Making common actions visible is hardly radical.
+However, things have changed.
 
-The AI era and vibe coding are changing input needs, and products like the Worklouder Creator Micro 2 have appeared:
+Now, in the AI era, vibe coding actually lowers the demand on keyboards while raising new demands on input methods — and matching products have appeared, like the Worklouder Creator Micro 2:
 
 ![Creator Micro 2](https://img.tapflow.work/tapflow-04.jpg)
 
@@ -24,7 +24,7 @@ The AI era and vibe coding are changing input needs, and products like the Workl
 
 ![Creator Micro 2](https://img.tapflow.work/tapflow-06.jpg)
 
-They address voice input for vibe coding, but the physical keys stay fixed: you can remap a key, but it won't change shape or size — and after enough customization, remembering each key's purpose becomes a burden again.
+These products still use physical keys: remappable, but the shape and size never change — and after enough customization, remembering each key's purpose remains a burden.
 
 After enough custom macros, forgetting what each key does is common.
 
