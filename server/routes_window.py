@@ -1,6 +1,8 @@
 """Window management routes — switcher, focus, close, fullscreen, arrange, tile (10 routes)."""
 
 import logging
+import threading
+import time
 
 from fastapi import APIRouter, HTTPException, Request
 
@@ -64,18 +66,58 @@ def create_router(state):
             return {"name": "?", "pid": 0, "count": 0, "items": [],
                     "focused_index": -1, "error": str(e)}
 
+    # ── all-windows snapshot cache ──
+    # get_all_app_windows can take 10s+ (per-app AX timeouts + browser
+    # AppleScript). The endpoint returns the last snapshot instantly;
+    # ONE background daemon thread refreshes it at most every 2s, so slow
+    # scans never pile up on the anyio pool and starve the other modules.
+    _win_cache = {"data": None, "ts": 0.0, "refreshing": False,
+                  "lock": threading.Lock()}
+
+    def _scan_windows():
+        from ax_bridge import get_all_app_windows
+        data = get_all_app_windows()
+        logging.getLogger("stp.ax").info(
+            f"[ALLWIN] {len(data.get('apps', []))} apps, "
+            f"focused={data.get('focused_global_idx', -1)}")
+        return data
+
+    def _refresh_worker():
+        try:
+            data = _scan_windows()
+            with _win_cache["lock"]:
+                _win_cache["data"] = data
+                _win_cache["ts"] = time.time()
+        except Exception:
+            logging.getLogger("stp.ax").exception("[ALLWIN] background refresh failed")
+        finally:
+            _win_cache["refreshing"] = False
+
+    def _maybe_refresh():
+        with _win_cache["lock"]:
+            stale = (time.time() - _win_cache["ts"]) > 2.0
+            if not stale or _win_cache["refreshing"]:
+                return
+            _win_cache["refreshing"] = True
+        threading.Thread(target=_refresh_worker, daemon=True).start()
+
     @router.get("/api/system/all-windows")
     def sys_all_wins():
-        try:
-            from ax_bridge import get_all_app_windows
-            result = get_all_app_windows()
-            logging.getLogger("stp.ax").info(
-                f"[ALLWIN] {len(result.get('apps',[]))} apps, "
-                f"focused={result.get('focused_global_idx',-1)}")
-            return result
-        except Exception as e:
-            return {"apps": [], "focused_app_idx": -1,
-                    "focused_global_idx": -1, "error": str(e)}
+        with _win_cache["lock"]:
+            cached = _win_cache["data"]
+        if cached is None:
+            # First call ever: populate synchronously so the panel isn't empty
+            try:
+                data = _scan_windows()
+            except Exception as e:
+                return {"apps": [], "focused_app_idx": -1,
+                        "focused_global_idx": -1, "error": str(e)}
+            with _win_cache["lock"]:
+                _win_cache["data"] = data
+                _win_cache["ts"] = time.time()
+            return data
+        _maybe_refresh()
+        return cached
 
     @router.post("/api/system/focus-window")
     async def sys_focus_win(req: Request):
