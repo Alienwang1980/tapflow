@@ -309,14 +309,15 @@ function render(){
   const cx=profile.canvasX||0,cy=profile.canvasY||0;
   const vw=window.innerWidth,vh=window.innerHeight;
 
-  // Scale canvas to fit viewport. Bottom-align when the canvas is shorter than
-  // the viewport (fullscreen + width-limited): translate by half the gap after
-  // centering. In normal mode the height-limited scale already fills the
-  // viewport (gap=0) so the canvas stays centered with zero shift.
+  // Scale canvas to fit viewport. Bottom-align (slide the topInset zone under
+  // the status bar) only when the canvas nearly fills the viewport height;
+  // when the gap is large (e.g. an iPad profile opened on an iPhone), keep the
+  // canvas vertically centered instead of shoving it to the bottom.
   const scale=Math.min(vw/dw,vh/dh);
   const wrap=document.getElementById("wrap");
   wrap.style.width=dw+"px";wrap.style.height=dh+"px";
-  wrap.style.transform=`translateY(${(vh-dh*scale)/2}px) scale(${scale})`;
+  const _gap=vh-dh*scale;
+  wrap.style.transform=`translateY(${_gap>vh*0.1?0:_gap/2}px) scale(${scale})`;
 
   // Set canvas size
   const canvas=document.getElementById("canvas");

@@ -364,7 +364,7 @@ let viewX=0,viewY=0,viewZoom=1;
 let selecting=false,srSX=0,srSY=0,srCX=0,srCY=0;
 let undoStack=[],redoStack=[];
 const MAX_UNDO=200;
-const DEVS={"iPad 11\"":{w:834,h:1194,dpr:2,topInset:32,phys:"1668×2388"},"iPad 12.9\"":{w:1024,h:1366,dpr:2,topInset:32,phys:"2048×2732"},"iPhone (19.5:9)":{w:430,h:932,dpr:3,topInset:59,phys:"1290×2796"},"16:10":{w:1280,h:800,dpr:1,topInset:0,phys:""},"16:9":{w:675,h:1200,dpr:1,topInset:0,phys:""},"21:9":{w:514,h:1200,dpr:1,topInset:0,phys:""}};
+const DEVS={"iPad 11\"":{w:834,h:1194,dpr:2,topInset:32,phys:"1668×2388",portrait:false},"iPad 12.9\"":{w:1024,h:1366,dpr:2,topInset:32,phys:"2048×2732",portrait:false},"iPhone (19.5:9)":{w:430,h:932,dpr:3,topInset:59,phys:"1290×2796",portrait:true},"16:10":{w:1280,h:800,dpr:1,topInset:0,phys:"",portrait:false},"16:9":{w:675,h:1200,dpr:1,topInset:0,phys:"",portrait:true},"21:9":{w:514,h:1200,dpr:1,topInset:0,phys:"",portrait:true}};
 
 // ── Undo/Redo ──
 function _snapshot(k){return JSON.parse(JSON.stringify(k))}
@@ -897,7 +897,7 @@ function fitAll(){if(!profile)return;var page=profile.pages.find(function(p){ret
 function toggleFS(){if(!document.fullscreenElement){document.documentElement.requestFullscreen().catch(function(){})}else{document.exitFullscreen()}}
 function zoomBy(d){const nv=Math.max(20,Math.min(200,(profile.cellSize||60)+d));if(nv!==profile.cellSize){profile.cellSize=nv;dirty=true;rr()}}
 function toggleOri(){const t=profile.deviceWidth;profile.deviceWidth=profile.deviceHeight;profile.deviceHeight=t;dirty=true;rr()}
-function applyRatioByIndex(i){var k=Object.keys(DEVS)[i];var d=DEVS[k];if(d&&profile){profile.device=k;profile.deviceWidth=Math.max(d.w,d.h);profile.deviceHeight=Math.min(d.w,d.h);profile.dpr=d.dpr||0;profile.topInset=d.topInset||0;dirty=true;rr()}updateRatioInfo()}
+function applyRatioByIndex(i){var k=Object.keys(DEVS)[i];var d=DEVS[k];if(d&&profile){profile.device=k;profile.deviceWidth=d.portrait?Math.min(d.w,d.h):Math.max(d.w,d.h);profile.deviceHeight=d.portrait?Math.max(d.w,d.h):Math.min(d.w,d.h);profile.dpr=d.dpr||0;profile.topInset=d.topInset||0;dirty=true;rr()}updateRatioInfo()}
 function applyCustomRatio(){if(!profile)return;var cur=(profile.deviceWidth||1210)+"x"+(profile.deviceHeight||834);var inp=prompt("Custom canvas WxH (logical px, e.g. 1280x800):",cur);if(!inp)return;var mm=inp.replace(/[×,\s]/g,"x").split("x");var w=parseInt(mm[0],10),h=parseInt(mm[1],10);if(!(w>0&&h>0&&w<=8000&&h<=8000)){alert("Enter valid pixels, e.g. 1280x800");return}profile.dpr=0;profile.topInset=0;if(w>1600||h>1600){var f=prompt(w+"×"+h+" 疑似物理分辨率。输入 DPR(2 或 3)自动换算为逻辑分辨率;输入 0 保持原值:","3");if(f==="2"||f==="3"){var dn=parseInt(f,10);w=Math.round(w/dn);h=Math.round(h/dn);profile.dpr=dn}}profile.device="__custom__";profile.deviceWidth=w;profile.deviceHeight=h;dirty=true;rr();updateRatioInfo()}
 function buildRatioPresets(){var el=document.getElementById("ratioPresets");if(!el)return;el.innerHTML=Object.keys(DEVS).map(function(k,i){return '<button onclick="applyRatioByIndex('+i+')" style="padding:4px 8px;font-size:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer">'+hesc(k)+'</button>'}).join("")}
 function upkTopInset(v){if(!profile)return;var n=Math.max(0,Math.min(300,parseInt(v,10)||0));profile.topInset=n;dirty=true;rr()}
