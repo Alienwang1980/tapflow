@@ -50,7 +50,7 @@ def create_router(state):
                     break
             if ic:
                 subprocess.run(["sips", "-s", "format", "png", ic, "--out", cp, "-Z", "64"],
-                               capture_output=True)
+                               capture_output=True, timeout=10)
                 if os.path.exists(cp):
                     return FileResponse(cp, media_type="image/png")
             # Fallback: NSWorkspace icon for apps with Assets.car (no .icns)

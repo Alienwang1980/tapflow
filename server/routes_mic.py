@@ -2,12 +2,13 @@
 
 import logging
 import os
-import subprocess
 import tempfile
 import threading
 import time
 
 from fastapi import APIRouter
+
+from osa_run import osa
 
 _logger = logging.getLogger("stp.mic")
 
@@ -79,8 +80,7 @@ def create_router(state, request_mic_permission):
 
     @router.post("/api/system/mic-mute")
     async def sys_mic_mute():
-        r = subprocess.run(["osascript", "-e", "get volume settings"],
-                           capture_output=True, encoding='utf-8')
+        r = osa("get volume settings")
         cur_vol = 50
         for part in r.stdout.strip().split(","):
             if "input volume" in part:
@@ -88,18 +88,18 @@ def create_router(state, request_mic_permission):
                 break
         if cur_vol > 0:
             state.mic_pre = cur_vol
-            subprocess.run(["osascript", "-e", "set volume input volume 0"])
+            osa("set volume input volume 0")
             state.mic_muted = True
         else:
             restore = state.mic_pre if state.mic_pre is not None else 50
-            subprocess.run(["osascript", "-e", f"set volume input volume {restore}"])
+            osa(f"set volume input volume {restore}")
             state.mic_muted = False
         return {"muted": state.mic_muted}
 
     @router.post("/api/system/mic-volume")
     async def sys_mic_vol_set(body: dict):
         v = max(0, min(100, int(body.get("value", 50))))
-        subprocess.run(["osascript", "-e", f"set volume input volume {v}"])
+        osa(f"set volume input volume {v}")
         state.mic_muted = (v == 0)
         if v > 0:
             state.mic_pre = v

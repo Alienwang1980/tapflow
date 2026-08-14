@@ -1,6 +1,8 @@
 """System control — volume, mute, audio devices, current app, dock, window management."""
 import subprocess, os, json, logging
 
+from osa_run import osa
+
 logger = logging.getLogger("stp.system")
 BIN_DIR = os.path.expanduser("~/Library/Application Support/Tapflow/bin")
 SWITCH_AUDIO = os.path.join(BIN_DIR, "SwitchAudioSource")
@@ -9,8 +11,7 @@ SWITCH_AUDIO = os.path.join(BIN_DIR, "SwitchAudioSource")
 
 def get_volume():
     """Return {output_volume, input_volume, output_muted}."""
-    r = subprocess.run(["osascript", "-e", "get volume settings"],
-                       capture_output=True, text=True)
+    r = osa("get volume settings")
     result = {"output_volume": 75, "input_volume": 50, "output_muted": False}
     for part in r.stdout.strip().split(","):
         part = part.strip()
@@ -36,13 +37,13 @@ def get_volume():
 def set_volume(value):
     """Set output volume 0-100."""
     v = max(0, min(100, int(value)))
-    subprocess.run(["osascript", "-e", f"set volume output volume {v}"])
+    osa(f"set volume output volume {v}")
 
 def toggle_output_mute():
     """Toggle output mute, return new state."""
     current = get_volume()
     muted = not current["output_muted"]
-    subprocess.run(["osascript", "-e", f"set volume output muted {str(muted).lower()}"])
+    osa(f"set volume output muted {str(muted).lower()}")
     return muted
 
 _input_volume_before_mute = None
@@ -54,11 +55,11 @@ def toggle_input_mute():
     current_vol = current["input_volume"]
     if current_vol > 0:
         _input_volume_before_mute = current_vol
-        subprocess.run(["osascript", "-e", "set volume input volume 0"])
+        osa("set volume input volume 0")
         return True
     else:
         restore = _input_volume_before_mute or 50
-        subprocess.run(["osascript", "-e", f"set volume input volume {restore}"])
+        osa(f"set volume input volume {restore}")
         _input_volume_before_mute = None
         return False
 
@@ -68,7 +69,7 @@ def list_audio_devices():
     """Return [{name, type: output|input, current}]."""
     if not os.path.exists(SWITCH_AUDIO):
         return []
-    r = subprocess.run([SWITCH_AUDIO, "-a", "-t", "all"], capture_output=True, text=True)
+    r = subprocess.run([SWITCH_AUDIO, "-a", "-t", "all"], capture_output=True, text=True, timeout=5)
     devices = []
     current_type = "output"
     for line in r.stdout.strip().split("\n"):
@@ -89,7 +90,7 @@ def set_audio_device(name, device_type="output"):
     """Switch to named audio device."""
     if not os.path.exists(SWITCH_AUDIO):
         return False
-    subprocess.run([SWITCH_AUDIO, "-t", device_type, "-i", name])
+    subprocess.run([SWITCH_AUDIO, "-t", device_type, "-i", name], timeout=5)
     return True
 
 # ══════════ Current App ══════════

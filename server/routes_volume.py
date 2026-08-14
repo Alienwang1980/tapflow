@@ -2,9 +2,10 @@
 DeepSeek balance lives in main.py (profile+key_id proxy, masks the key)."""
 
 import logging
-import subprocess
 
 from fastapi import APIRouter
+
+from osa_run import osa
 
 _logger = logging.getLogger("stp.widgets")
 
@@ -16,8 +17,7 @@ def create_router(state):
 
     @router.get("/api/system/volume")
     def sys_vol():
-        r = subprocess.run(["osascript", "-e", "get volume settings"],
-                           capture_output=True, encoding='utf-8')
+        r = osa("get volume settings")
         res = {"output_volume": 75, "input_volume": 50, "output_muted": False}
         for part in r.stdout.strip().split(","):
             p = part.strip()
@@ -40,14 +40,13 @@ def create_router(state):
     @router.post("/api/system/volume")
     async def sys_vol_set(body: dict):
         v = max(0, min(100, int(body.get("value", 75))))
-        subprocess.run(["osascript", "-e", f"set volume output volume {v}"])
+        osa(f"set volume output volume {v}")
         return {"status": "ok"}
 
     @router.post("/api/system/mute")
     async def sys_mute():
         state.output_muted = not state.output_muted
-        subprocess.run(["osascript", "-e",
-                        f"set volume output muted {str(state.output_muted).lower()}"])
+        osa(f"set volume output muted {str(state.output_muted).lower()}")
         return {"muted": state.output_muted}
 
     return router

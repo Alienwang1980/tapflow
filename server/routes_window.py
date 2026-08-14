@@ -1,9 +1,10 @@
 """Window management routes — switcher, focus, close, fullscreen, arrange, tile (10 routes)."""
 
 import logging
-import subprocess
 
 from fastapi import APIRouter, HTTPException, Request
+
+from osa_run import osa
 
 # ── Window Arrange constants (Chinese macOS menu names) ──
 # ponytail: 菜单项按中文名匹配(mini 系统为中文);系统语言改英文需加名称映射表。
@@ -30,12 +31,7 @@ def _menu_ref(submenu, item):
 
 
 def _run_osa(lines):
-    try:
-        r = subprocess.run(["osascript", "-e", "\n".join(lines)],
-                           capture_output=True, text=True,
-                           encoding="utf-8", errors="replace", timeout=5)
-    except Exception as e:
-        return False, str(e)[:200]
+    r = osa("\n".join(lines))
     if r.returncode != 0:
         return False, (r.stderr or "").strip()[:200]
     return True, r.stdout.strip()
@@ -169,9 +165,8 @@ def create_router(state):
         if layout not in ("left-right", "top-bottom", "2x2"):
             raise HTTPException(400, f"Unknown layout: {layout}")
         # Get frontmost app name via System Events
-        r = subprocess.run(["osascript", "-e",
-            'tell app "System Events" to set frontApp to name of first process whose frontmost is true',
-            "-e", "return frontApp"], capture_output=True, encoding='utf-8')
+        r = osa('tell app "System Events" to set frontApp to name of first process whose frontmost is true\n'
+                'return frontApp')
         n = r.stdout.strip()
         if not n:
             return {"status": "error", "message": "No frontmost window found"}
@@ -186,7 +181,7 @@ def create_router(state):
         else:
             tile_script += "set position of front window to {0, 30}\nset size of front window to {item 1 of sz / 2, item 2 of sz / 2}\n"
         tile_script += "end tell"
-        subprocess.run(["osascript", "-e", tile_script])
+        osa(tile_script)
         return {"status": "ok", "layout": layout}
 
     return router

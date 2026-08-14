@@ -58,10 +58,10 @@ def create_router(state, is_frozen):
         devs = []
         for dtype, dlabel in [("output", "output"), ("input", "input")]:
             cur_r = subprocess.run([sw, "-c", "-t", dtype],
-                                   capture_output=True, encoding="utf-8", env=env)
+                                   capture_output=True, encoding="utf-8", env=env, timeout=5)
             cur_name = cur_r.stdout.strip()
             r2 = subprocess.run([sw, "-a", "-t", dtype],
-                                capture_output=True, encoding="utf-8", env=env)
+                                capture_output=True, encoding="utf-8", env=env, timeout=5)
             for line in r2.stdout.strip().splitlines():
                 ls = line.strip()
                 if not ls:
@@ -74,7 +74,7 @@ def create_router(state, is_frozen):
         sw = os.path.expanduser(
             "~/Library/Application Support/Tapflow/bin/SwitchAudioSource")
         if os.path.exists(sw):
-            subprocess.run([sw, "-t", "output", "-s", body.get("name", "")])
+            subprocess.run([sw, "-t", "output", "-s", body.get("name", "")], timeout=5)
         return {"status": "ok"}
 
     @router.post("/api/system/audio-input")
@@ -82,7 +82,7 @@ def create_router(state, is_frozen):
         sw = os.path.expanduser(
             "~/Library/Application Support/Tapflow/bin/SwitchAudioSource")
         if os.path.exists(sw):
-            subprocess.run([sw, "-t", "input", "-s", body.get("name", "")])
+            subprocess.run([sw, "-t", "input", "-s", body.get("name", "")], timeout=5)
         return {"status": "ok"}
 
     def _cycle_audio_device(dtype: str):
@@ -92,10 +92,10 @@ def create_router(state, is_frozen):
             return {"status": "error", "reason": "SwitchAudioSource not found"}
         env = {"LANG": "C", "PATH": os.environ.get("PATH", "")}
         cur_r = subprocess.run([sw, "-c", "-t", dtype],
-                               capture_output=True, encoding="utf-8", env=env)
+                               capture_output=True, encoding="utf-8", env=env, timeout=5)
         cur_name = cur_r.stdout.strip()
         r = subprocess.run([sw, "-a", "-t", dtype],
-                           capture_output=True, encoding="utf-8", env=env)
+                           capture_output=True, encoding="utf-8", env=env, timeout=5)
         names = []
         for line in r.stdout.strip().splitlines():
             ls = line.strip()
@@ -109,7 +109,7 @@ def create_router(state, is_frozen):
         except ValueError:
             cur_idx = 0
         next_name = names[(cur_idx + 1) % len(names)]
-        subprocess.run([sw, "-t", dtype, "-s", next_name])
+        subprocess.run([sw, "-t", dtype, "-s", next_name], timeout=5)
         return {"status": "ok", "current": next_name}
 
     @router.post("/api/system/audio-input/cycle")

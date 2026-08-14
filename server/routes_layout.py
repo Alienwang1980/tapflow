@@ -60,7 +60,7 @@ def create_router(state):
             with open(path) as fh:
                 data = json.load(fh)
             for app in data.get("apps", []):
-                subprocess.run(["open", "-a", app["name"]])
+                subprocess.run(["open", "-a", app["name"]], timeout=10)
         except:
             pass
         return {"status": "ok"}

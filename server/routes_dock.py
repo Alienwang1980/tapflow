@@ -107,7 +107,7 @@ def create_router(state):
     async def sys_launch(body: dict):
         path = body.get("path", "")
         if path:
-            subprocess.run(["open", path])
+            subprocess.run(["open", path], timeout=10)
         return {"status": "ok"}
 
     @router.post("/api/system/quit-app")
@@ -115,7 +115,7 @@ def create_router(state):
         """Quit an app by exact process name. Uses pkill -x (safe arg list, no shell)."""
         name = str(body.get("name", "")).strip()
         if name:
-            subprocess.run(["pkill", "-x", name])
+            subprocess.run(["pkill", "-x", name], timeout=10)
         return {"status": "ok"}
 
     return router
