@@ -17,10 +17,11 @@ body{display:flex;align-items:center;justify-content:center}
 .key-btn{position:absolute;border:none;border-radius:5px;display:flex;align-items:center;justify-content:center;font-weight:500;transition:transform 0.04s;overflow:hidden}
 .key-btn{transition:transform 0.08s ease,box-shadow 0.08s ease,filter 0.08s ease}.key-btn:active,.key-btn.active{transform:scale(0.93);filter:brightness(1.4);box-shadow:0 2px 8px rgba(255,255,255,0.3)}.key-btn.touchpad{border:1px solid rgba(255,255,255,0.06);opacity:0.9}.key-btn.touchpad:active,.key-btn.dock:active,.key-btn.volume:active,.key-btn.win-switcher:active,.key-btn.winshortcuts:active,.key-btn.wingesture:active{transform:none!important;filter:none!important;box-shadow:none!important}.key-btn.touchpad.active,.key-btn.dock.active,.key-btn.volume.active,.key-btn.winshortcuts.active,.key-btn.wingesture.active{transform:none!important;filter:none!important;box-shadow:none!important}
 .info{display:none;position:fixed;bottom:4px;left:4px;color:#fff;font-size:10px;z-index:99;background:rgba(0,0,0,0.7);padding:4px 6px;border-radius:3px;user-select:text;-webkit-user-select:text}
+#p0diag{position:fixed;top:36px;left:12px;z-index:9999;color:#0ff;font-size:26px;font-weight:700;line-height:1.5;background:rgba(0,0,0,0.85);padding:14px 18px;border-radius:10px;pointer-events:none;white-space:pre-line;font-family:Menlo,monospace}
 </style></head>
 <body>
 <div id="tl" style="position:fixed;inset:0;pointer-events:none;z-index:0"></div><div class="canvas-wrap" id="wrap"><div class="canvas" id="canvas"></div></div>
-<div id="info" class="info"></div>
+<div id="info" class="info"></div><div id="p0diag"></div>
 <script>
 "use strict";
 let profile=null,activePage="",activeProfile="Default.json";
@@ -356,6 +357,8 @@ function render(){
   var _sat="0";
   try{var _p=document.createElement("div");_p.style.cssText="position:fixed;left:-9999px;top:0;width:0;height:0;padding-top:env(safe-area-inset-top);padding-top:constant(safe-area-inset-top)";document.body.appendChild(_p);_sat=getComputedStyle(_p).paddingTop||"0";_p.remove()}catch(e){_sat="err"}
   document.getElementById("info").textContent=`keys ${vis}/${pg.keys.length} | ${dw}×${dh} cs${cs} gap${gp} | vw${vw}×${vh}h | scale ${scale.toFixed(3)} | cx${cx.toFixed(1)} cy${cy.toFixed(1)} | dpr${_dpr} sat${_sat} vv${_vvInfo} scr${screen.width}×${screen.height} | P0诊断`;
+  var _pd=document.getElementById("p0diag");
+  if(_pd)_pd.textContent="P0 诊断\n视口: "+vw+"×"+vh+"\nDPR: "+_dpr+"\nsafe-area-top: "+_sat+"\nvisualViewport: "+_vvInfo+"\nscreen: "+screen.width+"×"+screen.height+"\n画布: "+dw+"×"+dh+"\nscale: "+scale.toFixed(3);
 }
 async function _showProfilePopup(currentFn){
   try{
