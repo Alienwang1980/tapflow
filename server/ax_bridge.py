@@ -51,6 +51,8 @@ _as.AXUIElementCreateApplication.argtypes = [ctypes.c_int32]
 _as.AXUIElementCreateApplication.restype = ctypes.c_void_p
 _as.AXUIElementCopyAttributeValue.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p)]
 _as.AXUIElementCopyAttributeValue.restype = ctypes.c_int32
+_as.AXUIElementSetMessagingTimeout.argtypes = [ctypes.c_void_p, ctypes.c_float]
+_as.AXUIElementSetMessagingTimeout.restype = ctypes.c_int32
 _as.AXUIElementPerformAction.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
 _as.AXUIElementPerformAction.restype = ctypes.c_int32
 _as.AXUIElementSetAttributeValue.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
@@ -83,8 +85,17 @@ def _pystr(cf_val):
         return buf.value.decode('utf-8')
     return ""
 
+_AX_MSG_TIMEOUT = 1.5  # seconds; AX calls on unresponsive apps return kAXErrorTimeout
+
 def _get_attr(elem, attr_name):
     k = _cfstr(attr_name)
+    # Unresponsive apps (e.g. a hung Safari) block AX calls forever; a per-element
+    # messaging timeout makes them fail fast with kAXErrorTimeout instead of
+    # stacking hung threads in the server threadpool.
+    try:
+        _as.AXUIElementSetMessagingTimeout(elem, _AX_MSG_TIMEOUT)
+    except Exception:
+        pass
     result = ctypes.c_void_p()
     err = _as.AXUIElementCopyAttributeValue(elem, k, ctypes.byref(result))
     _cf.CFRelease(k)
