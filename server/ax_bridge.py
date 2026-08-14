@@ -35,14 +35,25 @@ def _favicon_url(url):
     """Extract domain from URL and return the local favicon proxy URL.
 
     The client draws tab icons onto canvas with crossOrigin=anonymous; direct
-    google.com URLs get CORS-blocked there, so route through the server proxy."""
+    google.com URLs get CORS-blocked there, so route through the server proxy.
+    Loopback/private-IP hosts have no Google favicon — return "" so the client
+    skips them entirely instead of 502-ing every poll."""
     if not url: return ""
     try:
         from urllib.parse import urlparse
         parsed = urlparse(url)
         domain = parsed.netloc
-        if domain:
-            return f"/api/system/favicon?domain={domain}&sz=64"
+        if not domain:
+            return ""
+        host = domain.split("@")[-1].split(":")[0]
+        try:
+            from ipaddress import ip_address
+            ip = ip_address(host)
+            if ip.is_loopback or ip.is_private:
+                return ""
+        except ValueError:
+            pass  # not an IP literal — normal public domain
+        return f"/api/system/favicon?domain={domain}&sz=64"
     except: pass
     return ""
 
