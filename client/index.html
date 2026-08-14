@@ -12,7 +12,7 @@ html,body{width:100%;height:100%;overflow:clip;background:#1a1a2e;font-family:-a
 /* Flexbox centering — body is the centering container */
 body{display:flex;align-items:center;justify-content:center}
 /* Canvas container — scaled to fit viewport, centered by flexbox */
-.canvas-wrap{flex-shrink:0;transform-origin:center bottom}
+.canvas-wrap{flex-shrink:0;transform-origin:center center}
 /* Fixed-size canvas at device dimensions */
 .canvas{position:relative}
 .key-btn{position:absolute;border:none;border-radius:5px;display:flex;align-items:center;justify-content:center;font-weight:500;transition:transform 0.04s;overflow:hidden}
@@ -309,13 +309,14 @@ function render(){
   const cx=profile.canvasX||0,cy=profile.canvasY||0;
   const vw=window.innerWidth,vh=window.innerHeight;
 
-  // Scale canvas to fit viewport, bottom-aligned: the title bar zone sits at the
-  // top (canvas topInset area slides under the fullscreen status bar), keys
-  // placed at the bottom of the editor end up exactly at the viewport bottom.
+  // Scale canvas to fit viewport. Bottom-align when the canvas is shorter than
+  // the viewport (fullscreen + width-limited): translate by half the gap after
+  // centering. In normal mode the height-limited scale already fills the
+  // viewport (gap=0) so the canvas stays centered with zero shift.
   const scale=Math.min(vw/dw,vh/dh);
   const wrap=document.getElementById("wrap");
   wrap.style.width=dw+"px";wrap.style.height=dh+"px";
-  wrap.style.transform=`scale(${scale})`;
+  wrap.style.transform=`translateY(${(vh-dh*scale)/2}px) scale(${scale})`;
 
   // Set canvas size
   const canvas=document.getElementById("canvas");
