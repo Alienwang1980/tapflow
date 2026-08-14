@@ -2,7 +2,7 @@
 """从 draft.md(用户原稿)+ translations.json 生成各平台帖子。
 
 用法: python3 generator.py
-生成: v2ex.md 2libra.md zfrontier.md(中文) reddit.md(英文) hn.txt(英文)
+生成: v2ex.md 2libra.md(中文) zfrontier.txt(BBCode 代码) reddit.md(英文) hn.txt(英文)
 语言规则: 中文平台用 zh,英文平台用 en。
 """
 import json
@@ -20,8 +20,11 @@ PENDING_EN = '> 📌 [Pending: new-version highlights — send the changelog to 
 V2EX_FOOTER = '\n---\n\n> 发布提示:发在 V2EX【分享创造】节点;正文发帖时选 Markdown 模式,图片链接才能显示。\n'
 LIBRA_FOOTER = ('\n\n---\n\n> 发布提示:2libra(2libra.com)邮箱注册即用;支持 Markdown+图片链接;'
                 '新账号先正常参与几天再发帖,推广帖可能被移入"黑洞";发帖后 AI 自动选节点,可手动改。\n')
-ZFRONTIER_FOOTER = ('\n\n---\n\n> 发布提示:zFrontier 装备前线社区;发帖前先看社区规则,选合适的圈子(外设/桌面装备相关);'
-                   '若编辑器不支持外链图再退回本地上传;语气对键盘玩家友好,评论区被问"和键盘比如何"时按定位答:配合,不替代。\n')
+ZFRONTIER_FOOTER = ('\n\n─── 发布提示 · 以下不要粘贴 ───\n'
+                   '· 正文是标准 BBCode:[b]粗体[/b] [size=N]字号[/size] [img]图片[/img] [url]链接[/url]\n'
+                   '· 先发一个测试帖(1 图 + 1 链接)确认渲染;若 [size=5] 无效,在 [size=1]~[size=7] 里试出可用档位\n'
+                   '· 图片是外链图床 img.tapflow.work,若编辑器强制本地上传再退回上传\n'
+                   '· 语气对键盘玩家友好,被问"和键盘比如何"时按定位答:配合,不替代\n')
 REDDIT_FOOTER = ('\n\n---\n\n> Posting notes: r/macapps allows maker posts with disclosure '
                  '(already included at the end). Check each sub\'s self-promo rules before posting. '
                  'Use the Markdown editor.\n')
@@ -40,6 +43,27 @@ URL_RE = re.compile(r'https?://[^\s。，、;；!！"\'<>()\[\]{}]+')
 def linkify(text):
     """裸 URL → Markdown 链接 [URL](URL)。"""
     return URL_RE.sub(lambda m: f'[{m.group(0)}]({m.group(0)})', text)
+
+
+def linkify_bbcode(text):
+    """裸 URL → BBCode 链接 [url]URL[/url]。"""
+    return URL_RE.sub(lambda m: f'[url]{m.group(0)}[/url]', text)
+
+
+def render_blocks_bbcode(blocks, mapping):
+    """BBCode 渲染: h2/h3 → [size]+[b], 图片 → [img], 链接 → [url], 分段用空行。"""
+    out = []
+    for b in blocks:
+        t = b['type']
+        if t == 'text':
+            out.append(linkify_bbcode(b['zh']))
+        elif t == 'img':
+            out.append(f'[img]{BASE}/{mapping[b["slot"]]}[/img]')
+        elif t == 'h2':
+            out.append(f'[size=5][b]{b["zh"]}[/b][/size]')
+        elif t == 'h3':
+            out.append(f'[size=4][b]{b["zh"]}[/b][/size]')
+    return '\n\n'.join(out)
 
 
 def load_mapping():
@@ -72,23 +96,25 @@ def main():
             render_blocks(src['blocks'], mapping, 'zh'), V2EX_FOOTER]
     libra = ['# ' + src['titles']['2libra'], '', PENDING_CN, '',
              render_blocks(src['blocks'], mapping, 'zh'), LIBRA_FOOTER]
-    zfrontier = ['# ' + src['titles']['zfrontier'], '',
-                 render_blocks(src['blocks'], mapping, 'zh'), ZFRONTIER_FOOTER]
+    zfrontier = [src['titles']['zfrontier'], '',
+                 '──── 上面一行是标题(填标题框);下面正文粘进编辑器"代码"模式 ────',
+                 render_blocks_bbcode(src['blocks'], mapping), ZFRONTIER_FOOTER]
     reddit = ['# ' + src['titles']['reddit'], '', PENDING_EN, '',
               render_blocks(src['blocks'], mapping, 'en'), REDDIT_FOOTER]
     hn = ['Show HN: Tapflow — turn an iPad into a custom control panel for macOS (no iPad app)',
           '', HN_HEADER + src['hn']]
 
-    for name, parts in (('v2ex.md', v2ex), ('2libra.md', libra), ('zfrontier.md', zfrontier),
+    for name, parts in (('v2ex.md', v2ex), ('2libra.md', libra), ('zfrontier.txt', zfrontier),
                         ('reddit.md', reddit), ('hn.txt', hn)):
         open(os.path.join(DIR, name), 'w', encoding='utf-8').write('\n'.join(parts))
-    print('生成完毕: v2ex.md / 2libra.md / zfrontier.md / reddit.md / hn.txt')
+    print('生成完毕: v2ex.md / 2libra.md / zfrontier.txt(BBCode) / reddit.md / hn.txt')
 
 
 if __name__ == '__main__':
     # 自检: linkify + URL 参数完整性
     assert URL_RE.search('https://pan.baidu.com/s/1nMrRw4-q3FYKJQfGRo9nAA?pwd=qw3m 提取码')
     assert linkify('https://x.com/a') == '[https://x.com/a](https://x.com/a)'
+    assert linkify_bbcode('https://pan.baidu.com/s/1?pwd=ab 提取码') == '[url]https://pan.baidu.com/s/1?pwd=ab[/url] 提取码'
     # ? 参数必须留在 URL 内
     assert linkify('https://pan.baidu.com/s/1?pwd=ab 提取码') == '[https://pan.baidu.com/s/1?pwd=ab](https://pan.baidu.com/s/1?pwd=ab) 提取码'
     main()
