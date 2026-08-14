@@ -99,6 +99,7 @@ def parse_source(path=None):
 if __name__ == '__main__':
     r = parse_source()
     assert r['titles'].get('v2ex'), '缺少 v2ex 标题'
+    assert r['titles'].get('2libra'), '缺少 2libra 标题'
     assert r['titles'].get('zfrontier'), '缺少 zfrontier 标题'
     assert r['titles'].get('reddit'), '缺少 reddit 标题'
     assert r['blocks'], 'blocks 为空'
