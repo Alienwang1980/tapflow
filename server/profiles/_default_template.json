@@ -2,7 +2,7 @@
   "profileName": "Default",
   "version": "1.0",
   "device": "iPad 11\" (landscape)",
-  "deviceWidth": 1210,
+  "deviceWidth": 1194,
   "deviceHeight": 834,
   "cellSize": 79,
   "gap": 0,
@@ -1227,5 +1227,7 @@
   "groups": [],
   "bgColor": "",
   "bgTexture": "",
-  "showGrid": true
+  "showGrid": true,
+  "dpr": 2,
+  "topInset": 32
 }
