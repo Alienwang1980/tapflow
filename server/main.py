@@ -507,9 +507,22 @@ async def ws_endpoint(websocket: WebSocket):
                 await manager.send_to(client_id, {"type": "ack", "action": "profile_saved", "filename": fn})
             elif msg_type == "ping":
                 await manager.send_to(client_id, {"type": "pong"})
+            elif msg_type == "open-color-panel":
+                import re as _re_cp
+                color = data.get("color", "")
+                if not _re_cp.fullmatch(r"#[0-9a-fA-F]{6}", color):
+                    await manager.send_to(client_id, {"type": "color-error", "message": "invalid color"})
+                else:
+                    from color_panel import request_open
+                    request_open(client_id, asyncio.get_running_loop(), color)
+            elif msg_type == "close-color-panel":
+                from color_panel import request_close
+                request_close(client_id)
             else:
                 logger.debug(f"Unknown msg type from {client_id}: {msg_type}")
     except WebSocketDisconnect:
+        from color_panel import release
+        release(client_id)
         manager.disconnect(client_id)
     except Exception as e:
         logger.error(f"WS error {client_id}: {e}")
