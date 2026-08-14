@@ -1,7 +1,9 @@
 <!DOCTYPE html><html lang="zh-CN"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no,viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Tapflow">
 <title>Tapflow</title>
+<link rel="manifest" href="/static/manifest.json">
+<link rel="apple-touch-icon" href="/static/icons/tapflow-180.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231a1a2e'/%3E%3Ccircle cx='32' cy='32' r='15' fill='%234ade80'/%3E%3C/svg%3E">
 <style>
 @font-face{font-family:"Press Start 2P";src:url("/static/fonts/PressStart2P.woff2") format("woff2")}
@@ -309,22 +311,15 @@ function render(){
   const cx=profile.canvasX||0,cy=profile.canvasY||0;
   const vw=window.innerWidth,vh=window.innerHeight;
 
-  // Phone portrait (narrow taller-than-wide viewport) with a portrait canvas:
-  // fill width exactly so there are no side gaps when Safari's bottom URL bar
-  // shrinks the layout viewport height, and always bottom-align; the top
-  // overflow lands inside the topInset keep-clear band. Everything else
-  // (iPad fit, center-on-big-gap) keeps the original logic. The gap/2 shift
-  // compensates the flexbox centering offset so the visual bottom = viewport
-  // bottom.
-  const isPhonePortrait=vw<600&&vw<vh&&dh>dw;
-  let _scale,_shift;
-  if(isPhonePortrait){
-    _scale=vw/dw;
-  }else{
-    _scale=Math.min(vw/dw,vh/dh);
-  }
+  // Scale canvas to fit viewport. Bottom-align only when the canvas nearly
+  // fills the viewport height; when the gap is large (e.g. an iPad profile
+  // opened on an iPhone), keep the canvas vertically centered instead of
+  // shoving it to the bottom. In iOS PWA standalone (add-to-home-screen,
+  // full screen, no browser chrome) scale=1 fills the screen exactly and the
+  // topInset band slides under the floating status bar.
+  const _scale=Math.min(vw/dw,vh/dh);
   const _gap=vh-dh*_scale;
-  _shift=isPhonePortrait?_gap/2:(_gap>vh*0.1?0:_gap/2);
+  const _shift=_gap>vh*0.1?0:_gap/2;
   const wrap=document.getElementById("wrap");
   wrap.style.width=dw+"px";wrap.style.height=dh+"px";
   wrap.style.transform=`translateY(${_shift}px) scale(${_scale})`;
