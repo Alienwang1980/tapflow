@@ -52,6 +52,7 @@ OPTIONS = {
         "routes_audio", "routes_volume", "routes_window",
         "routes_thumbnail", "routes_dock", "routes_menu",
         "routes_layout", "routes_app_icon",
+        "ime_engine", "routes_ime",
         "typing_extensions", "six",
         "PyObjCTools.MachSignals", "PyObjCTools.AppHelper",
         "logging", "json", "uuid", "asyncio", "threading", "webbrowser",
