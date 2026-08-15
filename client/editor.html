@@ -992,11 +992,11 @@ function _drawTextMacroBtn(canvas,bgColor,text,fontColor,fontSize,fontFamily,lab
   ctx.font=hdrFs+"px -apple-system,sans-serif";
   ctx.textAlign="left";ctx.textBaseline="top";
   ctx.fillText(label||"TEXT MACRO",padX,topPad);
-  var textTop=topPad+hdrFs+Math.max(2,h*0.05),textH=h-textTop-topPad;
+  var textTop=topPad+hdrFs*1.4+Math.max(2,h*0.04),textH=h-textTop-topPad;
   if(text&&text.length>0){
     var display=text;ctx.fillStyle=fc;ctx.font=fs+"px "+ff;
-    ctx.textAlign="left";ctx.textBaseline="middle";
-    var maxW=w-padX*2,lineH=fs*1.35,maxLines=Math.floor(textH/lineH);
+    ctx.textAlign="left";ctx.textBaseline="top";
+    var maxW=w-padX*2,lineH=fs*1.35,maxLines=Math.max(0,Math.floor(textH/lineH));
     var lines=[];
     if(display.indexOf("\n")>=0){
       var raw=display.split("\n");
@@ -1005,12 +1005,13 @@ function _drawTextMacroBtn(canvas,bgColor,text,fontColor,fontSize,fontFamily,lab
         if(ctx.measureText(ln).width>maxW){while(ln.length>1&&ctx.measureText(ln+"…").width>maxW)ln=ln.slice(0,-1);ln+="…"}
         lines.push(ln)
       }
-    }else{
+    }else if(maxLines>0){
       var ln=display;
       if(ctx.measureText(ln).width>maxW){while(ln.length>1&&ctx.measureText(ln+"…").width>maxW)ln=ln.slice(0,-1);ln+="…"}
       lines.push(ln)
     }
-    var startY=textTop+textH/2-(lines.length*lineH)/2+lineH*0.3;
+    var totalH=lines.length*lineH;
+    var startY=totalH<=textH?textTop+(textH-totalH)/2:textTop+2;
     for(var i=0;i<lines.length;i++){ctx.fillText(lines[i],padX,startY+i*lineH)}
   }else{
     ctx.fillStyle="rgba(255,255,255,0.2)";
