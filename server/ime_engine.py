@@ -99,6 +99,68 @@ def _cfbool(ptr):
     return bool(cf.CFBooleanGetValue(ptr))
 
 
+_gui_probe_done = False
+_gui_running = False
+_gui_probe_lock = threading.Lock()
+
+
+def _probe_gui():
+    """Detect whether an NSApplication run loop is active in this process.
+
+    In a GUI app bundle (pystray runs NSApplication on the main thread),
+    HIToolbox's TSM layer asserts every TIS call happens on the main queue —
+    calling TISGetInputSourceProperty from a thread-pool thread crashes the
+    whole process with SIGTRAP (_dispatch_assert_queue_fail, observed
+    2026-08-15 in the py2app bundle). Plain CLI processes (dev server) have no
+    NSApplication and no assertion, so TIS can be called directly.
+    """
+    global _gui_probe_done, _gui_running
+    if _gui_probe_done:
+        return _gui_running
+    with _gui_probe_lock:
+        if not _gui_probe_done:
+            try:
+                from AppKit import NSApplication
+                _gui_running = bool(NSApplication.sharedApplication().isRunning())
+            except Exception as e:  # noqa: BLE001 — probe must never kill IME
+                logger.warning("IME engine: GUI probe failed, assuming CLI: %s", e)
+                _gui_running = False
+            _gui_probe_done = True
+    return _gui_running
+
+
+def _call_on_main(fn):
+    """Run fn on the main thread when a GUI run loop is active, else inline.
+
+    dispatch via NSOperationQueue.mainQueue, which the NSApplication run loop
+    drains. Guarded by isMainThread so callers already on the main thread
+    (e.g. cycle() calling select()) never self-deadlock.
+    """
+    if not _probe_gui():
+        return fn()
+    from Foundation import NSThread
+    if NSThread.isMainThread():
+        return fn()
+    from Foundation import NSOperationQueue
+    result = {}
+    done = threading.Event()
+
+    def block():
+        try:
+            result["v"] = fn()
+        except Exception as e:  # noqa: BLE001 — re-raised on the caller thread
+            result["e"] = e
+        finally:
+            done.set()
+
+    NSOperationQueue.mainQueue().addOperationWithBlock_(block)
+    if not done.wait(5):
+        raise RuntimeError("IME engine: main-thread dispatch timed out")
+    if "e" in result:
+        raise result["e"]
+    return result.get("v")
+
+
 def _iter_keyboard_sources():
     """Yield raw TISInputSourceRef for all keyboard input sources."""
     carbon, cf = _load()
@@ -129,6 +191,10 @@ def _source_info(src_ref):
 
 def list_selectable():
     """Return enabled, selectable keyboard input sources as [{id, name}]."""
+    return _call_on_main(_list_selectable)
+
+
+def _list_selectable():
     sources = []
     for src in _iter_keyboard_sources():
         if not _cfbool(_prop(src, "kTISPropertyInputSourceIsSelectCapable")):
@@ -143,6 +209,10 @@ def list_selectable():
 
 def current():
     """Return the current keyboard input source as {id, name}, or None."""
+    return _call_on_main(_current)
+
+
+def _current():
     carbon, cf = _load()
     if carbon is None:
         return None
@@ -156,11 +226,14 @@ def current():
 
 
 def select(source_id):
-    """Select a keyboard input source by id. Returns True on success.
+    """Select a keyboard input source by id. Returns True on success."""
+    return _call_on_main(lambda: _select(source_id))
 
-    Must call TISSelectInputSource while the TISCreateInputSourceList array is
-    still alive — CFRelease'ing it first leaves the source ref dangling (crash).
-    """
+
+def _select(source_id):
+    """Select by id. Must call TISSelectInputSource while the
+    TISCreateInputSourceList array is still alive — CFRelease'ing it first
+    leaves the source ref dangling (crash)."""
     carbon, _ = _load()
     if carbon is None:
         return False
@@ -173,6 +246,10 @@ def select(source_id):
 
 def cycle():
     """Switch to the next enabled input source. Returns the new {id, name}."""
+    return _call_on_main(_cycle)
+
+
+def _cycle():
     sources = list_selectable()
     if not sources:
         logger.warning("IME engine: no selectable input sources")
