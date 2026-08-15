@@ -7,6 +7,7 @@ the frozen py2app bundle needs no extra binaries and no accessibility permission
 
 import ctypes
 import logging
+import threading
 from ctypes import c_bool, c_int, c_long, c_void_p
 
 logger = logging.getLogger("stp.tray")
@@ -15,6 +16,7 @@ KCF_STRING_ENCODING_UTF8 = 0x08000100
 
 _carbon = None
 _cf = None
+_load_lock = threading.Lock()
 
 
 def _load():
@@ -22,42 +24,45 @@ def _load():
     global _carbon, _cf
     if _carbon is not None:
         return _carbon, _cf
-    try:
-        carbon = ctypes.cdll.LoadLibrary(
-            "/System/Library/Frameworks/Carbon.framework/Carbon")
-        cf = ctypes.cdll.LoadLibrary(
-            "/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation")
-    except OSError as e:
-        logger.error("IME engine: failed to load Carbon/CoreFoundation: %s", e)
-        return None, None
+    with _load_lock:
+        if _carbon is not None:
+            return _carbon, _cf
+        try:
+            carbon = ctypes.cdll.LoadLibrary(
+                "/System/Library/Frameworks/Carbon.framework/Carbon")
+            cf = ctypes.cdll.LoadLibrary(
+                "/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation")
+        except OSError as e:
+            logger.error("IME engine: failed to load Carbon/CoreFoundation: %s", e)
+            return None, None
 
-    carbon.TISCreateInputSourceList.argtypes = [c_void_p, c_bool]
-    carbon.TISCreateInputSourceList.restype = c_void_p
-    carbon.TISCopyCurrentKeyboardInputSource.argtypes = []
-    carbon.TISCopyCurrentKeyboardInputSource.restype = c_void_p
-    carbon.TISGetInputSourceProperty.argtypes = [c_void_p, c_void_p]
-    carbon.TISGetInputSourceProperty.restype = c_void_p
-    carbon.TISSelectInputSource.argtypes = [c_void_p]
-    carbon.TISSelectInputSource.restype = c_int
+        carbon.TISCreateInputSourceList.argtypes = [c_void_p, c_bool]
+        carbon.TISCreateInputSourceList.restype = c_void_p
+        carbon.TISCopyCurrentKeyboardInputSource.argtypes = []
+        carbon.TISCopyCurrentKeyboardInputSource.restype = c_void_p
+        carbon.TISGetInputSourceProperty.argtypes = [c_void_p, c_void_p]
+        carbon.TISGetInputSourceProperty.restype = c_void_p
+        carbon.TISSelectInputSource.argtypes = [c_void_p]
+        carbon.TISSelectInputSource.restype = c_int
 
-    cf.CFArrayGetCount.argtypes = [c_void_p]
-    cf.CFArrayGetCount.restype = c_long
-    cf.CFArrayGetValueAtIndex.argtypes = [c_void_p, c_long]
-    cf.CFArrayGetValueAtIndex.restype = c_void_p
-    cf.CFStringGetLength.argtypes = [c_void_p]
-    cf.CFStringGetLength.restype = c_long
-    cf.CFStringGetCString.argtypes = [c_void_p, ctypes.c_char_p, c_long, ctypes.c_uint32]
-    cf.CFStringGetCString.restype = c_bool
-    cf.CFGetTypeID.argtypes = [c_void_p]
-    cf.CFGetTypeID.restype = c_void_p
-    cf.CFBooleanGetTypeID.restype = c_void_p
-    cf.CFBooleanGetValue.argtypes = [c_void_p]
-    cf.CFBooleanGetValue.restype = c_bool
-    cf.CFRelease.argtypes = [c_void_p]
-    cf.CFRelease.restype = None
+        cf.CFArrayGetCount.argtypes = [c_void_p]
+        cf.CFArrayGetCount.restype = c_long
+        cf.CFArrayGetValueAtIndex.argtypes = [c_void_p, c_long]
+        cf.CFArrayGetValueAtIndex.restype = c_void_p
+        cf.CFStringGetLength.argtypes = [c_void_p]
+        cf.CFStringGetLength.restype = c_long
+        cf.CFStringGetCString.argtypes = [c_void_p, ctypes.c_char_p, c_long, ctypes.c_uint32]
+        cf.CFStringGetCString.restype = c_bool
+        cf.CFGetTypeID.argtypes = [c_void_p]
+        cf.CFGetTypeID.restype = c_void_p
+        cf.CFBooleanGetTypeID.restype = c_void_p
+        cf.CFBooleanGetValue.argtypes = [c_void_p]
+        cf.CFBooleanGetValue.restype = c_bool
+        cf.CFRelease.argtypes = [c_void_p]
+        cf.CFRelease.restype = None
 
-    _carbon, _cf = carbon, cf
-    return carbon, cf
+        _carbon, _cf = carbon, cf
+        return carbon, cf
 
 
 def _sym(symbol):
