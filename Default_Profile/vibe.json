@@ -306,7 +306,6 @@
           "micIconColor": "#05f8ff",
           "micColor": "#b9ff71",
           "borderRadius": 15,
-          "showLevel": false,
           "closeSound": ""
         },
         {

@@ -225,7 +225,7 @@ let dirty=false          // 未保存标记
 
 | 控件 | 间隔 | 端点 |
 |------|------|------|
-| `mic-mute` (showLevel) | **50ms** | `/api/system/mic-level` |
+| `mic-mute` (自动电平,挂载即开) | **50ms** | `/api/system/mic-level` |
 | `active-app` | 10,000ms | `/api/system/all-windows` + `/api/system/window-thumbnail` |
 | `app-menu` | 10,000ms | `/api/system/current-menus` |
 | `audio-out` / `audio-in` | 10,000ms | `/api/system/audio-devices` |
