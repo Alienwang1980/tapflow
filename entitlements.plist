@@ -11,5 +11,11 @@
     <true/>
     <key>com.apple.security.cs.allow-dyld-environment-variables</key>
     <true/>
+    <!-- Hardened runtime: without this entitlement the mic permission request
+         is rejected at the system level (AVAuthorizationStatus Restricted,
+         no prompt, no TCC entry ever written). Observed 2026-08-16 on the
+         deployed bundle after TCC reset. -->
+    <key>com.apple.security.device.audio-input</key>
+    <true/>
 </dict>
 </plist>
