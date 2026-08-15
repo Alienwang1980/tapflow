@@ -8,18 +8,17 @@ from fastapi import APIRouter, HTTPException, Request
 
 from osa_run import osa
 
-# ── Window Arrange constants (Chinese macOS menu names) ──
-# ponytail: 菜单项按中文名匹配(mini 系统为中文);系统语言改英文需加名称映射表。
+# ── Window Arrange (native macOS tiling via AX frame) ──
+# Synthetic key events can't trigger WindowServer system shortcuts on
+# macOS 26 (verified 2026-08-15), and osascript is a poison pill — so
+# tiling goes through window_tile.py (AXPosition/AXSize).
 _WIN_MENU = "窗口"
-_MR_SUB = "移动与调整大小"   # Move & Resize 子菜单
 _FS_SUB = "全屏幕平铺"        # Full-Screen Tile 子菜单
+# ponytail: fs-left/fs-right still use the osascript System Events path
+# (no shortcut, and AX has no "full-screen tile" concept); upgrade when a
+# native path exists. Only triggered by the win-shortcuts widget, which is
+# not present in the current profile.
 _ARRANGE_MAP = {
-    "left":     (_MR_SUB, "左侧"),
-    "right":    (_MR_SUB, "右侧"),
-    "top":      (_MR_SUB, "顶部"),
-    "bottom":   (_MR_SUB, "底部"),
-    "fill":     (None, "填充"),
-    "restore":  (_MR_SUB, "恢复上一个大小"),
     "fs-left":  (_FS_SUB, "屏幕左侧"),
     "fs-right": (_FS_SUB, "屏幕右侧"),
 }
@@ -178,24 +177,32 @@ def create_router(state):
         press_key("f11")
         return {"status": "ok"}
 
-    # ── Window Arrange (native macOS tiling via System Events menu click) ──
+    # ── Window Arrange (native macOS tiling via AX frame) ──
 
     @router.post("/api/system/window/arrange")
     async def sys_arrange(body: dict):
         action = body.get("action", "")
-        if action not in _ARRANGE_MAP:
-            return {"success": False, "error": f"unknown action: {action}"}
-        submenu, item = _ARRANGE_MAP[action]
-        lines = [
-            'tell application "System Events"',
-            'tell (first process whose frontmost is true)',
-            f'click {_menu_ref(submenu, item)}',
-            'end tell',
-            'end tell',
-        ]
-        ok, out = _run_osa(lines)
-        return ({"success": ok, "action": action, "result": out} if ok
-                else {"success": False, "error": out})
+        if action in ("left", "right", "top", "bottom", "fill", "restore"):
+            from window_tile import apply as tile_apply
+            ok, err = tile_apply(action)
+            if ok:
+                return {"success": True, "action": action}
+            return {"success": False, "action": action, "error": err}
+        # ponytail: osascript System Events menu click for full-screen tile;
+        # upgrade to a native path when one exists.
+        if action in _ARRANGE_MAP:
+            submenu, item = _ARRANGE_MAP[action]
+            lines = [
+                'tell application "System Events"',
+                'tell (first process whose frontmost is true)',
+                f'click {_menu_ref(submenu, item)}',
+                'end tell',
+                'end tell',
+            ]
+            ok, out = _run_osa(lines)
+            return ({"success": ok, "action": action, "result": out} if ok
+                    else {"success": False, "error": out})
+        return {"success": False, "error": f"unknown action: {action}"}
 
     # ── Window Tile ──
 
