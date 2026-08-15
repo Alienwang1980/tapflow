@@ -259,6 +259,10 @@ def run_server():
     from routes_audio import create_router as _audio_router
     app.include_router(_audio_router(state, _is_frozen))
 
+    # ── IME Routes (injected) ──
+    from routes_ime import create_router as _ime_router
+    app.include_router(_ime_router(state))
+
     # ── Window + Thumbnail Routes (injected) ──
     from routes_window import create_router as _window_router
     app.include_router(_window_router(state))
