@@ -677,7 +677,7 @@ const ftb=document.getElementById("ftb");var btb=document.getElementById("btb");
     el.appendChild(_cv);
     var _kcrgba=k.color;var _bgop2=k.bgOpacity!==undefined?k.bgOpacity:1.0;
     if(_bgop2<1.0&&_kcrgba&&_kcrgba.charAt(0)==='#'){_kcrgba=_hexToRgba(_kcrgba,_bgop2)}
-    _drawTextMacroBtn(_cv,_kcrgba,k.macroText||"",k.fontColor,k.fontSize,k.fontFamily);
+    _drawTextMacroBtn(_cv,_kcrgba,k.macroText||"",k.fontColor,k.fontSize,k.fontFamily,k.label);
     var _rh=document.createElement("div");_rh.className="rh";el.appendChild(_rh)
   }else{el.innerHTML='<span class="kl">'+hesc(k.label)+'</span>'+(w>1||h>1?'<span class="sz">'+w.toFixed(2)+'×'+h.toFixed(2)+'</span>':'')+((selKeys.size<=1?'<div class="rh"></div>':''))}if(k.action!=='dock'){var _bgop=k.bgOpacity!==undefined?k.bgOpacity:1.0;var _bgc=k.color||null;if(!_bgc){el.style.background='transparent'}else if(_bgc.charAt(0)==='#'){el.style.background=_hexToRgba(_bgc,_bgop)}else{el.style.background=_bgc}}    el.addEventListener("mousedown",e=>onKeyDown(e,k.id));
     el.addEventListener("click",e=>onKeyClick(e,k.id));
@@ -980,7 +980,7 @@ function _drawEditorDock(canvas, key) {
   }).catch(function(){ ctx.clearRect(0,0,w,h); ctx.fillText("Dock unavailable", w/2, h/2); });
 }
 // ── Editor Text Macro preview ──
-function _drawTextMacroBtn(canvas,bgColor,text,fontColor,fontSize,fontFamily){
+function _drawTextMacroBtn(canvas,bgColor,text,fontColor,fontSize,fontFamily,label){
   var ctx=canvas.getContext("2d"),w=canvas.width,h=canvas.height;
   ctx.clearRect(0,0,w,h);
   ctx.fillStyle=bgColor||"#1a2a1a";ctx.fillRect(0,0,w,h);
@@ -991,7 +991,7 @@ function _drawTextMacroBtn(canvas,bgColor,text,fontColor,fontSize,fontFamily){
   ctx.fillStyle="rgba(255,255,255,0.3)";
   ctx.font=hdrFs+"px -apple-system,sans-serif";
   ctx.textAlign="left";ctx.textBaseline="top";
-  ctx.fillText("TEXT MACRO",padX,topPad);
+  ctx.fillText(label||"TEXT MACRO",padX,topPad);
   var textTop=topPad+hdrFs+Math.max(2,h*0.05),textH=h-textTop-topPad;
   if(text&&text.length>0){
     var display=text;ctx.fillStyle=fc;ctx.font=fs+"px "+ff;
