@@ -996,7 +996,7 @@ function _drawTextMacroBtn(canvas,bgColor,text,fontColor,fontSize,fontFamily,lab
   if(text&&text.length>0){
     var display=text;ctx.fillStyle=fc;ctx.font=fs+"px "+ff;
     ctx.textAlign="left";ctx.textBaseline="top";
-    var maxW=w-padX*2,lineH=fs*1.35,maxLines=Math.max(0,Math.floor(textH/lineH));
+    var maxW=w-padX*2,lineH=fs*1.35,maxLines=textH>=lineH?Math.floor(textH/lineH):(textH>=fs?1:0);
     var lines=[];
     if(display.indexOf("\n")>=0){
       var raw=display.split("\n");
