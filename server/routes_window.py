@@ -8,34 +8,12 @@ from fastapi import APIRouter, HTTPException, Request
 
 from osa_run import osa
 
-# ── Window Arrange (native macOS tiling via AX frame) ──
+# ── Window Arrange (native macOS tiling via AX menu press) ──
 # Synthetic key events can't trigger WindowServer system shortcuts on
 # macOS 26 (verified 2026-08-15), and osascript is a poison pill — so
-# tiling goes through window_tile.py (AXPosition/AXSize).
-_WIN_MENU = "窗口"
-_FS_SUB = "全屏幕平铺"        # Full-Screen Tile 子菜单
-# ponytail: fs-left/fs-right still use the osascript System Events path
-# (no shortcut, and AX has no "full-screen tile" concept); upgrade when a
-# native path exists. Only triggered by the win-shortcuts widget, which is
-# not present in the current profile.
-_ARRANGE_MAP = {
-    "fs-left":  (_FS_SUB, "屏幕左侧"),
-    "fs-right": (_FS_SUB, "屏幕右侧"),
-}
-
-
-def _menu_ref(submenu, item):
-    base = f'menu 1 of menu bar item "{_WIN_MENU}" of menu bar 1'
-    if submenu:
-        return f'menu item "{item}" of menu 1 of menu item "{submenu}" of {base}'
-    return f'menu item "{item}" of {base}'
-
-
-def _run_osa(lines):
-    r = osa("\n".join(lines))
-    if r.returncode != 0:
-        return False, (r.stderr or "").strip()[:200]
-    return True, r.stdout.strip()
+# tiling goes through window_tile.py, which presses the Window menu's
+# tile items via AX (same native path the old System Events click used,
+# with the WindowServer animation).
 
 
 def create_router(state):
@@ -177,32 +155,107 @@ def create_router(state):
         press_key("f11")
         return {"status": "ok"}
 
+    # ── TEMPORARY DEBUG (remove after menu-title verification) ──
+
+    @router.get("/api/system/ax-menu-dump")
+    def ax_menu_dump():
+        import AppKit
+        from ax_bridge import _cf, _cfstr, _get_attr, _as, _pystr
+        a = AppKit.NSWorkspace.sharedWorkspace().frontmostApplication()
+        pid = a.processIdentifier()
+        name = a.localizedName() or "?"
+        app_elem = _as.AXUIElementCreateApplication(pid)
+
+        def children(el):
+            ch = _get_attr(el, "AXChildren")
+            out = []
+            if ch:
+                n = _cf.CFArrayGetCount(ch)
+                for j in range(n):
+                    out.append(_cf.CFArrayGetValueAtIndex(ch, j))
+            return out
+
+        def walk(el, depth):
+            # Submenu contents are lazily populated — AXShowMenu each menu
+            # item (no-op error on leaves) then re-read to force them open.
+            items = []
+            for c in children(el):
+                t = _pystr(_get_attr(c, "AXTitle"))
+                r = _pystr(_get_attr(c, "AXRole"))
+                if r == "AXMenuItem" and depth < 1:
+                    _as.AXUIElementPerformAction(c, _cfstr("AXShowMenu"))
+                sub = []
+                for cc in children(c):
+                    if _pystr(_get_attr(cc, "AXRole")) == "AXMenu":
+                        sub = walk(cc, depth + 1)
+                items.append({"title": t, "role": r, "children": sub})
+            return items
+
+        bar = _get_attr(app_elem, "AXMenuBar")
+        if not bar:
+            return {"app": name, "pid": pid, "error": "no AXMenuBar"}
+        return {"app": name, "pid": pid, "menus": walk(bar, 0)}
+
+    @router.get("/api/system/ax-press")
+    def ax_press(title: str = ""):
+        """TEMPORARY DEBUG: press the first menu item whose title contains
+        `title` (walking the frontmost app's menu bar, opening submenus)."""
+        import AppKit
+        from ax_bridge import _cf, _cfstr, _get_attr, _as, _pystr
+        a = AppKit.NSWorkspace.sharedWorkspace().frontmostApplication()
+        pid = a.processIdentifier()
+        app_elem = _as.AXUIElementCreateApplication(pid)
+
+        def children(el):
+            ch = _get_attr(el, "AXChildren")
+            out = []
+            if ch:
+                n = _cf.CFArrayGetCount(ch)
+                for j in range(n):
+                    out.append(_cf.CFArrayGetValueAtIndex(ch, j))
+            return out
+
+        def find_and_press(el, depth):
+            for c in children(el):
+                t = _pystr(_get_attr(c, "AXTitle"))
+                if _pystr(_get_attr(c, "AXRole")) == "AXMenuItem" and depth < 2:
+                    _as.AXUIElementPerformAction(c, _cfstr("AXShowMenu"))
+                if t and title in t:
+                    err = _as.AXUIElementPerformAction(c, _cfstr("AXPress"))
+                    return {"pressed": t, "err": err}
+                r = find_and_press(c, depth + 1)
+                if r:
+                    return r
+            return None
+
+        bar = _get_attr(app_elem, "AXMenuBar")
+        if not bar:
+            return {"error": "no AXMenuBar"}
+        r = find_and_press(bar, 0)
+        return r or {"pressed": None, "error": "not found"}
+
+    @router.get("/api/system/ax-set-frame")
+    def ax_set_frame(x: float = 0, y: float = 0, w: float = 0, h: float = 0):
+        """TEMPORARY DEBUG: set the focused window's AXPosition/AXSize."""
+        from window_tile import (_focused_window, _set_attr,
+                                 _make_point, _make_size)
+        win = _focused_window()
+        if not win:
+            return {"error": "no focused window"}
+        ok1, e1 = _set_attr(win, "AXPosition", _make_point(x, y))
+        ok2, e2 = _set_attr(win, "AXSize", _make_size(w, h))
+        return {"position_ok": ok1, "size_ok": ok2, "errs": [e1, e2]}
+
     # ── Window Arrange (native macOS tiling via AX frame) ──
 
     @router.post("/api/system/window/arrange")
     async def sys_arrange(body: dict):
         action = body.get("action", "")
-        if action in ("left", "right", "top", "bottom", "fill", "restore"):
-            from window_tile import apply as tile_apply
-            ok, err = tile_apply(action)
-            if ok:
-                return {"success": True, "action": action}
-            return {"success": False, "action": action, "error": err}
-        # ponytail: osascript System Events menu click for full-screen tile;
-        # upgrade to a native path when one exists.
-        if action in _ARRANGE_MAP:
-            submenu, item = _ARRANGE_MAP[action]
-            lines = [
-                'tell application "System Events"',
-                'tell (first process whose frontmost is true)',
-                f'click {_menu_ref(submenu, item)}',
-                'end tell',
-                'end tell',
-            ]
-            ok, out = _run_osa(lines)
-            return ({"success": ok, "action": action, "result": out} if ok
-                    else {"success": False, "error": out})
-        return {"success": False, "error": f"unknown action: {action}"}
+        from window_tile import apply as tile_apply
+        ok, err = tile_apply(action)
+        if ok:
+            return {"success": True, "action": action}
+        return {"success": False, "action": action, "error": err}
 
     # ── Window Tile ──
 

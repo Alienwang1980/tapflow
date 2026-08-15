@@ -1,12 +1,15 @@
 """Native window tiling via AX frame manipulation — no osascript, no shortcuts.
 
-Replaces the old System Events menu-click arrange path. Two hard findings
+Replaces the old System Events menu-click arrange path. Hard findings
 (2026-08-15, macOS 26): synthetic keyboard events cannot trigger
 WindowServer system shortcuts (tiling ⌃⌥←→↑↓, app switcher — only
 app-level shortcuts like cmd+s respond), and osascript is a poison pill
-(?E zombies, SIGKILL-immune). So tiling sets the focused window's
-AXPosition/AXSize directly. Requires Accessibility permission — Tapflow
-holds it (verified: kTCCServiceAccessibility in system TCC.db).
+(?E zombies, SIGKILL-immune). So left/right/fill press the app's own
+Window-menu tile item via AX — the native path the old menu click used,
+with the WindowServer animation — and fall back to direct
+AXPosition/AXSize when no menu item matches. Requires Accessibility
+permission — Tapflow holds it (verified: kTCCServiceAccessibility in
+system TCC.db).
 """
 
 import ctypes
@@ -14,7 +17,7 @@ import struct
 
 import AppKit
 
-from ax_bridge import _cf, _cfstr, _get_attr, _as
+from ax_bridge import _cf, _cfstr, _get_attr, _as, _pystr
 
 # AXValueType (verified against the local macOS 26 SDK's AXValue.h)
 _kAXValueTypeCGPoint = 1
@@ -54,6 +57,97 @@ def _set_attr(elem, name, cf_val):
     """Returns (ok, ax_error_code)."""
     err = _as.AXUIElementSetAttributeValue(elem, _cfstr(name), cf_val)
     return err == 0, err
+
+
+# ── Native menu path (system animation) ──
+# Pressing the Window menu's tile item runs the app's own tiling action —
+# the WindowServer path with the native animation. This is exactly what the
+# old System Events menu click did (窗口 → 移动与调整大小 → 左侧/右侧/...),
+# just without osascript. Chinese titles verified against the live menu bar
+# (2026-08-15, macOS 26, via a temporary /api/system/ax-menu-dump endpoint).
+_WINDOW_MENU_NAMES = ("window", "窗口", "視窗")
+_MR_SUB = ("move & resize", "移动与调整大小", "移動與調整大小")
+_FS_SUB = ("full-screen tile", "全屏幕平铺", "全螢幕平鋪")
+# action -> (submenu keyword names or None for top-level, item keyword groups)
+_TILE_MENU_ITEMS = {
+    "left":     (_MR_SUB, (("左侧",), ("left",))),
+    "right":    (_MR_SUB, (("右侧",), ("right",))),
+    "top":      (_MR_SUB, (("顶部",), ("top",))),
+    "bottom":   (_MR_SUB, (("底部",), ("bottom",))),
+    "fill":     (None, (("填充",), ("fill",))),
+    "restore":  (_MR_SUB, (("恢复上一个大小",), ("restore",))),
+    "fs-left":  (_FS_SUB, (("屏幕左侧",), ("left",))),
+    "fs-right": (_FS_SUB, (("屏幕右侧",), ("right",))),
+}
+
+
+def _children_of(el):
+    """AXChildren of el as a list of AX elements."""
+    out = []
+    ch = _get_attr(el, "AXChildren")
+    if ch:
+        n = _cf.CFArrayGetCount(ch)
+        for i in range(n):
+            out.append(_cf.CFArrayGetValueAtIndex(ch, i))
+    return out
+
+
+def _window_menu(app_elem):
+    """The Window menu's AXMenu element, or None."""
+    bar = _get_attr(app_elem, "AXMenuBar")
+    if not bar:
+        return None
+    for mi in _children_of(bar):
+        t = _pystr(_get_attr(mi, "AXTitle")).strip().lower()
+        if any(nm in t for nm in _WINDOW_MENU_NAMES):
+            for sub in _children_of(mi):
+                if _pystr(_get_attr(sub, "AXRole")) == "AXMenu":
+                    return sub
+    return None
+
+
+def _open_submenu(menu_elem, submenu_names):
+    """Find the submenu item by name, AXShowMenu it (contents load lazily),
+    return its AXMenu element or None."""
+    for it in _children_of(menu_elem):
+        if _pystr(_get_attr(it, "AXRole")) != "AXMenuItem":
+            continue
+        t = _pystr(_get_attr(it, "AXTitle")).strip().lower()
+        if any(nm in t for nm in submenu_names):
+            _as.AXUIElementPerformAction(it, _cfstr("AXShowMenu"))
+            for sub in _children_of(it):
+                if _pystr(_get_attr(sub, "AXRole")) == "AXMenu":
+                    return sub
+    return None
+
+
+def _menu_press_tile(pid, action):
+    """Press the frontmost app's Window-menu tile item. True if pressed;
+    False means no matching item (caller falls back to frame setting)."""
+    menu = _window_menu(_as.AXUIElementCreateApplication(pid))
+    if not menu:
+        return False
+    submenu_names, item_groups = _TILE_MENU_ITEMS[action]
+    target = menu
+    if submenu_names:
+        target = _open_submenu(menu, submenu_names)
+        if not target:
+            return False
+    for it in _children_of(target):
+        t = _pystr(_get_attr(it, "AXTitle")).strip().lower()
+        if any(all(kw in t for kw in grp) for grp in item_groups):
+            return _as.AXUIElementPerformAction(it, _cfstr("AXPress")) == 0
+    return False
+
+
+def _capture_last(pid, win):
+    """Record the pre-tiling frame once per pid, for restore."""
+    if pid in _LAST:
+        return
+    pos = _read_value(_get_attr(win, "AXPosition"), _kAXValueTypeCGPoint)
+    size = _read_value(_get_attr(win, "AXSize"), _kAXValueTypeCGSize)
+    if pos and size:
+        _LAST[pid] = (pos[0], pos[1], size[0], size[1])
 
 
 def _visible_frame():
@@ -100,7 +194,7 @@ def _frontmost_pid():
 # pid -> (x, y, w, h) frame captured before the first tile, for restore
 _LAST = {}
 
-_ACTIONS = ("left", "right", "top", "bottom", "fill", "restore")
+_ACTIONS = ("left", "right", "top", "bottom", "fill", "restore", "fs-left", "fs-right")
 
 
 def apply(action):
@@ -110,6 +204,17 @@ def apply(action):
     win = _focused_window()
     if not win:
         return False, "no focused window (AX)"
+    pid = _frontmost_pid()
+    # Native path first: press the Window menu's tile item — the app tiles
+    # through WindowServer, so the system animation plays (what the old
+    # System Events menu click did). Fall back to frame setting below when
+    # no menu item matches. Full-screen tiles have no frame equivalent.
+    if action in _TILE_MENU_ITEMS:
+        _capture_last(pid, win)
+        if _menu_press_tile(pid, action):
+            return True, ""
+        if action in ("fs-left", "fs-right"):
+            return False, "no matching menu item (AX)"
     pos_v = _get_attr(win, "AXPosition")
     size_v = _get_attr(win, "AXSize")
     if not pos_v or not size_v:
@@ -119,7 +224,6 @@ def apply(action):
     if not pos or not size:
         return False, "failed to read window frame"
     vx, vy, vw, vh = _visible_frame()
-    pid = _frontmost_pid()
     if action == "restore":
         if pid not in _LAST:
             return False, "no previous frame to restore"
