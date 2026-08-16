@@ -457,6 +457,12 @@ try:
         def toggleLaunchAtLogin_(self, sender):
             _set_auto_launch(sender.state() == 1)
 
+        def toggleScrollEnabled_(self, sender):
+            _set_tp_cfg("scroll_enabled", sender.state() == 1)
+
+        def toggleRightClickEnabled_(self, sender):
+            _set_tp_cfg("right_click_enabled", sender.state() == 1)
+
         def controlTextDidChange_(self, note):
             # 端口输入变化 → 只有和当前端口不同时才点亮"保存并重启"
             _update_save_btn()
@@ -508,7 +514,7 @@ def open_settings_panel():
 
     W, ROW_H = 380, 30
     panel = AppKit.NSPanel.alloc().initWithContentRect_styleMask_backing_defer_(
-        NSMakeRect(0, 0, W, 316),
+        NSMakeRect(0, 0, W, 440),
         AppKit.NSWindowStyleMaskTitled | AppKit.NSWindowStyleMaskClosable,
         AppKit.NSBackingStoreBuffered, False)
     panel.setTitle_("Tapflow 设置")
@@ -543,7 +549,7 @@ def open_settings_panel():
         content.addSubview_(b)
         return b
 
-    y = 280
+    y = 400
     _label("权限", 20, y, 100, bold=True)
     y -= 20
     dim = AppKit.NSColor.secondaryLabelColor()
@@ -556,6 +562,29 @@ def open_settings_panel():
         ok = _label("✓ 已授权", W - 110, y + 2, 90, color=green)
         btn = _button("去授权", W - 110, y, 90, actions[key])
         _SETTINGS["rows"][key] = {"ok": ok, "btn": btn}
+
+    # ── 触控板(跟踪速度/滚动方向自动跟随系统,无选项) ──
+    from AppKit import NSButton, NSButtonTypeSwitch
+    y -= 42
+    _label("触控板", 20, y, 100, bold=True)
+    y -= 20
+    _label("跟踪速度与滚动方向自动跟随系统设置。", 20, y, W - 40, size=11, color=dim)
+    y -= ROW_H
+    chk_scroll = NSButton.alloc().initWithFrame_(NSMakeRect(28, y, 150, 22))
+    chk_scroll.setButtonType_(NSButtonTypeSwitch)
+    chk_scroll.setTitle_("启用滚动")
+    chk_scroll.setState_(1 if _tp_cfg_get("scroll_enabled", True) else 0)
+    chk_scroll.setTarget_(dele)
+    chk_scroll.setAction_("toggleScrollEnabled:")
+    content.addSubview_(chk_scroll)
+    y -= ROW_H
+    chk_right = NSButton.alloc().initWithFrame_(NSMakeRect(28, y, 150, 22))
+    chk_right.setButtonType_(NSButtonTypeSwitch)
+    chk_right.setTitle_("启用右键")
+    chk_right.setState_(1 if _tp_cfg_get("right_click_enabled", True) else 0)
+    chk_right.setTarget_(dele)
+    chk_right.setAction_("toggleRightClickEnabled:")
+    content.addSubview_(chk_right)
 
     y -= 42
     _label("端口", 20, y, 100, bold=True)
@@ -576,7 +605,6 @@ def open_settings_panel():
     _SETTINGS["err_label"] = err
 
     # 开机自动启动(默认开;取消 = launchctl disable,下次开机不加载,当前进程不受影响)
-    from AppKit import NSButton, NSButtonTypeSwitch
     chk = NSButton.alloc().initWithFrame_(NSMakeRect(28, 16, W - 56, 22))
     chk.setButtonType_(NSButtonTypeSwitch)
     chk.setTitle_("开机自动启动")
@@ -640,6 +668,36 @@ def _set_auto_show_dashboard(enabled):
         logger.info("auto_show_dashboard set to %s", bool(enabled))
     except Exception as e:
         logger.warning("写入 auto_show_dashboard 失败: %s", e)
+
+def _tp_cfg_get(key: str, default=True) -> bool:
+    """读触控板开关(tp_scroll_enabled / tp_right_click_enabled),失败用默认。"""
+    try:
+        if os.path.exists(_config_path()):
+            with open(_config_path(), "r", encoding="utf-8") as f:
+                return bool(_json_cfg.loads(f.read()).get("tp_" + key, default))
+    except Exception as e:
+        logger.warning("读取 tp_%s 失败: %s", key, e)
+    return default
+
+def _set_tp_cfg(key: str, enabled: bool) -> None:
+    """触控板开关: 更新 main.TP_CFG(内存,立即生效) + 持久化 config.json。"""
+    try:
+        import main as _m
+        _m.TP_CFG[key] = bool(enabled)
+    except Exception as e:
+        logger.warning("更新内存 TP_CFG 失败: %s", e)
+    try:
+        cp = _config_path()
+        cfg = {}
+        if os.path.exists(cp):
+            with open(cp, "r", encoding="utf-8") as f:
+                cfg = _json_cfg.loads(f.read())
+        cfg["tp_" + key] = bool(enabled)
+        with open(cp, "w", encoding="utf-8") as f:
+            _json_cfg.dump(cfg, f, ensure_ascii=False, indent=2)
+        logger.info("tp_%s set to %s", key, bool(enabled))
+    except Exception as e:
+        logger.warning("写入 tp_%s 失败: %s", key, e)
 
 # ── Dashboard window (CleanMyMac‑style graphical main interface) ──
 

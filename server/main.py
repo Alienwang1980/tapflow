@@ -38,6 +38,47 @@ def _get_resource_dir() -> str:
 RESOURCE_DIR = _get_resource_dir()
 CLIENT_DIR = os.path.join(RESOURCE_DIR, "client")
 UPLOAD_DIR = os.path.join(os.path.expanduser("~/Library/Application Support/Tapflow"), "uploads")
+CONFIG_PATH = os.path.join(os.path.expanduser("~/Library/Application Support/Tapflow"), "config.json")
+
+# ── 触控板配置(设置面板 toggle 更新内存 + 持久化 config.json;路由只读内存值) ──
+TP_CFG = {"scroll_enabled": True, "right_click_enabled": True}
+
+def load_tp_cfg():
+    """从 config.json 读触控板开关进 TP_CFG;失败保持默认(全开)。"""
+    try:
+        if os.path.exists(CONFIG_PATH):
+            with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+            TP_CFG["scroll_enabled"] = bool(cfg.get("tp_scroll_enabled", True))
+            TP_CFG["right_click_enabled"] = bool(cfg.get("tp_right_click_enabled", True))
+    except Exception:
+        logger.exception("读取触控板配置失败,使用默认值(全开)")
+
+def _trackpad_scaling() -> float:
+    """系统触控板跟踪速度(com.apple.trackpad.scaling, 0.0–3.0),实时读。
+    键不存在(用户从未动过滑条)→ 1.0 保持基线手感。"""
+    try:
+        from CoreFoundation import CFPreferencesCopyAppValue, kCFPreferencesAnyApplication
+        v = CFPreferencesCopyAppValue("com.apple.trackpad.scaling", kCFPreferencesAnyApplication)
+        if v is None:
+            return 1.0
+        f = float(v)
+        if f != f or abs(f) == float("inf"):
+            return 1.0
+        return max(0.25, min(3.0, f))
+    except Exception:
+        return 1.0
+
+def _natural_scroll() -> bool:
+    """系统"自然滚动"(com.apple.swipescrolldirection),实时读;键不存在 → False(传统)。"""
+    try:
+        from CoreFoundation import CFPreferencesCopyAppValue, kCFPreferencesAnyApplication
+        v = CFPreferencesCopyAppValue("com.apple.swipescrolldirection", kCFPreferencesAnyApplication)
+        return bool(v)
+    except Exception:
+        return False
+
+load_tp_cfg()
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR, check_dir=False), name="uploads")
 app.mount("/static", StaticFiles(directory=CLIENT_DIR, check_dir=False), name="static")
 
@@ -482,17 +523,25 @@ async def ws_endpoint(websocket: WebSocket):
                     dx = _safe_float(data.get("dx", 0))
                     dy = _safe_float(data.get("dy", 0))
                     is_drag = data.get("drag", False)
-                    move_mouse(dx, dy, drag=is_drag)
+                    s = _trackpad_scaling()  # 跟随系统触控板跟踪速度
+                    move_mouse(dx * s, dy * s, drag=is_drag)
                 elif action == "scroll":
-                    dx = _safe_float(data.get("dx", 0), limit=500.0)
-                    dy = _safe_float(data.get("dy", 0), limit=500.0)
-                    scroll_mouse(dx, dy)
+                    if TP_CFG["scroll_enabled"]:
+                        dx = _safe_float(data.get("dx", 0), limit=500.0)
+                        dy = _safe_float(data.get("dy", 0), limit=500.0)
+                        if _natural_scroll():  # 系统"自然滚动"开启时翻转方向
+                            dy = -dy
+                        scroll_mouse(dx, dy)
                 elif action == "click":
-                    click_mouse(_safe_btn(data.get("button", "left")))
+                    btn = _safe_btn(data.get("button", "left"))
+                    if btn != "right" or TP_CFG["right_click_enabled"]:
+                        click_mouse(btn)
                 elif action == "mousedown":
-                    mouse_down(_safe_btn(data.get("button", "left")))
+                    btn = _safe_btn(data.get("button", "left"))
+                    if btn != "right" or TP_CFG["right_click_enabled"]:
+                        mouse_down(btn)
                 elif action == "mouseup":
-                    mouse_up(_safe_btn(data.get("button", "left")))
+                    mouse_up(_safe_btn(data.get("button", "left")))  # 释放永远放行,防按键卡住
                 await manager.send_to(client_id, {"type": "ack", "action": "touchpad"})
             elif msg_type == "key":
                 keys = data.get("keys", [])
