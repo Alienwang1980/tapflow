@@ -103,23 +103,30 @@ setup(
 # Gatekeeper's soft block ("无法验证开发者" → 用户点"仍要打开"), no notarization.
 # NOTE: check=False used to mask signing failures ("✓" printed while keychain
 # was locked) — every step now fails the build loudly.
+import os
 import subprocess as _sp
+# Signing mode: devcert = development builds signed with the Developer ID cert —
+#   TCC grants survive rebuilds (requirement anchors on identifier + cert, not
+#   cdhash). adhoc = release builds — Gatekeeper soft-block ("无法验证开发者" →
+#   用户点"仍要打开"), no notarization. Release: SIGN_MODE=adhoc python3 setup.py py2app
+SIGN_MODE = os.environ.get("SIGN_MODE", "devcert")
+SIGN_IDENTITY = "Developer ID Application: wang xinlei (7F246MKBN2)" if SIGN_MODE == "devcert" else "-"
 ENTITLEMENTS = Path("entitlements.plist")
 SIGN_COMMON = ["--force", "--options", "runtime", "--entitlements", str(ENTITLEMENTS)]
 # Order matters: --deep overwrites nested identifiers with the bundle identity,
 # so python must be signed with the app identifier LAST, then the outer bundle
 # re-sealed WITHOUT --deep (it just re-hashes the already-signed nested code).
-_r1 = _sp.run(["codesign"] + SIGN_COMMON + ["--deep", "--sign", "-", str(Path("dist/Tapflow.app"))])
+_r1 = _sp.run(["codesign"] + SIGN_COMMON + ["--deep", "--sign", SIGN_IDENTITY, str(Path("dist/Tapflow.app"))])
 if _r1.returncode != 0:
     raise SystemExit(f"✗ re-sign app bundle failed (exit {_r1.returncode})")
 python_bin = Path("dist/Tapflow.app/Contents/MacOS/python")
 if python_bin.exists():
-    _r2 = _sp.run(["codesign"] + SIGN_COMMON + ["--sign", "-", "--identifier", "com.tapflow.app", str(python_bin)])
+    _r2 = _sp.run(["codesign"] + SIGN_COMMON + ["--sign", SIGN_IDENTITY, "--identifier", "com.tapflow.app", str(python_bin)])
     if _r2.returncode != 0:
         raise SystemExit(f"✗ re-sign bundled python failed (exit {_r2.returncode})")
-    _r3 = _sp.run(["codesign"] + SIGN_COMMON + ["--sign", "-", str(Path("dist/Tapflow.app"))])
+    _r3 = _sp.run(["codesign"] + SIGN_COMMON + ["--sign", SIGN_IDENTITY, str(Path("dist/Tapflow.app"))])
     if _r3.returncode != 0:
         raise SystemExit(f"✗ re-seal app bundle failed (exit {_r3.returncode})")
-    print("✓ Re-signed bundled python (adhoc + identifier com.tapflow.app) + re-sealed bundle")
+    print(f"✓ Re-signed bundled python ({SIGN_MODE} + identifier com.tapflow.app) + re-sealed bundle")
 else:
-    print("✓ Re-signed app bundle (adhoc, deep; no python binary found)")
+    print(f"✓ Re-signed app bundle ({SIGN_MODE}, deep; no python binary found)")

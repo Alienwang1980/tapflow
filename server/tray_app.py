@@ -454,6 +454,9 @@ try:
         def savePort_(self, sender):
             _save_port_and_restart()
 
+        def toggleLaunchAtLogin_(self, sender):
+            _set_auto_launch(sender.state() == 1)
+
         def controlTextDidChange_(self, note):
             # 端口输入变化 → 只有和当前端口不同时才点亮"保存并重启"
             _update_save_btn()
@@ -509,7 +512,6 @@ def open_settings_panel():
         AppKit.NSWindowStyleMaskTitled | AppKit.NSWindowStyleMaskClosable,
         AppKit.NSBackingStoreBuffered, False)
     panel.setTitle_("Tapflow 设置")
-    panel.setLevel_(AppKit.NSFloatingWindowLevel)
     panel.setReleasedWhenClosed_(False)
     # NSPanel 默认 app 失活即隐藏 —— 点"去授权"跳系统设置时窗口会消失,必须关掉
     panel.setHidesOnDeactivate_(False)
@@ -572,6 +574,16 @@ def open_settings_panel():
     err = _label("", 28, y, W - 48, size=11, color=AppKit.NSColor.systemRedColor())
     err.setHidden_(True)
     _SETTINGS["err_label"] = err
+
+    # 开机自动启动(默认开;取消 = launchctl disable,下次开机不加载,当前进程不受影响)
+    from AppKit import NSButton, NSButtonTypeSwitch
+    chk = NSButton.alloc().initWithFrame_(NSMakeRect(28, 16, W - 56, 22))
+    chk.setButtonType_(NSButtonTypeSwitch)
+    chk.setTitle_("开机自动启动")
+    chk.setState_(1 if _auto_launch_enabled() else 0)
+    chk.setTarget_(dele)
+    chk.setAction_("toggleLaunchAtLogin:")
+    content.addSubview_(chk)
 
     _refresh_settings_rows()
     _SETTINGS["timer"] = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
@@ -805,7 +817,6 @@ def open_about():
         AppKit.NSBackingStoreBuffered, False,
     )
     panel.setTitle_("关于 Tapflow")
-    panel.setLevel_(AppKit.NSFloatingWindowLevel)
     panel.setReleasedWhenClosed_(False)
 
     dele = _StpAboutDelegate.alloc().init()
@@ -924,6 +935,65 @@ def _port_in_use(port: int) -> bool:
         s.close()
 
 
+def _auto_launch_enabled() -> bool:
+    """开机自动启动开关(默认开)。存 config json 的 auto_launch 键。"""
+    try:
+        if os.path.exists(_config_path()):
+            with open(_config_path(), "r", encoding="utf-8") as f:
+                return bool(_json_cfg.loads(f.read()).get("auto_launch", True))
+    except Exception as e:
+        logger.warning("读取 auto_launch 失败: %s", e)
+    return True
+
+
+def _agent_plist_data() -> bytes:
+    """LaunchAgent plist 内容(RunAtLoad 跟随 auto_launch 配置)。"""
+    import plistlib
+    from Foundation import NSBundle
+    exe = str(NSBundle.mainBundle().executablePath())
+    agent = {
+        "Label": AGENT_LABEL,
+        "Program": exe,
+        "RunAtLoad": _auto_launch_enabled(),
+        "KeepAlive": {"SuccessfulExit": False},
+        "ThrottleInterval": 10,
+        "StandardOutPath": "/tmp/stp_agent.log",
+        "StandardErrPath": "/tmp/stp_agent.log",
+        "ProcessType": "Interactive",
+    }
+    return plistlib.dumps(agent)
+
+
+def _set_auto_launch(enabled: bool) -> str:
+    """切换开机自启: 写 config + 重写 agent plist(RunAtLoad) + launchctl enable/disable。
+    用 enable/disable 而非 bootout:bootout 会杀掉正在运行的自己,
+    disable 只阻止下次开机加载,当前进程不受影响。"""
+    try:
+        cp = _config_path()
+        cfg = {}
+        if os.path.exists(cp):
+            with open(cp, "r", encoding="utf-8") as f:
+                cfg = _json_cfg.loads(f.read())
+        cfg["auto_launch"] = bool(enabled)
+        with open(cp, "w", encoding="utf-8") as f:
+            _json_cfg.dump(cfg, f, indent=2)
+    except Exception as e:
+        return f"error: config write failed: {e}"
+    if _is_frozen():
+        try:
+            with open(AGENT_PLIST_PATH, "wb") as f:
+                f.write(_agent_plist_data())
+        except Exception as e:
+            return f"error: plist write failed: {e}"
+        import subprocess as _sp10
+        uid = os.getuid()
+        verb = "enable" if enabled else "disable"
+        _sp10.run(["launchctl", verb, f"gui/{uid}/{AGENT_LABEL}"],
+                  capture_output=True, timeout=10)
+    logger.info("auto_launch set to %s", bool(enabled))
+    return "ok"
+
+
 def register_launch_agent(apply_now: bool = False) -> str:
     """Self-install a classic LaunchAgent plist pointing at this bundle's executable.
     开机自启 + 崩溃自动重启(KeepAlive SuccessfulExit=false),无 cron 无 FDA。
@@ -935,20 +1005,10 @@ def register_launch_agent(apply_now: bool = False) -> str:
     if not _is_frozen():
         return "skipped (source mode)"
     try:
-        import plistlib, subprocess as _sp9
+        import subprocess as _sp9
         from Foundation import NSBundle
         exe = str(NSBundle.mainBundle().executablePath())
-        agent = {
-            "Label": AGENT_LABEL,
-            "Program": exe,
-            "RunAtLoad": True,
-            "KeepAlive": {"SuccessfulExit": False},
-            "ThrottleInterval": 10,
-            "StandardOutPath": "/tmp/stp_agent.log",
-            "StandardErrPath": "/tmp/stp_agent.log",
-            "ProcessType": "Interactive",
-        }
-        new_data = plistlib.dumps(agent)
+        new_data = _agent_plist_data()
         try:
             with open(AGENT_PLIST_PATH, "rb") as f:
                 unchanged = f.read() == new_data
