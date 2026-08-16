@@ -457,6 +457,15 @@ try:
         def toggleLaunchAtLogin_(self, sender):
             _set_auto_launch(sender.state() == 1)
 
+        def fontChanged_(self, sender):
+            title = sender.titleOfSelectedItem()
+            name = dict((t, n) for t, n in FONT_OPTIONS).get(title, "")
+            try:
+                import main as _mm
+                _mm.set_font_family(name)
+            except Exception:
+                pass
+
         def controlTextDidChange_(self, note):
             # 端口输入变化 → 只有和当前端口不同时才点亮"保存并重启"
             _update_save_btn()
@@ -495,6 +504,35 @@ except Exception:  # 源码模式无 AppKit 时不致命
     _StpDashboardDelegate = None
 
 
+# 统一字体下拉选项(显示名, 存储名)。全部经 AppKit 枚举本机验证存在(2026-08-16)。
+FONT_OPTIONS = [
+    ("系统默认", ""),
+    ("PingFang SC", "PingFang SC"),
+    ("Helvetica Neue", "Helvetica Neue"),
+    ("Avenir", "Avenir"),
+    ("Menlo", "Menlo"),
+    ("Monaco", "Monaco"),
+    ("Courier New", "Courier New"),
+    ("Times New Roman", "Times New Roman"),
+    ("Georgia", "Georgia"),
+    ("Kaiti SC", "Kaiti SC"),
+    ("Songti SC", "Songti SC"),
+    ("STKaiti", "STKaiti"),
+    ("STSong", "STSong"),
+    ("American Typewriter", "American Typewriter"),
+    ("Futura", "Futura"),
+    ("Optima", "Optima"),
+    ("Palatino", "Palatino"),
+    ("Chalkboard SE", "Chalkboard SE"),
+    ("Marker Felt", "Marker Felt"),
+    ("Comic Sans MS", "Comic Sans MS"),
+    ("Copperplate", "Copperplate"),
+    ("Verdana", "Verdana"),
+    ("Trebuchet MS", "Trebuchet MS"),
+    ("Impact", "Impact"),
+]
+
+
 def open_settings_panel():
     """⚙️ 设置:权限状态(2s 自动刷新)+ 端口修改(保存后 exit(1) 由 launchd 拉起)。"""
     import AppKit
@@ -508,7 +546,7 @@ def open_settings_panel():
 
     W, ROW_H = 380, 30
     panel = AppKit.NSPanel.alloc().initWithContentRect_styleMask_backing_defer_(
-        NSMakeRect(0, 0, W, 316),
+        NSMakeRect(0, 0, W, 396),
         AppKit.NSWindowStyleMaskTitled | AppKit.NSWindowStyleMaskClosable,
         AppKit.NSBackingStoreBuffered, False)
     panel.setTitle_("Tapflow 设置")
@@ -543,7 +581,19 @@ def open_settings_panel():
         content.addSubview_(b)
         return b
 
-    y = 280
+    y = 356
+    _label("统一字体", 20, y, 100, bold=True)
+    y -= 34
+    from AppKit import NSPopUpButton
+    popup = NSPopUpButton.alloc().initWithFrame_(NSMakeRect(28, y, W - 56, 24))
+    popup.addItemsWithTitles_([t for t, _ in FONT_OPTIONS])
+    cur_title = dict((n, t) for t, n in FONT_OPTIONS).get(_main_mod.FONT_FAMILY, "系统默认")
+    popup.selectItemWithTitle_(cur_title)
+    popup.setTarget_(dele)
+    popup.setAction_("fontChanged:")
+    content.addSubview_(popup)
+
+    y = 292
     _label("权限", 20, y, 100, bold=True)
     y -= 20
     dim = AppKit.NSColor.secondaryLabelColor()

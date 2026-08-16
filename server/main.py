@@ -62,6 +62,51 @@ def _natural_scroll() -> bool:
         return bool(v)
     except Exception:
         return False
+
+# ── 全局字体(统一字体,2026-08-16)──
+# "" = 系统默认(-apple-system)。存 config.json 的 fontFamily 键;tray_app 设置面板修改后
+# 调 set_font_family() → 持久化 + WS 广播,面板/编辑器实时生效,无需重启。
+FONT_FAMILY = ""
+_server_loop = None  # 服务线程的 event loop,由 startup 钩子捕获
+
+def _cfg_path() -> str:
+    return os.path.join(os.path.expanduser("~/Library/Application Support/Tapflow"), "config.json")
+
+def load_font_family() -> None:
+    """启动时从 config.json 读 fontFamily(失败/缺省 → 系统默认)。"""
+    global FONT_FAMILY
+    try:
+        with open(_cfg_path(), "r", encoding="utf-8") as f:
+            cfg = json.load(f)
+        FONT_FAMILY = str(cfg.get("fontFamily") or "")
+    except Exception:
+        FONT_FAMILY = ""
+
+def set_font_family(name: str) -> None:
+    """tray_app 设置面板调用:内存 + config.json 持久化 + WS 广播(任意线程安全)。"""
+    global FONT_FAMILY
+    FONT_FAMILY = str(name or "")
+    try:
+        cfg = {}
+        try:
+            with open(_cfg_path(), "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+        except Exception:
+            pass
+        cfg["fontFamily"] = FONT_FAMILY
+        with open(_cfg_path(), "w", encoding="utf-8") as f:
+            json.dump(cfg, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        logger.warning("写 config.json fontFamily 失败: %s", e)
+    if _server_loop is not None and _server_loop.is_running():
+        try:
+            asyncio.run_coroutine_threadsafe(
+                manager.broadcast({"type": "settings", "fontFamily": FONT_FAMILY}),
+                _server_loop)
+        except Exception:
+            pass
+
+load_font_family()
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR, check_dir=False), name="uploads")
 app.mount("/static", StaticFiles(directory=CLIENT_DIR, check_dir=False), name="static")
 
@@ -313,6 +358,12 @@ async def health():
     }
 
 
+@app.get("/api/config")
+async def api_config():
+    """面板/编辑器启动时拉取全局配置(统一字体)。"""
+    return {"fontFamily": FONT_FAMILY}
+
+
 # ── Profile REST API ──
 
 
@@ -560,6 +611,8 @@ async def ws_endpoint(websocket: WebSocket):
 
 @app.on_event("startup")
 async def startup():
+    global _server_loop
+    _server_loop = asyncio.get_running_loop()
     start_mdns()
     start_window_watcher()
 
