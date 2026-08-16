@@ -95,26 +95,31 @@ setup(
     setup_requires=["py2app"],
 )
 
-# Re-sign bundled python binary with app identifier AND persistent code sign identity.
-# py2app includes a standalone python whose Info.plist has identifier
-# org.python.python. TCC attributes screen recording requests to this
-# identifier, not the app bundle → the app never appears in the Screen
-# Recording privacy pane and permission prompts fail silently.
-# Re-signing with --identifier com.tapflow.app fixes this.
-# Adhoc signing (--sign -) changes on every build, breaking TCC persistence.
-# Apple Developer identity is persistent → TCC permissions survive rebuilds.
+# Re-sign bundled python binary with the app's identifier. py2app's standalone
+# python keeps a generated identifier (org.python.python-style) → TCC attributes
+# screen recording requests to it instead of the app, so the permission prompt
+# fails silently ("去授权" button appears dead). --identifier com.tapflow.app fixes this.
+# Ad-hoc identity (--sign -): no keychain needed; distribution relies on
+# Gatekeeper's soft block ("无法验证开发者" → 用户点"仍要打开"), no notarization.
+# NOTE: check=False used to mask signing failures ("✓" printed while keychain
+# was locked) — every step now fails the build loudly.
 import subprocess as _sp
-# Developer ID (distribution) identity + hardened runtime + notarization → app
-# passes Gatekeeper on any Mac. Apple Development certs are always spctl-rejected.
-DEV_CERT = "Developer ID Application: wang xinlei (7F246MKBN2)"
 ENTITLEMENTS = Path("entitlements.plist")
 SIGN_COMMON = ["--force", "--options", "runtime", "--entitlements", str(ENTITLEMENTS)]
+# Order matters: --deep overwrites nested identifiers with the bundle identity,
+# so python must be signed with the app identifier LAST, then the outer bundle
+# re-sealed WITHOUT --deep (it just re-hashes the already-signed nested code).
+_r1 = _sp.run(["codesign"] + SIGN_COMMON + ["--deep", "--sign", "-", str(Path("dist/Tapflow.app"))])
+if _r1.returncode != 0:
+    raise SystemExit(f"✗ re-sign app bundle failed (exit {_r1.returncode})")
 python_bin = Path("dist/Tapflow.app/Contents/MacOS/python")
 if python_bin.exists():
-    _sp.run(["codesign"] + SIGN_COMMON + ["--sign", DEV_CERT, "--identifier", "com.tapflow.app", str(python_bin)], check=False)
-    print("✓ Re-signed bundled python with Developer ID identity (hardened runtime)")
-# Also re-sign main executable with same identity
-main_bin = Path("dist/Tapflow.app/Contents/MacOS/Tapflow")
-if main_bin.exists():
-    _sp.run(["codesign"] + SIGN_COMMON + ["--deep", "--sign", DEV_CERT, str(Path("dist/Tapflow.app"))], check=False)
-    print("✓ Re-signed app bundle with Developer ID identity (hardened runtime)")
+    _r2 = _sp.run(["codesign"] + SIGN_COMMON + ["--sign", "-", "--identifier", "com.tapflow.app", str(python_bin)])
+    if _r2.returncode != 0:
+        raise SystemExit(f"✗ re-sign bundled python failed (exit {_r2.returncode})")
+    _r3 = _sp.run(["codesign"] + SIGN_COMMON + ["--sign", "-", str(Path("dist/Tapflow.app"))])
+    if _r3.returncode != 0:
+        raise SystemExit(f"✗ re-seal app bundle failed (exit {_r3.returncode})")
+    print("✓ Re-signed bundled python (adhoc + identifier com.tapflow.app) + re-sealed bundle")
+else:
+    print("✓ Re-signed app bundle (adhoc, deep; no python binary found)")

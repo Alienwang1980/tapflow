@@ -1048,12 +1048,11 @@ def main():
     except Exception:
         pass
 
-    # Startup check: if accessibility not granted, open System Settings directly (no prompt dialog)
+    # Startup check: if accessibility not granted, open Tapflow's own settings panel
     try:
         if not check_accessibility():
-            logger.info("Accessibility not granted — opening System Settings")
-            import subprocess as _sp6
-            _sp6.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"])
+            logger.info("Accessibility not granted — opening Tapflow settings panel")
+            open_settings_panel()
         else:
             logger.info("Accessibility permission: ✅")
     except Exception: pass
