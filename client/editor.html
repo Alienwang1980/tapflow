@@ -601,23 +601,7 @@ const ftb=document.getElementById("ftb");var btb=document.getElementById("btb");
     var _cv=document.createElement("canvas");_cv.width=kw;_cv.height=kh;_cv.style.borderRadius=br;
     el.appendChild(_cv);
     _drawEditorDock(_cv, k);
-    var _rh=document.createElement("div");_rh.className="rh";el.appendChild(_rh)}else if(k.action==="app-menu"){
-    var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius=br;
-    var _c=_cv.getContext("2d"),_w=_cv.width,_h=_cv.height;
-    _c.fillStyle="rgba(0,0,0,0.3)";_c.fillRect(0,0,_w,_h);
-    var _fs=Math.max(7,_h*0.12);_c.font=_fs+"px "+_gf();_c.textAlign="left";
-    _c.fillStyle="#f59e0b";_c.fillText("File",8,_fs+2);
-    _c.fillStyle="#ccc";_c.fillText("New Window",14,_fs*2.5+2);_c.fillText("Open...",14,_fs*3.5+2);
-    _c.fillStyle="#888";_c.textAlign="right";_c.fillText("cmd+n",_w-4,_fs*2.5+2);_c.fillText("cmd+o",_w-4,_fs*3.5+2);
-    el.appendChild(_cv);var _rh=document.createElement("div");_rh.className="rh";el.appendChild(_rh)}else if(k.action==="layout-preset"){
-    var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius=br;
-    var _c=_cv.getContext("2d"),_w=_cv.width,_h=_cv.height;
-    _c.fillStyle="rgba(0,0,0,0.3)";_c.fillRect(0,0,_w,_h);
-    var _rhh=Math.max(14,_h/4);
-    for(var _i=0;_i<Math.min(3,Math.floor(_h/_rhh));_i++){var _y=_i*_rhh+4;_c.fillStyle="rgba(255,255,255,0.05)";_c.fillRect(2,_y,_w-4,_rhh-2);
-      _c.fillStyle="#ccc";var _fs=Math.max(7,_rhh*0.4);_c.font=_fs+"px "+_gf();_c.textAlign="left";_c.fillText("Preset "+(_i+1),8,_y+_rhh/2+_fs*0.3);
-      _c.fillStyle="#4ade80";_c.textAlign="right";_c.fillText("Apply",_w-8,_y+_rhh/2+_fs*0.3)}
-    el.appendChild(_cv);var _rh=document.createElement("div");_rh.className="rh";el.appendChild(_rh)}else if(k.action==="active-app"){
+    var _rh=document.createElement("div");_rh.className="rh";el.appendChild(_rh)}else if(k.action==="active-app"){
     var _cv=document.createElement("canvas");_cv.width=kw-8;_cv.height=kh-8;_cv.style.borderRadius=br;
     var _c=_cv.getContext("2d"),_w=_cv.width,_h=_cv.height;
     var _kc2=k.color||"#1a1a1a";_c.fillStyle=_kc2
