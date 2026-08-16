@@ -537,6 +537,7 @@ async def ws_endpoint(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_json()
+            manager.touch(client_id)
             msg_type = data.get("type", "")
             if msg_type == "touchpad":
                 action = data.get("action", "move")
