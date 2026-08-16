@@ -917,7 +917,7 @@ def open_about():
     content.addSubview_(div)
     y_ -= 22
 
-    _l("版本: 1.0.0", 50, y_, W - 100, 20, size=12)
+    _l("版本: 1.0.4", 50, y_, W - 100, 20, size=12)
     y_ -= 20
     _l("作者: Alienwang", 50, y_, W - 100, 20, size=12)
     y_ -= 36
