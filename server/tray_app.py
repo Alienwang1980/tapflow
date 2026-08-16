@@ -157,11 +157,14 @@ def check_accessibility() -> bool:
 
 
 def request_accessibility_permission():
-    """Open System Settings → Privacy → Accessibility.
-    Always opens the pane — no conditional checks."""
-    import subprocess as _sp4
-    _sp4.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"])
-    logger.info("Opened System Settings → Accessibility")
+    """Trigger the system TCC prompt for Accessibility.
+    The prompt has its own "Open System Settings" button — Settings opens only
+    when the user clicks it. No unconditional open here (previously the pane
+    opened at the same time as the prompt, conflicting)."""
+    from HIServices import AXIsProcessTrustedWithOptions
+    from ApplicationServices import kAXTrustedCheckOptionPrompt
+    AXIsProcessTrustedWithOptions({kAXTrustedCheckOptionPrompt: True})
+    logger.info("Triggered Accessibility TCC prompt")
 
 
 def check_screen_capture() -> bool:
@@ -334,18 +337,17 @@ def request_mic_permission():
 
 
 def request_screen_capture_permission():
-    """Trigger Screen Recording permission prompt + open System Settings as fallback."""
-    import subprocess as _sp5
-    # Step 1: Trigger the system TCC permission dialog by capturing the display
+    """Trigger the Screen Recording TCC prompt by capturing the display.
+    The prompt has its own "Open System Settings" button — Settings opens only
+    when the user clicks it. No unconditional open here (previously the pane
+    opened at the same time as the prompt, conflicting)."""
+    # Trigger the system TCC permission dialog by capturing the display
     try:
         from Quartz import CGDisplayCreateImage, CGMainDisplayID
         img = CGDisplayCreateImage(CGMainDisplayID())
         logger.info("Screen capture attempt completed")
     except Exception:
         pass
-    # Step 2: Also open System Settings in case user dismissed the dialog
-    _sp5.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"])
-    logger.info("Opened System Settings → Screen Recording")
 
 
 # ── Settings panel (native NSPanel: 权限状态 + 端口修改) ──
@@ -1046,13 +1048,9 @@ def main():
     except Exception:
         pass
 
-    # Startup check: if accessibility not granted, trigger system dialog + open Settings
+    # Startup check: if accessibility not granted, open System Settings directly (no prompt dialog)
     try:
         if not check_accessibility():
-            # Show the system prompt first
-            from HIServices import AXIsProcessTrustedWithOptions
-            from ApplicationServices import kAXTrustedCheckOptionPrompt
-            AXIsProcessTrustedWithOptions({kAXTrustedCheckOptionPrompt: True})
             logger.info("Accessibility not granted — opening System Settings")
             import subprocess as _sp6
             _sp6.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"])
