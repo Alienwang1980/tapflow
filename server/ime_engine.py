@@ -99,44 +99,27 @@ def _cfbool(ptr):
     return bool(cf.CFBooleanGetValue(ptr))
 
 
-_gui_probe_done = False
-_gui_running = False
-_gui_probe_lock = threading.Lock()
+# GUI 模式由 tray_app 在服务线程启动前显式设置: bundle 内 pystray 跑
+# NSApplication,HIToolbox TSM 层断言 TIS 调用在主队列;CLI dev server 不设置。
+# 旧版自动 probe(NSApplication.isRunning)在启动早期从线程池线程误判 False
+# 并永久缓存 → TIS 裸跑在工作线程 → SIGTRAP 崩溃循环(2026-08-16 实锤)。
+GUI_MODE = False
 
 
-def _probe_gui():
-    """Detect whether an NSApplication run loop is active in this process.
-
-    In a GUI app bundle (pystray runs NSApplication on the main thread),
-    HIToolbox's TSM layer asserts every TIS call happens on the main queue —
-    calling TISGetInputSourceProperty from a thread-pool thread crashes the
-    whole process with SIGTRAP (_dispatch_assert_queue_fail, observed
-    2026-08-15 in the py2app bundle). Plain CLI processes (dev server) have no
-    NSApplication and no assertion, so TIS can be called directly.
-    """
-    global _gui_probe_done, _gui_running
-    if _gui_probe_done:
-        return _gui_running
-    with _gui_probe_lock:
-        if not _gui_probe_done:
-            try:
-                from AppKit import NSApplication
-                _gui_running = bool(NSApplication.sharedApplication().isRunning())
-            except Exception as e:  # noqa: BLE001 — probe must never kill IME
-                logger.warning("IME engine: GUI probe failed, assuming CLI: %s", e)
-                _gui_running = False
-            _gui_probe_done = True
-    return _gui_running
+def set_gui_mode(enabled: bool) -> None:
+    """tray_app 在服务线程启动前调用: bundle=True(必须主队列派发),CLI=False。"""
+    global GUI_MODE
+    GUI_MODE = bool(enabled)
 
 
 def _call_on_main(fn):
-    """Run fn on the main thread when a GUI run loop is active, else inline.
+    """Run fn on the main thread when GUI_MODE, else inline.
 
     dispatch via NSOperationQueue.mainQueue, which the NSApplication run loop
     drains. Guarded by isMainThread so callers already on the main thread
     (e.g. cycle() calling select()) never self-deadlock.
     """
-    if not _probe_gui():
+    if not GUI_MODE:
         return fn()
     from Foundation import NSThread
     if NSThread.isMainThread():
