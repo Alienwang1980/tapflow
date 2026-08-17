@@ -38,11 +38,11 @@ In the AI era, vibe coding actually lowers the demand on keyboards while raising
 
 These products still use physical keys: remappable, but the shape and size never change — and after enough customization, remembering each key's purpose remains a burden.
 
-![forgotten macros](docs/images/tapflow-07.png)
+![forgotten macros](docs/images/tapflow-07.jpg)
 
 Another established option is the Elgato Stream Deck: physical keys with tiny screens. Works well, priced from three figures.
 
-![Stream Deck](docs/images/tapflow-08.png)
+![Stream Deck](docs/images/tapflow-08.jpg)
 
 My approach was to solve one small problem with the lightest possible thing, then grow with real needs. So I made this:
 
@@ -52,13 +52,13 @@ My approach was to solve one small problem with the lightest possible thing, the
 
 Tapflow isn't a keyboard replacement — it works alongside keyboard and mouse: high-frequency actions become visible buttons, reducing what you have to memorize.
 
-![panel](docs/images/tapflow-10.png)
+![panel](docs/images/tapflow-10.jpg)
 
-![panel](docs/images/tapflow-11.png)
+![panel](docs/images/tapflow-11.jpg)
 
 A fully customizable input surface for controlling your computer. **No app to install on the tablet** — a small server runs on your Mac, the tablet connects through the browser, that's it. A web-based editor is included:
 
-![editor](docs/images/tapflow-12.png)
+![editor](docs/images/tapflow-12.jpg)
 
 Drag out buttons in the editor; each gets its own name, color, size, position. Change a function and the label updates instantly — **see it, use it, nothing to memorize**.
 
@@ -78,7 +78,7 @@ Drag out buttons in the editor; each gets its own name, color, size, position. C
 
 ### 🎤 One-Tap Voice Input for Vibe Coding
 
-![voice button](docs/images/tapflow-13.png)
+![voice button](docs/images/tapflow-13.jpg)
 
 You're vibe coding with Claude Code or Cursor. AI is generating. You need to speak your next prompt.
 
@@ -90,7 +90,7 @@ It's not about saving two keystrokes. It's about **never breaking your train of 
 
 ### 🕹️ Window Tiling as a Joystick
 
-![Window Swipe](docs/images/tapflow-14.png)
+![Window Swipe](docs/images/tapflow-14.jpg)
 
 ![Window Swipe demo](docs/images/tapflow-window-swiper.gif)
 
@@ -100,7 +100,7 @@ Tapflow's **Window Swipe** widget turns window management into a **joystick**: s
 
 ### 🖼️ Window Thumbnails — See Before You Switch
 
-![Window Switcher](docs/images/tapflow-15.png)
+![Window Switcher](docs/images/tapflow-15.jpg)
 
 `⌘Tab` is blind guessing. You see app icons, not window contents. Three VS Code windows open? Good luck finding the right one.
 
@@ -108,7 +108,7 @@ Tapflow's **Window Swipe** widget turns window management into a **joystick**: s
 
 ### 📱 Dock on Your Tablet, Screen on Your Work
 
-![Dock Panel](docs/images/tapflow-16.png)
+![Dock Panel](docs/images/tapflow-16.jpg)
 
 macOS Dock takes up the bottom of your screen. Hide it and it's annoying to summon. Keep it and you lose pixels.
 
@@ -116,7 +116,7 @@ Put the **Dock Panel** on your tablet instead. Launch apps, quit apps — from y
 
 ### 🔊 Switch Audio Devices in One Second
 
-![Audio Out](docs/images/tapflow-17.png)
+![Audio Out](docs/images/tapflow-17.jpg)
 
 AirPods for a meeting. Studio monitors for music. Gaming headset. Switching means: System Settings → Sound → Output → find device → click. Every. Single. Time.
 
@@ -124,7 +124,7 @@ Tapflow's **Audio Out** widget: one button shows all devices. Tap to pick. Long-
 
 ### ⌨️ iPad as Your Entire Keyboard
 
-![full panel](docs/images/tapflow-18.png)
+![full panel](docs/images/tapflow-18.jpg)
 
 A tablet screen is big enough. Fill it with keys, a touchpad, gesture pads, window joysticks — your iPad becomes an **input surface designed entirely around your habits**.
 
@@ -132,7 +132,7 @@ Type on a physical keyboard. Control everything else on the panel. This isn't ad
 
 You can even watch your DeepSeek API balance right on the panel:
 
-![balance widget](docs/images/tapflow-19.png)
+![balance widget](docs/images/tapflow-19.jpg)
 
 Buttons that update in real time aren't just inputs — they're outputs too.
 
