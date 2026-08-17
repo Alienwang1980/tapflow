@@ -13,3 +13,4 @@ dist/
 *.dmg
 AuthKey_*.p8
 promo/zfrontier-upload/
+.wrangler/
