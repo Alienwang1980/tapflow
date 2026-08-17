@@ -384,7 +384,9 @@ function _pushUndo(keysBefore){
   if(undoStack.length>MAX_UNDO)undoStack.shift();
   redoStack=[];
 }
+function _flushLiveBase(){if(!_liveBase)return;var b=_liveBase;_liveBase=null;var page=cp_();if(!page)return;var cur=b.kid==="*"?page.keys.filter(k=>selKeys.has(k.id)).map(k=>_snapshot(k)):[page.keys.find(x=>x.id===b.kid)].filter(Boolean).map(k=>_snapshot(k));if(JSON.stringify(b.before)!==JSON.stringify(cur))_pushUndo(b.before)}
 function undo(){
+  _flushLiveBase();
   if(!undoStack.length)return;
   const e=undoStack.pop();
   const page=cp_();if(!page)return;
