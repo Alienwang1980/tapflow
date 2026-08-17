@@ -266,7 +266,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
   <div class="sr" id="sr"></div><div class="grh" id="grh_b" style="cursor:s-resize"></div><div class="grh" id="grh_l" style="cursor:w-resize"></div><div class="grh" id="grh_r" style="cursor:e-resize"></div>
   <div class="cwrap" id="cwrap"><div class="canvas" id="canvas"></div></div>
   <div id="carea-overlay"></div>
-  <div class="btb" id="btb"><button onclick="zoomBy(-1)">−</button><button onclick="zoomBy(1)">+</button><span class="tb-sep">|</span><button onclick="fitAll()" title="Fit to frame">Fit</button><span class="tb-sep">|</span><button onclick="toggleFS()" title="Fullscreen">⛶</button><span class="tb-sep">|</span><button onclick="undo()" title="Undo">↩</button><button onclick="redo()" title="Redo">↪</button></div>
+  <div class="btb" id="btb"><button onclick="zoomBy(-1)">−</button><button onclick="zoomBy(1)">+</button><span class="tb-sep">|</span><button onclick="fitAll()" title="Fit to frame">Fit</button><span class="tb-sep">|</span><button onclick="undo()" title="Undo">↩</button><button onclick="redo()" title="Redo">↪</button></div>
 </div>
 <div class="rp">
     
@@ -388,7 +388,7 @@ function undo(){
   if(!undoStack.length)return;
   const e=undoStack.pop();
   const page=cp_();if(!page)return;
-  e.before.forEach(b=>{const k=page.keys.find(x=>x.id===b.id);if(k){Object.assign(k,b)}else{page.keys.push({...b})}});
+  e.before.forEach(b=>{const k=page.keys.find(x=>x.id===b.id);if(k){Object.keys(k).forEach(function(p){if(!Object.prototype.hasOwnProperty.call(b,p))delete k[p]});Object.assign(k,b)}else{page.keys.push({...b})}});
   const bid=new Set(e.before.map(b=>b.id));
   const toDel=page.keys.filter(k=>!bid.has(k.id)&&e.after.some(a=>a.id===k.id));
   toDel.forEach(k=>{page.keys=page.keys.filter(x=>x.id!==k.id)});
@@ -888,7 +888,6 @@ document.addEventListener("mouseup",e=>{
 // ── Zoom ──
 carea.addEventListener("wheel",e=>{e.preventDefault();const f=e.deltaY>0?0.9:1.1;const nz=Math.max(0.3,Math.min(3,viewZoom*f));const ca=e.currentTarget,rect=ca.getBoundingClientRect(),mx=e.clientX-rect.left-ca.clientWidth/2,my=e.clientY-rect.top-ca.clientHeight/2,s=nz/viewZoom;viewX=mx-s*(mx-viewX);viewY=my-s*(my-viewY);viewZoom=nz;rr()},{passive:false});
 function fitAll(){if(!profile)return;var page=profile.pages.find(function(p){return p.id===activePage});if(!page||!page.keys.length)return;var cs=profile.cellSize||60,gp=profile.gap||0,dw=profile.deviceWidth||1210,dh=profile.deviceHeight||834;var cpx=cs+gp;var minC=Infinity,minR=Infinity,maxC=-Infinity,maxR=-Infinity;page.keys.forEach(function(k){var c=k.col||0,r=k.row||0,w=k.w||1,h=k.h||1;if(c<minC)minC=c;if(r<minR)minR=r;if(c+w>maxC)maxC=c+w;if(r+h>maxR)maxR=r+h});if(minC===Infinity)return;var cols=maxC-minC,rows=maxR-minR;var kw=cols*cpx-gp,kh=rows*cpx-gp;var pad=0;var ti=profile.topInset||0;var usableH=dh-ti;if(usableH<=0){usableH=dh;ti=0}var scale=Math.min((dw-pad*2)/kw,(usableH-pad*2)/kh,2.5);var newCs=Math.max(15,Math.floor(cs*scale));var centerC=(minC+maxC)/2,centerR=(minR+maxR)/2;var tiOff=ti/(2*(newCs+gp));profile.cellSize=newCs;profile.canvasX=-centerC;profile.canvasY=-centerR+tiOff;panX=-centerC;panY=-centerR+tiOff;viewX=0;viewY=0;viewZoom=1;rr();dirty=true}
-function toggleFS(){if(!document.fullscreenElement){document.documentElement.requestFullscreen().catch(function(){})}else{document.exitFullscreen()}}
 function zoomBy(d){const nv=Math.max(20,Math.min(200,(profile.cellSize||60)+d));if(nv!==profile.cellSize){profile.cellSize=nv;dirty=true;rr()}}
 function toggleOri(){const t=profile.deviceWidth;profile.deviceWidth=profile.deviceHeight;profile.deviceHeight=t;dirty=true;rr()}
 function applyRatioByIndex(i){var k=Object.keys(DEVS)[i];var d=DEVS[k];if(d&&profile){profile.device=k;profile.deviceWidth=d.portrait?Math.min(d.w,d.h):Math.max(d.w,d.h);profile.deviceHeight=d.portrait?Math.max(d.w,d.h):Math.min(d.w,d.h);profile.dpr=d.dpr||0;profile.topInset=d.topInset||0;dirty=true;rr()}updateRatioInfo()}
@@ -1227,20 +1226,23 @@ var sndOpts="";var _sounds=[["","Inherit"],["none","None"],["click","Click"],["s
 var _ss=document.querySelectorAll("#pc select");for(var _i=0;_i<_ss.length;_i++){var _sel=_ss[_i];var _oc=_sel.getAttribute("onchange")||"";if(_oc.toLowerCase().indexOf("sound")<0)continue;var _b=document.createElement("button");_b.className="pv-btn";_b.innerHTML="&#x25B6;";_b.style.cssText="padding:4px 8px;font-size:12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;margin-left:4px";_b.title="Preview";_b.onmouseover=function(){this.style.borderColor="var(--accent)"};_b.onmouseout=function(){this.style.borderColor="var(--border)"};_b.onclick=function(s){return function(e){e.preventDefault();e.stopPropagation();var v=s.value;if(!v||v===""){v=document.getElementById("tgs").value}if(v&&v!=="")testSnd(v)}}(_sel);_sel.parentNode.insertBefore(_b,_sel.nextSibling)}}
 
 
+var _liveBase=null;
 function upkLive(prop,val){
   const key=cp_()?.keys.find(k=>k.id===selKey);if(!key)return;
+  if(!_liveBase||_liveBase.kid!==key.id||_liveBase.prop!==prop){_liveBase={kid:key.id,prop:prop,before:[_snapshot(key)]}}
   key[prop]=val;dirty=true;rr();
 }
 
 function upkLiveGroup(prop,val){
   const page=cp_();if(!page)return;
+  if(!_liveBase||_liveBase.kid!=="*"||_liveBase.prop!==prop){_liveBase={kid:"*",prop:prop,before:page.keys.filter(function(k){return selKeys.has(k.id)}).map(function(k){return _snapshot(k)})}}
   selKeys.forEach(function(kid){
     var k=page.keys.find(function(x){return x.id===kid});
     if(k)k[prop]=val;
   });
   dirty=true;rr();
 }
-function upk(prop,val){const key=cp_()?.keys.find(k=>k.id===selKey);if(!key)return;const before=_snapshot(key);if(prop==="w"||prop==="h")val=Math.max(0.25,_snap4(parseFloat(val)||1));key[prop]=val;if(prop==="targetProfile"){var p=profiles.find(function(x){return x.filename===val});key.label=p?p.profileName:"Switch Profile"}dirty=true;if(JSON.stringify(before)!==JSON.stringify(_snapshot(key))){_pushUndo([before])}rr();if(prop!=='label')rpr()}
+function upk(prop,val){const key=cp_()?.keys.find(k=>k.id===selKey);if(!key)return;var before=_snapshot(key);if(_liveBase&&_liveBase.kid===key.id&&_liveBase.prop===prop){before=_liveBase.before[0];_liveBase=null}if(prop==="w"||prop==="h")val=Math.max(0.25,_snap4(parseFloat(val)||1));key[prop]=val;if(prop==="targetProfile"){var p=profiles.find(function(x){return x.filename===val});key.label=p?p.profileName:"Switch Profile"}dirty=true;if(JSON.stringify(before)!==JSON.stringify(_snapshot(key))){_pushUndo([before])}rr();if(prop!=='label')rpr()}
 function upkGroupStep(prop,delta){
   var page=cp_();if(!page)return;
   var before=page.keys.filter(function(k){return selKeys.has(k.id)}).map(function(k){return _snapshot(k)});
@@ -1287,7 +1289,7 @@ function upkGroupStep(prop,delta){
   }
   _pushUndo(before);dirty=true;rr();rpr();
 }
-function upkGroup(prop,val){const page=cp_();if(!page)return;const before=page.keys.filter(k=>selKeys.has(k.id)).map(k=>_snapshot(k));selKeys.forEach(kid=>{const k=page.keys.find(x=>x.id===kid);if(k){if(prop==="w"||prop==="h")val=Math.max(0.25,_snap4(parseFloat(val)||1));k[prop]=val}});_pushUndo(before);dirty=true;rr();rpr();}
+function upkGroup(prop,val){const page=cp_();if(!page)return;var before=page.keys.filter(k=>selKeys.has(k.id)).map(k=>_snapshot(k));if(_liveBase&&_liveBase.kid==="*"&&_liveBase.prop===prop){before=_liveBase.before;_liveBase=null}selKeys.forEach(kid=>{const k=page.keys.find(x=>x.id===kid);if(k){if(prop==="w"||prop==="h")val=Math.max(0.25,_snap4(parseFloat(val)||1));k[prop]=val}});if(JSON.stringify(before)!==JSON.stringify(page.keys.filter(k=>selKeys.has(k.id)).map(k=>_snapshot(k)))){_pushUndo(before)}dirty=true;rr();rpr();}
 
 
 let captureMode=false;
