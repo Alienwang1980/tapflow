@@ -8,6 +8,7 @@
   <img src="https://img.shields.io/badge/platform-macOS%2015%2B%20ARM64-silver?logo=apple" alt="platform">
   <img src="https://img.shields.io/badge/tablet-iPad%20%7C%20Android%20%7C%20any%20browser-blue" alt="device">
   <img src="https://img.shields.io/badge/tablet%20install-zero-brightgreen" alt="tablet: zero install">
+  <img src="https://img.shields.io/badge/version-1.0.4-orange" alt="version">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="license">
 </p>
 
@@ -17,27 +18,59 @@
 
 ## 你的键盘，来自上个世纪
 
-键盘是一个"通用工具"——它被设计来让**任何人**都能打字，而不是让**你**高效地操控你的电脑。
+键盘是上个世纪创造出来用于打字的通用工具，大多数情况下它做得很好。但电脑的操作在演变，键盘需要承担一些新的角色：大量高频动作——切换窗口、调音频、启动应用——逐步演变成了快捷键，而且大多是组合键。而快捷键或鼠标多级菜单，并不总是最直观的。
 
-100 多个键，每一个长得差不多。快捷键全靠脑子记。`⌘⌥⇧K` 是什么？你得先回忆它的功能，再回忆它的键位，再让手指找过去。你的大脑——这台地球上最强大的生物计算机——在被当成快捷键备忘录来用。
+加上个性化需求越来越高，这些快捷键虽然可以定制，键盘本身却不能改变——矛盾就显而易见了。这个早已被习以为常、被习惯忍受的问题，对大多数人来说，其实是一个很高的学习门槛。
 
-**识别、记忆、回忆。** 这不是思考，这是浪费。
+![键盘](https://img.tapflow.work/tapflow-02.jpg)
 
-都 2026 年了。你的手机认得你的脸。你的 Mac 认得你的指纹。但你控制电脑的方式，还停留在**背键位**。
+快捷键的数量很容易超出记忆负担。`⌘⌥⇧K` 是什么？先回忆功能，再回忆键位，再让手指找过去——快捷键多到一定程度，这个过程就会打断思路。
 
-如果你还没有一套**为自己量身定制的控制方式**——你就还停留在上个世纪。
+这张 Mac 快捷键图还不完整，数量已经相当可观。
 
-## Tapflow：你的个性化控制层
+![Mac 快捷键](https://img.tapflow.work/tapflow-03.jpg)
 
-Tapflow 的思路不是做一个"更好的键盘"。而是让你**不用脑子记**。
+如今的手机能认得你的脸，电脑能认得你的指纹，但你还在背快捷键来操作电脑。你的大脑——地球上最强的运算能力——用来背快捷键，简直是资源的浪费。
 
-你在编辑器里拖几个按钮出来。每个按钮有自己的**名字、颜色、尺寸、位置**。你不需要回忆它是什么——你一眼就看到了。改了功能？标签立刻跟着变。换了一个应用？自动切一套布局。
+**然而，情况也有变化。**
 
-**你的大脑只负责"识别"，不用负责"记忆"。**
+如今 AI 时代，Vibe Coding 对键盘的需求反而降低了，对输入方式提出了新需求。市面上也出现了相应的产品，例如 Worklouder Creator Micro 2：
+
+![Creator Micro 2](https://img.tapflow.work/tapflow-04.jpg)
+
+![Creator Micro 2](https://img.tapflow.work/tapflow-05.jpg)
+
+![Creator Micro 2](https://img.tapflow.work/tapflow-06.jpg)
+
+这类产品仍然是实体按键：按键可以自定义，样子和大小却不会变。自定义多了以后，记住每个键的用途依然是个负担。
+
+![自定义宏的负担](https://img.tapflow.work/tapflow-07.jpg)
+
+另一类成熟产品是 Elgato Stream Deck：实体按键 + 小屏幕，体验不错，价格从千元级起步。
+
+![Stream Deck](https://img.tapflow.work/tapflow-08.jpg)
+
+我的做法是从一个小问题入手，做一个轻量的方案，和用户的需求一起成长。于是我做了这个：
+
+![Tapflow](https://img.tapflow.work/tapflow-01.jpg)
+
+## Tapflow：点流 —— 你的个性化控制层
+
+Tapflow 不是要替代键盘，而是与键盘鼠标配合：把高频操作做成看得见的按钮，减少记忆负担。
+
+![面板](https://img.tapflow.work/tapflow-10.jpg)
+
+![面板](https://img.tapflow.work/tapflow-11.jpg)
+
+一个可以完全定制的、用于操作电脑的输入界面。有一个运行在 macOS 上的服务端，平板通过网页端连接，仅此而已。并提供了一个用于定制的网页编辑器：
+
+![编辑器](https://img.tapflow.work/tapflow-12.jpg)
+
+你在编辑器里拖出按钮，每个按钮可以定义名字、颜色、尺寸、位置。改了功能，标签立刻跟着变——**看见即用，不用记**。
 
 ```
 ┌──────────────────────────┐       HTTP + WebSocket        ┌────────────────────────┐
-│  任何带浏览器的设备        │ ◄─────────────────────────── │  Mac (装 Tapflow.app)  │
+│  任何带浏览器的设备        │ ◄─────────────────────────── │  Mac（装 Tapflow.app）  │
 │  iPad · Android · 手机    │       局域网 :8082            │                        │
 │                          │                               │  CGEvent 注入           │
 │  打开网页就是控制面板      │  触摸事件 / Profile 实时同步   │  系统音频 / 窗口管理    │
@@ -51,43 +84,45 @@ Tapflow 的思路不是做一个"更好的键盘"。而是让你**不用脑子�
 
 ### 🎤 Vibe Coding 语音激活
 
-你在用 Claude Code / Cursor 做 vibe coding。AI 在写代码，你要说下一段 prompt。
+![语音按钮](https://img.tapflow.work/tapflow-13.jpg)
+
+你在用 Claude Code / Cursor 做 vibe coding，AI 在写代码，你要说下一段 prompt。
 
 键盘上：找到语音输入快捷键（是哪个来着？）→ 按下去 → 说话 → 再按一下结束。
 
-Tapflow 上：iPad 旁边有一个按钮，上面写着 **"🎤 说话"**。点一下，开始说。说完了，再点一下。
+Tapflow 上：平板旁边有一个按钮，上面写着 **"🎤 说话"**。点一下，开始说。说完了，再点一下。
 
-不是"少按了几个键"的问题。是**你不用打断思路去想那个快捷键是什么**的问题。
+不是"少按了几个键"的问题，是**你不用打断思路去想那个快捷键是什么**的问题。
 
 ### 🕹️ 窗口排列 = 游戏手柄摇杆
 
+![Window Swipe](https://img.tapflow.work/tapflow-14.jpg)
+
+![Window Swipe 演示](https://img.tapflow.work/tapflow-window-swiper.gif)
+
 macOS 的窗口贴靠功能很强——全屏、左半、右半、上半、下半。但触发方式呢？要么背快捷键，要么用鼠标拖到屏幕边缘。
 
-Tapflow 的 **Window Swipe** 组件把它做成了一个**摇杆**。
-
-手指在平板上往上滑 → 窗口全屏。往左滑 → 贴左半。往右下滑 → 右下角。就跟打游戏一样。点一下最大化，长按全屏。
-
-**排列窗口这件事，根本就不应该用快捷键。**
+Tapflow 的 **Window Swipe** 组件把它做成了一个**摇杆**：手指往上滑 → 窗口全屏。往左滑 → 贴左半。往右下滑 → 贴右下角。点一下最大化，长按全屏。跟打游戏一样——**排列窗口，根本不应该用快捷键**。
 
 ### 🖼️ 窗口缩略图，一眼切换
 
+![Window Switcher](https://img.tapflow.work/tapflow-15.jpg)
+
 `⌘Tab` 切窗口是盲猜——你只能看到 App 图标，看不到窗口内容。开了三个 VS Code 窗口？猜吧，看哪个是你想要的。
 
-**Window Switcher** 把所有窗口的实时缩略图排出来。按应用分组，横向滑动。哪个窗口里有什么，看得一清二楚。点一下，切过去。
+**Window Switcher** 把所有窗口的实时缩略图排出来，按应用分组，横向滑动。哪个窗口里有什么，看得一清二楚。点一下，切过去。
 
 ### 📱 Dock 上平板，屏幕更干净
 
-macOS 的 Dock 长年占着屏幕底下一排。隐藏了又不方便。
+![Dock Panel](https://img.tapflow.work/tapflow-16.jpg)
 
-把 **Dock Panel** 放到 iPad 上。从平板启动 App、退出 App。Mac 屏幕上的 Dock 直接隐藏——每一寸屏幕都留给你的工作。
+macOS 的 Dock 常年占着屏幕底下一排，隐藏了又不方便召唤。
 
-### ⌨️ 把 iPad 变成一整个键盘
-
-平板屏幕足够大。在上面铺满按键、触控板、手势区、窗口摇杆——你的 iPad 就是一块**完全按你的习惯定制的输入面板**。
-
-配合平板的物理键盘打字，触控面板处理一切操作。这不是在键盘上"加按钮"，这是**完全按你自己的方式重新设计输入**。
+把 **Dock Panel** 放到 iPad 上：从平板启动 App、退出 App。Mac 屏幕上的 Dock 可以隐藏起来——屏幕全部留给工作。
 
 ### 🔊 切音频设备？一眼就够了
+
+![Audio Out](https://img.tapflow.work/tapflow-17.jpg)
 
 会议室里要切 AirPods。工作室里要切外放。打游戏切耳机。
 
@@ -95,11 +130,17 @@ macOS 的 Dock 长年占着屏幕底下一排。隐藏了又不方便。
 
 Tapflow 的 **Audio Out** 组件：平板上一个按钮，点一下弹出所有设备列表，选一个。长按直接轮换。**一秒。**
 
-### 🔄 换应用，自动换一套按钮
+### ⌨️ 把 iPad 变成一整个键盘
 
-VS Code 里需要的快捷键，和 Photoshop 里需要的，完全是两套东西。
+![完整面板](https://img.tapflow.work/tapflow-18.jpg)
 
-Tapflow 的 **Profile 系统**：每个应用一套布局。切到 VS Code → 自动加载 coding 面板。切到 Figma → 自动加载 design 面板。不用手动切换。
+平板屏幕足够大。在上面铺满按键、触控板、手势区、窗口摇杆——iPad 变成一块**完全按你的习惯定制的输入面板**。配合平板的物理键盘打字，触控面板处理一切其他操作。
+
+甚至，你可以在面板上看 DeepSeek 的余额：
+
+![余额组件](https://img.tapflow.work/tapflow-19.jpg)
+
+按钮可以实时变化，就不只是输入指令，还能输出信息。
 
 ## 14 种组件，只放你需要的
 
@@ -153,7 +194,8 @@ Mac 上打开 `http://localhost:8082/editor`：
 **Mac 端（需要安装）：**
 
 1. 从 [Releases](https://github.com/Alienwang1980/tapflow/releases) 下载 DMG → 拖入 `/Applications`
-2. 启动 Tapflow，按提示授予三项权限：
+2. 首次打开：双击会弹「无法验证开发者」（当前版本为 ad-hoc 签名、未公证）→ 系统设置 → 隐私与安全性 → 点「仍要打开」→ 再点「打开」。只需一次，以后正常打开
+3. 启动 Tapflow，按弹出的授权面板提示授予权限：
 
 | 权限 | 用途 | 必须？ |
 |------|------|:-----:|
@@ -161,16 +203,27 @@ Mac 上打开 `http://localhost:8082/editor`：
 | 屏幕录制（Screen Recording） | 窗口缩略图 | ✅ |
 | 麦克风（Microphone） | 音频电平显示 | ❌ |
 
-3. 安装后自动注册 LaunchAgent，开机自启 + 崩溃重启
+4. （可选）在设置面板开启开机自启——launchd 守护，开机启动、崩溃自动拉起
 
 **平板端（零安装）：**
 
-4. 平板和 Mac 同一 WiFi → 浏览器打开 `http://<Mac-IP>:8082`
-5. Mac 上打开 `http://localhost:8082/editor`，拖几个按钮，保存
+5. 平板和 Mac 同一 WiFi → 浏览器打开 `http://<Mac-IP>:8082`
+6. Mac 上打开 `http://localhost:8082/editor`，拖几个按钮，保存
 
-把平板放旁边。该干嘛干嘛。
+把平板放在键盘旁边。该干嘛干嘛。
+
+## 定位与现状
+
+需要说明的是：我从未打算让它替代键盘——打字这类任务，键盘依然是最合适的工具。Tapflow 的定位是与键盘鼠标配合，分担高频操作，提升效率。当然，也有用户告诉我，在特定场景下他们几乎不再碰键盘——这是意外的使用方式，不是设计目标。
+
+目前刚做了第一个版本，目的只是验证这个想法是不是有用，或者说我自己的需求有没有普遍性。还有很多不完善的地方，欢迎提出你的想法和意见！
 
 ## FAQ
+
+<details>
+<summary><b>打开时提示「无法验证开发者」？</b></summary>
+当前版本为 ad-hoc 签名（未公证），Gatekeeper 会软拦截一次。系统设置 → 隐私与安全性 → 点「仍要打开」即可，只需设置一次，以后正常打开。
+</details>
 
 <details>
 <summary><b>平板连不上？</b></summary>
@@ -211,23 +264,53 @@ MIT
 
 ## Your Keyboard Belongs to the 19th Century
 
-The QWERTY keyboard was designed in the 1870s. For typewriters. And yet — 150 years later — you're still using that same generic grid of identical keys to control a machine that can generate code, render 3D scenes, and run AI models in real time.
+The keyboard — a general-purpose tool invented last century for typing — does its job well in most cases. But computing has evolved, and the keyboard has had to take on new roles: high-frequency actions (switching windows, changing audio, launching apps) gradually became shortcuts, mostly key combinations. And shortcuts or multi-level mouse menus aren't always the most intuitive. As personalization demands grew, those shortcuts became customizable — but the keyboard itself cannot change. The contradiction is plain, and while we've learned to endure it, for most people it remains a steep learning curve.
 
-A keyboard is a **general-purpose tool**. It was built so *anyone* could type, not so *you* could be efficient. 100+ identical keys. Shortcuts you have to memorize. `⌘⌥⇧K` — what does that even do? Your brain — the most powerful computer on the planet — is being used as a **shortcut lookup table**.
+![keyboard](https://img.tapflow.work/tapflow-02.jpg)
 
-**Recognize. Recall. Reach.** That's not thinking. That's overhead.
+Shortcut count easily outgrows memory. What does `⌘⌥⇧K` do? Recall the function, recall the position, hunt with your fingers — once you have enough shortcuts, this process interrupts your flow.
 
-It's 2026. Your phone unlocks with your face. Your Mac reads your fingerprint. But your input device still expects you to memorize key combinations designed decades before you were born.
+This incomplete Mac shortcuts cheat sheet is already a lot to memorize.
 
-If you don't have a control surface tailored to *your* workflow — you're still operating with last-century logic.
+![Mac shortcuts](https://img.tapflow.work/tapflow-03.jpg)
 
-## Tapflow: Your Personal Control Layer
+Your phone recognizes your face, your computer recognizes your fingerprint — yet you still operate your computer by memorizing shortcuts. Your brain, the most powerful computing capability on Earth, spent on memorizing shortcuts is a waste of resources.
 
-Tapflow isn't a "better keyboard." It's a different category entirely.
+**However, things have changed.**
 
-Instead of memorizing shortcuts, you **see** them. You drag a button onto a canvas. It has a name, a color, a position. You don't recall what it does — you read the label. Change its function? The label updates instantly. Switch to a different app? The entire layout switches with you.
+In the AI era, vibe coding actually lowers the demand on keyboards while raising new demands on input methods — and matching products have appeared, like the Worklouder Creator Micro 2:
 
-**Your brain recognizes. It doesn't memorize.**
+![Creator Micro 2](https://img.tapflow.work/tapflow-04.jpg)
+
+![Creator Micro 2](https://img.tapflow.work/tapflow-05.jpg)
+
+![Creator Micro 2](https://img.tapflow.work/tapflow-06.jpg)
+
+These products still use physical keys: remappable, but the shape and size never change — and after enough customization, remembering each key's purpose remains a burden.
+
+![forgotten macros](https://img.tapflow.work/tapflow-07.jpg)
+
+Another established option is the Elgato Stream Deck: physical keys with tiny screens. Works well, priced from three figures.
+
+![Stream Deck](https://img.tapflow.work/tapflow-08.jpg)
+
+My approach was to solve one small problem with the lightest possible thing, then grow with real needs. So I made this:
+
+![Tapflow](https://img.tapflow.work/tapflow-01.jpg)
+
+## Tapflow — Your Personal Control Layer
+
+Tapflow isn't a keyboard replacement — it works alongside keyboard and mouse: high-frequency actions become visible buttons, reducing what you have to memorize.
+
+![panel](https://img.tapflow.work/tapflow-10.jpg)
+
+![panel](https://img.tapflow.work/tapflow-11.jpg)
+
+A fully customizable input surface for controlling your computer. **No app to install on the tablet** — a small server runs on your Mac, the tablet connects through the browser, that's it. A web-based editor is included:
+
+![editor](https://img.tapflow.work/tapflow-12.jpg)
+
+Drag out buttons in the editor; each gets its own name, color, size, position. Change a function and the label updates instantly — **see it, use it, nothing to memorize**.
 
 ```
 ┌──────────────────────────┐       HTTP + WebSocket        ┌────────────────────────┐
@@ -245,7 +328,9 @@ Instead of memorizing shortcuts, you **see** them. You drag a button onto a canv
 
 ### 🎤 One-Tap Voice Input for Vibe Coding
 
-You're vibe coding with Claude Code, Cursor, or Windsurf. AI is generating. You need to speak your next prompt.
+![voice button](https://img.tapflow.work/tapflow-13.jpg)
+
+You're vibe coding with Claude Code or Cursor. AI is generating. You need to speak your next prompt.
 
 With a keyboard: find the voice input shortcut (was it `⌃Space`? `F5`?) → press it → speak → press again to stop.
 
@@ -255,13 +340,17 @@ It's not about saving two keystrokes. It's about **never breaking your train of 
 
 ### 🕹️ Window Tiling as a Joystick
 
+![Window Swipe](https://img.tapflow.work/tapflow-14.jpg)
+
+![Window Swipe demo](https://img.tapflow.work/tapflow-window-swiper.gif)
+
 macOS has excellent window snapping — fullscreen, left half, right half, top, bottom. But triggering it means memorizing keyboard shortcuts or dragging with a mouse.
 
-Tapflow's **Window Swipe** widget turns window management into a **joystick**.
-
-Swipe up on your iPad → fullscreen. Swipe left → snap left. Swipe bottom-right → bottom-right corner. Tap to maximize. Long-press for fullscreen. It feels like a game controller, because **arranging windows shouldn't require a keyboard at all.**
+Tapflow's **Window Swipe** widget turns window management into a **joystick**: swipe up on your iPad → fullscreen. Swipe left → snap left. Swipe bottom-right → bottom-right corner. Tap to maximize. Long-press for fullscreen. It feels like a game controller — **arranging windows shouldn't require a keyboard at all**.
 
 ### 🖼️ Window Thumbnails — See Before You Switch
+
+![Window Switcher](https://img.tapflow.work/tapflow-15.jpg)
 
 `⌘Tab` is blind guessing. You see app icons, not window contents. Three VS Code windows open? Good luck finding the right one.
 
@@ -269,27 +358,33 @@ Swipe up on your iPad → fullscreen. Swipe left → snap left. Swipe bottom-rig
 
 ### 📱 Dock on Your Tablet, Screen on Your Work
 
+![Dock Panel](https://img.tapflow.work/tapflow-16.jpg)
+
 macOS Dock takes up the bottom of your screen. Hide it and it's annoying to summon. Keep it and you lose pixels.
 
 Put the **Dock Panel** on your tablet instead. Launch apps, quit apps — from your iPad. Your Mac screen hides the Dock. Every pixel goes to your work.
 
-### ⌨️ iPad as Your Entire Keyboard
-
-A tablet screen is big enough. Fill it with keys, a touchpad, gesture pads, window joysticks — your iPad becomes an **input surface designed entirely around your habits**.
-
-Type on a physical keyboard. Control everything else on the panel. This isn't adding buttons to a keyboard. This is **redesigning input from the ground up, for yourself.**
-
 ### 🔊 Switch Audio Devices in One Second
+
+![Audio Out](https://img.tapflow.work/tapflow-17.jpg)
 
 AirPods for a meeting. Studio monitors for music. Gaming headset. Switching means: System Settings → Sound → Output → find device → click. Every. Single. Time.
 
 Tapflow's **Audio Out** widget: one button shows all devices. Tap to pick. Long-press to cycle. **One second.**
 
-### 🔄 Switch Apps, Auto-Switch Your Panel
+### ⌨️ iPad as Your Entire Keyboard
 
-The shortcuts you need in VS Code are completely different from what you need in Photoshop.
+![full panel](https://img.tapflow.work/tapflow-18.jpg)
 
-Tapflow's **Profile system** gives each app its own layout. Switch to VS Code → coding panel loads automatically. Switch to Figma → design panel loads. No manual switching. No context collapse.
+A tablet screen is big enough. Fill it with keys, a touchpad, gesture pads, window joysticks — your iPad becomes an **input surface designed entirely around your habits**.
+
+Type on a physical keyboard. Control everything else on the panel. This isn't adding buttons to a keyboard. This is **redesigning input from the ground up, for yourself.**
+
+You can even watch your DeepSeek API balance right on the panel:
+
+![balance widget](https://img.tapflow.work/tapflow-19.jpg)
+
+Buttons that update in real time aren't just inputs — they're outputs too.
 
 ## 14 Widgets. Take What You Need.
 
@@ -343,7 +438,8 @@ Open `http://localhost:8082/editor` on your Mac:
 **On your Mac** (one-time install):
 
 1. Download `Tapflow.dmg` from [Releases](https://github.com/Alienwang1980/tapflow/releases) → drag to `/Applications`
-2. Launch Tapflow. Grant the permissions:
+2. On first open you'll see "cannot be verified" (v1 ships ad-hoc signed, not notarized) → System Settings → Privacy & Security → "Open Anyway" → "Open". Once only
+3. Launch Tapflow and grant the permissions via the onboarding panel:
 
 | Permission | Why | Required? |
 |-----------|-----|:---------:|
@@ -351,16 +447,27 @@ Open `http://localhost:8082/editor` on your Mac:
 | Screen Recording | Window thumbnails | ✅ |
 | Microphone | Audio level display | ❌ |
 
-3. A LaunchAgent is registered automatically — auto-start on boot, auto-restart on crash.
+4. (Optional) Enable auto-start in the settings panel — a launchd daemon starts it on boot and relaunches it on crash
 
 **On your tablet** (zero install):
 
-4. Same WiFi as your Mac → open `http://<Mac-IP>:8082` in any browser
-5. On your Mac, open `http://localhost:8082/editor` → drag a few buttons → save
+5. Same WiFi as your Mac → open `http://<Mac-IP>:8082` in any browser
+6. On your Mac, open `http://localhost:8082/editor` → drag a few buttons → save
 
 Put your tablet next to your keyboard. Get back to work.
 
+## What Tapflow Is Not
+
+To be clear: Tapflow was never meant to replace the keyboard — for typing, a keyboard is still the right tool. It's designed to work alongside keyboard and mouse, taking over high-frequency actions. (Some users report barely touching their keyboard in certain scenarios — that's an incidental use case, not the design goal.)
+
+This is v1, built to test whether the idea is useful — or whether my own itch is general. There are plenty of rough edges; feedback, especially the critical kind, is very welcome.
+
 ## FAQ
+
+<details>
+<summary><b>"Cannot be verified" on first open?</b></summary>
+The current release is ad-hoc signed (not notarized), so Gatekeeper soft-blocks it once. System Settings → Privacy & Security → "Open Anyway" — once only, then it opens normally.
+</details>
 
 <details>
 <summary><b>Tablet can't connect?</b></summary>
