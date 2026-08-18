@@ -279,6 +279,11 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
           <div class="lib-name">Regular Key</div>
           <div class="lib-desc">Press / Hold</div>
         </div>
+        <div class="lib-item" draggable="true" data-widget="keyboard">
+          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/keyboard.png" width="120" height="56" style="display:block;border-radius:4px"></div>
+          <div class="lib-name">Keyboard Key</div>
+          <div class="lib-desc">Two-state . Whole keyboard / single key</div>
+        </div>
         <div class="lib-item" draggable="true" data-widget="volume">
           <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/volume.png" width="120" height="56" style="display:block;border-radius:4px"></div>
           <div class="lib-name">Volume Slider</div>
@@ -829,7 +834,7 @@ function onRS(e,kid){
 
 
 // ── Carea: left=select rect, right=pan, Space+left=pan ──
-var _libItems=document.querySelectorAll(".lib-item");for(var _li=0;_li<_libItems.length;_li++){_libItems[_li].addEventListener("dragstart",function(e){e.dataTransfer.setData("text/plain",this.dataset.widget);e.dataTransfer.effectAllowed="copy"})}document.addEventListener("dragover",function(e){e.preventDefault();e.dataTransfer.dropEffect="copy";var _ca=document.getElementById("carea"),_rect=_ca.getBoundingClientRect();if(e.clientX>=_rect.left&&e.clientX<=_rect.right&&e.clientY>=_rect.top&&e.clientY<=_rect.bottom){var _gh=document.getElementById("gh");_gh.style.display="block";_gh.style.left=(e.clientX-_rect.left-10)+"px";_gh.style.top=(e.clientY-_rect.top-10)+"px";_gh.style.width="20px";_gh.style.height="20px"}});document.addEventListener("drop",function(e){e.preventDefault();document.getElementById("gh").style.display="none";document.body.style.cursor="";var type=e.dataTransfer.getData("text/plain");if(!type||!profile)return;var _ca2=document.getElementById("carea"),_rect2=_ca2.getBoundingClientRect();var dw=profile.deviceWidth||1210,dh=profile.deviceHeight||834,cs=profile.cellSize||60,gp=profile.gap||0,cpx=cs+gp;var scale=_totalScale();var vo=_viewOrigin();var dx=(e.clientX-_rect2.left-vo.ox)/scale,dy=(e.clientY-_rect2.top-vo.oy)/scale;window._pendingCol=_snap4((dx-dw/2)/cpx-panX);window._pendingRow=_snap4((dy-dh/2)/cpx-panY);var tw=type==="touchpad"?4:1,th=type==="touchpad"?3:1;{if(type==="__clipboard__"){_pasteFromClipboard(window._pendingCol,window._pendingRow)}else{addKeyOfType(type)}}});
+var _libItems=document.querySelectorAll(".lib-item");for(var _li=0;_li<_libItems.length;_li++){_libItems[_li].addEventListener("dragstart",function(e){e.dataTransfer.setData("text/plain",this.dataset.widget);e.dataTransfer.effectAllowed="copy"})}document.addEventListener("dragover",function(e){e.preventDefault();e.dataTransfer.dropEffect="copy";var _ca=document.getElementById("carea"),_rect=_ca.getBoundingClientRect();if(e.clientX>=_rect.left&&e.clientX<=_rect.right&&e.clientY>=_rect.top&&e.clientY<=_rect.bottom){var _gh=document.getElementById("gh");_gh.style.display="block";_gh.style.left=(e.clientX-_rect.left-10)+"px";_gh.style.top=(e.clientY-_rect.top-10)+"px";_gh.style.width="20px";_gh.style.height="20px"}});document.addEventListener("drop",function(e){e.preventDefault();document.getElementById("gh").style.display="none";document.body.style.cursor="";var type=e.dataTransfer.getData("text/plain");if(!type||!profile)return;var _ca2=document.getElementById("carea"),_rect2=_ca2.getBoundingClientRect();var dw=profile.deviceWidth||1210,dh=profile.deviceHeight||834,cs=profile.cellSize||60,gp=profile.gap||0,cpx=cs+gp;var scale=_totalScale();var vo=_viewOrigin();var dx=(e.clientX-_rect2.left-vo.ox)/scale,dy=(e.clientY-_rect2.top-vo.oy)/scale;window._pendingCol=_snap4((dx-dw/2)/cpx-panX);window._pendingRow=_snap4((dy-dh/2)/cpx-panY);var tw=type==="touchpad"?4:1,th=type==="touchpad"?3:1;{if(type==="__clipboard__"){_pasteFromClipboard(window._pendingCol,window._pendingRow)}else if(type==="keyboard"){openKbPicker("create")}else{addKeyOfType(type)}}});
 const carea=document.getElementById("carea");
 
 carea.addEventListener("mousedown",e=>{
@@ -1207,8 +1212,15 @@ var sndOpts="";var _sounds=[["","Inherit"],["none","None"],["click","Click"],["s
     '<div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border)">'+
     '<label style="color:var(--accent);font-size:10px;text-transform:uppercase;letter-spacing:1px">Function</label>'+
     '<label>&#x25C6; Label</label><input value="'+hesc(key.label)+'" oninput="upk(\'label\',this.value)">'+
+    (key.kb?
+    '<label>&#x2699; Keyboard Key</label>'+
+    '<div style="margin:8px 0;padding:10px;background:var(--card);border-radius:6px;border:1px solid var(--border)"><div style="font-size:13px;color:var(--text);font-family:monospace;margin-bottom:4px">'+hesc(key.label||key.key)+'</div>'+
+    '<div style="font-size:11px;color:var(--dim);margin-bottom:8px;line-height:1.5">'+(key.shiftLabel?('按住 Shift 显示 '+hesc(key.shiftLabel)+' · 注入 '+hesc(key.value||key.key)):('功能键 · 注入 '+hesc(key.value||key.key)+' · 行为 '+(key.action==="hold"?"Hold(按住)":"Tap(点按)")))+'</div>'+
+    '<button onclick="openKbPicker(\'change\')" style="width:100%;padding:8px;background:var(--accent);color:#1a1a1a;border:none;border-radius:4px;cursor:pointer;font-weight:600;font-size:12px">Change Key</button></div>'
+    :
     '<label>&#x2699; Key Binding</label>'+
-    '<div style="margin:8px 0;padding:10px;background:var(--card);border-radius:6px;border:1px solid var(--border);min-height:48px"><div style="font-size:12px;color:var(--text);white-space:pre-wrap;word-break:break-word;min-height:30px;max-height:120px;overflow-y:auto;margin-bottom:8px;font-family:monospace">'+hesc(key.value||"(empty)")+'</div><div style="display:flex;gap:6px"><button onclick="openMM(' + "'" + selKey + "'" + ')" style="flex:1;padding:8px;background:var(--accent);color:#1a1a1a;border:none;border-radius:4px;cursor:pointer;font-weight:600;font-size:12px">Edit</button>'+(key.value?'<button onclick="upk(\'value\',\'\');rpr()" style="padding:8px 12px;background:transparent;color:var(--dim);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:12px">Clear</button>':"")+'</div></div>'+
+    '<div style="margin:8px 0;padding:10px;background:var(--card);border-radius:6px;border:1px solid var(--border);min-height:48px"><div style="font-size:12px;color:var(--text);white-space:pre-wrap;word-break:break-word;min-height:30px;max-height:120px;overflow-y:auto;margin-bottom:8px;font-family:monospace">'+hesc(key.value||"(empty)")+'</div><div style="display:flex;gap:6px"><button onclick="openMM(' + "'" + selKey + "'" + ')" style="flex:1;padding:8px;background:var(--accent);color:#1a1a1a;border:none;border-radius:4px;cursor:pointer;font-weight:600;font-size:12px">Edit</button>'+(key.value?'<button onclick="upk(\'value\',\'\');rpr()" style="padding:8px 12px;background:transparent;color:var(--dim);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:12px">Clear</button>':"")+'</div></div>'
+    )+
     '</div>'+
     '<div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border)">'+
     '<label style="color:var(--accent);font-size:10px;text-transform:uppercase;letter-spacing:1px">Style</label>'+
@@ -1348,8 +1360,187 @@ function copyStyle(){if(!selKey&&selKeys.size===0)return;var k;if(selKey){k=cp_(
 function pasteStyle(){if(!copiedStyle)return;var page=cp_();if(!page)return;var targets;if(selKeys.size>0){targets=page.keys.filter(function(k){return selKeys.has(k.id)})}else if(selKey){targets=[page.keys.find(function(k){return k.id===selKey})]}else{return}if(!targets.length)return;var snapshots=targets.map(function(k){return _snapshot(k)});targets.forEach(function(k){if(copiedStyle.color!==undefined)k.color=copiedStyle.color;if(copiedStyle.sound!==undefined)k.sound=copiedStyle.sound});_pushUndo(snapshots);dirty=true;rr();rpr();t("Style pasted")}
 function delSelected(){if(!confirm("Delete "+selKeys.size+" keys?"))return;const page=cp_();if(!page)return;const before=page.keys.filter(k=>selKeys.has(k.id)).map(k=>_snapshot(k));page.keys=page.keys.filter(k=>!selKeys.has(k.id));_pushUndo(before);selKeys.clear();selKey=null;dirty=true;renderAll();}
 
-var WIDGET_TYPES={key:{label:"Regular Key",defaults:{w:1.25,h:1.25,color:"#3a3a4a",action:"turbo",label:"Key"}},touchpad:{label:"Touch Pad",defaults:{w:4,h:3,color:"#2a3a5a",action:"touchpad",label:"Touch Pad",scrollEnabled:true,rightClickEnabled:true}},volume:{label:"Volume Slider",defaults:{w:2.5,h:1.25,color:"#002455",action:"volume",iconColor:"#a1ffd1",layout:"horizontal",label:"Volume"}},micmute:{label:"Mic Mute",defaults:{w:2.5,h:1.25,color:"#1a2a2a",action:"mic-mute",showLevel:true,micBgColor:"#d400ec",micLevelColor:"#c6fea5",micIconColor:"#05f8ff",micColor:"#b9ff71",label:"Mic"}},audioout:{label:"Audio Out",defaults:{w:3.25,h:1.25,color:"#002455",action:"audio-out",tapAction:"cycle",holdAction:"menu",label:"Audio Out"}},audioin:{label:"Audio In",defaults:{w:3.25,h:1.25,color:"#1a2a2a",action:"audio-in",tapAction:"cycle",holdAction:"menu",label:"Audio In"}},activeapp:{label:"Window Switcher",defaults:{w:9.25,h:3,color:"#1a1a1a",action:"active-app",label:"Apps",sound:"",closeSound:""}},wingesture:{label:"Window Control · Swipe",defaults:{w:3.25,h:3,color:"#00334a",iconColor:"#cfd8dc",bgOpacity:0.53,action:"win-gesture",label:"Gesture"}},fullscreen:{label:"Fullscreen Toggle",defaults:{w:1.5,h:1.25,color:"#1a3a2a",action:"fullscreen",label:"Fullscreen",showIcon:true,showLabel:true,iconSize:20}},dock:{label:"Dock Panel",defaults:{w:9.25,h:1.5,color:"#1a1a1a",action:"dock",bgOpacity:0.11,bgColor:"#ffffff",label:"Dock"}},switchprofile:{label:"Switch Profile",defaults:{w:1.5,h:1.25,color:"#2a1a3a",action:"switch-profile",switchMode:"hold",label:"Profile",iconColor:"#a78bfa",showIcon:true,showLabel:true,iconSize:20}},imeswitch:{label:"Input Method",defaults:{w:2,h:1.25,color:"#1a2a3a",action:"ime-switch",iconColor:"#4ade80",showIcon:true,showLabel:true,iconSize:20,tapAction:"cycle",tapTarget:"",holdAction:"select",holdTarget:"",label:"Input Method"}},balance:{label:"Deepseek Balance",defaults:{w:3.5,h:1.25,color:"#003a5a",action:"balance",showFlags:{total:true,granted:true,topped:true},label:"Balance"}},textmacro:{label:"Text Macro",defaults:{w:4,h:2.5,color:"#1a2a1a",action:"text-macro",label:"Text Macro",macroText:""}}};;function addKeyOfType(type){
+// ── Keyboard keys (two-state, ANSI widths, Mac-adapted) ──
+var KB_KEYS={
+ esc:{key:"ESCAPE",label:"esc",action:"turbo",w:1},
+ grave:{key:"`",label:"`",shiftLabel:"~",action:"turbo",w:1},
+ "1":{key:"1",label:"1",shiftLabel:"!",action:"turbo",w:1},
+ "2":{key:"2",label:"2",shiftLabel:"@",action:"turbo",w:1},
+ "3":{key:"3",label:"3",shiftLabel:"#",action:"turbo",w:1},
+ "4":{key:"4",label:"4",shiftLabel:"$",action:"turbo",w:1},
+ "5":{key:"5",label:"5",shiftLabel:"%",action:"turbo",w:1},
+ "6":{key:"6",label:"6",shiftLabel:"^",action:"turbo",w:1},
+ "7":{key:"7",label:"7",shiftLabel:"&",action:"turbo",w:1},
+ "8":{key:"8",label:"8",shiftLabel:"*",action:"turbo",w:1},
+ "9":{key:"9",label:"9",shiftLabel:"(",action:"turbo",w:1},
+ "0":{key:"0",label:"0",shiftLabel:")",action:"turbo",w:1},
+ minus:{key:"-",label:"-",shiftLabel:"_",action:"turbo",w:1},
+ equal:{key:"=",label:"=",shiftLabel:"+",action:"turbo",w:1},
+ backspace:{key:"DELETE",label:"delete",action:"turbo",w:2},
+ tab:{key:"TAB",label:"tab",action:"turbo",w:1.5},
+ q:{key:"Q",label:"q",shiftLabel:"Q",action:"turbo",w:1},
+ w:{key:"W",label:"w",shiftLabel:"W",action:"turbo",w:1},
+ e:{key:"E",label:"e",shiftLabel:"E",action:"turbo",w:1},
+ r:{key:"R",label:"r",shiftLabel:"R",action:"turbo",w:1},
+ t:{key:"T",label:"t",shiftLabel:"T",action:"turbo",w:1},
+ y:{key:"Y",label:"y",shiftLabel:"Y",action:"turbo",w:1},
+ u:{key:"U",label:"u",shiftLabel:"U",action:"turbo",w:1},
+ i:{key:"I",label:"i",shiftLabel:"I",action:"turbo",w:1},
+ o:{key:"O",label:"o",shiftLabel:"O",action:"turbo",w:1},
+ p:{key:"P",label:"p",shiftLabel:"P",action:"turbo",w:1},
+ lbracket:{key:"[",label:"[",shiftLabel:"{",action:"turbo",w:1},
+ rbracket:{key:"]",label:"]",shiftLabel:"}",action:"turbo",w:1},
+ bslash:{key:"\\",label:"\\",shiftLabel:"|",action:"turbo",w:1.5},
+ caps:{key:"CAPSLOCK",label:"caps",action:"hold",w:1.75},
+ a:{key:"A",label:"a",shiftLabel:"A",action:"turbo",w:1},
+ s:{key:"S",label:"s",shiftLabel:"S",action:"turbo",w:1},
+ d:{key:"D",label:"d",shiftLabel:"D",action:"turbo",w:1},
+ f:{key:"F",label:"f",shiftLabel:"F",action:"turbo",w:1},
+ g:{key:"G",label:"g",shiftLabel:"G",action:"turbo",w:1},
+ h:{key:"H",label:"h",shiftLabel:"H",action:"turbo",w:1},
+ j:{key:"J",label:"j",shiftLabel:"J",action:"turbo",w:1},
+ k:{key:"K",label:"k",shiftLabel:"K",action:"turbo",w:1},
+ l:{key:"L",label:"l",shiftLabel:"L",action:"turbo",w:1},
+ semicolon:{key:";",label:";",shiftLabel:":",action:"turbo",w:1},
+ quote:{key:"'",label:"'",shiftLabel:'"',action:"turbo",w:1},
+ return:{key:"RETURN",label:"return",action:"turbo",w:2.25},
+ lshift:{key:"SHIFT",label:"shift",action:"hold",w:2.25},
+ z:{key:"Z",label:"z",shiftLabel:"Z",action:"turbo",w:1},
+ x:{key:"X",label:"x",shiftLabel:"X",action:"turbo",w:1},
+ c:{key:"C",label:"c",shiftLabel:"C",action:"turbo",w:1},
+ v:{key:"V",label:"v",shiftLabel:"V",action:"turbo",w:1},
+ b:{key:"B",label:"b",shiftLabel:"B",action:"turbo",w:1},
+ n:{key:"N",label:"n",shiftLabel:"N",action:"turbo",w:1},
+ m:{key:"M",label:"m",shiftLabel:"M",action:"turbo",w:1},
+ comma:{key:",",label:",",shiftLabel:"<",action:"turbo",w:1},
+ period:{key:".",label:".",shiftLabel:">",action:"turbo",w:1},
+ slash:{key:"/",label:"/",shiftLabel:"?",action:"turbo",w:1},
+ rshift:{key:"SHIFT",label:"shift",action:"hold",w:2.75},
+ fn:{key:"FN",label:"fn",action:"turbo",w:1},
+ ctrl:{key:"CONTROL",label:"⌃",action:"hold",w:1.25},
+ opt:{key:"OPTION",label:"⌥",action:"hold",w:1.25},
+ cmd:{key:"COMMAND",label:"⌘",action:"hold",w:1.25},
+ space:{key:"SPACE",label:"",action:"turbo",w:6.25},
+ left:{key:"LEFT",label:"←",action:"turbo",w:1},
+ down:{key:"DOWN",label:"↓",action:"turbo",w:1},
+ up:{key:"UP",label:"↑",action:"turbo",w:1},
+ right:{key:"RIGHT",label:"→",action:"turbo",w:1},
+ home:{key:"HOME",label:"home",action:"turbo",w:1},
+ end:{key:"END",label:"end",action:"turbo",w:1},
+ pgup:{key:"PAGEUP",label:"pgup",action:"turbo",w:1},
+ pgdn:{key:"PAGEDOWN",label:"pgdn",action:"turbo",w:1},
+ fwddel:{key:"FWD_DELETE",label:"del",action:"turbo",w:1},
+ f1:{key:"F1",label:"F1",action:"turbo",w:1},f2:{key:"F2",label:"F2",action:"turbo",w:1},f3:{key:"F3",label:"F3",action:"turbo",w:1},f4:{key:"F4",label:"F4",action:"turbo",w:1},f5:{key:"F5",label:"F5",action:"turbo",w:1},f6:{key:"F6",label:"F6",action:"turbo",w:1},f7:{key:"F7",label:"F7",action:"turbo",w:1},f8:{key:"F8",label:"F8",action:"turbo",w:1},f9:{key:"F9",label:"F9",action:"turbo",w:1},f10:{key:"F10",label:"F10",action:"turbo",w:1},f11:{key:"F11",label:"F11",action:"turbo",w:1},f12:{key:"F12",label:"F12",action:"turbo",w:1},
+ numdiv:{key:"/",label:"/",action:"turbo",w:1},nummult:{key:"NUM_MULTIPLY",label:"*",action:"turbo",w:1},numminus:{key:"-",label:"-",action:"turbo",w:1},numadd:{key:"+",label:"+",action:"turbo",w:1},numequal:{key:"=",label:"=",action:"turbo",w:1},num0:{key:"0",label:"0",action:"turbo",w:2},numdot:{key:".",label:".",action:"turbo",w:1},numenter:{key:"ENTER",label:"enter",action:"turbo",w:1},num7:{key:"7",label:"7",action:"turbo",w:1},num8:{key:"8",label:"8",action:"turbo",w:1},num9:{key:"9",label:"9",action:"turbo",w:1},num4:{key:"4",label:"4",action:"turbo",w:1},num5:{key:"5",label:"5",action:"turbo",w:1},num6:{key:"6",label:"6",action:"turbo",w:1},num1:{key:"1",label:"1",action:"turbo",w:1},num2:{key:"2",label:"2",action:"turbo",w:1},num3:{key:"3",label:"3",action:"turbo",w:1}
+};
+var KB_LAYOUTS={
+ c65:{name:"65键紧凑",rows:[
+  {dy:0,dx:0,keys:["esc","grave","1","2","3","4","5","6","7","8","9","0","minus","equal","backspace"]},
+  {dy:1,dx:0,keys:["tab","q","w","e","r","t","y","u","i","o","p","lbracket","rbracket","bslash"]},
+  {dy:2,dx:0,keys:["caps","a","s","d","f","g","h","j","k","l","semicolon","quote","return"]},
+  {dy:3,dx:0,keys:["lshift","z","x","c","v","b","n","m","comma","period","slash","rshift"]},
+  {dy:4,dx:0,keys:["fn","ctrl","opt","cmd","space","cmd","opt","left","down","up","right"]}
+ ]},
+ tkl:{name:"83键 TKL",rows:[
+  {dy:0,dx:0,keys:["esc","f1","f2","f3","f4","f5","f6","f7","f8","f9","f10","f11","f12"]},
+  {dy:1,dx:0,keys:["grave","1","2","3","4","5","6","7","8","9","0","minus","equal","backspace"]},
+  {dy:2,dx:0,keys:["tab","q","w","e","r","t","y","u","i","o","p","lbracket","rbracket","bslash"]},
+  {dy:3,dx:0,keys:["caps","a","s","d","f","g","h","j","k","l","semicolon","quote","return"]},
+  {dy:4,dx:0,keys:["lshift","z","x","c","v","b","n","m","comma","period","slash","rshift"]},
+  {dy:5,dx:0,keys:["fn","ctrl","opt","cmd","space","cmd","opt","ctrl"]},
+  {dy:2,dx:16,keys:["home","pgup"]},
+  {dy:3,dx:16,keys:["fwddel","end","pgdn"]},
+  {dy:5,dx:16,keys:["left","down","up","right"]}
+ ]}
+};
+KB_LAYOUTS.full={name:"100键全尺寸",rows:KB_LAYOUTS.tkl.rows.concat([
+  {dy:1,dx:18,keys:["numdiv","nummult","numminus","numadd","numequal"]},
+  {dy:2,dx:18,keys:["num7","num8","num9"]},
+  {dy:3,dx:18,keys:["num4","num5","num6"]},
+  {dy:4,dx:18,keys:["num1","num2","num3"]},
+  {dy:5,dx:18,keys:["num0","numdot","numenter"]}
+])};
+var _kbMode="create",_kbLayout="c65",_kbSel=null;
+function kbLayoutIds(l){var out=[];KB_LAYOUTS[l].rows.forEach(function(r){r.keys.forEach(function(k){if(out.indexOf(k)<0)out.push(k)})});return out}
+function kbCap(id){
+  var d=KB_KEYS[id];if(!d)return"";
+  var w=(d.w||1)*38-3;
+  return '<div data-kbk="'+id+'" onclick="kbPick(\''+id+'\')" class="kbk'+( _kbSel===id?" kbk-sel":"")+'" style="width:'+w+'px;height:40px;background:#2a2a3a;border:1px solid #444;border-radius:5px;cursor:pointer;position:relative;box-sizing:border-box;flex:0 0 auto">'+
+   (d.shiftLabel?'<span style="position:absolute;top:2px;left:4px;font-size:9px;color:#a78bfa;line-height:1">'+hesc(d.shiftLabel)+'</span>':"")+
+   '<span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:12px;color:#e8e0d8;line-height:1">'+hesc(d.label||"")+'</span></div>';
+}
+function kbPickerTab(){
+  var tabs=document.getElementById("kbTabs");var _ls=["c65","tkl","full"];
+  tabs.innerHTML=_ls.map(function(l){var lo=KB_LAYOUTS[l];return '<button onclick="kbPickerTabSel(\''+l+'\')" style="padding:5px 12px;border-radius:4px;border:1px solid '+(l===_kbLayout?'var(--accent)':'var(--border)')+';background:'+(l===_kbLayout?'var(--accent)':'transparent')+';color:'+(l===_kbLayout?'#1a1a1a':'var(--dim)')+';cursor:pointer;font-size:12px">'+lo.name+'</button>'}).join("");
+  var rows=KB_LAYOUTS[_kbLayout].rows;var _mdy=0;
+  rows.forEach(function(r){if(r.dy>_mdy)_mdy=r.dy});
+  document.getElementById("kbBoard").innerHTML='<div style="position:relative;width:900px;height:'+((_mdy+1)*44)+'px;margin:0 auto">'+rows.map(function(r){
+    return '<div style="position:absolute;top:'+(r.dy*44)+'px;left:'+(r.dx*38)+'px;display:flex;gap:3px">'+r.keys.map(function(id){return kbCap(id)}).join("")+'</div>';
+  }).join("")+'</div>';
+  kbPickerBtns();
+}
+function kbPickerTabSel(l){_kbLayout=l;_kbSel=null;kbSelInfo();kbPickerTab()}
+function kbSelInfo(){
+  var _si=document.getElementById("kbSelInfo");if(!_si)return;
+  var d=_kbSel?KB_KEYS[_kbSel]:null;
+  _si.textContent=d?("已选: "+d.label+(d.shiftLabel?(" ⇧"+d.shiftLabel):"")+" → 注入 "+d.key):"点击按键选中,再点一次取消";
+}
+function kbPick(id){
+  _kbSel=(_kbSel===id)?null:id;
+  var bs=document.querySelectorAll("#kbBoard .kbk");
+  for(var i=0;i<bs.length;i++){bs[i].classList.toggle("kbk-sel",bs[i].getAttribute("data-kbk")===_kbSel)}
+  kbSelInfo();kbPickerBtns();
+}
+function kbPickerBtns(){
+  var b1=document.getElementById("kbBtnAll"),b2=document.getElementById("kbBtnOne");
+  if(b1)b1.style.display=_kbMode==="create"?"":"none";
+  if(b2){b2.textContent=_kbMode==="create"?"只拖选中键":"替换为选中键";b2.disabled=!_kbSel;b2.style.opacity=_kbSel?"1":"0.4";b2.style.cursor=_kbSel?"pointer":"default"}
+}
+function openKbPicker(mode){
+  _kbMode=mode||"create";_kbSel=null;_kbLayout="c65";
+  if(_kbMode==="change"){var k=cp_()?.keys.find(function(x){return x.id===selKey});if(k&&k.key){var _k=k.key;["c65","tkl","full"].forEach(function(l){if(_kbSel===null){var ids=kbLayoutIds(l);for(var i2=0;i2<ids.length;i2++){if(KB_KEYS[ids[i2]].key===_k){_kbLayout=l;_kbSel=ids[i2];break}}}})}}
+  kbSelInfo();kbPickerTab();document.getElementById("kbPicker").style.display="flex";
+}
+function closeKbPicker(){document.getElementById("kbPicker").style.display="none"}
+function _kbNewKey(d,id,ac,ar){
+  var nk={id:id,action:d.action||"turbo",kb:true,key:d.key,label:d.label,value:d.key,color:"#3a3a4a",sound:"",col:ac,row:ar,w:d.w||1,h:1};
+  if(d.shiftLabel)nk.shiftLabel=d.shiftLabel;
+  return nk;
+}
+function confirmKbLayout(){
   var page=cp_();if(!page)return;
+  var ac=window._pendingCol||0,ar=window._pendingRow||0,_ts=Date.now(),_i=0,added=[];
+  KB_LAYOUTS[_kbLayout].rows.forEach(function(r){
+    var cc=r.dx;
+    r.keys.forEach(function(id){var d=KB_KEYS[id];if(!d)return;
+      added.push(_kbNewKey(d,"k_"+_ts+"_"+(++_i),ac+cc,ar+r.dy));cc+=(d.w||1);
+    });
+  });
+  added.forEach(function(k){page.keys.push(k)});
+  _pushUndo([]);
+  if(added.length){selKey=added[0].id;selKeys.clear();selKeys.add(selKey)}
+  dirty=true;closeKbPicker();rr();rpr();
+}
+function confirmKbKey(){
+  var page=cp_();if(!page||!_kbSel)return;
+  var d=KB_KEYS[_kbSel];if(!d)return;
+  if(_kbMode==="change"){
+    var k=page.keys.find(function(x){return x.id===selKey});if(!k)return;
+    var before=_snapshot(k);
+    k.kb=true;k.key=d.key;k.label=d.label;k.value=d.key;k.w=d.w||1;
+    if(d.shiftLabel){k.shiftLabel=d.shiftLabel}else{delete k.shiftLabel}
+    k.action=d.action||"turbo";
+    dirty=true;if(JSON.stringify(before)!==JSON.stringify(_snapshot(k)))_pushUndo([before]);
+    closeKbPicker();rr();rpr();return;
+  }
+  var nk=_kbNewKey(d,"k_"+Date.now()+"_kb",window._pendingCol||0,window._pendingRow||0);
+  page.keys.push(nk);_pushUndo([]);selKey=nk.id;selKeys.clear();selKeys.add(nk.id);
+  dirty=true;closeKbPicker();rr();rpr();
+}
+
+var WIDGET_TYPES={key:{label:"Regular Key",defaults:{w:1.25,h:1.25,color:"#3a3a4a",action:"turbo",label:"Key"}},touchpad:{label:"Touch Pad",defaults:{w:4,h:3,color:"#2a3a5a",action:"touchpad",label:"Touch Pad",scrollEnabled:true,rightClickEnabled:true}},volume:{label:"Volume Slider",defaults:{w:2.5,h:1.25,color:"#002455",action:"volume",iconColor:"#a1ffd1",layout:"horizontal",label:"Volume"}},micmute:{label:"Mic Mute",defaults:{w:2.5,h:1.25,color:"#1a2a2a",action:"mic-mute",showLevel:true,micBgColor:"#d400ec",micLevelColor:"#c6fea5",micIconColor:"#05f8ff",micColor:"#b9ff71",label:"Mic"}},audioout:{label:"Audio Out",defaults:{w:3.25,h:1.25,color:"#002455",action:"audio-out",tapAction:"cycle",holdAction:"menu",label:"Audio Out"}},audioin:{label:"Audio In",defaults:{w:3.25,h:1.25,color:"#1a2a2a",action:"audio-in",tapAction:"cycle",holdAction:"menu",label:"Audio In"}},activeapp:{label:"Window Switcher",defaults:{w:9.25,h:3,color:"#1a1a1a",action:"active-app",label:"Apps",sound:"",closeSound:""}},wingesture:{label:"Window Control · Swipe",defaults:{w:3.25,h:3,color:"#00334a",iconColor:"#cfd8dc",bgOpacity:0.53,action:"win-gesture",label:"Gesture"}},fullscreen:{label:"Fullscreen Toggle",defaults:{w:1.5,h:1.25,color:"#1a3a2a",action:"fullscreen",label:"Fullscreen",showIcon:true,showLabel:true,iconSize:20}},dock:{label:"Dock Panel",defaults:{w:9.25,h:1.5,color:"#1a1a1a",action:"dock",bgOpacity:0.11,bgColor:"#ffffff",label:"Dock"}},switchprofile:{label:"Switch Profile",defaults:{w:1.5,h:1.25,color:"#2a1a3a",action:"switch-profile",switchMode:"hold",label:"Profile",iconColor:"#a78bfa",showIcon:true,showLabel:true,iconSize:20}},imeswitch:{label:"Input Method",defaults:{w:2,h:1.25,color:"#1a2a3a",action:"ime-switch",iconColor:"#4ade80",showIcon:true,showLabel:true,iconSize:20,tapAction:"cycle",tapTarget:"",holdAction:"select",holdTarget:"",label:"Input Method"}},balance:{label:"Deepseek Balance",defaults:{w:3.5,h:1.25,color:"#003a5a",action:"balance",showFlags:{total:true,granted:true,topped:true},label:"Balance"}},textmacro:{label:"Text Macro",defaults:{w:4,h:2.5,color:"#1a2a1a",action:"text-macro",label:"Text Macro",macroText:""}},keyboard:{label:"Keyboard Key",defaults:{w:1,h:1,color:"#3a3a4a",action:"turbo",label:"Key"}}};;function addKeyOfType(type){
+  var page=cp_();if(!page)return;
+  if(type==="keyboard"){closeKeyTypeModal();openKbPicker("create");return}
   var wt=WIDGET_TYPES[type]||WIDGET_TYPES.key;
   var d=wt.defaults;
   page.keys.push({id:"k_"+Date.now(),label:d.label||"?",action:d.action,value:"A",
@@ -1394,4 +1585,5 @@ background:transparent;color:var(--dim);border:1px solid var(--border);border-ra
 <div id="textMacroModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center"><div style="background:var(--panel);padding:24px;border-radius:8px;border:1px solid var(--accent);width:520px"><h3 style="margin-bottom:4px">Edit Text Macro</h3><p style="color:var(--dim);margin:4px 0;font-size:11px">Editing: <span id="tmModalKeyLabel">—</span></p><textarea id="tmModalTextArea" placeholder="Type the text to send..." style="width:100%;box-sizing:border-box;margin:12px 0;padding:12px;background:var(--bg);border-radius:6px;border:2px solid var(--border);min-height:120px;font-family:monospace;font-size:14px;color:var(--text);resize:vertical"></textarea><div style="display:flex;gap:8px;margin-bottom:8px"><button id="tmBtnClear" onclick="tmClearText()" style="flex:1;padding:10px;background:transparent;color:var(--dim);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:13px">Clear</button></div><div style="display:flex;gap:8px;justify-content:flex-end"><button onclick="closeTextMacroModal(false)" style="padding:8px 16px;background:transparent;color:var(--dim);border:1px solid var(--border);border-radius:4px;cursor:pointer">Cancel</button><button onclick="closeTextMacroModal(true)" style="padding:8px 16px;background:var(--green);color:#fff;border:none;border-radius:4px;cursor:pointer">Save</button></div></div></div>
 <div id="apiKeyModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:201;align-items:center;justify-content:center"><div style="background:var(--panel);padding:24px;border-radius:8px;border:1px solid #f59e0b;width:480px"><h3 style="margin-bottom:4px;color:#f59e0b">DeepSeek API Key</h3><p id="apiKeyModalHint" style="color:var(--dim);margin:4px 0 12px;font-size:11px"></p><input type="password" id="apiKeyModalInput" placeholder="sk-..." style="width:100%;padding:10px;background:var(--bg);color:var(--text);border:2px solid var(--border);border-radius:6px;font-size:14px;font-family:monospace;box-sizing:border-box"><p id="apiKeyModalMsg" style="font-size:11px;color:var(--dim);margin:8px 0;min-height:18px">Your key is stored locally and never sent to any third party.</p><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button onclick="closeApiKeyModal()" style="padding:8px 16px;background:transparent;color:var(--dim);border:1px solid var(--border);border-radius:4px;cursor:pointer">Cancel</button><button onclick="saveApiKey()" style="padding:8px 16px;background:#f59e0b;color:#1a1a1a;border:none;border-radius:4px;cursor:pointer;font-weight:600">Save</button></div></div></div>
 <div id="iconPicker" onclick="if(event.target===this)closeIconPicker()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:202;align-items:center;justify-content:center"><div style="background:var(--panel);padding:20px;border-radius:8px;border:1px solid var(--border);width:540px;max-width:92vw;max-height:80vh;display:flex;flex-direction:column"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><h3 style="margin:0;color:var(--text);font-size:15px">设置和选择 icon</h3><button onclick="closeIconPicker()" style="background:transparent;color:var(--dim);border:1px solid var(--border);border-radius:4px;cursor:pointer;padding:4px 10px;font-size:12px">&#x2715;</button></div><input id="ipSearch" type="text" placeholder="&#x1F50D; Search icons..." oninput="iconPickerSearch(this.value)" style="width:100%;padding:8px 10px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;font-size:12px;box-sizing:border-box;margin-bottom:10px"><div id="ipTabs" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px"></div><div id="ipGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:6px;overflow-y:auto;padding:4px;flex:1;min-height:200px"></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button onclick="closeIconPicker()" style="padding:8px 16px;background:var(--accent);color:#1a1a1a;border:none;border-radius:4px;cursor:pointer;font-weight:600">关闭</button></div></div></div>
+<div id="kbPicker" onclick="if(event.target===this)closeKbPicker()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:203;align-items:center;justify-content:center"><div style="background:var(--panel);padding:20px;border-radius:8px;border:1px solid var(--border);max-width:94vw;max-height:90vh;display:flex;flex-direction:column"><style>#kbPicker .kbk-sel{outline:2px solid var(--accent);background:#3a3050!important}#kbPicker .kbk:hover{outline:1px solid var(--accent)}</style><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><h3 style="margin:0;color:var(--text);font-size:15px">选择键盘按键</h3><button onclick="closeKbPicker()" style="background:transparent;color:var(--dim);border:1px solid var(--border);border-radius:4px;cursor:pointer;padding:4px 10px;font-size:12px">&#x2715;</button></div><div id="kbTabs" style="display:flex;gap:6px;margin-bottom:12px"></div><div id="kbBoard" style="overflow:auto;padding:4px;flex:1;min-height:220px"></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;align-items:center"><span id="kbSelInfo" style="flex:1;font-size:11px;color:var(--dim)">点击按键选中,再点一次取消</span><button id="kbBtnAll" onclick="confirmKbLayout()" style="padding:8px 16px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-weight:600">拖入整键盘</button><button id="kbBtnOne" onclick="confirmKbKey()" disabled style="padding:8px 16px;background:var(--accent);color:#1a1a1a;border:none;border-radius:4px;cursor:default;font-weight:600;opacity:0.4">只拖选中键</button><button onclick="closeKbPicker()" style="padding:8px 16px;background:transparent;color:var(--dim);border:1px solid var(--border);border-radius:4px;cursor:pointer">取消</button></div></div></div>
 </body></html>
