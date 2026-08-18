@@ -50,7 +50,9 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "ESCAPE",
+          "kb": true
         },
         {
           "id": "grave",
@@ -66,7 +68,10 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "`",
+          "shiftLabel": "~",
+          "kb": true
         },
         {
           "id": "n1",
@@ -82,7 +87,10 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "1",
+          "shiftLabel": "!",
+          "kb": true
         },
         {
           "id": "n2",
@@ -98,7 +106,10 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "2",
+          "shiftLabel": "@",
+          "kb": true
         },
         {
           "id": "n3",
@@ -114,7 +125,10 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "3",
+          "shiftLabel": "#",
+          "kb": true
         },
         {
           "id": "n4",
@@ -130,7 +144,10 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "4",
+          "shiftLabel": "$",
+          "kb": true
         },
         {
           "id": "n5",
@@ -146,7 +163,10 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "5",
+          "shiftLabel": "%",
+          "kb": true
         },
         {
           "id": "n6",
@@ -162,7 +182,10 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "6",
+          "shiftLabel": "^",
+          "kb": true
         },
         {
           "id": "n7",
@@ -178,7 +201,10 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "7",
+          "shiftLabel": "&",
+          "kb": true
         },
         {
           "id": "n8",
@@ -194,7 +220,10 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "8",
+          "shiftLabel": "*",
+          "kb": true
         },
         {
           "id": "n9",
@@ -210,7 +239,10 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "9",
+          "shiftLabel": "(",
+          "kb": true
         },
         {
           "id": "n0",
@@ -226,7 +258,10 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "0",
+          "shiftLabel": ")",
+          "kb": true
         },
         {
           "id": "minus",
@@ -242,7 +277,10 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "-",
+          "shiftLabel": "_",
+          "kb": true
         },
         {
           "id": "equal",
@@ -258,7 +296,10 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "=",
+          "shiftLabel": "+",
+          "kb": true
         },
         {
           "id": "delete",
@@ -274,7 +315,9 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "DELETE",
+          "kb": true
         },
         {
           "id": "tab",
@@ -290,11 +333,13 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "TAB",
+          "kb": true
         },
         {
           "id": "q",
-          "label": "Q",
+          "label": "q",
           "col": -5,
           "row": -2.75,
           "w": 1,
@@ -308,11 +353,14 @@
           "groups": [
             "g_1783597957926"
           ],
-          "closeSound": ""
+          "closeSound": "",
+          "key": "Q",
+          "shiftLabel": "Q",
+          "kb": true
         },
         {
           "id": "w",
-          "label": "W",
+          "label": "w",
           "col": -4,
           "row": -2.75,
           "w": 1,
@@ -326,11 +374,14 @@
           "groups": [
             "g_1783597957926"
           ],
-          "closeSound": ""
+          "closeSound": "",
+          "key": "W",
+          "shiftLabel": "W",
+          "kb": true
         },
         {
           "id": "e",
-          "label": "E",
+          "label": "e",
           "col": -3,
           "row": -2.75,
           "w": 1,
@@ -344,11 +395,14 @@
           "groups": [
             "g_1783597957926"
           ],
-          "closeSound": ""
+          "closeSound": "",
+          "key": "E",
+          "shiftLabel": "E",
+          "kb": true
         },
         {
           "id": "r",
-          "label": "R",
+          "label": "r",
           "col": -2,
           "row": -2.75,
           "w": 1,
@@ -362,11 +416,14 @@
           "groups": [
             "g_1783597957926"
           ],
-          "closeSound": ""
+          "closeSound": "",
+          "key": "R",
+          "shiftLabel": "R",
+          "kb": true
         },
         {
           "id": "t",
-          "label": "T",
+          "label": "t",
           "col": -1,
           "row": -2.75,
           "w": 1,
@@ -380,11 +437,14 @@
           "groups": [
             "g_1783597957926"
           ],
-          "closeSound": ""
+          "closeSound": "",
+          "key": "T",
+          "shiftLabel": "T",
+          "kb": true
         },
         {
           "id": "y",
-          "label": "Y",
+          "label": "y",
           "col": 0,
           "row": -2.75,
           "w": 1,
@@ -398,11 +458,14 @@
           "groups": [
             "g_1783597957926"
           ],
-          "closeSound": ""
+          "closeSound": "",
+          "key": "Y",
+          "shiftLabel": "Y",
+          "kb": true
         },
         {
           "id": "u",
-          "label": "U",
+          "label": "u",
           "col": 1,
           "row": -2.75,
           "w": 1,
@@ -416,11 +479,14 @@
           "groups": [
             "g_1783597957926"
           ],
-          "closeSound": ""
+          "closeSound": "",
+          "key": "U",
+          "shiftLabel": "U",
+          "kb": true
         },
         {
           "id": "i",
-          "label": "I",
+          "label": "i",
           "col": 2,
           "row": -2.75,
           "w": 1,
@@ -434,11 +500,14 @@
           "groups": [
             "g_1783597957926"
           ],
-          "closeSound": ""
+          "closeSound": "",
+          "key": "I",
+          "shiftLabel": "I",
+          "kb": true
         },
         {
           "id": "o",
-          "label": "O",
+          "label": "o",
           "col": 3,
           "row": -2.75,
           "w": 1,
@@ -452,11 +521,14 @@
           "groups": [
             "g_1783597957926"
           ],
-          "closeSound": ""
+          "closeSound": "",
+          "key": "O",
+          "shiftLabel": "O",
+          "kb": true
         },
         {
           "id": "p",
-          "label": "P",
+          "label": "p",
           "col": 4,
           "row": -2.75,
           "w": 1,
@@ -470,7 +542,10 @@
           "groups": [
             "g_1783597957926"
           ],
-          "closeSound": ""
+          "closeSound": "",
+          "key": "P",
+          "shiftLabel": "P",
+          "kb": true
         },
         {
           "id": "lbracket",
@@ -488,7 +563,10 @@
           "groups": [
             "g_1783597957926"
           ],
-          "closeSound": ""
+          "closeSound": "",
+          "key": "[",
+          "shiftLabel": "{",
+          "kb": true
         },
         {
           "id": "rbracket",
@@ -506,7 +584,10 @@
           "groups": [
             "g_1783597957926"
           ],
-          "closeSound": ""
+          "closeSound": "",
+          "key": "]",
+          "shiftLabel": "}",
+          "kb": true
         },
         {
           "id": "bslash",
@@ -524,7 +605,10 @@
           "groups": [
             "g_1783597957926"
           ],
-          "closeSound": ""
+          "closeSound": "",
+          "key": "\\",
+          "shiftLabel": "|",
+          "kb": true
         },
         {
           "id": "caps",
@@ -540,11 +624,13 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "CAPSLOCK",
+          "kb": true
         },
         {
           "id": "a",
-          "label": "A",
+          "label": "a",
           "col": -4.5,
           "row": -1.75,
           "w": 1,
@@ -556,11 +642,14 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "A",
+          "shiftLabel": "A",
+          "kb": true
         },
         {
           "id": "s",
-          "label": "S",
+          "label": "s",
           "col": -3.5,
           "row": -1.75,
           "w": 1,
@@ -572,11 +661,14 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "S",
+          "shiftLabel": "S",
+          "kb": true
         },
         {
           "id": "d",
-          "label": "D",
+          "label": "d",
           "col": -2.5,
           "row": -1.75,
           "w": 1,
@@ -588,11 +680,14 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "D",
+          "shiftLabel": "D",
+          "kb": true
         },
         {
           "id": "f",
-          "label": "F",
+          "label": "f",
           "col": -1.5,
           "row": -1.75,
           "w": 1,
@@ -604,11 +699,14 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "F",
+          "shiftLabel": "F",
+          "kb": true
         },
         {
           "id": "g",
-          "label": "G",
+          "label": "g",
           "col": -0.5,
           "row": -1.75,
           "w": 1,
@@ -620,11 +718,14 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "G",
+          "shiftLabel": "G",
+          "kb": true
         },
         {
           "id": "h",
-          "label": "H",
+          "label": "h",
           "col": 0.5,
           "row": -1.75,
           "w": 1,
@@ -636,11 +737,14 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "H",
+          "shiftLabel": "H",
+          "kb": true
         },
         {
           "id": "j",
-          "label": "J",
+          "label": "j",
           "col": 1.5,
           "row": -1.75,
           "w": 1,
@@ -652,11 +756,14 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "J",
+          "shiftLabel": "J",
+          "kb": true
         },
         {
           "id": "k",
-          "label": "K",
+          "label": "k",
           "col": 2.5,
           "row": -1.75,
           "w": 1,
@@ -668,11 +775,14 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "K",
+          "shiftLabel": "K",
+          "kb": true
         },
         {
           "id": "l",
-          "label": "L",
+          "label": "l",
           "col": 3.5,
           "row": -1.75,
           "w": 1,
@@ -684,7 +794,10 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "L",
+          "shiftLabel": "L",
+          "kb": true
         },
         {
           "id": "semicolon",
@@ -700,7 +813,10 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": ";",
+          "shiftLabel": ":",
+          "kb": true
         },
         {
           "id": "quote",
@@ -716,7 +832,10 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "'",
+          "shiftLabel": "\"",
+          "kb": true
         },
         {
           "id": "return",
@@ -732,7 +851,9 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "RETURN",
+          "kb": true
         },
         {
           "id": "lshift",
@@ -748,11 +869,13 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "SHIFT",
+          "kb": true
         },
         {
           "id": "z",
-          "label": "Z",
+          "label": "z",
           "col": -4.25,
           "row": -0.75,
           "w": 1,
@@ -764,11 +887,14 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "Z",
+          "shiftLabel": "Z",
+          "kb": true
         },
         {
           "id": "x",
-          "label": "X",
+          "label": "x",
           "col": -3.25,
           "row": -0.75,
           "w": 1,
@@ -780,11 +906,14 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "X",
+          "shiftLabel": "X",
+          "kb": true
         },
         {
           "id": "c",
-          "label": "C",
+          "label": "c",
           "col": -2.25,
           "row": -0.75,
           "w": 1,
@@ -796,11 +925,14 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "C",
+          "shiftLabel": "C",
+          "kb": true
         },
         {
           "id": "v",
-          "label": "V",
+          "label": "v",
           "col": -1.25,
           "row": -0.75,
           "w": 1,
@@ -812,11 +944,14 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "V",
+          "shiftLabel": "V",
+          "kb": true
         },
         {
           "id": "b",
-          "label": "B",
+          "label": "b",
           "col": -0.25,
           "row": -0.75,
           "w": 1,
@@ -828,11 +963,14 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "B",
+          "shiftLabel": "B",
+          "kb": true
         },
         {
           "id": "n",
-          "label": "N",
+          "label": "n",
           "col": 0.75,
           "row": -0.75,
           "w": 1,
@@ -844,11 +982,14 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "N",
+          "shiftLabel": "N",
+          "kb": true
         },
         {
           "id": "m",
-          "label": "M",
+          "label": "m",
           "col": 1.75,
           "row": -0.75,
           "w": 1,
@@ -860,7 +1001,10 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "M",
+          "shiftLabel": "M",
+          "kb": true
         },
         {
           "id": "comma",
@@ -876,7 +1020,10 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": ",",
+          "shiftLabel": "<",
+          "kb": true
         },
         {
           "id": "period",
@@ -892,7 +1039,10 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": ".",
+          "shiftLabel": ">",
+          "kb": true
         },
         {
           "id": "slash",
@@ -908,7 +1058,10 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "/",
+          "shiftLabel": "?",
+          "kb": true
         },
         {
           "id": "rshift",
@@ -924,7 +1077,9 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "SHIFT",
+          "kb": true
         },
         {
           "id": "up",
@@ -940,7 +1095,9 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "UP",
+          "kb": true
         },
         {
           "id": "fn",
@@ -950,13 +1107,15 @@
           "w": 1,
           "h": 1,
           "action": "turbo",
-          "value": "F13",
+          "value": "FN",
           "color": "#555",
           "sound": "deep",
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "kb": true,
+          "key": "FN"
         },
         {
           "id": "lctrl",
@@ -972,7 +1131,9 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "CONTROL",
+          "kb": true
         },
         {
           "id": "lopt",
@@ -988,7 +1149,9 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "OPTION",
+          "kb": true
         },
         {
           "id": "lcmd",
@@ -1004,7 +1167,9 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "COMMAND",
+          "kb": true
         },
         {
           "id": "space",
@@ -1020,7 +1185,9 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "SPACE",
+          "kb": true
         },
         {
           "id": "rcmd",
@@ -1036,7 +1203,9 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "COMMAND",
+          "kb": true
         },
         {
           "id": "ropt",
@@ -1052,7 +1221,9 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "OPTION",
+          "kb": true
         },
         {
           "id": "left",
@@ -1068,7 +1239,9 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "LEFT",
+          "kb": true
         },
         {
           "id": "down",
@@ -1084,7 +1257,9 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "DOWN",
+          "kb": true
         },
         {
           "id": "right",
@@ -1100,7 +1275,9 @@
           "borderRadius": 10,
           "groupId": null,
           "groups": null,
-          "closeSound": ""
+          "closeSound": "",
+          "key": "RIGHT",
+          "kb": true
         },
         {
           "id": "k_1783593068323",
