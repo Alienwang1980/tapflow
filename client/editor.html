@@ -1419,7 +1419,7 @@ var KB_KEYS={
  fn:{key:"FN",label:"fn",action:"turbo",w:1},
  ctrl:{key:"CONTROL",label:"⌃",action:"hold",w:1.25},
  opt:{key:"OPTION",label:"⌥",action:"hold",w:1.25},
- cmd:{key:"COMMAND",label:"⌘",action:"hold",w:1.25},
+ cmd:{key:"COMMAND",label:"⌘",action:"hold",w:1.25},rcmd:{key:"COMMAND",label:"⌘",action:"hold",w:1.5},ropt:{key:"OPTION",label:"⌥",action:"hold",w:1.5},rmacro:{key:"CONTROL",label:"⌃",action:"macro",w:1.5},
  space:{key:"SPACE",label:"",action:"turbo",w:6.25},
  left:{key:"LEFT",label:"←",action:"turbo",w:1},
  down:{key:"DOWN",label:"↓",action:"turbo",w:1},
@@ -1433,60 +1433,56 @@ var KB_KEYS={
  insert:{key:"HELP",label:"ins",action:"turbo",w:1},
  prtsc:{key:"F13",label:"prtsc",action:"turbo",w:1},scrlk:{key:"F14",label:"scrlk",action:"turbo",w:1},pause:{key:"F15",label:"pause",action:"turbo",w:1},
  f1:{key:"F1",label:"F1",action:"turbo",w:1},f2:{key:"F2",label:"F2",action:"turbo",w:1},f3:{key:"F3",label:"F3",action:"turbo",w:1},f4:{key:"F4",label:"F4",action:"turbo",w:1},f5:{key:"F5",label:"F5",action:"turbo",w:1},f6:{key:"F6",label:"F6",action:"turbo",w:1},f7:{key:"F7",label:"F7",action:"turbo",w:1},f8:{key:"F8",label:"F8",action:"turbo",w:1},f9:{key:"F9",label:"F9",action:"turbo",w:1},f10:{key:"F10",label:"F10",action:"turbo",w:1},f11:{key:"F11",label:"F11",action:"turbo",w:1},f12:{key:"F12",label:"F12",action:"turbo",w:1},
- numlock:{key:"KEYPAD_CLEAR",label:"numlock",action:"turbo",w:1},numdiv:{key:"KEYPAD_DIVIDE",label:"/",action:"turbo",w:1},nummult:{key:"KEYPAD_MULTIPLY",label:"*",action:"turbo",w:1},numminus:{key:"KEYPAD_MINUS",label:"-",action:"turbo",w:1},numadd:{key:"KEYPAD_PLUS",label:"+",action:"turbo",w:1,h:3},num0:{key:"KEYPAD0",label:"0",action:"turbo",w:2},numdot:{key:"KEYPAD_DECIMAL",label:".",action:"turbo",w:1},numenter:{key:"ENTER",label:"enter",action:"turbo",w:1,h:2},num7:{key:"KEYPAD7",label:"7",action:"turbo",w:1},num8:{key:"KEYPAD8",label:"8",action:"turbo",w:1},num9:{key:"KEYPAD9",label:"9",action:"turbo",w:1},num4:{key:"KEYPAD4",label:"4",action:"turbo",w:1},num5:{key:"KEYPAD5",label:"5",action:"turbo",w:1},num6:{key:"KEYPAD6",label:"6",action:"turbo",w:1},num1:{key:"KEYPAD1",label:"1",action:"turbo",w:1},num2:{key:"KEYPAD2",label:"2",action:"turbo",w:1},num3:{key:"KEYPAD3",label:"3",action:"turbo",w:1}
+ numlock:{key:"KEYPAD_CLEAR",label:"num",action:"turbo",w:1},numdiv:{key:"KEYPAD_DIVIDE",label:"/",action:"turbo",w:1},nummult:{key:"KEYPAD_MULTIPLY",label:"*",action:"turbo",w:1},numminus:{key:"KEYPAD_MINUS",label:"-",action:"turbo",w:1},numadd:{key:"KEYPAD_PLUS",label:"+",action:"turbo",w:1,h:3},num0:{key:"KEYPAD0",label:"0",action:"turbo",w:2},numdot:{key:"KEYPAD_DECIMAL",label:".",action:"turbo",w:1},numenter:{key:"ENTER",label:"enter",action:"turbo",w:1,h:2},num7:{key:"KEYPAD7",label:"7",action:"turbo",w:1},num8:{key:"KEYPAD8",label:"8",action:"turbo",w:1},num9:{key:"KEYPAD9",label:"9",action:"turbo",w:1},num4:{key:"KEYPAD4",label:"4",action:"turbo",w:1},num5:{key:"KEYPAD5",label:"5",action:"turbo",w:1},num6:{key:"KEYPAD6",label:"6",action:"turbo",w:1},num1:{key:"KEYPAD1",label:"1",action:"turbo",w:1},num2:{key:"KEYPAD2",label:"2",action:"turbo",w:1},num3:{key:"KEYPAD3",label:"3",action:"turbo",w:1}
 };
 var KB_LAYOUTS={
- c65:{name:"65键紧凑",rows:[
-  {dy:0,dx:0,keys:["esc","grave","1","2","3","4","5","6","7","8","9","0","minus","equal","backspace"]},
-  {dy:1,dx:0,keys:["tab","q","w","e","r","t","y","u","i","o","p","lbracket","rbracket","bslash"]},
-  {dy:2,dx:0,keys:["caps","a","s","d","f","g","h","j","k","l","semicolon","quote","return"]},
-  {dy:3,dx:0,keys:["lshift","z","x","c","v","b","n","m","comma","period","slash","rshift"]},
-  {dy:4,dx:0,keys:["fn","ctrl","opt","cmd","space","cmd","opt"]},
-  {dy:4,dx:13.25,keys:["up"]},
-  {dy:5,dx:12.25,keys:["left","down","right"]}
- ],wOverrides:{backspace:1.25,tab:1.75,caps:2,lshift:2.5,space:6}},
- tkl:{name:"87键 TKL",rows:[
-  {dy:0,dx:0,keys:["esc","f1","f2","f3","f4","f5","f6","f7","f8","f9","f10","f11","f12"]},
-  {dy:0,dx:16,keys:["prtsc","scrlk","pause"]},
-  {dy:1,dx:0,keys:["grave","1","2","3","4","5","6","7","8","9","0","minus","equal","backspace"]},
-  {dy:1,dx:16,keys:["insert","home","pgup"]},
-  {dy:2,dx:0,keys:["tab","q","w","e","r","t","y","u","i","o","p","lbracket","rbracket","bslash"]},
-  {dy:2,dx:16,keys:["fwddel","end","pgdn"]},
-  {dy:3,dx:0,keys:["caps","a","s","d","f","g","h","j","k","l","semicolon","quote","return"]},
-  {dy:4,dx:0,keys:["lshift","z","x","c","v","b","n","m","comma","period","slash","rshift"]},
-  {dy:4,dx:16,keys:["up"]},
-  {dy:5,dx:0,keys:["fn","ctrl","opt","cmd","space","cmd","opt","ctrl"]},
-  {dy:5,dx:16,keys:["left","down","right"]}
+ main:{name:"主键盘 78",keys:[
+  {id:"esc",x:1.5,y:-4,w:1.5,h:1},
+  {id:"f1",x:3.25,y:-4,w:1,h:1},{id:"f2",x:4.25,y:-4,w:1,h:1},{id:"f3",x:5.25,y:-4,w:1,h:1},{id:"f4",x:6.25,y:-4,w:1,h:1},
+  {id:"f5",x:7.5,y:-4,w:1,h:1},{id:"f6",x:8.5,y:-4,w:1,h:1},{id:"f7",x:9.5,y:-4,w:1,h:1},{id:"f8",x:10.5,y:-4,w:1,h:1},
+  {id:"f9",x:11.75,y:-4,w:1,h:1},{id:"f10",x:12.75,y:-4,w:1,h:1},{id:"f11",x:13.75,y:-4,w:1,h:1},{id:"f12",x:14.75,y:-4,w:1,h:1},
+  {id:"grave",x:1.5,y:-2.75,w:1,h:1},{id:"1",x:2.5,y:-2.75,w:1,h:1},{id:"2",x:3.5,y:-2.75,w:1,h:1},{id:"3",x:4.5,y:-2.75,w:1,h:1},{id:"4",x:5.5,y:-2.75,w:1,h:1},{id:"5",x:6.5,y:-2.75,w:1,h:1},{id:"6",x:7.5,y:-2.75,w:1,h:1},{id:"7",x:8.5,y:-2.75,w:1,h:1},{id:"8",x:9.5,y:-2.75,w:1,h:1},{id:"9",x:10.5,y:-2.75,w:1,h:1},{id:"0",x:11.5,y:-2.75,w:1,h:1},{id:"minus",x:12.5,y:-2.75,w:1,h:1},{id:"equal",x:13.5,y:-2.75,w:1,h:1},{id:"backspace",x:14.5,y:-2.75,w:1.25,h:1},
+  {id:"tab",x:1.5,y:-1.75,w:1.25,h:1},{id:"q",x:2.75,y:-1.75,w:1,h:1},{id:"w",x:3.75,y:-1.75,w:1,h:1},{id:"e",x:4.75,y:-1.75,w:1,h:1},{id:"r",x:5.75,y:-1.75,w:1,h:1},{id:"t",x:6.75,y:-1.75,w:1,h:1},{id:"y",x:7.75,y:-1.75,w:1,h:1},{id:"u",x:8.75,y:-1.75,w:1,h:1},{id:"i",x:9.75,y:-1.75,w:1,h:1},{id:"o",x:10.75,y:-1.75,w:1,h:1},{id:"p",x:11.75,y:-1.75,w:1,h:1},{id:"lbracket",x:12.75,y:-1.75,w:1,h:1},{id:"rbracket",x:13.75,y:-1.75,w:1,h:1},{id:"bslash",x:14.75,y:-1.75,w:1,h:1},
+  {id:"caps",x:1.5,y:-0.75,w:1.75,h:1},{id:"a",x:3.25,y:-0.75,w:1,h:1},{id:"s",x:4.25,y:-0.75,w:1,h:1},{id:"d",x:5.25,y:-0.75,w:1,h:1},{id:"f",x:6.25,y:-0.75,w:1,h:1},{id:"g",x:7.25,y:-0.75,w:1,h:1},{id:"h",x:8.25,y:-0.75,w:1,h:1},{id:"j",x:9.25,y:-0.75,w:1,h:1},{id:"k",x:10.25,y:-0.75,w:1,h:1},{id:"l",x:11.25,y:-0.75,w:1,h:1},{id:"semicolon",x:12.25,y:-0.75,w:1,h:1},{id:"quote",x:13.25,y:-0.75,w:1,h:1},{id:"return",x:14.25,y:-0.75,w:1.5,h:1},
+  {id:"lshift",x:1.5,y:0.25,w:2,h:1},{id:"z",x:3.5,y:0.25,w:1,h:1},{id:"x",x:4.5,y:0.25,w:1,h:1},{id:"c",x:5.5,y:0.25,w:1,h:1},{id:"v",x:6.5,y:0.25,w:1,h:1},{id:"b",x:7.5,y:0.25,w:1,h:1},{id:"n",x:8.5,y:0.25,w:1,h:1},{id:"m",x:9.5,y:0.25,w:1,h:1},{id:"comma",x:10.5,y:0.25,w:1,h:1},{id:"period",x:11.5,y:0.25,w:1,h:1},{id:"slash",x:12.5,y:0.25,w:1,h:1},{id:"rshift",x:13.5,y:0.25,w:2.25,h:1},
+  {id:"fn",x:1.5,y:1.25,w:1,h:1},{id:"ctrl",x:2.5,y:1.25,w:1.25,h:1},{id:"opt",x:3.75,y:1.25,w:1.25,h:1},{id:"cmd",x:5,y:1.25,w:1.25,h:1},{id:"space",x:6.25,y:1.25,w:5,h:1},{id:"rcmd",x:11.25,y:1.25,w:1.5,h:1},{id:"ropt",x:12.75,y:1.25,w:1.5,h:1},{id:"rmacro",x:14.25,y:1.25,w:1.5,h:1},
+  {id:"up",x:13.75,y:2.5,w:1,h:1},
+  {id:"left",x:12.75,y:3.5,w:1,h:1},{id:"down",x:13.75,y:3.5,w:1,h:1},{id:"right",x:14.75,y:3.5,w:1,h:1}
+ ]},
+ numpad:{name:"小键盘 30",keys:[
+  {id:"prtsc",x:-3.25,y:-2,w:1,h:1},{id:"scrlk",x:-2.25,y:-2,w:1,h:1},{id:"pause",x:-1.25,y:-2,w:1,h:1},
+  {id:"insert",x:-3.25,y:-1,w:1,h:1},{id:"home",x:-2.25,y:-1,w:1,h:1},{id:"pgup",x:-1.25,y:-1,w:1,h:1},
+  {id:"fwddel",x:-3.25,y:0,w:1,h:1},{id:"end",x:-2.25,y:0,w:1,h:1},{id:"pgdn",x:-1.25,y:0,w:1,h:1},
+  {id:"up",x:-2.25,y:1.25,w:1,h:1},
+  {id:"left",x:-3.25,y:2.25,w:1,h:1},{id:"down",x:-2.25,y:2.25,w:1,h:1},{id:"right",x:-1.25,y:2.25,w:1,h:1},
+  {id:"numlock",x:0.25,y:-2,w:1,h:1},{id:"numdiv",x:1.25,y:-2,w:1,h:1},{id:"nummult",x:2.25,y:-2,w:1,h:1},{id:"numminus",x:3.25,y:-2,w:1,h:1},
+  {id:"num7",x:0.25,y:-1,w:1,h:1},{id:"num8",x:1.25,y:-1,w:1,h:1},{id:"num9",x:2.25,y:-1,w:1,h:1},{id:"numadd",x:3.25,y:-1,w:1,h:2},
+  {id:"num4",x:0.25,y:0,w:1,h:1},{id:"num5",x:1.25,y:0,w:1,h:1},{id:"num6",x:2.25,y:0,w:1,h:1},
+  {id:"num1",x:0.25,y:1,w:1,h:1},{id:"num2",x:1.25,y:1,w:1,h:1},{id:"num3",x:2.25,y:1,w:1,h:1},{id:"numenter",x:3.25,y:1,w:1,h:2},
+  {id:"num0",x:0.25,y:2,w:2,h:1},{id:"numdot",x:2.25,y:2,w:1,h:1}
  ]}
 };
-KB_LAYOUTS.full={name:"104键全尺寸",rows:KB_LAYOUTS.tkl.rows.concat([
-  {dy:0,dx:19.5,keys:["numlock","numdiv","nummult","numminus"]},
-  {dy:1,dx:19.5,keys:["num7","num8","num9"]},
-  {dy:1,dx:22.5,keys:["numadd"]},
-  {dy:2,dx:19.5,keys:["num4","num5","num6"]},
-  {dy:3,dx:19.5,keys:["num1","num2","num3"]},
-  {dy:4,dx:19.5,keys:["num0","numdot"]},
-  {dy:4,dx:22.5,keys:["numenter"]}
-])};
-var _kbMode="create",_kbLayout="c65",_kbSel=null;
-function kbLayoutIds(l){var out=[];KB_LAYOUTS[l].rows.forEach(function(r){r.keys.forEach(function(k){if(out.indexOf(k)<0)out.push(k)})});return out}
-function _kbW(id){var lo=KB_LAYOUTS[_kbLayout];return (lo.wOverrides&&lo.wOverrides[id])||(KB_KEYS[id]&&KB_KEYS[id].w)||1}
+var _kbMode="create",_kbLayout="main",_kbSel=null;
+function kbLayoutIds(l){var out=[];KB_LAYOUTS[l].keys.forEach(function(e){out.push(e.id)});return out}
+function _kbEntry(id){var lo=KB_LAYOUTS[_kbLayout];for(var i=0;i<lo.keys.length;i++){if(lo.keys[i].id===id)return lo.keys[i]}return null}
+function _kbW(id){var e=_kbEntry(id);return e?e.w:((KB_KEYS[id]&&KB_KEYS[id].w)||1)}
+function _kbH(id){var e=_kbEntry(id);return e?e.h:((KB_KEYS[id]&&KB_KEYS[id].h)||1)}
 function kbCap(id){
   var d=KB_KEYS[id];if(!d)return"";
   var w=_kbW(id)*84-3;
-  var hgt=(d.h||1)*84-3;
+  var hgt=_kbH(id)*84-3;
   return '<div data-kbk="'+id+'" onclick="kbPick(\''+id+'\')" class="kbk'+( _kbSel===id?" kbk-sel":"")+'" style="width:'+w+'px;height:'+hgt+'px;background:#2a2a3a;border:1px solid #444;border-radius:8px;cursor:pointer;position:relative;box-sizing:border-box;flex:0 0 auto">'+
    (d.shiftLabel?'<span style="position:absolute;top:4px;left:7px;font-size:17px;color:#a78bfa;line-height:1">'+hesc(d.shiftLabel)+'</span>':"")+
    '<span style="position:absolute;'+(d.h>1?'top:50%;transform:translateY(-50%);':'bottom:6px;')+'left:0;right:0;text-align:center;font-size:24px;color:#e8e0d8;line-height:1">'+hesc(d.label||"")+'</span></div>';
 }
 function kbPickerTab(){
-  var tabs=document.getElementById("kbTabs");var _ls=["c65","tkl","full"];
+  var tabs=document.getElementById("kbTabs");var _ls=["main","numpad"];
   tabs.innerHTML=_ls.map(function(l){var lo=KB_LAYOUTS[l];return '<button onclick="kbPickerTabSel(\''+l+'\')" style="padding:5px 12px;border-radius:4px;border:1px solid '+(l===_kbLayout?'var(--accent)':'var(--border)')+';background:'+(l===_kbLayout?'var(--accent)':'transparent')+';color:'+(l===_kbLayout?'#1a1a1a':'var(--dim)')+';cursor:pointer;font-size:12px">'+lo.name+'</button>'}).join("");
-  var rows=KB_LAYOUTS[_kbLayout].rows;var _mdy=0,_mdx=0;
-  rows.forEach(function(r){if(r.dy>_mdy)_mdy=r.dy;var cc=r.dx;r.keys.forEach(function(id){cc+=_kbW(id)});if(cc>_mdx)_mdx=cc});
-  var _bw=_mdx*84+8,_avail=(document.getElementById("kbBoard").clientWidth||900)-8;
-  document.getElementById("kbBoard").innerHTML='<div style="position:relative;display:block;width:'+_bw+'px;height:'+((_mdy+1)*84)+'px;text-align:left;margin:'+(_bw>_avail?'0':'0 auto')+'">'+rows.map(function(r){
-    return '<div style="position:absolute;top:'+(r.dy*84)+'px;left:'+(r.dx*84)+'px;display:flex;gap:3px">'+r.keys.map(function(id){return kbCap(id)}).join("")+'</div>';
+  var keys=KB_LAYOUTS[_kbLayout].keys;var _minX=0,_minY=0,_maxX=0,_maxY=0;
+  keys.forEach(function(e){var w=e.w||1,h=e.h||1;if(e.x<_minX)_minX=e.x;if(e.y<_minY)_minY=e.y;if(e.x+w>_maxX)_maxX=e.x+w;if(e.y+h>_maxY)_maxY=e.y+h});
+  var _bw=(_maxX-_minX)*84+8,_bh=(_maxY-_minY)*84+8,_avail=(document.getElementById("kbBoard").clientWidth||900)-8;
+  document.getElementById("kbBoard").innerHTML='<div style="position:relative;display:block;width:'+_bw+'px;height:'+_bh+'px;text-align:left;margin:'+(_bw>_avail?'0':'0 auto')+'">'+keys.map(function(e){
+    return '<div style="position:absolute;top:'+((e.y-_minY)*84)+'px;left:'+((e.x-_minX)*84)+'px">'+kbCap(e.id)+'</div>';
   }).join("")+'</div>';
   kbPickerBtns();
 }
@@ -1508,24 +1504,22 @@ function kbPickerBtns(){
   if(b2){b2.textContent=_kbMode==="create"?"只拖选中键":"替换为选中键";b2.disabled=!_kbSel;b2.style.opacity=_kbSel?"1":"0.4";b2.style.cursor=_kbSel?"pointer":"default"}
 }
 function openKbPicker(mode){
-  _kbMode=mode||"create";_kbSel=null;_kbLayout="c65";
-  if(_kbMode==="change"){var k=cp_()?.keys.find(function(x){return x.id===selKey});if(k&&k.key){var _k=k.key;["c65","tkl","full"].forEach(function(l){if(_kbSel===null){var ids=kbLayoutIds(l);for(var i2=0;i2<ids.length;i2++){if(KB_KEYS[ids[i2]].key===_k){_kbLayout=l;_kbSel=ids[i2];break}}}})}}
+  _kbMode=mode||"create";_kbSel=null;_kbLayout="main";
+  if(_kbMode==="change"){var k=cp_()?.keys.find(function(x){return x.id===selKey});if(k&&k.key){var _k=k.key;["main","numpad"].forEach(function(l){if(_kbSel===null){var ids=kbLayoutIds(l);for(var i2=0;i2<ids.length;i2++){if(KB_KEYS[ids[i2]].key===_k){_kbLayout=l;_kbSel=ids[i2];break}}}})}}
   kbSelInfo();kbPickerTab();document.getElementById("kbPicker").style.display="flex";
 }
 function closeKbPicker(){document.getElementById("kbPicker").style.display="none"}
-function _kbNewKey(d,id,ac,ar,w){
-  var nk={id:id,action:d.action||"turbo",kb:true,key:d.key,label:d.label,value:d.key,color:"#3a3a4a",sound:"",col:ac,row:ar,w:w||d.w||1,h:d.h||1};
+function _kbNewKey(d,id,ac,ar,w,h){
+  var nk={id:id,action:d.action||"turbo",kb:true,key:d.key,label:d.label,value:d.key,color:"#3a3a4a",sound:"",col:ac,row:ar,w:w||d.w||1,h:h||d.h||1};
   if(d.shiftLabel)nk.shiftLabel=d.shiftLabel;
   return nk;
 }
 function confirmKbLayout(){
   var page=cp_();if(!page)return;
   var ac=window._pendingCol||0,ar=window._pendingRow||0,_ts=Date.now(),_i=0,added=[];
-  KB_LAYOUTS[_kbLayout].rows.forEach(function(r){
-    var cc=r.dx;
-    r.keys.forEach(function(id){var d=KB_KEYS[id];if(!d)return;
-      added.push(_kbNewKey(d,"k_"+_ts+"_"+(++_i),ac+cc,ar+r.dy,_kbW(id)));cc+=_kbW(id);
-    });
+  KB_LAYOUTS[_kbLayout].keys.forEach(function(e){
+    var d=KB_KEYS[e.id];if(!d)return;
+      added.push(_kbNewKey(d,"k_"+_ts+"_"+(++_i),ac+e.x,ar+e.y,_kbW(e.id),_kbH(e.id)));
   });
   added.forEach(function(k){page.keys.push(k)});
   _pushUndo([]);
@@ -1538,13 +1532,13 @@ function confirmKbKey(){
   if(_kbMode==="change"){
     var k=page.keys.find(function(x){return x.id===selKey});if(!k)return;
     var before=_snapshot(k);
-    k.kb=true;k.key=d.key;k.label=d.label;k.value=d.key;k.w=_kbW(_kbSel);k.h=d.h||1;
+    k.kb=true;k.key=d.key;k.label=d.label;k.value=d.key;k.w=_kbW(_kbSel);k.h=_kbH(_kbSel);
     if(d.shiftLabel){k.shiftLabel=d.shiftLabel}else{delete k.shiftLabel}
     k.action=d.action||"turbo";
     dirty=true;if(JSON.stringify(before)!==JSON.stringify(_snapshot(k)))_pushUndo([before]);
     closeKbPicker();rr();rpr();return;
   }
-  var nk=_kbNewKey(d,"k_"+Date.now()+"_kb",window._pendingCol||0,window._pendingRow||0,_kbW(_kbSel));
+  var nk=_kbNewKey(d,"k_"+Date.now()+"_kb",window._pendingCol||0,window._pendingRow||0,_kbW(_kbSel),_kbH(_kbSel));
   page.keys.push(nk);_pushUndo([]);selKey=nk.id;selKeys.clear();selKeys.add(nk.id);
   dirty=true;closeKbPicker();rr();rpr();
 }
