@@ -1,0 +1,33 @@
+name: Feature request
+description: Suggest an idea for Tapflow
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea! Keep it focused on one feature per issue.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      description: Describe the situation or workflow that's missing today.
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: What would you like Tapflow to do?
+      description: Describe the feature as concretely as you can.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you've considered
+      placeholder: Workarounds, other apps, manual steps...
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      placeholder: Sketches, screenshots, links...
