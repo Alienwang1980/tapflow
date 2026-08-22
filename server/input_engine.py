@@ -58,7 +58,17 @@ KEYCODE_MAP = {
     'F6': 0x61, 'F7': 0x62, 'F8': 0x64, 'F9': 0x65, 'F10': 0x6D,
     'F11': 0x67, 'F12': 0x6F,
     'HOME': 0x73, 'END': 0x77, 'PAGEUP': 0x74, 'PAGEDOWN': 0x79,
-    'FWD_DELETE': 0x75, 'NUM_MULTIPLY': 0x43,
+    'FWD_DELETE': 0x75,
+    # Keypad-specific codes (kVK_ANSI_Keypad*, Carbon Events.h)
+    'KEYPAD_DECIMAL': 0x41, 'KEYPAD_MULTIPLY': 0x43, 'KEYPAD_PLUS': 0x45,
+    'KEYPAD_CLEAR': 0x47, 'KEYPAD_DIVIDE': 0x4B, 'KEYPAD_MINUS': 0x4E,
+    'KEYPAD_EQUALS': 0x51,
+    'KEYPAD0': 0x52, 'KEYPAD1': 0x53, 'KEYPAD2': 0x54, 'KEYPAD3': 0x55,
+    'KEYPAD4': 0x56, 'KEYPAD5': 0x57, 'KEYPAD6': 0x58, 'KEYPAD7': 0x59,
+    'KEYPAD8': 0x5B, 'KEYPAD9': 0x5C,
+    # PC 104-key extras mapped to Mac equivalents
+    'F13': 0x69, 'F14': 0x6B, 'F15': 0x71,  # PrtSc/ScrLk/Pause
+    'HELP': 0x72,  # Insert on PC keyboards
     '-': 0x1B, '=': 0x18, '[': 0x21, ']': 0x1E, '\\': 0x2A,
     ';': 0x29, '\'': 0x27, ',': 0x2B, '.': 0x2F, '/': 0x2C,
     '`': 0x32,
