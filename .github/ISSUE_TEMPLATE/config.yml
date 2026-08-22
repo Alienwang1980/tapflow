@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions & discussion
+    url: https://github.com/Alienwang1980/tapflow/discussions
+    about: Ask questions or share ideas in Discussions (please don't file an issue for questions)
