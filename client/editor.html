@@ -1473,19 +1473,20 @@ function kbLayoutIds(l){var out=[];KB_LAYOUTS[l].rows.forEach(function(r){r.keys
 function _kbW(id){var lo=KB_LAYOUTS[_kbLayout];return (lo.wOverrides&&lo.wOverrides[id])||(KB_KEYS[id]&&KB_KEYS[id].w)||1}
 function kbCap(id){
   var d=KB_KEYS[id];if(!d)return"";
-  var w=_kbW(id)*38-3;
-  var hgt=(d.h||1)*40+((d.h||1)-1)*3;
+  var w=_kbW(id)*44-3;
+  var hgt=(d.h||1)*46+((d.h||1)-1)*3;
   return '<div data-kbk="'+id+'" onclick="kbPick(\''+id+'\')" class="kbk'+( _kbSel===id?" kbk-sel":"")+'" style="width:'+w+'px;height:'+hgt+'px;background:#2a2a3a;border:1px solid #444;border-radius:5px;cursor:pointer;position:relative;box-sizing:border-box;flex:0 0 auto">'+
-   (d.shiftLabel?'<span style="position:absolute;top:2px;left:4px;font-size:9px;color:#a78bfa;line-height:1">'+hesc(d.shiftLabel)+'</span>':"")+
-   '<span style="position:absolute;'+(d.h>1?'top:50%;transform:translateY(-50%);':'bottom:3px;')+'left:0;right:0;text-align:center;font-size:12px;color:#e8e0d8;line-height:1">'+hesc(d.label||"")+'</span></div>';
+   (d.shiftLabel?'<span style="position:absolute;top:3px;left:5px;font-size:10px;color:#a78bfa;line-height:1">'+hesc(d.shiftLabel)+'</span>':"")+
+   '<span style="position:absolute;'+(d.h>1?'top:50%;transform:translateY(-50%);':'bottom:4px;')+'left:0;right:0;text-align:center;font-size:13px;color:#e8e0d8;line-height:1">'+hesc(d.label||"")+'</span></div>';
 }
 function kbPickerTab(){
   var tabs=document.getElementById("kbTabs");var _ls=["c65","tkl","full"];
   tabs.innerHTML=_ls.map(function(l){var lo=KB_LAYOUTS[l];return '<button onclick="kbPickerTabSel(\''+l+'\')" style="padding:5px 12px;border-radius:4px;border:1px solid '+(l===_kbLayout?'var(--accent)':'var(--border)')+';background:'+(l===_kbLayout?'var(--accent)':'transparent')+';color:'+(l===_kbLayout?'#1a1a1a':'var(--dim)')+';cursor:pointer;font-size:12px">'+lo.name+'</button>'}).join("");
-  var rows=KB_LAYOUTS[_kbLayout].rows;var _mdy=0;
-  rows.forEach(function(r){if(r.dy>_mdy)_mdy=r.dy});
-  document.getElementById("kbBoard").innerHTML='<div style="position:relative;width:900px;height:'+((_mdy+1)*44)+'px;margin:0 auto">'+rows.map(function(r){
-    return '<div style="position:absolute;top:'+(r.dy*44)+'px;left:'+(r.dx*38)+'px;display:flex;gap:3px">'+r.keys.map(function(id){return kbCap(id)}).join("")+'</div>';
+  var rows=KB_LAYOUTS[_kbLayout].rows;var _mdy=0,_mdx=0;
+  rows.forEach(function(r){if(r.dy>_mdy)_mdy=r.dy;var cc=r.dx;r.keys.forEach(function(id){cc+=_kbW(id)});if(cc>_mdx)_mdx=cc});
+  var _bw=_mdx*44+8,_avail=(document.getElementById("kbBoard").clientWidth||900)-8;
+  document.getElementById("kbBoard").innerHTML='<div style="position:relative;display:block;width:'+_bw+'px;height:'+((_mdy+1)*49)+'px;text-align:left;margin:'+(_bw>_avail?'0':'0 auto')+'">'+rows.map(function(r){
+    return '<div style="position:absolute;top:'+(r.dy*49)+'px;left:'+(r.dx*44)+'px;display:flex;gap:3px">'+r.keys.map(function(id){return kbCap(id)}).join("")+'</div>';
   }).join("")+'</div>';
   kbPickerBtns();
 }
