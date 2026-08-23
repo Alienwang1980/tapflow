@@ -372,6 +372,7 @@ function _patCSS(pid,color,sz){if(!pid||pid==="none")return"";var p=PATTERNS[pid
 function hesc(s){return String(s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
 let ws=null,profile=null,profiles=[],activePage="",activeProfile="Default.json";
 let selKey=null,selKeys=new Set(),selGroup=null,dirty=false,profileLoaded=false;
+let _lastTapT=0,_lastTapKid=null;
 var _gFont="";function _gf(){return _gFont?"'"+_gFont+"'":"-apple-system,sans-serif"}fetch("/api/config").then(r=>r.json()).then(c=>{var f=c.fontFamily||"";if(f!==_gFont){_gFont=f;if(profileLoaded)renderAll()}}).catch(function(){});
 let panX=0,panY=0,panning=false,panStartX=0,panStartY=0,mx=0,my=0,panShiftLock=null,copiedStyle=null;
 let viewX=0,viewY=0,viewZoom=1;
@@ -780,9 +781,12 @@ function grResizeStart(e,corner){
   });
 }
 
-// Key click: select or Shift-toggle
+// Key click: select or Shift-toggle(成组按键的选择由 onKeyDown 决定,此处跳过以免覆盖)
 function onKeyClick(e,kid){
   e.stopPropagation();
+  const _gk2=cp_()?.keys.find(x=>x.id===kid);
+  const _gg2=(_gk2&&_gk2.groups||[]).filter(function(gid){return profile.groups&&profile.groups.some(function(g){return g.id===gid})});
+  if(_gg2.length)return;
   if(!e.shiftKey){selKeys.clear();selKeys.add(kid)}
   selKey=kid;rr();rpr();
 }
@@ -790,7 +794,21 @@ function onKeyClick(e,kid){
 // Key drag: multi-select aware, 0.25 snap, collision
 function onKeyDown(e,kid){
   if(e.button!==0)return;e.stopPropagation();
-  if(e.shiftKey&&selKeys.has(kid)){selKeys.delete(kid);selKey=null}else if(!selKeys.has(kid)){if(!e.shiftKey){selKeys.clear()}selKeys.add(kid);selKey=kid}
+  // 成组按键:单击=整组选中,双击(350ms 内同键再按)=单选该键;Shift 仍走单键切换
+  const _gk=cp_()?.keys.find(x=>x.id===kid);
+  const _gg=(_gk&&_gk.groups||[]).filter(function(gid){return profile.groups&&profile.groups.some(function(g){return g.id===gid})});
+  if(!e.shiftKey&&_gg.length){
+    const now=Date.now();
+    if(_lastTapKid===kid&&now-_lastTapT<350){
+      _lastTapT=0;_lastTapKid=null;
+      selKeys.clear();selKeys.add(kid);selKey=kid;selGroup=null;
+    }else{
+      _lastTapT=now;_lastTapKid=kid;
+      selKeys.clear();
+      cp_().keys.forEach(function(kk){if((kk.groups||[]).some(function(g){return _gg.indexOf(g)>=0}))selKeys.add(kk.id)});
+      selKey=null;selGroup=_gg[0];rgrp();
+    }
+  }else if(e.shiftKey&&selKeys.has(kid)){selKeys.delete(kid);selKey=null;selGroup=null}else if(!selKeys.has(kid)){if(!e.shiftKey){selKeys.clear()}selKeys.add(kid);selKey=kid;selGroup=null}
 rr();rpr();
   const k=cp_()?.keys.find(x=>x.id===kid);if(!k)return;
   const cs=profile.cellSize||60,gp=profile.gap||0,cpx=cs+gp;
@@ -864,7 +882,7 @@ carea.addEventListener("mousedown",e=>{
   if(e.button===0&&!e.target.closest(".ck")&&!e.target.closest(".grh")){
     selecting=true;
     srSX=e.clientX;srSY=e.clientY;srCX=e.clientX;srCY=e.clientY;
-    if(!e.shiftKey){selKeys.clear();selKey=null;rr();rpr()}
+    if(!e.shiftKey){selKeys.clear();selKey=null;selGroup=null;rr();rpr()}
     e.preventDefault();
   }else if(e.button===2){
     panning=true;panStartX=e.clientX;panStartY=e.clientY;mx=viewX;my=viewY;panShiftLock=null;e.preventDefault();
