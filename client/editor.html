@@ -382,10 +382,12 @@ const DEVS={"iPad 11\"":{w:834,h:1194,dpr:2,topInset:32,phys:"1668×2388",portra
 
 // ── Undo/Redo ──
 function _snapshot(k){return JSON.parse(JSON.stringify(k))}
-function _pushUndo(keysBefore,keysAfter){
+function _pushUndo(keysBefore,keysAfter,groupsBefore,groupsAfter){
   const page=cp_();if(!page)return;
   const after=keysAfter?keysAfter.map(a=>_snapshot(a)):keysBefore.map(b=>{const k=page.keys.find(x=>x.id===b.id);return k?_snapshot(k):null}).filter(Boolean);
-  undoStack.push({before:keysBefore.map(b=>({...b})),after,ts:Date.now()});
+  const e={before:keysBefore.map(b=>({...b})),after,ts:Date.now()};
+  if(groupsBefore!==undefined){e.groupsBefore=JSON.parse(JSON.stringify(groupsBefore));e.groupsAfter=JSON.parse(JSON.stringify(groupsAfter))}
+  undoStack.push(e);
   if(undoStack.length>MAX_UNDO)undoStack.shift();
   redoStack=[];
 }
@@ -399,9 +401,10 @@ function undo(){
   const bid=new Set(e.before.map(b=>b.id));
   const toDel=page.keys.filter(k=>!bid.has(k.id)&&e.after.some(a=>a.id===k.id));
   toDel.forEach(k=>{page.keys=page.keys.filter(x=>x.id!==k.id)});
+  if(e.groupsBefore!==undefined)profile.groups=JSON.parse(JSON.stringify(e.groupsBefore));
   redoStack.push(e);dirty=true;
   selKey=e.before.length===1?e.before[0].id:null;selKeys.clear();e.before.forEach(b=>selKeys.add(b.id));
-  rr();rpr();
+  rr();rpr();rgrp();
 }
 function redo(){
   if(!redoStack.length)return;
@@ -411,9 +414,10 @@ function redo(){
   const aid=new Set(e.after.map(a=>a.id));
   const toDel=page.keys.filter(k=>!aid.has(k.id)&&e.before.some(b=>b.id===k.id));
   toDel.forEach(k=>{page.keys=page.keys.filter(x=>x.id!==k.id)});
+  if(e.groupsAfter!==undefined)profile.groups=JSON.parse(JSON.stringify(e.groupsAfter));
   undoStack.push(e);dirty=true;
   selKey=e.after.length===1?e.after[0].id:null;selKeys.clear();e.after.forEach(a=>selKeys.add(a.id));
-  rr();rpr();
+  rr();rpr();rgrp();
 }
 // ── Group/Ungroup ──
 function groupSelected(){
@@ -1486,7 +1490,9 @@ function kbPickerTab(){
   var keys=KB_LAYOUTS[_kbLayout].keys;var _minX=0,_minY=0,_maxX=0,_maxY=0;
   keys.forEach(function(e){var w=e.w||1,h=e.h||1;if(e.x<_minX)_minX=e.x;if(e.y<_minY)_minY=e.y;if(e.x+w>_maxX)_maxX=e.x+w;if(e.y+h>_maxY)_maxY=e.y+h});
   var _bw=(_maxX-_minX)*84+8,_bh=(_maxY-_minY)*84+8,_avail=(document.getElementById("kbBoard").clientWidth||900)-8;
-  var _u=Math.min(84,Math.round((_avail/_bw)*84));_bw=Math.round(_bw*_u/84);_bh=Math.round(_bh*_u/84);
+  var _loMain=KB_LAYOUTS["main"],_mMinX=0,_mMaxX=0;
+  _loMain.keys.forEach(function(e){var w=e.w||1;if(e.x<_mMinX)_mMinX=e.x;if(e.x+w>_mMaxX)_mMaxX=e.x+w});
+  var _u=Math.min(84,Math.round((_avail/((_mMaxX-_mMinX)*84+8))*84));_bw=Math.round(_bw*_u/84);_bh=Math.round(_bh*_u/84);
   document.getElementById("kbBoard").innerHTML='<div style="position:relative;display:block;width:'+_bw+'px;height:'+_bh+'px;text-align:left;margin:0 auto">'+keys.map(function(e){
     return '<div style="position:absolute;top:'+((e.y-_minY)*_u)+'px;left:'+((e.x-_minX)*_u)+'px">'+kbCap(e.id,_u)+'</div>';
   }).join("")+'</div>';
@@ -1520,17 +1526,25 @@ function _kbNewKey(d,id,ac,ar,w,h){
   if(d.shiftLabel)nk.shiftLabel=d.shiftLabel;
   return nk;
 }
+var KB_GROUP_NAMES={main:["F区","按键区","方向区"],numpad:["导航区","数字区"]};
+function _kbGroupOf(l,e){return l==="main"?(e.y<=-3.5?0:(e.y<=1.5?1:2)):(e.x<0?0:1)}
 function confirmKbLayout(){
   var page=cp_();if(!page)return;
   var ac=window._pendingCol||0,ar=window._pendingRow||0,_ts=Date.now(),_i=0,added=[];
+  var gBefore=JSON.parse(JSON.stringify(profile.groups||[]));
+  if(!profile.groups)profile.groups=[];
+  var gnames=KB_GROUP_NAMES[_kbLayout]||[],gids={};
+  gnames.forEach(function(gn,i){var gid="g_"+_ts+"_"+i;profile.groups.push({id:gid,name:gn});gids[i]=gid});
   KB_LAYOUTS[_kbLayout].keys.forEach(function(e){
     var d=KB_KEYS[e.id];if(!d)return;
-      added.push(_kbNewKey(d,"k_"+_ts+"_"+(++_i),ac+e.x,ar+e.y,_kbW(e.id),_kbH(e.id)));
+    var nk=_kbNewKey(d,"k_"+_ts+"_"+(++_i),ac+e.x,ar+e.y,_kbW(e.id),_kbH(e.id));
+    if(gids[_kbGroupOf(_kbLayout,e)]!==undefined)nk.groups=[gids[_kbGroupOf(_kbLayout,e)]];
+    added.push(nk);
   });
   added.forEach(function(k){page.keys.push(k)});
-  _pushUndo([],added);
+  _pushUndo([],added,gBefore,profile.groups);
   if(added.length){selKey=added[0].id;selKeys.clear();selKeys.add(selKey)}
-  dirty=true;closeKbPicker();rr();rpr();
+  dirty=true;closeKbPicker();rr();rpr();rgrp();
 }
 function confirmKbKey(){
   var page=cp_();if(!page||!_kbSel)return;
