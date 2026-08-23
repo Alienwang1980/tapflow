@@ -427,8 +427,8 @@ function groupSelected(){
   const gid="g_"+Date.now();
   if(!profile.groups)profile.groups=[];
   profile.groups.push({id:gid,name:"Group "+(profile.groups.length+1)});
-  
-  _pushUndo(before);dirty=true;rr();rpr();
+  page.keys.forEach(function(k){if(selKeys.has(k.id)){if(!k.groups)k.groups=[];if(k.groups.indexOf(gid)<0)k.groups.push(gid)}});
+  _pushUndo(before);dirty=true;rr();rpr();rgrp();
 }
 function rgrp(){const groups=profile?.groups||[];document.getElementById("grpl").innerHTML=groups.length?groups.map(g=>"<div class=\"it\" onclick=\"selectGroup('"+g.id+"')\">"+hesc(g.name)+"<span class=\"x\" onclick=\"event.stopPropagation();ungroupById('"+g.id+"')\">✕</span></div>").join(""):"<p style=\"font-size:10px;color:var(--dim)\">Select keys → Save as Group</p>";}function saveAsGroup(){var name=prompt("Group name:","Group "+((profile.groups?.length||0)+1));if(!name||!name.trim())return;var gid="g_"+Date.now();if(!profile.groups)profile.groups=[];profile.groups.push({id:gid,name:name.trim()});var page=cp_();if(!page)return;var before=page.keys.filter(function(k){return selKeys.has(k.id)}).map(function(k){return _snapshot(k)});page.keys.forEach(function(k){if(selKeys.has(k.id)){if(!k.groups)k.groups=[];if(k.groups.indexOf(gid)<0)k.groups.push(gid)}});_pushUndo(before);dirty=true;renderAll();}
 function selectGroup(gid){selGroup=gid;selKeys.clear();selKey=null;cp_().keys.forEach(k=>{if(k.groups&&k.groups.indexOf(gid)>=0)selKeys.add(k.id)});rr();rpr();rgrp();}
@@ -585,6 +585,21 @@ const ftb=document.getElementById("ftb");var btb=document.getElementById("btb");
   ca.style.backgroundPosition=((dw/2+panX*cpx+viewX)%gridPx+gridPx)%gridPx+"px "+((dh/2+panY*cpx+viewY)%gridPx+gridPx)%gridPx+"px";
   canvas.innerHTML="";var _ti=profile.topInset||0;if(_ti>0){var _tb=document.createElement("div");_tb.id="tiBand";_tb.style.cssText="position:absolute;top:0;left:0;right:0;height:"+_ti+"px;z-index:9;pointer-events:none;background:repeating-linear-gradient(45deg,rgba(217,119,6,0.32) 0 10px,rgba(217,119,6,0.10) 10px 20px);border-bottom:1px dashed rgba(217,119,6,0.8);display:flex;align-items:center;justify-content:center";_tb.innerHTML='<span style="background:rgba(0,0,0,0.45);color:#fdba74;font-size:'+Math.max(9,Math.min(12,_ti*0.45))+'px;padding:1px 8px;border-radius:3px;font-weight:600;letter-spacing:0.5px">Title Bar '+_ti+'px · keep clear</span>';canvas.appendChild(_tb)}const grbox=document.createElement("div");grbox.className="grbox";grbox.id="grbox";canvas.appendChild(grbox);const grh_tl=document.createElement("div");grh_tl.className="grh";grh_tl.id="grh_tl";grh_tl.style.cursor="nw-resize";canvas.appendChild(grh_tl);const grh_tr=document.createElement("div");grh_tr.className="grh";grh_tr.id="grh_tr";grh_tr.style.cursor="ne-resize";canvas.appendChild(grh_tr);const grh_bl=document.createElement("div");grh_bl.className="grh";grh_bl.id="grh_bl";grh_bl.style.cursor="sw-resize";canvas.appendChild(grh_bl);const grh_br=document.createElement("div");grh_br.className="grh";grh_br.id="grh_br";grh_br.style.cursor="se-resize";canvas.appendChild(grh_br);
   const page=cp_();if(!page)return;ca.style.backgroundColor=page.bgColor||"#1a1a2e";var _pi=_patIMG(page.bgPattern);var _tl=document.getElementById("tl");if(_pi){ca.style.backgroundImage="";ca.style.backgroundSize="";_tl.style.display="block";_tl.style.backgroundColor=page.bgPatternColor||"#ffffff";_tl.style.webkitMaskImage='url("/uploads/'+_pi.img+'")';_tl.style.maskImage='url("/uploads/'+_pi.img+'")';var _sz3=(page.bgPatternSize||_pi.size)+"px";_tl.style.webkitMaskSize=_sz3+" "+_sz3;_tl.style.maskSize=_sz3+" "+_sz3;_tl.style.webkitMaskRepeat="repeat";_tl.style.maskRepeat="repeat"}else{_tl.style.display="none";ca.style.cssText+=_patCSS(page.bgPattern,page.bgPatternColor||"#ffffff",page.bgPatternSize||60)}
+  // 分组色带(编辑区可视化,画在按键下层)
+  (profile.groups||[]).forEach(function(g,gi){
+    var ks=page.keys.filter(function(k){return k.groups&&k.groups.indexOf(g.id)>=0});
+    if(!ks.length)return;
+    var gminX=1e9,gminY=1e9,gmaxX=-1e9,gmaxY=-1e9;
+    ks.forEach(function(k){var c=k.col||0,r=k.row||0,w=k.w||1,h=k.h||1;
+      if(c<gminX)gminX=c;if(r<gminY)gminY=r;if(c+w>gmaxX)gmaxX=c+w;if(r+h>gmaxY)gmaxY=r+h});
+    var gb=document.createElement("div");
+    gb.style.cssText="position:absolute;left:"+((gminX+panX)*cpx+dw/2)+"px;top:"+((gminY+panY)*cpx+dh/2)+"px;width:"+((gmaxX-gminX)*cpx)+"px;height:"+((gmaxY-gminY)*cpx)+"px;background:"+KB_GROUP_COLORS[gi%3]+";border:1px dashed rgba(255,255,255,0.18);border-radius:8px;pointer-events:none";
+    var gl=document.createElement("span");
+    gl.style.cssText="position:absolute;top:3px;left:8px;font-size:10px;color:rgba(255,255,255,0.5);line-height:1;pointer-events:none";
+    gl.textContent=g.name;
+    gb.appendChild(gl);
+    canvas.appendChild(gb);
+  });
   page.keys.forEach(k=>{
     const col=k.col||0,row=k.row||0,w=k.w||1,h=k.h||1;
     const x=(col+panX)*cpx+dw/2,y=(row+panY)*cpx+dh/2;
@@ -1457,17 +1472,17 @@ var KB_LAYOUTS={
   {id:"up",x:13.75,y:2.5,w:1,h:1,g:2},
   {id:"left",x:12.75,y:3.5,w:1,h:1,g:2},{id:"down",x:13.75,y:3.5,w:1,h:1,g:2},{id:"right",x:14.75,y:3.5,w:1,h:1,g:2}
  ]},
- numpad:{name:"小键盘 30",groups:["导航区","数字区"],keys:[
+ numpad:{name:"小键盘 30",groups:["导航区","方向区","数字区"],keys:[
   {id:"prtsc",x:-3.25,y:-2,w:1,h:1,g:0},{id:"scrlk",x:-2.25,y:-2,w:1,h:1,g:0},{id:"pause",x:-1.25,y:-2,w:1,h:1,g:0},
   {id:"insert",x:-3.25,y:-1,w:1,h:1,g:0},{id:"home",x:-2.25,y:-1,w:1,h:1,g:0},{id:"pgup",x:-1.25,y:-1,w:1,h:1,g:0},
   {id:"fwddel",x:-3.25,y:0,w:1,h:1,g:0},{id:"end",x:-2.25,y:0,w:1,h:1,g:0},{id:"pgdn",x:-1.25,y:0,w:1,h:1,g:0},
-  {id:"up",x:-2.25,y:1.25,w:1,h:1,g:0},
-  {id:"left",x:-3.25,y:2.25,w:1,h:1,g:0},{id:"down",x:-2.25,y:2.25,w:1,h:1,g:0},{id:"right",x:-1.25,y:2.25,w:1,h:1,g:0},
-  {id:"numlock",x:0.25,y:-2,w:1,h:1,g:1},{id:"numdiv",x:1.25,y:-2,w:1,h:1,g:1},{id:"nummult",x:2.25,y:-2,w:1,h:1,g:1},{id:"numminus",x:3.25,y:-2,w:1,h:1,g:1},
-  {id:"num7",x:0.25,y:-1,w:1,h:1,g:1},{id:"num8",x:1.25,y:-1,w:1,h:1,g:1},{id:"num9",x:2.25,y:-1,w:1,h:1,g:1},{id:"numadd",x:3.25,y:-1,w:1,h:2,g:1},
-  {id:"num4",x:0.25,y:0,w:1,h:1,g:1},{id:"num5",x:1.25,y:0,w:1,h:1,g:1},{id:"num6",x:2.25,y:0,w:1,h:1,g:1},
-  {id:"num1",x:0.25,y:1,w:1,h:1,g:1},{id:"num2",x:1.25,y:1,w:1,h:1,g:1},{id:"num3",x:2.25,y:1,w:1,h:1,g:1},{id:"numenter",x:3.25,y:1,w:1,h:2,g:1},
-  {id:"num0",x:0.25,y:2,w:2,h:1,g:1},{id:"numdot",x:2.25,y:2,w:1,h:1,g:1}
+  {id:"up",x:-2.25,y:1.25,w:1,h:1,g:1},
+  {id:"left",x:-3.25,y:2.25,w:1,h:1,g:1},{id:"down",x:-2.25,y:2.25,w:1,h:1,g:1},{id:"right",x:-1.25,y:2.25,w:1,h:1,g:1},
+  {id:"numlock",x:0.25,y:-2,w:1,h:1,g:2},{id:"numdiv",x:1.25,y:-2,w:1,h:1,g:2},{id:"nummult",x:2.25,y:-2,w:1,h:1,g:2},{id:"numminus",x:3.25,y:-2,w:1,h:1,g:2},
+  {id:"num7",x:0.25,y:-1,w:1,h:1,g:2},{id:"num8",x:1.25,y:-1,w:1,h:1,g:2},{id:"num9",x:2.25,y:-1,w:1,h:1,g:2},{id:"numadd",x:3.25,y:-1,w:1,h:2,g:2},
+  {id:"num4",x:0.25,y:0,w:1,h:1,g:2},{id:"num5",x:1.25,y:0,w:1,h:1,g:2},{id:"num6",x:2.25,y:0,w:1,h:1,g:2},
+  {id:"num1",x:0.25,y:1,w:1,h:1,g:2},{id:"num2",x:1.25,y:1,w:1,h:1,g:2},{id:"num3",x:2.25,y:1,w:1,h:1,g:2},{id:"numenter",x:3.25,y:1,w:1,h:2,g:2},
+  {id:"num0",x:0.25,y:2,w:2,h:1,g:2},{id:"numdot",x:2.25,y:2,w:1,h:1,g:2}
  ]}
 };
 var _kbMode="create",_kbLayout="main",_kbSel=null;
