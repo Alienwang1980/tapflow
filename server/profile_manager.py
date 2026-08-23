@@ -169,7 +169,8 @@ class ProfileManager:
 
     def list_profiles(self) -> list[dict]:
         profiles = []
-        for f in sorted(self.dir.glob("*.json")):
+        # Sort by file creation time: newly created profiles always appear last.
+        for f in sorted(self.dir.glob("*.json"), key=lambda f: f.stat().st_birthtime):
             try:
                 data = json.loads(f.read_text(encoding='utf-8'))
                 profiles.append({
