@@ -806,9 +806,11 @@ function onKeyDown(e,kid){
       selKeys.clear();selKeys.add(kid);selKey=kid;selGroup=null;
     }else{
       _lastTapT=now;_lastTapKid=kid;
-      selKeys.clear();
-      cp_().keys.forEach(function(kk){if((kk.groups||[]).some(function(g){return _gg.indexOf(g)>=0}))selKeys.add(kk.id)});
-      selKey=null;selGroup=_gg[0];rgrp();
+      if(!selKeys.has(kid)){
+        selKeys.clear();
+        cp_().keys.forEach(function(kk){if((kk.groups||[]).some(function(g){return _gg.indexOf(g)>=0}))selKeys.add(kk.id)});
+        selKey=null;selGroup=_gg[0];rgrp();
+      }
     }
   }else if(e.shiftKey&&selKeys.has(kid)){selKeys.delete(kid);selKey=null;selGroup=null}else if(!selKeys.has(kid)){if(!e.shiftKey){selKeys.clear()}selKeys.add(kid);selKey=kid;selGroup=null}
 rr();rpr();
