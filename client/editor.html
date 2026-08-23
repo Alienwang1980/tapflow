@@ -382,9 +382,9 @@ const DEVS={"iPad 11\"":{w:834,h:1194,dpr:2,topInset:32,phys:"1668×2388",portra
 
 // ── Undo/Redo ──
 function _snapshot(k){return JSON.parse(JSON.stringify(k))}
-function _pushUndo(keysBefore){
+function _pushUndo(keysBefore,keysAfter){
   const page=cp_();if(!page)return;
-  const after=keysBefore.map(b=>{const k=page.keys.find(x=>x.id===b.id);return k?_snapshot(k):null}).filter(Boolean);
+  const after=keysAfter?keysAfter.map(a=>_snapshot(a)):keysBefore.map(b=>{const k=page.keys.find(x=>x.id===b.id);return k?_snapshot(k):null}).filter(Boolean);
   undoStack.push({before:keysBefore.map(b=>({...b})),after,ts:Date.now()});
   if(undoStack.length>MAX_UNDO)undoStack.shift();
   redoStack=[];
@@ -492,7 +492,11 @@ document.addEventListener("click",function(e){
   if(el){e.preventDefault();e.stopPropagation();_cpOpen(el)}
 },true);
 async function lpl(){const r=await fetch("/api/profiles");profiles=(await r.json()).profiles||[];rpl()}
-async function lp(fn){if(fn==="__manage__"){openProfileManager();return}const r=await fetch("/api/profiles/"+fn);if(!r.ok){if(profiles&&profiles.length>0){return lp(profiles[0].filename)}else{activeProfile="";profile=null;profileLoaded=true;selKey=null;selKeys.clear();try{localStorage.removeItem("stp_active")}catch(e){};renderAll();return}}profile=await r.json();activeProfile=fn;activePage=profile.pages[0]?.id||"";selKey=null;selKeys.clear();panX=profile.canvasX||0;panY=profile.canvasY||0;viewX=0;viewY=0;viewZoom=Math.max(0.3,Math.min(3,profile.viewZoom||1));try{localStorage.setItem("stp_active",fn)}catch(e){};profileLoaded=true;renderAll();fetch("/api/active-profile",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({filename:fn})}).catch(function(){})}
+let _pendingLp=null;
+function lp(fn){if(fn==="__manage__"){openProfileManager();return}if(profile&&dirty&&fn!==activeProfile){_pendingLp=fn;document.getElementById("unsavedModal").style.display="flex";return}_doLp(fn)}
+async function _doLp(fn){const r=await fetch("/api/profiles/"+fn);if(!r.ok){if(profiles&&profiles.length>0){return _doLp(profiles[0].filename)}else{activeProfile="";profile=null;profileLoaded=true;selKey=null;selKeys.clear();try{localStorage.removeItem("stp_active")}catch(e){};renderAll();return}}profile=await r.json();activeProfile=fn;activePage=profile.pages[0]?.id||"";selKey=null;selKeys.clear();panX=profile.canvasX||0;panY=profile.canvasY||0;viewX=0;viewY=0;viewZoom=Math.max(0.3,Math.min(3,profile.viewZoom||1));try{localStorage.setItem("stp_active",fn)}catch(e){};profileLoaded=true;dirty=false;renderAll();fetch("/api/active-profile",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({filename:fn})}).catch(function(){})}
+async function unsavedGo(save){var fn=_pendingLp;_pendingLp=null;document.getElementById("unsavedModal").style.display="none";if(save){await saveProfile()}dirty=false;await _doLp(fn)}
+function unsavedCancel(){_pendingLp=null;document.getElementById("unsavedModal").style.display="none"}
 async function saveProfile(){
   if(!profile)return;
   for(var _dbg_p=0;_dbg_p<(profile.pages||[]).length;_dbg_p++){
@@ -510,7 +514,7 @@ async function saveProfile(){
   if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:"profile_saved",filename:d.filename}));
   lpl();t("Saved & synced");
 }
-async function dp(fn){if(!confirm("Delete "+fn+"?"))return;await fetch("/api/profiles/"+fn,{method:"DELETE"});if(activeProfile===fn){var rem=profiles.filter(function(p){return p.filename!==fn});if(rem.length>0){await lp(rem[0].filename)}else{activeProfile="";profile=null;profileLoaded=false;selKey=null;selKeys.clear();try{localStorage.removeItem("stp_active")}catch(e){}}}await lpl();renderAll()}
+async function dp(fn){if(!confirm("Delete "+fn+"?"))return;await fetch("/api/profiles/"+fn,{method:"DELETE"});if(activeProfile===fn){var rem=profiles.filter(function(p){return p.filename!==fn});if(rem.length>0){dirty=false;await _doLp(rem[0].filename)}else{activeProfile="";profile=null;profileLoaded=false;selKey=null;selKeys.clear();try{localStorage.removeItem("stp_active")}catch(e){}}}await lpl();renderAll()}
 async function saveAs(){const nm=prompt("Save as profile name:",profile?profile.profileName:"");if(!nm)return;profile.profileName=nm;profile.canvasX=panX;profile.canvasY=panY;profile.viewX=viewX;profile.viewY=viewY;profile.viewZoom=viewZoom;const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(profile)});const d=await r.json();activeProfile=d.filename;dirty=false;lpl();rpgl();t("Saved as "+d.filename)}
 async function cp(){const p={profileName:"Untitled",version:"1.0",device:"iPad 11\"",deviceWidth:1194,deviceHeight:834,dpr:2,topInset:32,cellSize:60,gap:0,canvasX:0,canvasY:0,defaultSound:"click",windowRules:[],pages:[{id:"main",label:"Main",keys:[]}],groups:[]};const r=await fetch("/api/profiles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)});lpl();lp((await r.json()).filename)}
 function apg(){var n=1;while(profile.pages.some(function(p){return p.label==="Page "+n}))n++;profile.pages.push({id:"p_"+Date.now(),label:"Page "+n,keys:[],bgColor:"#1a1a2e",bgPattern:null,bgPatternColor:"#ffffff",bgPatternSize:60});activePage=profile.pages[profile.pages.length-1].id;dirty=true;renderAll()}
@@ -1467,13 +1471,14 @@ function kbLayoutIds(l){var out=[];KB_LAYOUTS[l].keys.forEach(function(e){out.pu
 function _kbEntry(id){var lo=KB_LAYOUTS[_kbLayout];for(var i=0;i<lo.keys.length;i++){if(lo.keys[i].id===id)return lo.keys[i]}return null}
 function _kbW(id){var e=_kbEntry(id);return e?e.w:((KB_KEYS[id]&&KB_KEYS[id].w)||1)}
 function _kbH(id){var e=_kbEntry(id);return e?e.h:((KB_KEYS[id]&&KB_KEYS[id].h)||1)}
-function kbCap(id){
+function kbCap(id,u){
   var d=KB_KEYS[id];if(!d)return"";
-  var w=_kbW(id)*84-3;
-  var hgt=_kbH(id)*84-3;
+  var _u=u||84,_f1=Math.round(24*_u/84),_f2=Math.round(17*_u/84);
+  var w=_kbW(id)*_u-3;
+  var hgt=_kbH(id)*_u-3;
   return '<div data-kbk="'+id+'" onclick="kbPick(\''+id+'\')" class="kbk'+( _kbSel===id?" kbk-sel":"")+'" style="width:'+w+'px;height:'+hgt+'px;background:#2a2a3a;border:1px solid #444;border-radius:8px;cursor:pointer;position:relative;box-sizing:border-box;flex:0 0 auto">'+
-   (d.shiftLabel?'<span style="position:absolute;top:4px;left:7px;font-size:17px;color:#a78bfa;line-height:1">'+hesc(d.shiftLabel)+'</span>':"")+
-   '<span style="position:absolute;'+(d.h>1?'top:50%;transform:translateY(-50%);':'bottom:6px;')+'left:0;right:0;text-align:center;font-size:24px;color:#e8e0d8;line-height:1">'+hesc(d.label||"")+'</span></div>';
+   (d.shiftLabel?'<span style="position:absolute;top:4px;left:7px;font-size:'+_f2+'px;color:#a78bfa;line-height:1">'+hesc(d.shiftLabel)+'</span>':"")+
+   '<span style="position:absolute;'+(d.h>1?'top:50%;transform:translateY(-50%);':'bottom:6px;')+'left:0;right:0;text-align:center;font-size:'+_f1+'px;color:#e8e0d8;line-height:1">'+hesc(d.label||"")+'</span></div>';
 }
 function kbPickerTab(){
   var tabs=document.getElementById("kbTabs");var _ls=["main","numpad"];
@@ -1481,8 +1486,9 @@ function kbPickerTab(){
   var keys=KB_LAYOUTS[_kbLayout].keys;var _minX=0,_minY=0,_maxX=0,_maxY=0;
   keys.forEach(function(e){var w=e.w||1,h=e.h||1;if(e.x<_minX)_minX=e.x;if(e.y<_minY)_minY=e.y;if(e.x+w>_maxX)_maxX=e.x+w;if(e.y+h>_maxY)_maxY=e.y+h});
   var _bw=(_maxX-_minX)*84+8,_bh=(_maxY-_minY)*84+8,_avail=(document.getElementById("kbBoard").clientWidth||900)-8;
-  document.getElementById("kbBoard").innerHTML='<div style="position:relative;display:block;width:'+_bw+'px;height:'+_bh+'px;text-align:left;margin:'+(_bw>_avail?'0':'0 auto')+'">'+keys.map(function(e){
-    return '<div style="position:absolute;top:'+((e.y-_minY)*84)+'px;left:'+((e.x-_minX)*84)+'px">'+kbCap(e.id)+'</div>';
+  var _u=Math.min(84,Math.round((_avail/_bw)*84));_bw=Math.round(_bw*_u/84);_bh=Math.round(_bh*_u/84);
+  document.getElementById("kbBoard").innerHTML='<div style="position:relative;display:block;width:'+_bw+'px;height:'+_bh+'px;text-align:left;margin:0 auto">'+keys.map(function(e){
+    return '<div style="position:absolute;top:'+((e.y-_minY)*_u)+'px;left:'+((e.x-_minX)*_u)+'px">'+kbCap(e.id,_u)+'</div>';
   }).join("")+'</div>';
   kbPickerBtns();
 }
@@ -1522,7 +1528,7 @@ function confirmKbLayout(){
       added.push(_kbNewKey(d,"k_"+_ts+"_"+(++_i),ac+e.x,ar+e.y,_kbW(e.id),_kbH(e.id)));
   });
   added.forEach(function(k){page.keys.push(k)});
-  _pushUndo([]);
+  _pushUndo([],added);
   if(added.length){selKey=added[0].id;selKeys.clear();selKeys.add(selKey)}
   dirty=true;closeKbPicker();rr();rpr();
 }
@@ -1539,7 +1545,7 @@ function confirmKbKey(){
     closeKbPicker();rr();rpr();return;
   }
   var nk=_kbNewKey(d,"k_"+Date.now()+"_kb",window._pendingCol||0,window._pendingRow||0,_kbW(_kbSel),_kbH(_kbSel));
-  page.keys.push(nk);_pushUndo([]);selKey=nk.id;selKeys.clear();selKeys.add(nk.id);
+  page.keys.push(nk);_pushUndo([],[nk]);selKey=nk.id;selKeys.clear();selKeys.add(nk.id);
   dirty=true;closeKbPicker();rr();rpr();
 }
 
@@ -1548,14 +1554,15 @@ var WIDGET_TYPES={key:{label:"Regular Key",defaults:{w:1.25,h:1.25,color:"#3a3a4
   if(type==="keyboard"){closeKeyTypeModal();openKbPicker("create");return}
   var wt=WIDGET_TYPES[type]||WIDGET_TYPES.key;
   var d=wt.defaults;
-  page.keys.push({id:"k_"+Date.now(),label:d.label||"?",action:d.action,value:"A",
+  var nk={id:"k_"+Date.now(),label:d.label||"?",action:d.action,value:"A",
     color:d.color,col:window._pendingCol||0,row:window._pendingRow||0,w:d.w,h:d.h,sound:"",
     macroText:d.macroText,
     tapAction:d.tapAction,holdAction:d.holdAction,tapTarget:d.tapTarget,holdTarget:d.holdTarget,
     layout:d.layout,iconColor:d.iconColor,
     micBgColor:d.micBgColor,micLevelColor:d.micLevelColor,micIconColor:d.micIconColor,micColor:d.micColor,showLevel:d.showLevel,
-    bgOpacity:d.bgOpacity,bgColor:d.bgColor,switchMode:d.switchMode,showFlags:d.showFlags,showIcon:d.showIcon,showLabel:d.showLabel,iconSize:d.iconSize,iconColor:d.iconColor});
-  _pushUndo([]);selKey=page.keys[page.keys.length-1].id;selKeys.clear();selKeys.add(selKey);
+    bgOpacity:d.bgOpacity,bgColor:d.bgColor,switchMode:d.switchMode,showFlags:d.showFlags,showIcon:d.showIcon,showLabel:d.showLabel,iconSize:d.iconSize,iconColor:d.iconColor};
+  page.keys.push(nk);
+  _pushUndo([],[nk]);selKey=nk.id;selKeys.clear();selKeys.add(selKey);
   dirty=true;closeKeyTypeModal();rr();rpr();
 }
 function closeKeyTypeModal(){document.getElementById("keyTypeModal").style.display="none";document.getElementById("gh").style.display="none"}
@@ -1591,4 +1598,5 @@ background:transparent;color:var(--dim);border:1px solid var(--border);border-ra
 <div id="apiKeyModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:201;align-items:center;justify-content:center"><div style="background:var(--panel);padding:24px;border-radius:8px;border:1px solid #f59e0b;width:480px"><h3 style="margin-bottom:4px;color:#f59e0b">DeepSeek API Key</h3><p id="apiKeyModalHint" style="color:var(--dim);margin:4px 0 12px;font-size:11px"></p><input type="password" id="apiKeyModalInput" placeholder="sk-..." style="width:100%;padding:10px;background:var(--bg);color:var(--text);border:2px solid var(--border);border-radius:6px;font-size:14px;font-family:monospace;box-sizing:border-box"><p id="apiKeyModalMsg" style="font-size:11px;color:var(--dim);margin:8px 0;min-height:18px">Your key is stored locally and never sent to any third party.</p><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button onclick="closeApiKeyModal()" style="padding:8px 16px;background:transparent;color:var(--dim);border:1px solid var(--border);border-radius:4px;cursor:pointer">Cancel</button><button onclick="saveApiKey()" style="padding:8px 16px;background:#f59e0b;color:#1a1a1a;border:none;border-radius:4px;cursor:pointer;font-weight:600">Save</button></div></div></div>
 <div id="iconPicker" onclick="if(event.target===this)closeIconPicker()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:202;align-items:center;justify-content:center"><div style="background:var(--panel);padding:20px;border-radius:8px;border:1px solid var(--border);width:540px;max-width:92vw;max-height:80vh;display:flex;flex-direction:column"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><h3 style="margin:0;color:var(--text);font-size:15px">设置和选择 icon</h3><button onclick="closeIconPicker()" style="background:transparent;color:var(--dim);border:1px solid var(--border);border-radius:4px;cursor:pointer;padding:4px 10px;font-size:12px">&#x2715;</button></div><input id="ipSearch" type="text" placeholder="&#x1F50D; Search icons..." oninput="iconPickerSearch(this.value)" style="width:100%;padding:8px 10px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;font-size:12px;box-sizing:border-box;margin-bottom:10px"><div id="ipTabs" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px"></div><div id="ipGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:6px;overflow-y:auto;padding:4px;flex:1;min-height:200px"></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button onclick="closeIconPicker()" style="padding:8px 16px;background:var(--accent);color:#1a1a1a;border:none;border-radius:4px;cursor:pointer;font-weight:600">关闭</button></div></div></div>
 <div id="kbPicker" onclick="if(event.target===this)closeKbPicker()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:203;align-items:center;justify-content:center"><div style="background:var(--panel);padding:20px;border-radius:8px;border:1px solid var(--border);max-width:94vw;max-height:90vh;display:flex;flex-direction:column"><style>#kbPicker .kbk-sel{outline:2px solid var(--accent);background:#3a3050!important}#kbPicker .kbk:hover{outline:1px solid var(--accent)}</style><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><h3 style="margin:0;color:var(--text);font-size:15px">选择键盘按键</h3><button onclick="closeKbPicker()" style="background:transparent;color:var(--dim);border:1px solid var(--border);border-radius:4px;cursor:pointer;padding:4px 10px;font-size:12px">&#x2715;</button></div><div id="kbTabs" style="display:flex;gap:6px;margin-bottom:12px"></div><div id="kbBoard" style="overflow:auto;padding:4px;flex:1;min-height:220px"></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;align-items:center"><span id="kbSelInfo" style="flex:1;font-size:11px;color:var(--dim)">点击按键选中,再点一次取消</span><button id="kbBtnAll" onclick="confirmKbLayout()" style="padding:8px 16px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-weight:600">拖入整键盘</button><button id="kbBtnOne" onclick="confirmKbKey()" disabled style="padding:8px 16px;background:var(--accent);color:#1a1a1a;border:none;border-radius:4px;cursor:default;font-weight:600;opacity:0.4">只拖选中键</button><button onclick="closeKbPicker()" style="padding:8px 16px;background:transparent;color:var(--dim);border:1px solid var(--border);border-radius:4px;cursor:pointer">取消</button></div></div></div>
+<div id="unsavedModal" onclick="if(event.target===this)unsavedCancel()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:204;align-items:center;justify-content:center"><div style="background:var(--panel);padding:20px;border-radius:8px;border:1px solid var(--border);width:min(420px,90vw)"><h3 style="margin:0 0 8px;color:var(--text);font-size:15px">未保存的更改</h3><p style="margin:0 0 16px;font-size:13px;color:var(--dim)">当前 Profile 有未保存的更改,切换前要保存吗?</p><div style="display:flex;gap:8px;justify-content:flex-end"><button onclick="unsavedGo(false)" style="padding:8px 14px;background:transparent;color:var(--dim);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:12px">不保存</button><button onclick="unsavedCancel()" style="padding:8px 14px;background:transparent;color:var(--dim);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:12px">取消</button><button onclick="unsavedGo(true)" style="padding:8px 16px;background:var(--accent);color:#1a1a1a;border:none;border-radius:4px;cursor:pointer;font-weight:600;font-size:12px">保存并切换</button></div></div></div>
 </body></html>
