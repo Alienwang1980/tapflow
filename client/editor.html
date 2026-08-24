@@ -184,12 +184,6 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
   opacity:0;transition:opacity 0.3s;box-shadow:0 4px 24px rgba(0,0,0,0.5);
 }
 .toast.show{opacity:1}
-.info{
-  position:fixed;bottom:4px;left:4px;color:var(--dim);font-size:10px;
-  z-index:999;background:var(--panel);padding:4px 8px;
-  border-radius:4px;border:1px solid var(--border);
-  user-select:text;-webkit-user-select:text;max-width:95vw;
-}
 
 @font-face{font-family:"Press Start 2P";src:url("/static/fonts/PressStart2P.woff2") format("woff2")}
 @font-face{font-family:"VT323";src:url("/static/fonts/VT323.woff2") format("woff2")}
@@ -361,7 +355,6 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
   </div>
 </div>
   <div class="toast" id="toast"></div>
-<div class="info" id="edinfo"></div>
 <script>
 function _hexToRgba(h,a){if(!h||h==="inherit"||h.charAt(0)!=="#")return null;var x=h.replace("#","");if(x.length===3)x=x[0]+x[0]+x[1]+x[1]+x[2]+x[2];var r=parseInt(x.slice(0,2),16),g=parseInt(x.slice(2,4),16),b=parseInt(x.slice(4,6),16);return isNaN(r)?null:"rgba("+r+","+g+","+b+","+a+")"}
 // ── Auto text color: same hue as bg, flipped lightness, desaturated; gray bg → neutral; semi-transparent bg composited over page bg ──
@@ -785,7 +778,6 @@ function grResizeStart(e,corner){
   document.addEventListener("mousemove",mm);document.addEventListener("mouseup",mu);
 }
 
-  document.getElementById("edinfo").textContent=`sel=${selKeys.size} cw=${cw}x${ch} dw=${dw}x${dh} cs=${cs} gap=${gp} s=${scale.toFixed(3)} vz=${viewZoom.toFixed(2)} pan=(${panX.toFixed(1)},${panY.toFixed(1)})`;
   // Elevate selected keys to top
   canvas.querySelectorAll(".ck").forEach(function(el) {
     el.style.zIndex = (selKey && el.dataset.kid === selKey) || selKeys.has(el.dataset.kid) ? "999" : "";
