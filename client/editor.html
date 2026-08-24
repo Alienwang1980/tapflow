@@ -220,6 +220,15 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
   position:absolute;top:3px;left:6px;font-size:9px;color:var(--dim);
   background:rgba(0,0,0,0.45);padding:1px 6px;border-radius:3px;pointer-events:none;
 }
+#lp-panel .ratio-card{
+  width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:8px;
+  background:var(--card);border:1px solid var(--border);border-radius:6px;
+  cursor:pointer;transition:all 0.15s;text-align:left;font-weight:500;
+}
+#lp-panel .ratio-card:hover{border-color:var(--accent);background:#33302c}
+#lp-panel .ratio-card .rc-main{font-size:13px;font-weight:600;line-height:1.3}
+#lp-panel .ratio-card .rc-sub{font-size:9px;color:var(--dim);line-height:1.35;margin-top:1px;font-weight:400}
+#lp-panel .ratio-card .rc-edit{flex:none;font-size:10px;color:var(--accent);font-weight:600}
 
 /* ==== Toast & Info ==== */
 .toast{
@@ -275,9 +284,14 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
       </div>
       <div class="rp-section" id="rp-ratio-sec">
         <h3>Display Scale</h3>
-        <div id="ratioInfo" style="font-size:10px;color:var(--dim);margin-bottom:6px">—</div>
-        <div class="lprow" style="margin-bottom:8px"><label style="min-width:0">Title Bar</label><input type="number" id="topInsetIn" min="0" max="300" step="1" value="0" onchange="upkTopInset(this.value)" title="Top safe-area / title bar height to mark off in the frame (logical px)"><span style="font-size:10px;color:var(--dim)">px</span></div>
-        <button onclick="openRatioModal()" class="lpbtn" style="width:100%">⟳ Change…</button>
+        <button class="ratio-card" id="ratioCard" onclick="openRatioModal()" title="Change display scale">
+          <span style="flex:1;min-width:0;display:block">
+            <span class="rc-main" id="ratioName">—</span>
+            <span class="rc-sub" id="ratioDetail" style="display:block"></span>
+          </span>
+          <span class="rc-edit">Change ⟳</span>
+        </button>
+        <div class="lprow"><label style="min-width:0">Title Bar</label><input type="number" id="topInsetIn" min="0" max="300" step="1" value="0" onchange="upkTopInset(this.value)" title="Top safe-area / title bar height to mark off in the frame (logical px)"><span style="font-size:10px;color:var(--dim)">px</span></div>
       </div>
       <div class="rp-section" id="rp-sound-sec">
         <h3>Default Sound</h3>
@@ -1024,10 +1038,10 @@ function toggleOri(){const t=profile.deviceWidth;profile.deviceWidth=profile.dev
 function applyRatioByIndex(i){var k=Object.keys(DEVS)[i];var d=DEVS[k];if(d&&profile){profile.device=k;profile.deviceWidth=d.portrait?Math.min(d.w,d.h):Math.max(d.w,d.h);profile.deviceHeight=d.portrait?Math.max(d.w,d.h):Math.min(d.w,d.h);profile.dpr=d.dpr||0;profile.topInset=d.topInset||0;dirty=true;rr()}updateRatioInfo()}
 function applyCustomRatio(){if(!profile)return false;var cur=(profile.deviceWidth||1210)+"x"+(profile.deviceHeight||834);var inp=prompt("Custom canvas WxH (logical px, e.g. 1280x800):",cur);if(!inp)return false;var mm=inp.replace(/[×,\s]/g,"x").split("x");var w=parseInt(mm[0],10),h=parseInt(mm[1],10);if(!(w>0&&h>0&&w<=8000&&h<=8000)){alert("Enter valid pixels, e.g. 1280x800");return false}profile.dpr=0;profile.topInset=0;if(w>1600||h>1600){var f=prompt(w+"×"+h+" 疑似物理分辨率。输入 DPR(2 或 3)自动换算为逻辑分辨率;输入 0 保持原值:","3");if(f==="2"||f==="3"){var dn=parseInt(f,10);w=Math.round(w/dn);h=Math.round(h/dn);profile.dpr=dn}}profile.device="__custom__";profile.deviceWidth=w;profile.deviceHeight=h;dirty=true;rr();updateRatioInfo();return true}
 function buildRatioPresets(){var el=document.getElementById("ratioModalPresets");if(!el)return;el.innerHTML=Object.keys(DEVS).map(function(k,i){return '<button onclick="applyRatioByIndex('+i+');closeRatioModal()" style="height:24px;padding:0 10px;font-size:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer">'+hesc(k)+'</button>'}).join("")}
-function openRatioModal(){var i=document.getElementById("ratioModalInfo"),r=document.getElementById("ratioInfo");if(i&&r)i.textContent="Current: "+(r.textContent||"—");document.getElementById("ratioModal").style.display="flex"}
+function openRatioModal(){var i=document.getElementById("ratioModalInfo"),rc=document.getElementById("ratioCard");if(i)i.textContent="Current: "+(rc&&rc.dataset.full?rc.dataset.full:"—");document.getElementById("ratioModal").style.display="flex"}
 function closeRatioModal(){document.getElementById("ratioModal").style.display="none"}
 function upkTopInset(v){if(!profile)return;var n=Math.max(0,Math.min(300,parseInt(v,10)||0));profile.topInset=n;dirty=true;rr()}
-function updateRatioInfo(){var b=document.getElementById("ratioInfo");if(!b||!profile)return;var w=profile.deviceWidth||1210,h=profile.deviceHeight||834,name=null;for(var k in DEVS){if((DEVS[k].w===w&&DEVS[k].h===h)||(DEVS[k].w===h&&DEVS[k].h===w)){name=k;break}}if(!name)name="Custom "+w+"×"+h;var dpr=profile.dpr||0,ti=profile.topInset||0,phys=dpr>1?" · 物理 "+(w*dpr)+"×"+(h*dpr):"";var _ti=document.getElementById("topInsetIn");if(_ti)_ti.value=ti;b.textContent=name+" · "+((w>h)?"Landscape":"Portrait")+" · 逻辑 "+w+"×"+h+(dpr>1?" @ "+dpr+"x":"")+phys+(ti>0?" · 顶栏 "+ti+"px":"")}
+function updateRatioInfo(){if(!profile)return;var w=profile.deviceWidth||1210,h=profile.deviceHeight||834,name=null;for(var k in DEVS){if((DEVS[k].w===w&&DEVS[k].h===h)||(DEVS[k].w===h&&DEVS[k].h===w)){name=k;break}}if(!name)name="Custom "+w+"×"+h;var dpr=profile.dpr||0,ti=profile.topInset||0,phys=dpr>1?" · 物理 "+(w*dpr)+"×"+(h*dpr):"";var _ti=document.getElementById("topInsetIn");if(_ti)_ti.value=ti;var nm=document.getElementById("ratioName");if(nm)nm.textContent=name;var det=((w>h)?"Landscape":"Portrait")+" · 逻辑 "+w+"×"+h+(dpr>1?" @ "+dpr+"x":"")+(ti>0?" · 顶栏 "+ti+"px":"");var rd=document.getElementById("ratioDetail");if(rd)rd.textContent=det;var rc=document.getElementById("ratioCard");if(rc)rc.dataset.full=name+" · "+det+phys}
 
 
 function onDev(){} // removed — use onFDev from frame toolbar
