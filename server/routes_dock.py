@@ -112,8 +112,28 @@ def create_router(state):
 
     @router.post("/api/system/quit-app")
     async def sys_quit(body: dict):
-        """Quit an app by exact process name. Uses pkill -x (safe arg list, no shell)."""
+        """Quit an app. 优先按 bundle path 匹配 NSRunningApplication.terminate() 优雅退出
+        (bundle 目录名≠进程名时 pkill -x 杀不到,如 Lark.app 的进程叫 Feishu);
+        fallback: pkill -x 进程名。"""
         name = str(body.get("name", "")).strip()
+        path = str(body.get("path", "")).strip()
+        if not name and not path:
+            return {"status": "ok"}
+        # 1) 优雅退出: bundle path 精确匹配(优先),或目录名尾段匹配
+        try:
+            from Cocoa import NSWorkspace
+            target = path.rstrip("/").lower()
+            for ra in NSWorkspace.sharedWorkspace().runningApplications():
+                rurl = ra.bundleURL()
+                rp = (str(rurl.path() or "") if rurl else "").rstrip("/").lower()
+                if not rp:
+                    continue
+                if (target and rp == target) or (name and rp.endswith("/" + name.lower() + ".app")):
+                    if ra.terminate():
+                        return {"status": "ok"}
+        except Exception:
+            pass
+        # 2) fallback: 按进程名精确杀
         if name:
             subprocess.run(["pkill", "-x", name], timeout=10)
         return {"status": "ok"}
