@@ -25,7 +25,7 @@ GROUPS = [
     ]),
     ("audio", "音频", [
         "volume", "volume-loud", "volume-mute", "mic", "mic-2", "headphones",
-        "play", "pause", "stop", "music-note", "soundwave",
+        "speaker", "play", "pause", "stop", "music-note", "soundwave",
         "bell", "bell-off", "bell-bing", "bell-remove",
     ]),
     ("actions", "操作", [

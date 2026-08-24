@@ -196,11 +196,14 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 .btb span{font-size:11px;font-weight:600;min-width:24px;text-align:center;user-select:none}
 #pmList button:hover{opacity:0.8}
 
-.lib-item{padding:10px 12px;margin:6px 0;border-radius:8px;border:2px dashed var(--border);cursor:grab;background:var(--card);transition:all 0.15s}
+.lib-item{display:flex;align-items:center;gap:12px;padding:8px 12px;margin:4px 0;border-radius:10px;border:2px dashed var(--border);cursor:grab;background:var(--card);transition:all 0.15s}
 .lib-item:hover{border-color:var(--accent);background:#33302c;transform:translateY(-1px)}
 .lib-item:active{cursor:grabbing}
-.lib-name{font-size:12px;font-weight:600;margin-bottom:1px}
-.lib-desc{font-size:10px;color:var(--dim)}
+.lib-ic{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:center;flex:none}
+.lib-ic svg{width:22px;height:22px;display:block;color:var(--text)}
+.lib-tx{flex:1;min-width:0}
+.lib-name{font-size:13px;font-weight:600;line-height:1.3}
+.lib-desc{font-size:11px;color:var(--dim);line-height:1.35;margin-top:1px}
 </style></head>
 <body>
 <div class="tb">
@@ -270,80 +273,110 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
         <h3>Button Library</h3>
         <p style="font-size:10px;color:var(--dim);margin-bottom:10px">Drag to canvas</p>
         <div class="lib-item" draggable="true" data-widget="key">
-          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/key.png" width="120" height="56" style="display:block;border-radius:4px"></div>
-          <div class="lib-name">Regular Key</div>
-          <div class="lib-desc">Press / Hold</div>
+          <div class="lib-ic"></div>
+          <div class="lib-tx">
+            <div class="lib-name">Regular Key</div>
+            <div class="lib-desc">Press / Hold</div>
+          </div>
         </div>
         <div class="lib-item" draggable="true" data-widget="keyboard">
-          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/keyboard.png" width="120" height="56" style="display:block;border-radius:4px"></div>
-          <div class="lib-name">Keyboard Key</div>
-          <div class="lib-desc">Two-state . Whole keyboard / single key</div>
+          <div class="lib-ic"></div>
+          <div class="lib-tx">
+            <div class="lib-name">Keyboard Key</div>
+            <div class="lib-desc">Full keyboard or single key</div>
+          </div>
         </div>
         <div class="lib-item" draggable="true" data-widget="volume">
-          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/volume.png" width="120" height="56" style="display:block;border-radius:4px"></div>
-          <div class="lib-name">Volume Slider</div>
-          <div class="lib-desc">2x1 . System volume control</div>
+          <div class="lib-ic"></div>
+          <div class="lib-tx">
+            <div class="lib-name">Volume Slider</div>
+            <div class="lib-desc">System volume control</div>
+          </div>
         </div>
         
         <div class="lib-item" draggable="true" data-widget="micmute">
-          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/micmute.png" width="120" height="56" style="display:block;border-radius:4px"></div>
-          <div class="lib-name">Mic Mute</div>
-          <div class="lib-desc">1x1 . Mic mute toggle</div>
+          <div class="lib-ic"></div>
+          <div class="lib-tx">
+            <div class="lib-name">Mic Mute</div>
+            <div class="lib-desc">Mic mute toggle</div>
+          </div>
         </div>
         <div class="lib-item" draggable="true" data-widget="audioout">
-          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/audioout.png" width="120" height="56" style="display:block"></div>
-          <div class="lib-name">Audio Output</div>
-          <div class="lib-desc">3x1 . Switch output device</div>
+          <div class="lib-ic"></div>
+          <div class="lib-tx">
+            <div class="lib-name">Audio Output</div>
+            <div class="lib-desc">Switch output device</div>
+          </div>
         </div>
         <div class="lib-item" draggable="true" data-widget="audioin">
-          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/audioin.png" width="120" height="56" style="display:block;border-radius:4px"></div>
-          <div class="lib-name">Audio Input</div>
-          <div class="lib-desc">3x1 . Switch input device</div>
+          <div class="lib-ic"></div>
+          <div class="lib-tx">
+            <div class="lib-name">Audio Input</div>
+            <div class="lib-desc">Switch input device</div>
+          </div>
         </div>
         <div class="lib-item" draggable="true" data-widget="imeswitch">
-          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/imeswitch.png" width="120" height="56" style="display:block;border-radius:4px"></div>
-          <div class="lib-name">Input Method</div>
-          <div class="lib-desc">2x1 . Tap cycle / Hold select IME</div>
+          <div class="lib-ic"></div>
+          <div class="lib-tx">
+            <div class="lib-name">Input Method</div>
+            <div class="lib-desc">Cycle or select IME</div>
+          </div>
         </div>
         <div class="lib-item" draggable="true" data-widget="activeapp">
-          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/activeapp.png" width="120" height="56" style="display:block;border-radius:4px"></div>
-          <div class="lib-name">Window Switcher</div>
-          <div class="lib-desc">3x1 . Tap to cycle windows</div>
+          <div class="lib-ic"></div>
+          <div class="lib-tx">
+            <div class="lib-name">Window Switcher</div>
+            <div class="lib-desc">Tap to cycle windows</div>
+          </div>
         </div>
         <div class="lib-item" draggable="true" data-widget="wingesture">
-          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/wingesture.png" width="120" height="56" style="display:block;border-radius:4px"></div>
-          <div class="lib-name">Window Control</div>
-          <div class="lib-desc">3.25x3 . Swipe to tile</div>
+          <div class="lib-ic"></div>
+          <div class="lib-tx">
+            <div class="lib-name">Window Control</div>
+            <div class="lib-desc">Swipe to tile windows</div>
+          </div>
         </div>
         <div class="lib-item" draggable="true" data-widget="fullscreen">
-          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/fullscreen.png" width="120" height="56" style="display:block;border-radius:4px"></div>
-          <div class="lib-name">Fullscreen Toggle</div>
-          <div class="lib-desc">1x1 . Toggle fullscreen</div>
+          <div class="lib-ic"></div>
+          <div class="lib-tx">
+            <div class="lib-name">Fullscreen Toggle</div>
+            <div class="lib-desc">Toggle fullscreen</div>
+          </div>
         </div>
         <div class="lib-item" draggable="true" data-widget="dock">
-          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/dock.png" width="120" height="56" style="display:block;border-radius:4px"></div>
-          <div class="lib-name">Dock Panel</div>
-          <div class="lib-desc">4x4 . Launch bar with status</div>
+          <div class="lib-ic"></div>
+          <div class="lib-tx">
+            <div class="lib-name">Dock Panel</div>
+            <div class="lib-desc">Launch bar with app status</div>
+          </div>
         </div>
         <div class="lib-item" draggable="true" data-widget="switchprofile">
-          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/switchprofile.png" width="120" height="56" style="display:block;border-radius:4px"></div>
-          <div class="lib-name">Switch Profile</div>
-          <div class="lib-desc">2x1 . Switch to another profile</div>
+          <div class="lib-ic"></div>
+          <div class="lib-tx">
+            <div class="lib-name">Switch Profile</div>
+            <div class="lib-desc">Switch to another profile</div>
+          </div>
         </div>
         <div class="lib-item" draggable="true" data-widget="balance">
-          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/balance.png" width="120" height="56" style="display:block;border-radius:4px"></div>
-          <div class="lib-name">Deepseek Balance</div>
-          <div class="lib-desc">4x1 . API credit display</div>
+          <div class="lib-ic"></div>
+          <div class="lib-tx">
+            <div class="lib-name">Deepseek Balance</div>
+            <div class="lib-desc">API credit display</div>
+          </div>
         </div>
         <div class="lib-item" draggable="true" data-widget="textmacro">
-          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/textmacro.png" width="120" height="56" style="display:block;border-radius:4px"></div>
-          <div class="lib-name">Text Macro</div>
-          <div class="lib-desc">4x2.5 . Record & replay text</div>
+          <div class="lib-ic"></div>
+          <div class="lib-tx">
+            <div class="lib-name">Text Macro</div>
+            <div class="lib-desc">Record &amp; replay text</div>
+          </div>
         </div>
         <div class="lib-item" draggable="true" data-widget="touchpad">
-          <div class="lib-preview" style="height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><img src="/static/thumbnails/touchpad.png" width="120" height="56" style="display:block;border-radius:4px"></div>
-          <div class="lib-name">Touch Pad</div>
-          <div class="lib-desc">4x3 . Move + Scroll + Click</div>
+          <div class="lib-ic"></div>
+          <div class="lib-tx">
+            <div class="lib-name">Touch Pad</div>
+            <div class="lib-desc">Move · Scroll · Click</div>
+          </div>
         </div>
       </div>
 <div id="rp-props" style="display:none">
@@ -883,7 +916,7 @@ function onRS(e,kid){
 
 
 // ── Carea: left=select rect, right=pan, Space+left=pan ──
-var _libItems=document.querySelectorAll(".lib-item");for(var _li=0;_li<_libItems.length;_li++){_libItems[_li].addEventListener("dragstart",function(e){e.dataTransfer.setData("text/plain",this.dataset.widget);e.dataTransfer.effectAllowed="copy"})}document.addEventListener("dragover",function(e){e.preventDefault();e.dataTransfer.dropEffect="copy";var _ca=document.getElementById("carea"),_rect=_ca.getBoundingClientRect();if(e.clientX>=_rect.left&&e.clientX<=_rect.right&&e.clientY>=_rect.top&&e.clientY<=_rect.bottom){var _gh=document.getElementById("gh");_gh.style.display="block";_gh.style.left=(e.clientX-_rect.left-10)+"px";_gh.style.top=(e.clientY-_rect.top-10)+"px";_gh.style.width="20px";_gh.style.height="20px"}});document.addEventListener("drop",function(e){e.preventDefault();document.getElementById("gh").style.display="none";document.body.style.cursor="";var type=e.dataTransfer.getData("text/plain");if(!type||!profile)return;var _ca2=document.getElementById("carea"),_rect2=_ca2.getBoundingClientRect();var dw=profile.deviceWidth||1210,dh=profile.deviceHeight||834,cs=profile.cellSize||60,gp=profile.gap||0,cpx=cs+gp;var scale=_totalScale();var vo=_viewOrigin();var dx=(e.clientX-_rect2.left-vo.ox)/scale,dy=(e.clientY-_rect2.top-vo.oy)/scale;window._pendingCol=_snap4((dx-dw/2)/cpx-panX);window._pendingRow=_snap4((dy-dh/2)/cpx-panY);var tw=type==="touchpad"?4:1,th=type==="touchpad"?3:1;{if(type==="__clipboard__"){_pasteFromClipboard(window._pendingCol,window._pendingRow)}else if(type==="keyboard"){openKbPicker("create")}else{addKeyOfType(type)}}});
+var _libItems=document.querySelectorAll(".lib-item");var _libIcons={key:"key",keyboard:"keyboard",volume:"volume-loud",micmute:"mic",audioout:"speaker",audioin:"mic-2",imeswitch:"global",activeapp:"monitor",wingesture:"layers",fullscreen:"fullscreen",dock:"widget",switchprofile:"restart",balance:"chart",textmacro:"text-field",touchpad:"mouse"};for(var _li=0;_li<_libItems.length;_li++){var _lit=_libItems[_li];var _lin=_libIcons[_lit.dataset.widget];var _lic=_lit.querySelector(".lib-ic");if(_lic&&_lin&&window.TAPFLOW_ICONS&&window.TAPFLOW_ICONS.svg[_lin]){_lic.innerHTML=window.TAPFLOW_ICONS.svg[_lin]}else if(_lic){_lic.style.background="none"}_lit.addEventListener("dragstart",function(e){e.dataTransfer.setData("text/plain",this.dataset.widget);e.dataTransfer.effectAllowed="copy"})}document.addEventListener("dragover",function(e){e.preventDefault();e.dataTransfer.dropEffect="copy";var _ca=document.getElementById("carea"),_rect=_ca.getBoundingClientRect();if(e.clientX>=_rect.left&&e.clientX<=_rect.right&&e.clientY>=_rect.top&&e.clientY<=_rect.bottom){var _gh=document.getElementById("gh");_gh.style.display="block";_gh.style.left=(e.clientX-_rect.left-10)+"px";_gh.style.top=(e.clientY-_rect.top-10)+"px";_gh.style.width="20px";_gh.style.height="20px"}});document.addEventListener("drop",function(e){e.preventDefault();document.getElementById("gh").style.display="none";document.body.style.cursor="";var type=e.dataTransfer.getData("text/plain");if(!type||!profile)return;var _ca2=document.getElementById("carea"),_rect2=_ca2.getBoundingClientRect();var dw=profile.deviceWidth||1210,dh=profile.deviceHeight||834,cs=profile.cellSize||60,gp=profile.gap||0,cpx=cs+gp;var scale=_totalScale();var vo=_viewOrigin();var dx=(e.clientX-_rect2.left-vo.ox)/scale,dy=(e.clientY-_rect2.top-vo.oy)/scale;window._pendingCol=_snap4((dx-dw/2)/cpx-panX);window._pendingRow=_snap4((dy-dh/2)/cpx-panY);var tw=type==="touchpad"?4:1,th=type==="touchpad"?3:1;{if(type==="__clipboard__"){_pasteFromClipboard(window._pendingCol,window._pendingRow)}else if(type==="keyboard"){openKbPicker("create")}else{addKeyOfType(type)}}});
 const carea=document.getElementById("carea");
 
 carea.addEventListener("mousedown",e=>{
