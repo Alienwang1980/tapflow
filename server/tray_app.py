@@ -466,6 +466,14 @@ try:
             except Exception:
                 pass
 
+        def currencyChanged_(self, sender):
+            cur = "CNY" if sender.indexOfSelectedItem() == 0 else "USD"
+            try:
+                import main as _mm
+                _mm.set_balance_currency(cur)
+            except Exception:
+                pass
+
         def controlTextDidChange_(self, note):
             # 端口输入变化 → 只有和当前端口不同时才点亮"保存并重启"
             _update_save_btn()
@@ -546,7 +554,7 @@ def open_settings_panel():
 
     W, ROW_H = 380, 30
     panel = AppKit.NSPanel.alloc().initWithContentRect_styleMask_backing_defer_(
-        NSMakeRect(0, 0, W, 396),
+        NSMakeRect(0, 0, W, 444),
         AppKit.NSWindowStyleMaskTitled | AppKit.NSWindowStyleMaskClosable,
         AppKit.NSBackingStoreBuffered, False)
     panel.setTitle_("Tapflow 设置")
@@ -581,7 +589,7 @@ def open_settings_panel():
         content.addSubview_(b)
         return b
 
-    y = 356
+    y = 404
     _label("统一字体", 20, y, 100, bold=True)
     y -= 34
     from AppKit import NSPopUpButton
@@ -593,7 +601,18 @@ def open_settings_panel():
     popup.setAction_("fontChanged:")
     content.addSubview_(popup)
 
-    y = 292
+    # balance 面板显示币种(官方中英双价格表都抓,此处只选显示用哪套)
+    y -= 34
+    _label("余额显示币种", 20, y, 100, bold=True)
+    y -= 34
+    cur_popup = NSPopUpButton.alloc().initWithFrame_(NSMakeRect(28, y, W - 56, 24))
+    cur_popup.addItemsWithTitles_(["CNY (¥)", "USD ($)"])
+    cur_popup.selectItemAtIndex_(0 if _main_mod.BALANCE_CURRENCY == "CNY" else 1)
+    cur_popup.setTarget_(dele)
+    cur_popup.setAction_("currencyChanged:")
+    content.addSubview_(cur_popup)
+
+    y = 268
     _label("权限", 20, y, 100, bold=True)
     y -= 20
     dim = AppKit.NSColor.secondaryLabelColor()

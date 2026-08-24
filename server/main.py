@@ -108,7 +108,51 @@ def set_font_family(name: str) -> None:
         except Exception:
             pass
 
+# ── balance 面板显示币种(2026-08-24)──
+# "CNY"(默认)/"USD"。官方中英两页都抓,显示时按此选择对应价格表;
+# 支出 = 余额差(CNY),选 USD 时按两表隐含汇率换算。与 fontFamily 同一模式:
+# config.json 的 balanceCurrency 键 + tray_app 设置面板修改后广播,无需重启。
+BALANCE_CURRENCY = "CNY"
+
+def load_balance_currency() -> None:
+    """启动时从 config.json 读 balanceCurrency(失败/非法 → CNY)。"""
+    global BALANCE_CURRENCY
+    try:
+        with open(_cfg_path(), "r", encoding="utf-8") as f:
+            cfg = json.load(f)
+        v = str(cfg.get("balanceCurrency") or "CNY")
+        BALANCE_CURRENCY = v if v in ("CNY", "USD") else "CNY"
+    except Exception:
+        BALANCE_CURRENCY = "CNY"
+
+def set_balance_currency(cur: str) -> None:
+    """tray_app 设置面板调用:内存 + config.json 持久化 + WS 广播(任意线程安全)。"""
+    global BALANCE_CURRENCY
+    if cur not in ("CNY", "USD"):
+        return
+    BALANCE_CURRENCY = cur
+    try:
+        cfg = {}
+        try:
+            with open(_cfg_path(), "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+        except Exception:
+            pass
+        cfg["balanceCurrency"] = BALANCE_CURRENCY
+        with open(_cfg_path(), "w", encoding="utf-8") as f:
+            json.dump(cfg, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        logger.warning("写 config.json balanceCurrency 失败: %s", e)
+    if _server_loop is not None and _server_loop.is_running():
+        try:
+            asyncio.run_coroutine_threadsafe(
+                manager.broadcast({"type": "settings", "balanceCurrency": BALANCE_CURRENCY}),
+                _server_loop)
+        except Exception:
+            pass
+
 load_font_family()
+load_balance_currency()
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR, check_dir=False), name="uploads")
 app.mount("/static", StaticFiles(directory=CLIENT_DIR, check_dir=False), name="static")
 
@@ -362,8 +406,8 @@ async def health():
 
 @app.get("/api/config")
 async def api_config():
-    """面板/编辑器启动时拉取全局配置(统一字体)。"""
-    return {"fontFamily": FONT_FAMILY}
+    """面板/编辑器启动时拉取全局配置(统一字体、balance 显示币种)。"""
+    return {"fontFamily": FONT_FAMILY, "balanceCurrency": BALANCE_CURRENCY}
 
 
 # ── Profile REST API ──
