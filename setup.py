@@ -68,8 +68,8 @@ OPTIONS = {
         "CFBundleName": "Tapflow",
         "CFBundleDisplayName": "Tapflow",
         "CFBundleIdentifier": "com.tapflow.app",
-        "CFBundleVersion": "1.0.5",
-        "CFBundleShortVersionString": "1.0.5",
+        "CFBundleVersion": "1.0.6",
+        "CFBundleShortVersionString": "1.0.6",
         "NSHighResolutionCapable": True,
         "LSUIElement": True,
         "NSAppleEventsUsageDescription": "Tapflow needs Accessibility access to simulate keyboard input.",
@@ -88,7 +88,7 @@ OPTIONS = {
 
 setup(
     name="Tapflow",
-    version="1.0.5",
+    version="1.0.6",
     app=APP,
     data_files=DATA_FILES,
     options={"py2app": OPTIONS},
