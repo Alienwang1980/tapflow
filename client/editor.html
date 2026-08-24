@@ -176,6 +176,42 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 }
 .rp .ar button:hover{border-color:var(--accent)}
 
+/* ==== Left Panel 统一布局 ==== */
+#lp-panel input,#lp-panel select{height:24px;padding:0 8px;font-size:11px}
+#lp-panel input[type=color]{width:28px;height:28px;padding:2px;flex:none}
+#lp-panel .lph{display:flex;align-items:center;justify-content:space-between;gap:8px}
+#lp-panel .lph h3{margin-bottom:0}
+#lp-panel .hbtns{display:flex;gap:4px;align-items:center}
+#lp-panel .hbtn{
+  height:22px;padding:0 8px;font-size:10px;background:var(--card);color:var(--text);
+  border:1px solid var(--border);border-radius:4px;cursor:pointer;font-weight:500;
+  transition:all 0.15s;
+}
+#lp-panel .hbtn:hover{border-color:var(--accent);background:#33302c}
+#lp-panel .stepbtn{
+  width:24px;height:24px;padding:0;font-size:14px;line-height:1;flex:none;
+  background:var(--card);color:var(--text);border:1px solid var(--border);
+  border-radius:4px;cursor:pointer;transition:all 0.15s;
+}
+#lp-panel .stepbtn:hover{border-color:var(--accent);background:#33302c}
+#lp-panel .lprow{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+#lp-panel .lprow:last-child{margin-bottom:0}
+#lp-panel .lprow label{font-size:10px;color:var(--dim);white-space:nowrap;margin:0;min-width:30px}
+#lp-panel .lprow select,#lp-panel .lprow input[type=number]{flex:1;min-width:0}
+#lp-panel .lprow input[type=number]{width:auto}
+#lp-panel .lpbtn{
+  flex:1;height:24px;padding:0 6px;font-size:10px;background:var(--card);color:var(--text);
+  border:1px solid var(--border);border-radius:4px;cursor:pointer;font-weight:500;
+  transition:all 0.15s;
+}
+#lp-panel .lpbtn:hover{border-color:var(--accent);background:#33302c}
+#lp-panel .lpcta{
+  width:100%;height:28px;border-radius:6px;border:1px solid var(--accent);
+  background:rgba(217,119,6,0.15);color:var(--accent);cursor:pointer;
+  font-size:11px;font-weight:600;transition:all 0.15s;
+}
+#lp-panel .lpcta:hover{background:rgba(217,119,6,0.25)}
+
 /* ==== Toast & Info ==== */
 .toast{
   position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
@@ -217,46 +253,46 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 <div class="rp" id="lp-panel">
 <div id="pl" style="display:none"></div>
       <div class="rp-section" id="rp-profiles-sec">
-        <h3>Profiles <button onclick="pmCreate()" title="New Profile" style="font-size:10px;padding:2px 8px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;float:right;margin-left:4px">+ New</button><button onclick="pmImport()" title="Import Profile from File" style="font-size:10px;padding:2px 8px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;float:right;margin-left:4px">Import</button><button onclick="pmExportDialog()" title="Export Profile" style="font-size:10px;padding:2px 8px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;float:right;margin-left:4px">Export</button></h3><input type="file" id="pmImpF" accept=".json,application/json" style="display:none" onchange="pmImportGo(this)">
+        <div class="lph"><h3>Profiles</h3><div class="hbtns"><button class="hbtn" onclick="pmImport()" title="Import Profile from File">Import</button><button class="hbtn" onclick="pmExportDialog()" title="Export Profile">Export</button><button class="hbtn" onclick="pmCreate()" title="New Profile">+ New</button></div></div><input type="file" id="pmImpF" accept=".json,application/json" style="display:none" onchange="pmImportGo(this)">
         <div id="profList"></div>
       </div>
+      <div class="rp-divider"></div>
       <div class="rp-section">
-        <h3 id="pp-heading">Profile Properties</h3>
-        <div style="margin-top:6px"><div style="display:flex;align-items:center;gap:4px"><label style="font-size:10px;color:var(--dim);white-space:nowrap">Pat</label><select id="pagePat" onchange="upkPagePattern(this.value)" style="flex:1;height:22px;font-size:10px;padding:0 2px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:3px"><option value="none">No Pattern</option><option value="topography">Topography</option><option value="circuit">Circuit</option><option value="dots">Dots</option><option value="diagonal">Diagonal</option><option value="hexagon">Hexagon</option><option value="grid">Grid</option><option value="triangles">Triangles</option><option value="topo">Topo Texture</option><option value="waves">Waves</option></select><button onclick="var n=this.nextElementSibling;var v=parseInt(n.value)||60;v=Math.max(10,v-10);n.value=v;upkPagePatternSize(v)" style="width:20px;height:22px;font-size:12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:3px;cursor:pointer;line-height:1">-</button><input type="number" id="pagePatSz" value="60" onchange="upkPagePatternSize(this.value)" style="width:44px;height:22px;text-align:center;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:3px;font-size:10px;padding:0 2px"><button onclick="var n=this.previousElementSibling;var v=parseInt(n.value)||60;v=Math.min(5000,v+10);n.value=v;upkPagePatternSize(v)" style="width:20px;height:22px;font-size:12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:3px;cursor:pointer;line-height:1">+</button></div><div style="margin-top:4px;display:flex;align-items:center;gap:6px"><label style="font-size:10px;color:var(--dim);white-space:nowrap">Pat Color</label><input type="color" id="pagePatColor" value="#ffffff" oninput="upkPagePatternColor(this.value)" onchange="upkPagePatternColor(this.value)" style="width:30px;height:30px;padding:0;border:1px solid var(--border);border-radius:3px;cursor:pointer"></div>
-        </div>
-        <div style="margin-top:6px;display:flex;align-items:center;gap:6px"><label style="font-size:10px;color:var(--dim);white-space:nowrap">BG</label><input type="color" id="pageBg" value="#1a1a2e" oninput="upkPageBg(this.value)" onchange="upkPageBg(this.value)" style="width:30px;height:30px;padding:0;border:1px solid var(--border);border-radius:3px;cursor:pointer"></div>
-
+        <h3 id="pp-heading">Page Style</h3>
+        <div class="lprow"><label>BG</label><input type="color" id="pageBg" value="#1a1a2e" oninput="upkPageBg(this.value)" onchange="upkPageBg(this.value)" title="Page background color"></div>
+        <div class="lprow"><label>Pat</label><select id="pagePat" onchange="upkPagePattern(this.value)" title="Background pattern"><option value="none">No Pattern</option><option value="topography">Topography</option><option value="circuit">Circuit</option><option value="dots">Dots</option><option value="diagonal">Diagonal</option><option value="hexagon">Hexagon</option><option value="grid">Grid</option><option value="triangles">Triangles</option><option value="topo">Topo Texture</option><option value="waves">Waves</option></select><input type="color" id="pagePatColor" value="#ffffff" oninput="upkPagePatternColor(this.value)" onchange="upkPagePatternColor(this.value)" title="Pattern color"></div>
+        <div class="lprow"><label>Size</label><button class="stepbtn" onclick="var n=this.nextElementSibling;var v=parseInt(n.value)||60;v=Math.max(10,v-10);n.value=v;upkPagePatternSize(v)">-</button><input type="number" id="pagePatSz" value="60" onchange="upkPagePatternSize(this.value)" style="width:56px;text-align:center;padding:0 2px;flex:none" title="Pattern size"><button class="stepbtn" onclick="var n=this.previousElementSibling;var v=parseInt(n.value)||60;v=Math.min(5000,v+10);n.value=v;upkPagePatternSize(v)">+</button></div>
       </div>
       <div class="rp-section" id="rp-ratio-sec">
         <h3>Display Scale</h3>
         <div id="ratioInfo" style="font-size:10px;color:var(--dim);margin-bottom:6px">—</div>
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><label style="font-size:10px;color:var(--dim);white-space:nowrap">Title Bar</label><input type="number" id="topInsetIn" min="0" max="300" step="1" value="0" onchange="upkTopInset(this.value)" title="Top safe-area / title bar height to mark off in the frame (logical px)" style="flex:1;height:22px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:3px;font-size:10px;padding:0 6px"><span style="font-size:10px;color:var(--dim)">px</span></div>
         <div id="ratioBox" style="margin-top:0">
           <div id="ratioPresets" style="display:flex;flex-wrap:wrap;gap:4px"></div>
+          <div class="lprow" style="margin-top:6px"><label style="min-width:0">Title Bar</label><input type="number" id="topInsetIn" min="0" max="300" step="1" value="0" onchange="upkTopInset(this.value)" title="Top safe-area / title bar height to mark off in the frame (logical px)"><span style="font-size:10px;color:var(--dim)">px</span></div>
           <div style="display:flex;gap:4px;margin-top:6px">
-            <button onclick="applyCustomRatio()" style="flex:1;padding:5px;font-size:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer">Custom pixels…</button>
-            <button onclick="toggleOri()" title="Toggle Orientation" style="flex:1;padding:5px;font-size:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer">⟳ Rotate</button>
+            <button onclick="applyCustomRatio()" class="lpbtn">Custom pixels…</button>
+            <button onclick="toggleOri()" title="Toggle Orientation" class="lpbtn">⟳ Rotate</button>
           </div>
         </div>
       </div>
       <div class="rp-section" id="rp-sound-sec">
         <h3>Default Sound</h3>
-        <div style="display:flex;gap:4px;align-items:center">
+        <div class="lprow">
           <select id="tgs" onchange="if(profile){profile.defaultSound=this.value;dirty=true}"><option value="none">None</option><option value="click">Click</option><option value="soft">Soft</option><option value="mechanical">Mechanical</option><option value="deep">Deep</option><option value="red">Red Switch</option><option value="topre">Topre EC</option><option value="glass">Glass Tap</option><option value="bubble">Bubble Pop</option><option value="blip">8-bit Blip</option><option value="spark">Electric Spark</option></select>
-          <button onclick="testSnd(document.getElementById('tgs').value)" style="padding:4px 8px;font-size:12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;flex-shrink:0" title="Preview">&#x25B6;</button>
+          <button onclick="testSnd(document.getElementById('tgs').value)" style="width:34px;height:24px;font-size:12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;flex:none" title="Preview">&#x25B6;</button>
         </div>
       </div>
       <div class="rp-divider"></div>
       <div class="rp-section">
-        <h3>Groups <button id="btnSaveGroup" onclick="saveAsGroup()" style="font-size:10px;padding:2px 8px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;float:right">+ Group</button></h3>
-        <div id="grpl"><p style="font-size:10px;color:var(--dim);padding:8px 0">No groups</p></div>
+        <div class="lph"><h3>Groups</h3><button id="btnSaveGroup" class="hbtn" onclick="saveAsGroup()">+ Group</button></div>
+        <div id="grpl"><p style="font-size:10px;color:var(--dim);padding:8px 0">No groups yet — select keys, then + Group</p></div>
       </div>
       <div class="rp-divider"></div>
       <div id="rp-clipboard" class="rp-section">
         <h3>Clipboard</h3>
         <p style="font-size:10px;color:var(--dim);margin-bottom:8px">Select keys and click Copy</p>
-        <div class="clip-preview" style="aspect-ratio:1;max-width:180px;background:var(--card);border-radius:6px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;margin-bottom:8px;transition:all 0.15s"></div>
-        <button onclick="_copyToClipboard()" style="width:100%;padding:6px 12px;border-radius:6px;border:1px solid var(--accent);background:rgba(217,119,6,0.15);color:var(--accent);cursor:pointer;font-size:11px;font-weight:600">Copy Selected</button>
+        <div class="clip-preview" style="aspect-ratio:1;max-width:180px;margin:0 auto 8px;background:var(--card);border-radius:6px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;transition:all 0.15s"></div>
+        <button onclick="_copyToClipboard()" class="lpcta">Copy Selected</button>
       </div>
 </div>
 <div class="carea" id="carea"><div id="tl" style="position:absolute;inset:0;pointer-events:none;z-index:0;display:none"></div>
@@ -465,7 +501,7 @@ function groupSelected(){
   page.keys.forEach(function(k){if(selKeys.has(k.id)){if(!k.groups)k.groups=[];if(k.groups.indexOf(gid)<0)k.groups.push(gid)}});
   _pushUndo(before);dirty=true;rr();rpr();rgrp();
 }
-function rgrp(){const groups=profile?.groups||[];document.getElementById("grpl").innerHTML=groups.length?groups.map(g=>"<div class=\"it\" onclick=\"selectGroup('"+g.id+"')\">"+hesc(g.name)+"<span class=\"x\" onclick=\"event.stopPropagation();ungroupById('"+g.id+"')\">✕</span></div>").join(""):"<p style=\"font-size:10px;color:var(--dim)\">Select keys → Save as Group</p>";}function saveAsGroup(){var name=prompt("Group name:","Group "+((profile.groups?.length||0)+1));if(!name||!name.trim())return;var gid="g_"+Date.now();if(!profile.groups)profile.groups=[];profile.groups.push({id:gid,name:name.trim()});var page=cp_();if(!page)return;var before=page.keys.filter(function(k){return selKeys.has(k.id)}).map(function(k){return _snapshot(k)});page.keys.forEach(function(k){if(selKeys.has(k.id)){if(!k.groups)k.groups=[];if(k.groups.indexOf(gid)<0)k.groups.push(gid)}});_pushUndo(before);dirty=true;renderAll();}
+function rgrp(){const groups=profile?.groups||[];document.getElementById("grpl").innerHTML=groups.length?groups.map(g=>"<div class=\"it\" onclick=\"selectGroup('"+g.id+"')\">"+hesc(g.name)+"<span class=\"x\" onclick=\"event.stopPropagation();ungroupById('"+g.id+"')\">✕</span></div>").join(""):"<p style=\"font-size:10px;color:var(--dim);padding:8px 0\">No groups yet — select keys, then + Group</p>";}function saveAsGroup(){var name=prompt("Group name:","Group "+((profile.groups?.length||0)+1));if(!name||!name.trim())return;var gid="g_"+Date.now();if(!profile.groups)profile.groups=[];profile.groups.push({id:gid,name:name.trim()});var page=cp_();if(!page)return;var before=page.keys.filter(function(k){return selKeys.has(k.id)}).map(function(k){return _snapshot(k)});page.keys.forEach(function(k){if(selKeys.has(k.id)){if(!k.groups)k.groups=[];if(k.groups.indexOf(gid)<0)k.groups.push(gid)}});_pushUndo(before);dirty=true;renderAll();}
 function selectGroup(gid){selGroup=gid;selKeys.clear();selKey=null;cp_().keys.forEach(k=>{if(k.groups&&k.groups.indexOf(gid)>=0)selKeys.add(k.id)});rr();rpr();rgrp();}
 let mT=[],mM=1,mTK=null;function openMM(kid){mTK=kid;mT=[];var k=cp_()?.keys.find(function(x){return x.id===kid});var lbl=document.getElementById("mkl");if(lbl)lbl.textContent="Assigning: "+(k?k.label:kid)+(k&&k.value?" (current: "+k.value+")":"");renderMT();document.getElementById("macroModal").style.display="flex";document.getElementById("mtc").focus()}function closeMM(){document.getElementById("macroModal").style.display="none";mT=[];mTK=null}function setMM(m){mM=m;document.getElementById("mcb").style.background=m===1?"var(--accent)":"var(--card)";document.getElementById("msq").style.background=m===2?"var(--accent)":"var(--card)";document.getElementById("mcb").style.color=m===1?"#fff":"var(--text)";document.getElementById("msq").style.color=m===2?"#fff":"var(--text)"}function addMT(key){mT.push(key);renderMT()}function renderMT(){document.getElementById("mtc").innerHTML=(mT.length===0?"<span style=color:var(--dim);font-size:11px>Click here and type keys, or click modifiers...</span>":"")+mT.map(function(k,i){return"<span data-mi="+i+" style=background:var(--card);padding:3px 8px;border-radius:3px;font-size:12px;display:inline-flex;align-items:center;gap:4px>"+k+"<span onclick=removeMT("+i+") style=cursor:pointer;color:var(--red);margin-left:4px>x</span></span>"}).join("")}function removeMT(i){mT.splice(i,1);renderMT()}function saveMacro(){var v=mT.join("+");var k=cp_()?.keys.find(function(x){return x.id===mTK});if(k){var b=_snapshot(k);k.value=v;k.action="macro";if(JSON.stringify(b)!==JSON.stringify(_snapshot(k)))_pushUndo([b])}closeMM();dirty=true;rr();rpr()}document.addEventListener("keydown",function(e){var mm=document.getElementById("macroModal");if(!mm||mm.style.display!=="flex")return;if(e.key==="Escape")return;e.preventDefault();e.stopPropagation();// Map physical keys with left/right distinction
 var _km={Enter:"ENTER",Tab:"TAB"," ":"SPACE",Backspace:"DELETE",ArrowUp:"UP",ArrowDown:"DOWN",ArrowLeft:"LEFT",ArrowRight:"RIGHT",Fn:"FN"};
@@ -566,7 +602,7 @@ function renderAll(){rpl();if(profile){rpgl()}rr();if(profile){rpr();rgrp()}}
 function rpl(){var _pl=document.getElementById("pl");if(_pl)_pl.innerHTML=profiles.map(p=>'<div class="it'+(p.filename===activeProfile?" ac":"")+'" onclick="lp(\''+p.filename+'\')">'+hesc(p.profileName)+'<span class="x" onclick="event.stopPropagation();dp(\''+p.filename+'\')">×</span></div>').join("");var tpf=document.getElementById("tpf");if(tpf){tpf.innerHTML=profiles.map(function(p){return"<option value='"+p.filename+"'>"+p.profileName+"</option>"}).join("")+"<option value='__manage__' style='color:var(--accent)'>Manage...</option></option>";if(activeProfile)tpf.value=activeProfile}renderProfileList()}
 function renderProfileList(){var el=document.getElementById("profList");if(!el)return;if(!profiles||!profiles.length){el.innerHTML='<p style="font-size:10px;color:var(--dim);padding:4px 2px">No profiles</p><button onclick="pmCreate()" style="margin-top:6px;padding:6px 12px;font-size:11px;background:var(--accent);color:#1a1a1a;border:none;border-radius:4px;cursor:pointer;font-weight:600;width:100%">+ Create New Profile</button>';return}el.innerHTML=profiles.map(function(p){return '<div class="it'+(p.filename===activeProfile?" ac":"")+'" onclick="lp(\''+p.filename+'\')"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+hesc(p.profileName)+'</span><span title="Rename" onclick="event.stopPropagation();pmRenamePrompt(\''+p.filename+'\')" style="opacity:0.6;color:var(--dim);cursor:pointer;font-size:12px;padding:2px 6px;border-radius:3px">&#x270E;</span><span class="x" title="Delete" onclick="event.stopPropagation();dp(\''+p.filename+'\')">&times;</span></div>'}).join("")}
 function pmRenamePrompt(fn){var p=(profiles||[]).find(function(x){return x.filename===fn});var cur=p?p.profileName:"";var nm=prompt("Rename profile:",cur);if(nm&&nm.trim()&&nm.trim()!==cur)pmRename(fn,nm.trim())}
-function rpgl(){var h=document.getElementById("pp-heading");if(h)h.textContent=(profile?profile.profileName:"Profile")+" Properties";var _cp=cp_();var _bg=document.getElementById("pageBg");if(_bg&&_cp)_bg.value=_cp.bgColor||"#1a1a2e";var _pt=document.getElementById("pagePat");if(_pt&&_cp)_pt.value=_cp.bgPattern||"none";var _pc=document.getElementById("pagePatColor");if(_pc&&_pc)_pc.value=_cp.bgPatternColor||"#ffffff";var _ps=document.getElementById("pagePatSz");if(_ps&&_ps)_ps.value=_cp.bgPatternSize||60}
+function rpgl(){var h=document.getElementById("pp-heading");if(h)h.textContent="Page Style";var _cp=cp_();var _bg=document.getElementById("pageBg");if(_bg&&_cp)_bg.value=_cp.bgColor||"#1a1a2e";var _pt=document.getElementById("pagePat");if(_pt&&_cp)_pt.value=_cp.bgPattern||"none";var _pc=document.getElementById("pagePatColor");if(_pc&&_pc)_pc.value=_cp.bgPatternColor||"#ffffff";var _ps=document.getElementById("pagePatSz");if(_ps&&_ps)_ps.value=_cp.bgPatternSize||60}
 
 function upkShowFlag(flag,val){var k=cp_()?.keys.find(function(x){return x.id===selKey});if(!k)return;if(!k.showFlags)k.showFlags={};k.showFlags[flag]=val;dirty=true;rr()}
 function upkPageBg(v){var p=cp_();if(!p)return;p.bgColor=v;dirty=true;rr()}
@@ -981,7 +1017,7 @@ function zoomBy(d){const nv=Math.max(20,Math.min(200,(profile.cellSize||60)+d));
 function toggleOri(){const t=profile.deviceWidth;profile.deviceWidth=profile.deviceHeight;profile.deviceHeight=t;dirty=true;rr()}
 function applyRatioByIndex(i){var k=Object.keys(DEVS)[i];var d=DEVS[k];if(d&&profile){profile.device=k;profile.deviceWidth=d.portrait?Math.min(d.w,d.h):Math.max(d.w,d.h);profile.deviceHeight=d.portrait?Math.max(d.w,d.h):Math.min(d.w,d.h);profile.dpr=d.dpr||0;profile.topInset=d.topInset||0;dirty=true;rr()}updateRatioInfo()}
 function applyCustomRatio(){if(!profile)return;var cur=(profile.deviceWidth||1210)+"x"+(profile.deviceHeight||834);var inp=prompt("Custom canvas WxH (logical px, e.g. 1280x800):",cur);if(!inp)return;var mm=inp.replace(/[×,\s]/g,"x").split("x");var w=parseInt(mm[0],10),h=parseInt(mm[1],10);if(!(w>0&&h>0&&w<=8000&&h<=8000)){alert("Enter valid pixels, e.g. 1280x800");return}profile.dpr=0;profile.topInset=0;if(w>1600||h>1600){var f=prompt(w+"×"+h+" 疑似物理分辨率。输入 DPR(2 或 3)自动换算为逻辑分辨率;输入 0 保持原值:","3");if(f==="2"||f==="3"){var dn=parseInt(f,10);w=Math.round(w/dn);h=Math.round(h/dn);profile.dpr=dn}}profile.device="__custom__";profile.deviceWidth=w;profile.deviceHeight=h;dirty=true;rr();updateRatioInfo()}
-function buildRatioPresets(){var el=document.getElementById("ratioPresets");if(!el)return;el.innerHTML=Object.keys(DEVS).map(function(k,i){return '<button onclick="applyRatioByIndex('+i+')" style="padding:4px 8px;font-size:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer">'+hesc(k)+'</button>'}).join("")}
+function buildRatioPresets(){var el=document.getElementById("ratioPresets");if(!el)return;el.innerHTML=Object.keys(DEVS).map(function(k,i){return '<button onclick="applyRatioByIndex('+i+')" style="height:24px;padding:0 10px;font-size:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer">'+hesc(k)+'</button>'}).join("")}
 function upkTopInset(v){if(!profile)return;var n=Math.max(0,Math.min(300,parseInt(v,10)||0));profile.topInset=n;dirty=true;rr()}
 function updateRatioInfo(){var b=document.getElementById("ratioInfo");if(!b||!profile)return;var w=profile.deviceWidth||1210,h=profile.deviceHeight||834,name=null;for(var k in DEVS){if((DEVS[k].w===w&&DEVS[k].h===h)||(DEVS[k].w===h&&DEVS[k].h===w)){name=k;break}}if(!name)name="Custom "+w+"×"+h;var dpr=profile.dpr||0,ti=profile.topInset||0,phys=dpr>1?" · 物理 "+(w*dpr)+"×"+(h*dpr):"";var _ti=document.getElementById("topInsetIn");if(_ti)_ti.value=ti;b.textContent=name+" · "+((w>h)?"Landscape":"Portrait")+" · 逻辑 "+w+"×"+h+(dpr>1?" @ "+dpr+"x":"")+phys+(ti>0?" · 顶栏 "+ti+"px":"")}
 
