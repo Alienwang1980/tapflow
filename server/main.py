@@ -153,8 +153,14 @@ def set_balance_currency(cur: str) -> None:
 
 load_font_family()
 load_balance_currency()
-app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR, check_dir=False), name="uploads")
-app.mount("/static", StaticFiles(directory=CLIENT_DIR, check_dir=False), name="static")
+class NoCacheStaticFiles(StaticFiles):
+    """静态文件一律 no-cache:热更高频,iPad Safari 会缓存旧版(如 icons.js 旧版缺新图标)。"""
+    async def get_response(self, path, scope):
+        response = await super().get_response(path, scope)
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        return response
+app.mount("/uploads", NoCacheStaticFiles(directory=UPLOAD_DIR, check_dir=False), name="uploads")
+app.mount("/static", NoCacheStaticFiles(directory=CLIENT_DIR, check_dir=False), name="static")
 
 # ── mDNS state ──
 mdns_info = {"enabled": False, "service_name": "Tapflow", "port": 8082, "addresses": []}

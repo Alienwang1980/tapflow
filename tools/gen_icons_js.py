@@ -22,6 +22,7 @@ GROUPS = [
     ("devices", "设备", [
         "display", "monitor", "cpu", "keyboard", "laptop", "smartphone",
         "tablet", "mouse", "power", "bolt", "battery-full", "battery-low",
+        "keycap",
     ]),
     ("audio", "音频", [
         "volume", "volume-loud", "volume-mute", "mic", "mic-2", "headphones",
