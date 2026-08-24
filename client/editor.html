@@ -221,14 +221,15 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
   background:rgba(0,0,0,0.45);padding:1px 6px;border-radius:3px;pointer-events:none;
 }
 #lp-panel .ratio-card{
-  width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:8px;
+  width:100%;display:block;padding:8px 10px;margin-bottom:8px;
   background:var(--card);border:1px solid var(--border);border-radius:6px;
-  cursor:pointer;transition:all 0.15s;text-align:left;font-weight:500;
+  cursor:pointer;transition:all 0.15s;text-align:left;font-weight:500;color:var(--text);
 }
 #lp-panel .ratio-card:hover{border-color:var(--accent);background:#33302c}
+#lp-panel .ratio-card .rc-mainrow{display:flex;align-items:center;justify-content:space-between;gap:8px}
 #lp-panel .ratio-card .rc-main{font-size:13px;font-weight:600;line-height:1.3}
-#lp-panel .ratio-card .rc-sub{font-size:9px;color:var(--dim);line-height:1.35;margin-top:1px;font-weight:400}
-#lp-panel .ratio-card .rc-edit{flex:none;font-size:10px;color:var(--accent);font-weight:600}
+#lp-panel .ratio-card .rc-sub{font-size:9px;color:var(--dim);line-height:1.35;margin-top:2px;font-weight:400}
+#lp-panel .ratio-card .rc-edit{flex:none;font-size:11px;color:var(--accent);font-weight:600;white-space:nowrap}
 
 /* ==== Toast & Info ==== */
 .toast{
@@ -275,23 +276,23 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
         <div id="profList"></div>
       </div>
       <div class="rp-divider"></div>
+      <div class="rp-section" id="rp-ratio-sec">
+        <h3>Display Scale</h3>
+        <button class="ratio-card" id="ratioCard" onclick="openRatioModal()" title="Change display scale">
+          <span class="rc-mainrow">
+            <span class="rc-main" id="ratioName">—</span>
+            <span class="rc-edit">Change ›</span>
+          </span>
+          <span class="rc-sub" id="ratioDetail" style="display:block"></span>
+        </button>
+        <div class="lprow"><label style="min-width:0">Title Bar</label><input type="number" id="topInsetIn" min="0" max="300" step="1" value="0" onchange="upkTopInset(this.value)" title="Top safe-area / title bar height to mark off in the frame (logical px)"><span style="font-size:10px;color:var(--dim)">px</span></div>
+      </div>
       <div class="rp-section">
         <h3 id="pp-heading">Page Style</h3>
         <div class="lprow"><label>BG</label><input type="color" id="pageBg" value="#1a1a2e" oninput="upkPageBg(this.value)" onchange="upkPageBg(this.value)" title="Page background color"></div>
         <div class="lprow"><label>Pat</label><select id="pagePat" onchange="upkPagePattern(this.value)" title="Background pattern"><option value="none">No Pattern</option><option value="topography">Topography</option><option value="circuit">Circuit</option><option value="dots">Dots</option><option value="diagonal">Diagonal</option><option value="hexagon">Hexagon</option><option value="grid">Grid</option><option value="triangles">Triangles</option><option value="topo">Topo Texture</option><option value="waves">Waves</option></select><input type="color" id="pagePatColor" value="#ffffff" oninput="upkPagePatternColor(this.value)" onchange="upkPagePatternColor(this.value)" title="Pattern color"></div>
         <div class="pat-preview" id="patPreview"></div>
         <div class="lprow"><label>Size</label><button class="stepbtn" onclick="var n=this.nextElementSibling;var v=parseInt(n.value)||60;v=Math.max(10,v-10);n.value=v;upkPagePatternSize(v)">-</button><input type="number" id="pagePatSz" value="60" onchange="upkPagePatternSize(this.value)" style="width:56px;text-align:center;padding:0 2px;flex:none" title="Pattern size"><button class="stepbtn" onclick="var n=this.previousElementSibling;var v=parseInt(n.value)||60;v=Math.min(5000,v+10);n.value=v;upkPagePatternSize(v)">+</button></div>
-      </div>
-      <div class="rp-section" id="rp-ratio-sec">
-        <h3>Display Scale</h3>
-        <button class="ratio-card" id="ratioCard" onclick="openRatioModal()" title="Change display scale">
-          <span style="flex:1;min-width:0;display:block">
-            <span class="rc-main" id="ratioName">—</span>
-            <span class="rc-sub" id="ratioDetail" style="display:block"></span>
-          </span>
-          <span class="rc-edit">Change ⟳</span>
-        </button>
-        <div class="lprow"><label style="min-width:0">Title Bar</label><input type="number" id="topInsetIn" min="0" max="300" step="1" value="0" onchange="upkTopInset(this.value)" title="Top safe-area / title bar height to mark off in the frame (logical px)"><span style="font-size:10px;color:var(--dim)">px</span></div>
       </div>
       <div class="rp-section" id="rp-sound-sec">
         <h3>Default Sound</h3>
