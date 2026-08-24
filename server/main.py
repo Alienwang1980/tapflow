@@ -20,6 +20,8 @@ if _server_dir not in sys.path:
 from connection_manager import manager
 from input_engine import press_key, press_key_down, release_key, _post_key_event, type_text, is_accessibility_enabled, HAVE_QUARTZ
 from profile_manager import profile_manager as profiles, _safe_path
+from deepseek_pricing import snapshot as pricing_snapshot, start as pricing_start
+from today_spent import today_spent
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelname)s %(message)s")
 logger = logging.getLogger("stp.main")
@@ -501,7 +503,13 @@ async def get_deepseek_balance(profile: str = "", key_id: str = ""):
             headers={"Authorization": f"Bearer {api_key}", "Accept": "application/json"},
         )
         body = urllib.request.urlopen(req, timeout=10).read()
-        return json.loads(body)
+        data = json.loads(body)
+        # Attach current pricing period/table + today's spend (midnight-snapshot ledger)
+        bi = (data.get("balance_infos") or [{}])[0]
+        total = float(bi.get("total_balance") or 0)
+        data["pricing"] = pricing_snapshot()
+        data["today_spent"] = today_spent(profile, key_id, total)
+        return data
     except urllib.error.HTTPError as e:
         # 401 = the API key itself was rejected — not a network problem
         if e.code == 401:
@@ -616,6 +624,7 @@ async def startup():
     _server_loop = asyncio.get_running_loop()
     start_mdns()
     start_window_watcher()
+    pricing_start()
 
 
 @app.on_event("shutdown")
