@@ -15,16 +15,18 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 
 /* ==== Toolbar ==== */
 .rp-topbar{
-  display:flex;align-items:center;gap:8px;padding:10px 12px;
+  display:flex;flex-direction:column;gap:8px;padding:10px 12px;
   background:var(--panel);border-bottom:1px solid var(--border);
   position:sticky;top:0;z-index:20;flex-shrink:0;
 }
+.rp-topbar .rp-trow{display:flex;align-items:center;gap:8px}
+.rp-topbar .rp-trow svg{flex:none}
 .rp-topbar h1{font-size:14px;font-weight:600;margin:0;flex:1}
 .rp-topbar .conn{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:500}
 .rp-topbar .conn.on{background:rgba(74,222,128,0.1);color:#4ade80}
 .rp-topbar .conn.off{background:rgba(248,113,113,0.1);color:#f87171}
 .rp-topbar .btn-save{
-  padding:5px 12px;border-radius:6px;border:1px solid var(--success);
+  width:100%;padding:5px 12px;border-radius:6px;border:1px solid var(--success);
   cursor:pointer;font-size:11px;background:var(--success);color:var(--text);
   font-weight:600;transition:all 0.15s;
 }
@@ -274,7 +276,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 <body>
 <div class="main">
 <div class="rp" id="lp-panel">
-<div class="rp-topbar"><img src="/static/tapflow-logo.png" alt="Tapflow" style="width:22px;height:22px;flex:none;border-radius:4px"><h1>Tapflow</h1><span class="conn off" id="cs">off</span><button class="btn-save" id="btnSave" onclick="saveProfile()">Save &amp; Sync</button></div>
+<div class="rp-topbar"><div class="rp-trow"><svg viewBox="0 0 1024 1024" width="22" height="22" fill="currentColor" aria-hidden="true"><rect x="365" y="238" width="34" height="29" rx="14.5"/><rect x="495" y="238" width="34" height="29" rx="14.5"/><rect x="625" y="238" width="34" height="29" rx="14.5"/><rect x="236" y="367" width="33" height="31" rx="15.5"/><rect x="367" y="367" width="33" height="31" rx="15.5"/><rect x="494" y="367" width="33" height="31" rx="15.5"/><rect x="626" y="367" width="33" height="31" rx="15.5"/><rect x="755" y="367" width="33" height="31" rx="15.5"/><rect x="236" y="495" width="33" height="34" rx="17"/><rect x="364" y="495" width="33" height="34" rx="17"/><rect x="489" y="495" width="33" height="34" rx="17"/><rect x="624" y="495" width="33" height="34" rx="17"/><rect x="755" y="495" width="33" height="34" rx="17"/><rect x="236" y="626" width="33" height="31" rx="15.5"/><rect x="367" y="626" width="33" height="31" rx="15.5"/><rect x="494" y="626" width="33" height="31" rx="15.5"/><rect x="626" y="626" width="33" height="31" rx="15.5"/><rect x="755" y="626" width="33" height="31" rx="15.5"/><rect x="365" y="757" width="34" height="29" rx="14.5"/><rect x="495" y="757" width="34" height="29" rx="14.5"/><rect x="625" y="757" width="34" height="29" rx="14.5"/></svg><h1>Tapflow</h1><span class="conn off" id="cs">off</span></div><button class="btn-save" id="btnSave" onclick="saveProfile()">Save &amp; Sync</button></div>
 <div id="pl" style="display:none"></div>
       <div class="rp-section" id="rp-profiles-sec">
         <div class="lph"><h3>Profiles</h3><div class="hbtns"><button class="hbtn" onclick="pmImport()" title="Import Profile from File">Import</button><button class="hbtn" onclick="pmExportDialog()" title="Export Profile">Export</button><button class="hbtn" onclick="pmCreate()" title="New Profile">+ New</button></div></div><input type="file" id="pmImpF" accept=".json,application/json" style="display:none" onchange="pmImportGo(this)">
