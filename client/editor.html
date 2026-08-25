@@ -285,7 +285,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
       <div class="rp-divider"></div>
       <div class="rp-section" id="rp-ratio-sec">
         <h3>Display Scale</h3>
-        <button class="ratio-card" id="ratioCard" onclick="openRatioModal()" title="Change display scale">
+        <button class="ratio-card" id="ratioCard" onclick="toggleRatioPanel()" title="Change display scale">
           <span class="rc-mainrow">
             <span class="rc-main" id="ratioName">—</span>
           </span>
@@ -1048,6 +1048,7 @@ function applyCustomRatio(){if(!profile)return false;var cur=(profile.deviceWidt
 function buildRatioPresets(){var el=document.getElementById("ratioModalPresets");if(!el)return;el.innerHTML=Object.keys(DEVS).map(function(k,i){return '<button onclick="applyRatioByIndex('+i+')" style="height:24px;padding:0 10px;font-size:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer">'+hesc(k)+'</button>'}).join("")}
 function openRatioModal(){var i=document.getElementById("ratioModalInfo"),rc=document.getElementById("ratioCard");if(i)i.textContent="Current: "+(rc&&rc.dataset.full?rc.dataset.full:"—");document.getElementById("ratioPanel").style.display="block"}
 function closeRatioModal(){document.getElementById("ratioPanel").style.display="none"}
+function toggleRatioPanel(){if(document.getElementById("ratioPanel").style.display==="block"){closeRatioModal()}else{openRatioModal()}}
 function upkTopInset(v){if(!profile)return;var n=Math.max(0,Math.min(300,parseInt(v,10)||0));profile.topInset=n;dirty=true;rr()}
 function updateRatioInfo(){if(!profile)return;var w=profile.deviceWidth||1210,h=profile.deviceHeight||834,name=null;for(var k in DEVS){if((DEVS[k].w===w&&DEVS[k].h===h)||(DEVS[k].w===h&&DEVS[k].h===w)){name=k;break}}if(!name)name="Custom "+w+"×"+h;var dpr=profile.dpr||0,ti=profile.topInset||0,phys=dpr>1?" · 物理 "+(w*dpr)+"×"+(h*dpr):"";var _ti=document.getElementById("topInsetIn");if(_ti)_ti.value=ti;var nm=document.getElementById("ratioName");if(nm)nm.textContent=name;var det=((w>h)?"Landscape":"Portrait")+" · 逻辑 "+w+"×"+h+(dpr>1?" @ "+dpr+"x":"")+(ti>0?" · 顶栏 "+ti+"px":"");var rd=document.getElementById("ratioDetail");if(rd)rd.textContent=det;var rc=document.getElementById("ratioCard");if(rc)rc.dataset.full=name+" · "+det+phys}
 
