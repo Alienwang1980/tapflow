@@ -14,24 +14,30 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Ro
 body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:none}
 
 /* ==== Toolbar ==== */
-.tb{
-  display:flex;align-items:center;gap:8px;padding:8px 16px;
-  background:var(--panel);height:44px;flex-shrink:0;z-index:20;
+.rp-topbar{
+  display:flex;align-items:center;gap:8px;padding:10px 12px;
+  background:var(--panel);border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:20;flex-shrink:0;
 }
-.tb h1{font-size:14px;font-weight:600}
-.tb h1 span{color:var(--accent);font-weight:400}
-.tb .conn{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:500}
-.tb .conn.on{background:rgba(74,222,128,0.1);color:#4ade80}
-.tb .conn.off{background:rgba(248,113,113,0.1);color:#f87171}
-.tb select,.tb button{
-  padding:5px 12px;border-radius:6px;border:1px solid var(--border);
+.rp-topbar h1{font-size:14px;font-weight:600;margin:0;flex:1}
+.rp-topbar .conn{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:500}
+.rp-topbar .conn.on{background:rgba(74,222,128,0.1);color:#4ade80}
+.rp-topbar .conn.off{background:rgba(248,113,113,0.1);color:#f87171}
+.rp-topbar .btn-save{
+  padding:5px 12px;border-radius:6px;border:1px solid var(--success);
+  cursor:pointer;font-size:11px;background:var(--success);color:var(--text);
+  font-weight:600;transition:all 0.15s;
+}
+.rp-topbar .btn-save:hover{background:#7d6b3e}
+.rp .style-actions{display:flex;gap:6px;margin:10px 0 2px}
+.rp .style-actions button{
+  flex:1;height:26px;border-radius:4px;border:1px solid var(--border);
   cursor:pointer;font-size:11px;background:var(--card);color:var(--text);
   font-weight:500;transition:all 0.15s;
 }
-.tb select:hover,.tb button:hover{border-color:var(--accent);background:#33302c}
-.tb .btn-save{background:var(--success);border-color:var(--success);font-weight:600}
-.tb .btn-save:hover{background:#7d6b3e}
-.tb .btn-new{background:var(--card)}
+.rp .style-actions button:hover{border-color:var(--accent);background:#33302c}
+.rp .style-actions button:disabled{opacity:0.4;cursor:default}
+.rp .style-actions button:disabled:hover{border-color:var(--border);background:var(--card)}
 
 /* ==== Layout ==== */
 .main{display:flex;flex:1;overflow:hidden}
@@ -266,14 +272,9 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 .lib-desc{font-size:11px;color:var(--dim);line-height:1.35;margin-top:1px}
 </style></head>
 <body>
-<div class="tb">
-  <h1>Tapflow Editor</h1>
-  <span class="conn off" id="cs">off</span>
-  <button class="btn-save" id="btnSave" onclick="saveProfile()">Save &amp; Sync</button>
-  <button class="btn-new" onclick="copyStyle()">&#x2398; Copy Style</button><button class="btn-new" onclick="pasteStyle()">&#x2399; Paste Style</button>
-</div>
 <div class="main">
 <div class="rp" id="lp-panel">
+<div class="rp-topbar"><img src="/static/tapflow-logo.png" alt="Tapflow" style="width:22px;height:22px;flex:none;border-radius:4px"><h1>Tapflow</h1><span class="conn off" id="cs">off</span><button class="btn-save" id="btnSave" onclick="saveProfile()">Save &amp; Sync</button></div>
 <div id="pl" style="display:none"></div>
       <div class="rp-section" id="rp-profiles-sec">
         <div class="lph"><h3>Profiles</h3><div class="hbtns"><button class="hbtn" onclick="pmImport()" title="Import Profile from File">Import</button><button class="hbtn" onclick="pmExportDialog()" title="Export Profile">Export</button><button class="hbtn" onclick="pmCreate()" title="New Profile">+ New</button></div></div><input type="file" id="pmImpF" accept=".json,application/json" style="display:none" onchange="pmImportGo(this)">
@@ -1341,6 +1342,7 @@ var sndOpts="";var _sounds=[["","Inherit"],["none","None"],["click","Click"],["s
       "<label>Width (all) \u00b10.25</label><div class=\"stepper\" style=\"margin:4px 0\"><button onclick=\"upkGroupStep('w',-0.25)\">\u2212</button><span>0.25</span><button onclick=\"upkGroupStep('w',0.25)\">+</button></div>"+
       "<label>Height (all) \u00b10.25</label><div class=\"stepper\" style=\"margin:4px 0\"><button onclick=\"upkGroupStep('h',-0.25)\">\u2212</button><span>0.25</span><button onclick=\"upkGroupStep('h',0.25)\">+</button></div>"+
       "<div class=\"br\" style=\"margin-top:4px\"><button class=\"btn-del\" onclick=\"delSelected()\">Delete Selected</button></div>";var _ss2=document.querySelectorAll("#pc select");for(var _i2=0;_i2<_ss2.length;_i2++){var _s2=_ss2[_i2];var _oc2=_s2.getAttribute("onchange")||"";if(_oc2.toLowerCase().indexOf("sound")<0)continue;var _b2=document.createElement("button");_b2.className="pv-btn";_b2.innerHTML="&#x25B6;";_b2.style.cssText="padding:4px 8px;font-size:12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;margin-left:4px";_b2.onmouseover=function(){this.style.borderColor="var(--accent)"};_b2.onmouseout=function(){this.style.borderColor="var(--border)"};_b2.onclick=function(s){return function(e){e.preventDefault();e.stopPropagation();var v=s.value;if(!v||v===""){v=document.getElementById("tgs").value}if(v&&v!=="")testSnd(v)}}(_s2);_s2.parentNode.insertBefore(_b2,_s2.nextSibling)}
+    _addStyleBtns();
     return;
   }
   const key=selKey?cp_()?.keys.find(k=>k.id===selKey):null;
@@ -1382,6 +1384,7 @@ var sndOpts="";var _sounds=[["","Inherit"],["none","None"],["click","Click"],["s
     '<label>&#x266B; Sound</label><select onchange="upk(\'sound\',this.value)"><option value=""'+(!key.sound?" selected":"")+'>Inherit</option><option value="none"'+(key.sound==="none"?" selected":"")+'>None</option><option value="click"'+(key.sound==="click"?" selected":"")+'>Click</option><option value="soft"'+(key.sound==="soft"?" selected":"")+'>Soft</option><option value="mechanical"'+(key.sound==="mechanical"?" selected":"")+'>Mechanical</option><option value="deep"'+(key.sound==="deep"?" selected":"")+'>Deep</option><option value="red"'+(key.sound==="red"?" selected":"")+'>Red Switch</option><option value="topre"'+(key.sound==="topre"?" selected":"")+'>Topre EC</option><option value="glass"'+(key.sound==="glass"?" selected":"")+'>Glass Tap</option><option value="bubble"'+(key.sound==="bubble"?" selected":"")+'>Bubble Pop</option><option value="blip"'+(key.sound==="blip"?" selected":"")+'>8-bit Blip</option><option value="spark"'+(key.sound==="spark"?" selected":"")+'>Electric Spark</option></select>'+(key.action==="dock"?'<label>&#x266B; Quit Sound</label><select onchange="upk(\'quitSound\',this.value)"><option value=""' + (!key.quitSound ? " selected" : "") + '>Inherit</option><option value="none"' + (key.quitSound === "none" ? " selected" : "") + '>None</option><option value="click"' + (key.quitSound === "click" ? " selected" : "") + '>Click</option><option value="soft"' + (key.quitSound === "soft" ? " selected" : "") + '>Soft</option><option value="mechanical"' + (key.quitSound === "mechanical" ? " selected" : "") + '>Mechanical</option><option value="deep"' + (key.quitSound === "deep" ? " selected" : "") + '>Deep</option><option value="red"' + (key.quitSound === "red" ? " selected" : "") + '>Red Switch</option><option value="topre"' + (key.quitSound === "topre" ? " selected" : "") + '>Topre EC</option><option value="glass"' + (key.quitSound === "glass" ? " selected" : "") + '>Glass Tap</option><option value="bubble"' + (key.quitSound === "bubble" ? " selected" : "") + '>Bubble Pop</option><option value="blip"' + (key.quitSound === "blip" ? " selected" : "") + '>8-bit Blip</option><option value="spark"' + (key.quitSound === "spark" ? " selected" : "") + '>Electric Spark</option><option value="quit"' + (key.quitSound === "quit" ? " selected" : "") + '>Quit (Saw)</option></select>'+
     '':"")+'<div class="rw" style="margin-top:8px"><div><label>&#x2194; Width</label><div class="stepper"><button onclick="upk(\'w\','+_snap4(kw-0.25)+')">\u2212</button><span>'+kw.toFixed(2)+'</span><button onclick="upk(\'w\','+_snap4(kw+0.25)+')">+</button></div></div><div><label>&#x2195; Height</label><div class="stepper"><button onclick="upk(\'h\','+_snap4(kh-0.25)+')">\u2212</button><span>'+kh.toFixed(2)+'</span><button onclick="upk(\'h\','+_snap4(kh+0.25)+')">+</button></div></div></div>'+
     '<div class="br"><button class="btn-del" onclick="dkey()">Delete</button></div>';
+_addStyleBtns();
 var _ss=document.querySelectorAll("#pc select");for(var _i=0;_i<_ss.length;_i++){var _sel=_ss[_i];var _oc=_sel.getAttribute("onchange")||"";if(_oc.toLowerCase().indexOf("sound")<0)continue;var _b=document.createElement("button");_b.className="pv-btn";_b.innerHTML="&#x25B6;";_b.style.cssText="padding:4px 8px;font-size:12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;margin-left:4px";_b.title="Preview";_b.onmouseover=function(){this.style.borderColor="var(--accent)"};_b.onmouseout=function(){this.style.borderColor="var(--border)"};_b.onclick=function(s){return function(e){e.preventDefault();e.stopPropagation();var v=s.value;if(!v||v===""){v=document.getElementById("tgs").value}if(v&&v!=="")testSnd(v)}}(_sel);_sel.parentNode.insertBefore(_b,_sel.nextSibling)}}
 
 
@@ -1501,7 +1504,7 @@ function pmImport(){document.getElementById("pmImpF").click()}
 function pmImportGo(inp){var f=inp.files&&inp.files[0];inp.value="";if(!f)return;var rd=new FileReader();rd.onload=function(){var data;try{data=JSON.parse(rd.result)}catch(e){t("Import failed: not valid JSON");return}
 fetch("/api/profiles/import",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)}).then(function(r){return r.json().then(function(d){return{ok:r.ok,d:d}})}).then(function(x){if(!x.ok){t("Import failed: "+((x.d&&x.d.detail)||"server error"));return}
 t("Imported: "+x.d.profileName);lpl().then(function(){if(x.d.filename){lp(x.d.filename)}setTimeout(pmRender,200)})}).catch(function(){t("Import failed")})};rd.onerror=function(){t("Import failed: cannot read file")};rd.readAsText(f)}
-function copyStyle(){if(!selKey&&selKeys.size===0)return;var k;if(selKey){k=cp_()?.keys.find(function(x){return x.id===selKey})}else{var page=cp_();if(!page)return;var keys=page.keys.filter(function(k){return selKeys.has(k.id)});if(!keys.length)return;k=keys[0]}if(!k)return;copiedStyle={color:k.color,sound:k.sound};t("Style copied")}
+function copyStyle(){if(!selKey&&selKeys.size===0)return;var k;if(selKey){k=cp_()?.keys.find(function(x){return x.id===selKey})}else{var page=cp_();if(!page)return;var keys=page.keys.filter(function(k){return selKeys.has(k.id)});if(!keys.length)return;k=keys[0]}if(!k)return;copiedStyle={color:k.color,sound:k.sound};_refreshStyleBtns();t("Style copied")}
 function pasteStyle(){if(!copiedStyle)return;var page=cp_();if(!page)return;var targets;if(selKeys.size>0){targets=page.keys.filter(function(k){return selKeys.has(k.id)})}else if(selKey){targets=[page.keys.find(function(k){return k.id===selKey})]}else{return}if(!targets.length)return;var snapshots=targets.map(function(k){return _snapshot(k)});targets.forEach(function(k){if(copiedStyle.color!==undefined)k.color=copiedStyle.color;if(copiedStyle.sound!==undefined)k.sound=copiedStyle.sound});_pushUndo(snapshots);dirty=true;rr();rpr();t("Style pasted")}
 function delSelected(){if(!confirm("Delete "+selKeys.size+" keys?"))return;const page=cp_();if(!page)return;const before=page.keys.filter(k=>selKeys.has(k.id)).map(k=>_snapshot(k));page.keys=page.keys.filter(k=>!selKeys.has(k.id));_pushUndo(before);selKeys.clear();selKey=null;dirty=true;renderAll();}
 
@@ -1746,8 +1749,10 @@ function dkey(){const p=cp_();if(!p)return;const ids=Array.from(new Set([...selK
 const SND={none:null,click:[800,0.06,"square",0.3],soft:[400,0.08,"sine",0.2],mechanical:[1200,0.04,"square",0.4],deep:[200,0.1,"triangle",0.5],red:[300,0.04,"sine",0.15],topre:[500,0.07,"sine",0.18,900,0.008],glass:[2400,0.05,"sine",0.12],bubble:[600,0.06,"sine",0.22,"sweep"],blip:[440,0.05,"square",0.2,"sweep"],spark:[3000,0.02,"sawtooth",0.1,0.4]};
 let actx=null;
 function testSnd(nm){if(!nm||nm==="none")return;const s=SND[nm];if(!s)return;try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==="suspended")actx.resume();const o=actx.createOscillator(),g=actx.createGain();o.type=s[2];if(s[4]==="sweep"){o.frequency.setValueAtTime(s[0]*1.5,actx.currentTime);o.frequency.exponentialRampToValueAtTime(s[0]*0.5,actx.currentTime+s[1])}else{o.frequency.setValueAtTime(s[0],actx.currentTime)}g.gain.setValueAtTime(s[3],actx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+s[1]);o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+s[1]);if(s.length===6){const o2=actx.createOscillator(),g2=actx.createGain();o2.type="square";o2.frequency.setValueAtTime(s[4],actx.currentTime+0.003);g2.gain.setValueAtTime(s[3]*0.5,actx.currentTime+0.003);g2.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+s[5]);o2.connect(g2);g2.connect(actx.destination);o2.start(actx.currentTime+0.003);o2.stop(actx.currentTime+s[5])}if(s.length===5&&typeof s[4]==="number"){const bs=actx.sampleRate*s[1],buf=actx.createBuffer(1,bs,actx.sampleRate),d=buf.getChannelData(0);for(let i=0;i<bs;i++)d[i]=(Math.random()*2-1)*s[4];const n=actx.createBufferSource(),gn=actx.createGain();n.buffer=buf;gn.gain.setValueAtTime(s[3]*0.3,actx.currentTime);gn.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+s[1]*0.5);n.connect(gn);gn.connect(actx.destination);n.start(actx.currentTime)}}catch(e){}}
-function _addSndPreviews(){var _ss=document.querySelectorAll("#pc select");for(var _i=0;_i<_ss.length;_i++){var _s=_ss[_i];var _oc=_s.getAttribute("onchange")||"";if(_oc.toLowerCase().indexOf("sound")<0)continue;var _b=document.createElement("button");_b.className="pv-btn";_b.innerHTML="&#x25B6;";_b.title="Preview";_b.style.cssText="padding:4px 8px;font-size:12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;margin-left:4px";_b.onmouseover=function(){this.style.borderColor="var(--accent)"};_b.onmouseout=function(){this.style.borderColor="var(--border)"};_b.onclick=function(s){return function(e){e.preventDefault();e.stopPropagation();var v=s.value;if(!v||v===""){v=document.getElementById("tgs").value}if(v&&v!=="")testSnd(v)}}(_s);_s.parentNode.insertBefore(_b,_s.nextSibling)}}
+function _addSndPreviews(){var _ss=document.querySelectorAll("#pc select");for(var _i=0;_i<_ss.length;_i++){var _s=_ss[_i];var _oc=_s.getAttribute("onchange")||"";if(_oc.toLowerCase().indexOf("sound")<0)continue;var _b=document.createElement("button");_b.className="pv-btn";_b.innerHTML="&#x25B6;";_b.title="Preview";_b.style.cssText="padding:4px 8px;font-size:12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;margin-left:4px";_b.onmouseover=function(){this.style.borderColor="var(--accent)"};_b.onmouseout=function(){this.style.borderColor="var(--border)"};_b.onclick=function(s){return function(e){e.preventDefault();e.stopPropagation();var v=s.value;if(!v||v===""){v=document.getElementById("tgs").value}if(v&&v!=="")testSnd(v)}}(_s);_s.parentNode.insertBefore(_b,_s.nextSibling)};_addStyleBtns()}
 
+function _addStyleBtns(){var pc=document.getElementById("pc");if(!pc)return;var del=pc.querySelector(".btn-del");if(!del||pc.querySelector(".style-actions"))return;var d=document.createElement("div");d.className="style-actions";d.innerHTML='<button onclick="copyStyle()">&#x29C9; Copy Style</button><button class="ps-btn" onclick="pasteStyle()">&#x2398; Paste Style</button>';del.closest(".br").insertAdjacentElement("beforebegin",d);_refreshStyleBtns()}
+function _refreshStyleBtns(){var b=document.querySelector(".style-actions .ps-btn");if(b){b.disabled=!copiedStyle}}
 function t(msg){const el=document.getElementById("toast");el.textContent=msg;el.className="toast";el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2000)}
 
 window.addEventListener("resize",()=>rr());
