@@ -908,7 +908,7 @@ function onKeyClick(e,kid){
 
 // Key drag: multi-select aware, 0.25 snap, collision
 function onKeyDown(e,kid){
-  if(e.button!==0)return;e.stopPropagation();
+  if(e.button!==0)return;e.stopPropagation();_animCancel();
   // 成组按键:单击=整组选中,双击(350ms 内同键再按)=单选该键;Shift 仍走单键切换
   const _gk=cp_()?.keys.find(x=>x.id===kid);
   const _gg=(_gk&&_gk.groups||[]).filter(function(gid){return profile.groups&&profile.groups.some(function(g){return g.id===gid})});
@@ -967,6 +967,7 @@ rr();rpr();
 
 // Key resize: 0.25 snap, collision, Shift=left resize
 function onRS(e,kid){
+  _animCancel();
   const _gk=cp_()?.keys.find(x=>x.id===kid);
   const _gg=(_gk&&_gk.groups||[]).filter(function(gid){return profile.groups&&profile.groups.some(function(g){return g.id===gid})});
   if(_gg.length&&!(selKey===kid&&selGroup===null&&selKeys.size===1))return;
@@ -999,6 +1000,7 @@ var _libItems=document.querySelectorAll(".lib-item");var _libIcons={key:"keycap"
 const carea=document.getElementById("carea");
 
 carea.addEventListener("mousedown",e=>{
+  _animCancel();
   if(e.button===0&&!e.target.closest(".ck")&&!e.target.closest(".grh")){
     selecting=true;
     srSX=e.clientX;srSY=e.clientY;srCX=e.clientX;srCY=e.clientY;
@@ -1054,9 +1056,12 @@ document.addEventListener("mouseup",e=>{
 });
 
 // ── Zoom ──
-carea.addEventListener("wheel",e=>{e.preventDefault();const f=e.deltaY>0?0.9:1.1;const nz=Math.max(0.3,Math.min(3,viewZoom*f));const ca=e.currentTarget,rect=ca.getBoundingClientRect(),mx=e.clientX-rect.left-ca.clientWidth/2,my=e.clientY-rect.top-ca.clientHeight/2,s=nz/viewZoom;viewX=mx-s*(mx-viewX);viewY=my-s*(my-viewY);viewZoom=nz;rr()},{passive:false});
-function fitAll(){if(!profile)return;var page=profile.pages.find(function(p){return p.id===activePage});if(!page||!page.keys.length)return;var cs=profile.cellSize||60,gp=profile.gap||0,dw=profile.deviceWidth||1210,dh=profile.deviceHeight||834;var cpx=cs+gp;var minC=Infinity,minR=Infinity,maxC=-Infinity,maxR=-Infinity;page.keys.forEach(function(k){var c=k.col||0,r=k.row||0,w=k.w||1,h=k.h||1;if(c<minC)minC=c;if(r<minR)minR=r;if(c+w>maxC)maxC=c+w;if(r+h>maxR)maxR=r+h});if(minC===Infinity)return;var cols=maxC-minC,rows=maxR-minR;var kw=cols*cpx-gp,kh=rows*cpx-gp;var pad=0;var ti=profile.topInset||0;var usableH=dh-ti;if(usableH<=0){usableH=dh;ti=0}var scale=Math.min((dw-pad*2)/kw,(usableH-pad*2)/kh,2.5);var newCs=Math.max(15,Math.floor(cs*scale));var centerC=(minC+maxC)/2,centerR=(minR+maxR)/2;var tiOff=ti/(2*(newCs+gp));profile.cellSize=newCs;profile.canvasX=-centerC;profile.canvasY=-centerR+tiOff;panX=-centerC;panY=-centerR+tiOff;viewX=0;viewY=0;viewZoom=1;rr();dirty=true}
-function zoomBy(d){const nv=Math.max(20,Math.min(200,(profile.cellSize||60)+d));if(nv!==profile.cellSize){profile.cellSize=nv;dirty=true;rr()}}
+carea.addEventListener("wheel",e=>{e.preventDefault();_animCancel();const f=e.deltaY>0?0.9:1.1;const nz=Math.max(0.3,Math.min(3,viewZoom*f));const ca=e.currentTarget,rect=ca.getBoundingClientRect(),mx=e.clientX-rect.left-ca.clientWidth/2,my=e.clientY-rect.top-ca.clientHeight/2,s=nz/viewZoom;viewX=mx-s*(mx-viewX);viewY=my-s*(my-viewY);viewZoom=nz;rr()},{passive:false});
+var _animT=null;
+function _animCancel(){if(_animT){cancelAnimationFrame(_animT);_animT=null}profile.cellSize=Math.round(profile.cellSize||60)}
+function _animateTo(to,dur){dur=dur||200;var from={cellSize:profile.cellSize||60,panX:panX,panY:panY,viewX:viewX,viewY:viewY,viewZoom:viewZoom};var t0=performance.now();if(_animT)cancelAnimationFrame(_animT);(function step(now){var p=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-p,3);profile.cellSize=from.cellSize+(to.cellSize-from.cellSize)*e;panX=from.panX+(to.panX-from.panX)*e;panY=from.panY+(to.panY-from.panY)*e;viewX=from.viewX+(to.viewX-from.viewX)*e;viewY=from.viewY+(to.viewY-from.viewY)*e;viewZoom=from.viewZoom+(to.viewZoom-from.viewZoom)*e;rr();if(p<1){_animT=requestAnimationFrame(step)}else{_animT=null;profile.cellSize=Math.round(to.cellSize);panX=to.panX;panY=to.panY;viewX=to.viewX;viewY=to.viewY;viewZoom=to.viewZoom;rr()}})(t0)}
+function fitAll(){if(!profile)return;var page=profile.pages.find(function(p){return p.id===activePage});if(!page||!page.keys.length)return;var cs=profile.cellSize||60,gp=profile.gap||0,dw=profile.deviceWidth||1210,dh=profile.deviceHeight||834;var cpx=cs+gp;var minC=Infinity,minR=Infinity,maxC=-Infinity,maxR=-Infinity;page.keys.forEach(function(k){var c=k.col||0,r=k.row||0,w=k.w||1,h=k.h||1;if(c<minC)minC=c;if(r<minR)minR=r;if(c+w>maxC)maxC=c+w;if(r+h>maxR)maxR=r+h});if(minC===Infinity)return;var cols=maxC-minC,rows=maxR-minR;var kw=cols*cpx-gp,kh=rows*cpx-gp;var pad=0;var ti=profile.topInset||0;var usableH=dh-ti;if(usableH<=0){usableH=dh;ti=0}var scale=Math.min((dw-pad*2)/kw,(usableH-pad*2)/kh,2.5);var newCs=Math.max(15,Math.floor(cs*scale));var centerC=(minC+maxC)/2,centerR=(minR+maxR)/2;var tiOff=ti/(2*(newCs+gp));profile.canvasX=-centerC;profile.canvasY=-centerR+tiOff;_animateTo({cellSize:newCs,panX:-centerC,panY:-centerR+tiOff,viewX:0,viewY:0,viewZoom:1});dirty=true}
+function zoomBy(d){const nv=Math.max(20,Math.min(200,(profile.cellSize||60)+d));if(nv!==profile.cellSize){_animateTo({cellSize:nv});dirty=true}}
 function toggleOri(){const t=profile.deviceWidth;profile.deviceWidth=profile.deviceHeight;profile.deviceHeight=t;dirty=true;rr();fitAll()}
 function applyRatioByIndex(i){var k=Object.keys(DEVS)[i];var d=DEVS[k];if(d&&profile){profile.device=k;profile.deviceWidth=d.portrait?Math.min(d.w,d.h):Math.max(d.w,d.h);profile.deviceHeight=d.portrait?Math.max(d.w,d.h):Math.min(d.w,d.h);profile.dpr=d.dpr||0;profile.topInset=d.topInset||0;dirty=true;rr();fitAll()}updateRatioInfo()}
 function applyCustomRatio(){if(!profile)return false;var cur=(profile.deviceWidth||1210)+"x"+(profile.deviceHeight||834);var inp=prompt("Custom canvas WxH (logical px, e.g. 1280x800):",cur);if(!inp)return false;var mm=inp.replace(/[×,\s]/g,"x").split("x");var w=parseInt(mm[0],10),h=parseInt(mm[1],10);if(!(w>0&&h>0&&w<=8000&&h<=8000)){alert("Enter valid pixels, e.g. 1280x800");return false}profile.dpr=0;profile.topInset=0;if(w>1600||h>1600){var f=prompt(w+"×"+h+" 疑似物理分辨率。输入 DPR(2 或 3)自动换算为逻辑分辨率;输入 0 保持原值:","3");if(f==="2"||f==="3"){var dn=parseInt(f,10);w=Math.round(w/dn);h=Math.round(h/dn);profile.dpr=dn}}profile.device="__custom__";profile.deviceWidth=w;profile.deviceHeight=h;dirty=true;rr();fitAll();updateRatioInfo();return true}
