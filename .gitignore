@@ -21,3 +21,6 @@ Default_Profile/*.bak*
 .obsidian/
 .mcp.json
 CLAUDE.md
+
+# Playwright MCP 本地产物
+.playwright-mcp/
