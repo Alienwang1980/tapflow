@@ -16,3 +16,8 @@ promo/zfrontier-upload/
 .wrangler/
 .dev-home/
 Default_Profile/*.bak*
+
+# 本地 Obsidian vault(含 MCP token,不进公开仓库)
+.obsidian/
+.mcp.json
+CLAUDE.md
