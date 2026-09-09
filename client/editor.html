@@ -101,9 +101,13 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 .ck .sz{position:absolute;top:2px;right:4px;font-size:8px;color:rgba(255,255,255,0.2);pointer-events:none}
 .sd-badge{display:none;position:absolute;bottom:0;left:0;right:0;padding:1px 2px;text-align:center;line-height:1.1;background:rgba(0,0,0,0.55);border-radius:0 0 13px 13px;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:4}
 .sd-badge.sd-inh{opacity:0.75;font-style:italic}
-.carea.sound-edit .sd-badge{display:block;pointer-events:auto;cursor:pointer}
-.carea.sound-edit .sd-badge:hover{background:rgba(0,0,0,0.85);box-shadow:inset 0 0 0 1px var(--accent)}
-.carea.sound-edit .ck .rh{z-index:6}
+.carea.sound-edit .sd-badge{display:block}
+#sePanel{display:none}
+#lp-panel.sound-edit > *:not(#sePanel){display:none}
+#lp-panel.sound-edit #sePanel{display:flex}
+.se-item{display:flex;align-items:center;gap:8px;padding:7px 9px;background:var(--card);border:1px solid var(--border);border-radius:6px;cursor:grab;user-select:none;-webkit-user-select:none}
+.se-item:hover{border-color:var(--accent)}
+.se-item:active{cursor:grabbing}
 .ck .rh{
   position:absolute;bottom:-4px;right:-4px;width:24px;height:24px;
   cursor:se-resize;opacity:0;pointer-events:none;
@@ -332,8 +336,7 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
       <div class="rp-section" id="rp-sound-sec">
         <h3>Sound</h3>
         <button id="seModeBtn" onclick="openSoundEdit()" class="lpcta" style="width:100%">Edit Key Sounds…</button>
-        <p style="font-size:10px;color:var(--dim);margin-top:6px">Click a key's sound tag to change it; marquee-select keys to batch-change</p>
-        <div class="lprow" style="margin-top:6px"><label>Fallback</label><select id="seFallback" onchange="if(profile){profile.defaultSound=this.value;_setDirty();rr()}" title="Sound for keys set to Inherit"></select><button onclick="testSnd((profile&&profile.defaultSound)||'click')" title="Preview fallback" style="width:24px;height:22px;font-size:11px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;flex:none">&#x25B6;</button></div>
+        <p style="font-size:10px;color:var(--dim);margin-top:6px">Drag a sound onto a key; marquee-select keys to batch-change</p>
       </div>
       <div class="rp-divider"></div>
       <div class="rp-section">
@@ -347,17 +350,21 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
         <div class="clip-preview" style="aspect-ratio:1;max-width:180px;margin:0 auto 8px;background:var(--card);border-radius:6px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;transition:all 0.15s"></div>
         <button id="btnCopy" onclick="_copyToClipboard()" class="lpcta">Copy Selected</button>
       </div>
+  <div id="sePanel" style="flex-direction:column;gap:8px;padding:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <b style="font-size:12px">Key Sounds</b>
+      <button onclick="closeSoundEdit()" style="padding:5px 12px;background:var(--accent);color:#1a1a1a;border:none;border-radius:4px;cursor:pointer;font-weight:600;font-size:11px">Done</button>
+    </div>
+    <p id="seHint" style="font-size:10px;color:var(--dim);margin:0">Select keys on the canvas, then drag a sound onto them</p>
+    <div id="seList" style="max-height:55vh;overflow-y:auto;display:flex;flex-direction:column;gap:4px"></div>
+    <div class="lprow"><label>Fallback</label><select id="seFallback" onchange="if(profile){profile.defaultSound=this.value;_setDirty();rr()}" title="Sound for keys set to Inherit"></select><button onclick="testSnd((profile&&profile.defaultSound)||'click')" title="Preview fallback" style="width:24px;height:22px;font-size:11px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;flex:none">&#x25B6;</button></div>
+  </div>
 </div>
 <div class="carea" id="carea"><div id="tl" style="position:absolute;inset:0;pointer-events:none;z-index:0;display:none"></div>
   <div class="gh" id="gh"></div>
   <div class="sr" id="sr"></div><div class="grh" id="grh_b" style="cursor:s-resize"></div><div class="grh" id="grh_l" style="cursor:w-resize"></div><div class="grh" id="grh_r" style="cursor:e-resize"></div>
   <div class="cwrap" id="cwrap"><div class="canvas" id="canvas"></div></div>
   <div id="carea-overlay"></div>
-  <div id="seHint" style="display:none;position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:6;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:5px 14px;font-size:11px;color:var(--dim);pointer-events:none">Select keys to edit their sound</div>
-  <div id="seBatch" style="display:none;position:absolute;z-index:6;background:var(--panel);border:1px solid var(--accent);border-radius:8px;padding:8px;box-shadow:0 4px 18px rgba(0,0,0,0.45);max-width:min(320px,calc(100% - 16px))">
-    <div id="seBatchInfo" style="font-size:11px;color:var(--dim);margin-bottom:6px"></div>
-    <div id="seBatchChips" style="display:flex;flex-wrap:wrap;gap:4px"></div>
-  </div>
   <div class="btb" id="btb"><button onclick="zoomBy(-1)">−</button><button onclick="zoomBy(1)">+</button><span class="tb-sep">|</span><button onclick="fitAll()" title="Fit to frame">Fit</button><span class="tb-sep">|</span><button onclick="undo()" title="Undo">↩</button><button onclick="redo()" title="Redo">↪</button></div>
 </div>
 <div class="rp">
@@ -863,8 +870,7 @@ const ftb=document.getElementById("ftb");var btb=document.getElementById("btb");
     _sdb.style.fontSize=Math.max(8,Math.min(12,Math.min(kw,kh)*0.16))+"px";
     _sdb.style.color=(k.sound&&typeof _SE_COLORS!=="undefined"&&_SE_COLORS)?(_SE_COLORS[k.sound]||"#ccc"):"#9a938a";
     if(!k.sound)_sdb.classList.add("sd-inh");
-    _sdb.title="Sound: "+(k.sound?_seSoundLabel(k.sound):"Inherit ("+_seSoundLabel(_esnd)+")")+" — click: next · Shift+click: previous";
-    if(_seOpen){_sdb.addEventListener("mousedown",function(e){e.stopPropagation();e.preventDefault()});_sdb.addEventListener("click",function(e){e.stopPropagation();e.preventDefault();_seCycleKey(k.id,e.shiftKey)})}
+    if(_seOpen)el.title="Sound: "+(k.sound?_seSoundLabel(k.sound):"Inherit ("+_seSoundLabel(_esnd)+")");
     el.appendChild(_sdb);
     canvas.appendChild(el);
   });
@@ -1045,7 +1051,7 @@ function onRS(e,kid){
 
 
 // ── Carea: left=select rect, right=pan, Space+left=pan ──
-var _libItems=document.querySelectorAll(".lib-item");var _libIcons={key:"keycap",keyboard:"keyboard",volume:"volume-loud",micmute:"mic",audioout:"speaker",audioin:"mic-2",imeswitch:"global",activeapp:"monitor",wingesture:"layers",fullscreen:"fullscreen",dock:"widget",switchprofile:"restart",balance:"chart",textmacro:"text-field",touchpad:"mouse"};for(var _li=0;_li<_libItems.length;_li++){var _lit=_libItems[_li];var _lin=_libIcons[_lit.dataset.widget];var _lic=_lit.querySelector(".lib-ic");if(_lic&&_lin&&window.TAPFLOW_ICONS&&window.TAPFLOW_ICONS.svg[_lin]){_lic.innerHTML=window.TAPFLOW_ICONS.svg[_lin]}else if(_lic){_lic.style.background="none"}_lit.addEventListener("dragstart",function(e){e.dataTransfer.setData("text/plain",this.dataset.widget);e.dataTransfer.effectAllowed="copy"})}document.addEventListener("dragover",function(e){e.preventDefault();e.dataTransfer.dropEffect="copy";var _ca=document.getElementById("carea"),_rect=_ca.getBoundingClientRect();if(e.clientX>=_rect.left&&e.clientX<=_rect.right&&e.clientY>=_rect.top&&e.clientY<=_rect.bottom){var _gh=document.getElementById("gh");_gh.style.display="block";_gh.style.left=(e.clientX-_rect.left-10)+"px";_gh.style.top=(e.clientY-_rect.top-10)+"px";_gh.style.width="20px";_gh.style.height="20px"}});document.addEventListener("drop",function(e){e.preventDefault();document.getElementById("gh").style.display="none";document.body.style.cursor="";var type=e.dataTransfer.getData("text/plain");if(!type||!profile)return;var _ca2=document.getElementById("carea"),_rect2=_ca2.getBoundingClientRect();var dw=profile.deviceWidth||1210,dh=profile.deviceHeight||834,cs=profile.cellSize||60,gp=profile.gap||0,cpx=cs+gp;var scale=_totalScale();var vo=_viewOrigin();var dx=(e.clientX-_rect2.left-vo.ox)/scale,dy=(e.clientY-_rect2.top-vo.oy)/scale;window._pendingCol=_snap4((dx-dw/2)/cpx-panX);window._pendingRow=_snap4((dy-dh/2)/cpx-panY);var tw=type==="touchpad"?4:1,th=type==="touchpad"?3:1;{if(type==="__clipboard__"){_pasteFromClipboard(window._pendingCol,window._pendingRow)}else if(type==="keyboard"){openKbPicker("create")}else{addKeyOfType(type)}}});
+var _libItems=document.querySelectorAll(".lib-item");var _libIcons={key:"keycap",keyboard:"keyboard",volume:"volume-loud",micmute:"mic",audioout:"speaker",audioin:"mic-2",imeswitch:"global",activeapp:"monitor",wingesture:"layers",fullscreen:"fullscreen",dock:"widget",switchprofile:"restart",balance:"chart",textmacro:"text-field",touchpad:"mouse"};for(var _li=0;_li<_libItems.length;_li++){var _lit=_libItems[_li];var _lin=_libIcons[_lit.dataset.widget];var _lic=_lit.querySelector(".lib-ic");if(_lic&&_lin&&window.TAPFLOW_ICONS&&window.TAPFLOW_ICONS.svg[_lin]){_lic.innerHTML=window.TAPFLOW_ICONS.svg[_lin]}else if(_lic){_lic.style.background="none"}_lit.addEventListener("dragstart",function(e){e.dataTransfer.setData("text/plain",this.dataset.widget);e.dataTransfer.effectAllowed="copy"})}document.addEventListener("dragover",function(e){e.preventDefault();e.dataTransfer.dropEffect="copy";var _ca=document.getElementById("carea"),_rect=_ca.getBoundingClientRect();if(e.clientX>=_rect.left&&e.clientX<=_rect.right&&e.clientY>=_rect.top&&e.clientY<=_rect.bottom){var _gh=document.getElementById("gh");_gh.style.display="block";_gh.style.left=(e.clientX-_rect.left-10)+"px";_gh.style.top=(e.clientY-_rect.top-10)+"px";_gh.style.width="20px";_gh.style.height="20px"}});document.addEventListener("drop",function(e){e.preventDefault();document.getElementById("gh").style.display="none";document.body.style.cursor="";var type=e.dataTransfer.getData("text/plain");if(!type||!profile)return;var _ca2=document.getElementById("carea"),_rect2=_ca2.getBoundingClientRect();var dw=profile.deviceWidth||1210,dh=profile.deviceHeight||834,cs=profile.cellSize||60,gp=profile.gap||0,cpx=cs+gp;var scale=_totalScale();var vo=_viewOrigin();var dx=(e.clientX-_rect2.left-vo.ox)/scale,dy=(e.clientY-_rect2.top-vo.oy)/scale;if(_seOpen&&type.indexOf("__sound__:")===0){_seDropSound(type.slice(10),dx,dy);return}window._pendingCol=_snap4((dx-dw/2)/cpx-panX);window._pendingRow=_snap4((dy-dh/2)/cpx-panY);var tw=type==="touchpad"?4:1,th=type==="touchpad"?3:1;{if(type==="__clipboard__"){_pasteFromClipboard(window._pendingCol,window._pendingRow)}else if(type==="keyboard"){openKbPicker("create")}else{addKeyOfType(type)}}});
 const carea=document.getElementById("carea");
 
 carea.addEventListener("mousedown",e=>{
@@ -1829,84 +1835,35 @@ function _addStyleBtns(){var pc=document.getElementById("pc");if(!pc)return;var 
 function _refreshStyleBtns(){var b=document.querySelector(".style-actions .ps-btn");if(b){b.disabled=!copiedStyle}}
 function t(msg){const el=document.getElementById("toast");el.textContent=msg;el.className="toast";el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2000)}
 
-// ── Sound edit mode: per-key sound tags on canvas + batch chip panel for marquee selection ──
+// ── Sound edit mode: left panel swaps to sound submenu; drag sounds onto keys / selection ──
 var _SE_SOUNDS=[["","Inherit"],["none","None"],["click","Click"],["soft","Soft"],["mechanical","Mechanical"],["deep","Deep"],["red","Red Switch"],["topre","Topre EC"],["glass","Glass Tap"],["bubble","Bubble Pop"],["blip","8-bit Blip"],["spark","Electric Spark"]];
 var _SE_COLORS={"":"#8b8b8b","none":"#565656","click":"#60a5fa","soft":"#4ade80","mechanical":"#f59e0b","deep":"#a78bfa","red":"#f87171","topre":"#2dd4bf","glass":"#22d3ee","bubble":"#f472b6","blip":"#facc15","spark":"#a3e635"};
 var _seOpen=false;
 function _seSoundLabel(v){for(var i=0;i<_SE_SOUNDS.length;i++){if(_SE_SOUNDS[i][0]===v)return _SE_SOUNDS[i][1]}return v||"Inherit"}
 function _sePreview(v){testSnd(v||(profile&&profile.defaultSound)||"click")}
 function _seSyncFallback(){var fb=document.getElementById("seFallback");if(fb&&profile)fb.value=profile.defaultSound||"click"}
-function _seCycleKey(id,back){
-  if(!_seOpen)return;
-  var page=cp_();if(!page)return;
-  var k=page.keys.find(function(x){return x.id===id});if(!k)return;
-  var cur=k.sound||"",idx=0;
-  for(var i=0;i<_SE_SOUNDS.length;i++){if(_SE_SOUNDS[i][0]===cur){idx=i;break}}
-  var ni=idx+(back?-1:1);ni=((ni%_SE_SOUNDS.length)+_SE_SOUNDS.length)%_SE_SOUNDS.length;
-  var nv=_SE_SOUNDS[ni][0],b=_snapshot(k);
-  if(nv)k.sound=nv;else delete k.sound;
-  if((b.sound||null)!==(k.sound||null)){_pushUndo([b]);_setDirty()}
-  rr();
-  _sePreview(nv);
+function _seBuildList(){
+  var el=document.getElementById("seList");if(!el)return;
+  el.innerHTML="";
+  _SE_SOUNDS.forEach(function(s){var v=s[0],c=_SE_COLORS[v]||"#8b8b8b";
+    var row=document.createElement("div");
+    row.className="se-item";row.draggable=true;
+    row.innerHTML='<span style="width:10px;height:10px;border-radius:50%;background:'+c+';flex:none"></span><span style="flex:1;font-size:12px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+hesc(s[1])+'</span><button onclick="event.stopPropagation();_sePreview(\''+v+'\')" title="Preview" style="width:24px;height:20px;font-size:9px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;flex:none">&#x25B6;</button>';
+    row.title=v?"Drag onto a key to apply":"Inherit — drag onto a key to reset to fallback";
+    row.addEventListener("dragstart",function(e){if(e.target.tagName==="BUTTON"){e.preventDefault();return}e.dataTransfer.setData("text/plain","__sound__:"+v);e.dataTransfer.effectAllowed="copy"});
+    el.appendChild(row);
+  });
 }
 function _seRefresh(){
   if(!_seOpen)return;
-  var hint=document.getElementById("seHint"),batch=document.getElementById("seBatch");
-  if(!hint||!batch)return;
+  var hint=document.getElementById("seHint");if(!hint)return;
   var n=selKeys.size||(selKey?1:0);
-  if(!n){hint.style.display="block";batch.style.display="none";return}
-  hint.style.display="none";
-  if(n>1){
-    var info=document.getElementById("seBatchInfo");if(info)info.textContent=n+" keys selected — pick a sound, or preview with ▶";
-    batch.style.display="block";
-    _seBatchPos(batch);
-  }else{batch.style.display="none"}
+  if(!n)hint.textContent="Select keys on the canvas, then drag a sound onto them";
+  else if(n>1)hint.textContent=n+" keys selected — drag a sound onto the canvas to apply to all";
+  else hint.textContent="1 key selected — drag a sound onto it";
 }
-function _seBatchPos(batch){
-  var page=cp_();if(!page||!profile)return;
-  var ts=_totalScale(),vo=_viewOrigin();
-  var dw=profile.deviceWidth||1210,dh=profile.deviceHeight||834,cs=profile.cellSize||60,gp=profile.gap||0,cpx=cs+gp;
-  var minX=Infinity,minY=Infinity,maxY=-Infinity;
-  page.keys.forEach(function(k){if(!selKeys.has(k.id))return;
-    var kx=vo.ox+(dw/2+((k.col||0)+panX)*cpx)*ts;
-    var ky=vo.oy+(dh/2+((k.row||0)+panY)*cpx)*ts;
-    var kh2=((k.h||1)*cs+((k.h||1)-1)*gp)*ts;
-    if(kx<minX)minX=kx;if(ky<minY)minY=ky;if(ky+kh2>maxY)maxY=ky+kh2;
-  });
-  if(minX===Infinity){batch.style.display="none";return}
-  var ca=document.getElementById("carea");
-  var left=minX,top=minY-batch.offsetHeight-8;
-  if(top<4)top=Math.max(4,maxY+8);
-  left=Math.min(Math.max(4,left),ca.clientWidth-4-batch.offsetWidth);
-  batch.style.left=left+"px";batch.style.top=top+"px";
-}
-function _seBuildChips(){
-  var el=document.getElementById("seBatchChips");if(!el)return;
-  el.innerHTML=_SE_SOUNDS.map(function(s){var v=s[0],c=_SE_COLORS[v]||"#8b8b8b";
-    return '<button onclick="seApply(\''+v+'\')" title="Set '+hesc(s[1])+' on all selected keys" style="display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:12px;border:1px solid '+c+';background:transparent;color:var(--text);cursor:pointer;font-size:11px;white-space:nowrap"><span style="width:8px;height:8px;border-radius:50%;background:'+c+';flex:none"></span>'+hesc(s[1])+'<span onclick="event.stopPropagation();_sePreview(\''+v+'\')" title="Preview" style="margin-left:2px;font-size:9px;color:var(--dim)">&#x25B6;</span></button>'}).join("");
-}
-function openSoundEdit(){
-  if(_seOpen){closeSoundEdit();return}
-  if(!profile){t("Create a profile first");return}
-  var page=cp_();if(!page||!page.keys.length){t("This page has no keys");return}
-  _seOpen=true;
-  var ca=document.getElementById("carea");if(ca)ca.classList.add("sound-edit");
-  _seSyncFallback();_seBuildChips();
-  var btn=document.getElementById("seModeBtn");if(btn)btn.textContent="Done Editing Sounds";
-  rr();_seRefresh();
-}
-function closeSoundEdit(){
-  if(!_seOpen)return;
-  _seOpen=false;
-  var ca=document.getElementById("carea");if(ca)ca.classList.remove("sound-edit");
-  var h=document.getElementById("seHint");if(h)h.style.display="none";
-  var b=document.getElementById("seBatch");if(b)b.style.display="none";
-  var btn=document.getElementById("seModeBtn");if(btn)btn.textContent="Edit Key Sounds…";
-  rr();
-}
-function seApply(v){
+function _seApply(v,ids){
   var page=cp_();if(!page||!_seOpen)return;
-  var ids=selKeys.size?selKeys:new Set(selKey?[selKey]:[]);
   if(!ids.size){t("Select keys first");return}
   var befores=[],n=0;
   page.keys.forEach(function(k){
@@ -1922,11 +1879,38 @@ function seApply(v){
   t("Set "+_seSoundLabel(v)+" on "+n+" key"+(n>1?"s":""));
   _sePreview(v);
 }
+function _seDropSound(v,dx,dy){
+  if(!_seOpen)return;
+  var page=cp_();if(!page)return;
+  var dw=profile.deviceWidth||1210,dh=profile.deviceHeight||834,cs=profile.cellSize||60,gp=profile.gap||0,cpx=cs+gp;
+  var col=(dx-dw/2)/cpx-panX,row=(dy-dh/2)/cpx-panY;
+  if(selKeys.size>1){_seApply(v,selKeys);return}
+  var hit=null;
+  for(var i=page.keys.length-1;i>=0;i--){var k=page.keys[i],w=k.w||1,h=k.h||1;
+    if(col>=(k.col||0)&&col<(k.col||0)+w&&row>=(k.row||0)&&row<(k.row||0)+h){hit=k;break}}
+  if(hit){_seApply(v,new Set([hit.id]));return}
+  t("Drop onto a key to apply");
+}
+function openSoundEdit(){
+  if(_seOpen){closeSoundEdit();return}
+  if(!profile){t("Create a profile first");return}
+  var page=cp_();if(!page||!page.keys.length){t("This page has no keys");return}
+  _seOpen=true;
+  var ca=document.getElementById("carea");if(ca)ca.classList.add("sound-edit");
+  var lp=document.getElementById("lp-panel");if(lp)lp.classList.add("sound-edit");
+  _seSyncFallback();_seBuildList();
+  rr();_seRefresh();
+}
+function closeSoundEdit(){
+  if(!_seOpen)return;
+  _seOpen=false;
+  var ca=document.getElementById("carea");if(ca)ca.classList.remove("sound-edit");
+  var lp=document.getElementById("lp-panel");if(lp)lp.classList.remove("sound-edit");
+  rr();
+}
 (function(){
   var fb=document.getElementById("seFallback");
   if(fb){fb.innerHTML=_SE_SOUNDS.slice(1).map(function(s){return '<option value="'+s[0]+'">'+hesc(s[1])+'</option>'}).join("");_seSyncFallback()}
-  var sb=document.getElementById("seBatch");
-  if(sb)sb.addEventListener("mousedown",function(e){e.stopPropagation()});
 })();
 function _showModal(id){var el=document.getElementById(id);if(!el)return;if(el._acT){clearTimeout(el._acT);el._acT=null}el.classList.remove("m-out");el.style.display="flex"}
 function _hideModal(id,fn){var el=document.getElementById(id);if(!el)return;if(el._acT)return;el.classList.add("m-out");el._acT=setTimeout(function(){el._acT=null;el.classList.remove("m-out");el.style.display="none";if(fn)fn()},150)}
