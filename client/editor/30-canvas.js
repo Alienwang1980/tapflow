@@ -260,7 +260,7 @@ function grResizeStart(e,corner){
   // Elevate selected keys to top
   canvas.querySelectorAll(".ck").forEach(function(el) {
     el.style.zIndex = (selKey && el.dataset.kid === selKey) || selKeys.has(el.dataset.kid) ? "999" : "";
-  });
+  });    _drawThumbs();
 }
 
 // Key click: select or Shift-toggle(成组按键的选择由 onKeyDown 决定,此处跳过以免覆盖)
