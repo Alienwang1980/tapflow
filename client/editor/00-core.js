@@ -23,7 +23,7 @@ function _setDirty(){dirty=true;if(_dirtyT)clearTimeout(_dirtyT);_dirtyT=setTime
 function _refreshSaveBtn(){var b=document.getElementById("btnSave");if(!b)return;var isDirty=!!profile&&(_savedSnap===null||(dirty&&_profSig()!==_savedSnap));if(profile&&_savedSnap!==null)dirty=isDirty;b.disabled=!isDirty||!_wsOk;b.title=_wsOk?"":"Server not connected";b.classList.toggle("dirty",isDirty);b.textContent=isDirty?"● Save & Sync":"Save & Sync"}
 function _markClean(){dirty=false;_savedSnap=_profSig();_refreshSaveBtn()}
 _refreshSaveBtn();
-let panX=0,panY=0,panning=false,panStartX=0,panStartY=0,mx=0,my=0,panShiftLock=null,copiedStyle=null;
+let panX=0,panY=0,panning=false,panStartX=0,panStartY=0,mx=0,my=0,panShiftLock=null;
 let viewX=0,viewY=0,viewZoom=1;
 let selecting=false,srSX=0,srSY=0,srCX=0,srCY=0;
 let undoStack=[],redoStack=[];

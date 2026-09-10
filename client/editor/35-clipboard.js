@@ -8,12 +8,14 @@ function _updateClipboardPanel() {
   var data = _getClipboard();
   var preview = panel.querySelector(".clip-preview");
   if (!data || !data.keys || !data.keys.length) {
-    preview.innerHTML = '<div style="color:var(--dim);font-size:11px;text-align:center;padding:30px 0">Empty</div>';
+    preview.innerHTML = "";
+    preview.style.display = "none";
     preview.style.cursor = "default";
     preview.draggable = false;
     delete preview.dataset.clipboard;
     return;
   }
+  preview.style.display = "flex";
   var keys = data.keys;
   // Calculate bounding box in grid units (col, row, w, h)
   var minC = Infinity, minR = Infinity, maxC = -Infinity, maxR = -Infinity;

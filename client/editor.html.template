@@ -34,15 +34,6 @@ body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:non
 .rp-topbar .btn-save.dirty{background:#7d6b3e;border-color:var(--accent);box-shadow:0 0 10px rgba(217,119,6,0.25)}
 .rp-topbar .btn-save:disabled{opacity:0.45;cursor:default}
 .rp-topbar .btn-save:disabled:hover{background:var(--success)}
-.rp .style-actions{display:flex;gap:6px;margin:10px 0 2px}
-.rp .style-actions button{
-  flex:1;height:26px;border-radius:4px;border:1px solid var(--border);
-  cursor:pointer;font-size:11px;background:var(--card);color:var(--text);
-  font-weight:500;transition:all 0.15s;
-}
-.rp .style-actions button:hover{border-color:var(--accent);background:#33302c}
-.rp .style-actions button:disabled{opacity:0.4;cursor:default}
-.rp .style-actions button:disabled:hover{border-color:var(--border);background:var(--card)}
 
 /* ==== Layout ==== */
 .main{display:flex;flex:1;overflow:hidden}

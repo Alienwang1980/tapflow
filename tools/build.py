@@ -62,8 +62,9 @@ def build(target):
     if missing:
         raise SystemExit(f"SYMBOL CHECK FAILED: {len(missing)} missing\n{missing}")
     
-    m = re.search(r'<script[^>]*>(.*?)</script>', html, re.DOTALL)
-    r = subprocess.run(['node', '--check'], input=m.group(1),
+    # node --check every inline script block (skip empty external <script src>)
+    js_blocks = [b for b in re.findall(r'<script[^>]*>(.*?)</script>', html, re.DOTALL) if b.strip()]
+    r = subprocess.run(['node', '--check'], input="\n".join(js_blocks),
                        capture_output=True, text=True)
     if r.returncode != 0:
         raise SystemExit(f"JS SYNTAX ERROR:\n{r.stderr}")
