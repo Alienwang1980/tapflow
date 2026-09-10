@@ -3,6 +3,8 @@
 function _updateClipboardPanel() {
   var panel = document.getElementById("rp-clipboard");
   if (!panel) return;
+  var cb = document.getElementById("btnCopy");
+  if (cb) { var hasSel = !!(selKey || selKeys.size > 0); cb.disabled = !hasSel; cb.style.opacity = hasSel ? "1" : "0.5"; cb.style.cursor = hasSel ? "pointer" : "default"; cb.title = hasSel ? "" : "Select keys first"; }
   var data = _getClipboard();
   var preview = panel.querySelector(".clip-preview");
   if (!data || !data.keys || !data.keys.length) {
@@ -58,7 +60,7 @@ function _updateClipboardPanel() {
     kx += gap; ky += gap; kw -= gap * 2; kh -= gap * 2;
     if (kw < 4 || kh < 4) return;
     // Border radius
-    var brPct = (k.borderRadius !== undefined ? k.borderRadius : 10) / 100;
+    var brPct = 10 / 100;
     var br = brPct * Math.min(kw, kh);
     // Key background
     var bg = k.color || "#0f3460";
@@ -71,9 +73,9 @@ function _updateClipboardPanel() {
     ctx.lineTo(kx, ky + br); ctx.arcTo(kx, ky, kx + br, ky, Math.min(br, kw/2));
     ctx.closePath(); ctx.fill();
     // Label
-    ctx.fillStyle = k.fontColor || "#fff";
+    ctx.fillStyle = _autoFc(k.color || "#0f3460");
     var fs = Math.max(6, Math.min(kh * 0.3, kw * 0.15));
-    ctx.font = "bold " + fs + "px -apple-system,sans-serif";
+    ctx.font = "bold " + fs + "px "+_gf();
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
     var lbl = k.label || "";
     if (lbl.length > 6) lbl = lbl.substring(0,5);
@@ -127,7 +129,7 @@ function _copyToClipboard() {
     var k = page.keys.find(function(x) { return x.id === selKey; });
     if (k) selected.push(_snapshot(k));
   }
-  if (!selected.length) return;
+  if (!selected.length) { t("Select keys first"); return; }
   _setClipboard(selected);
   t("Copied " + selected.length + " key" + (selected.length > 1 ? "s" : ""));
 }
@@ -150,6 +152,7 @@ function _pasteFromClipboard(col, row) {
     var clone = JSON.parse(JSON.stringify(k));
     delete clone._originalId;
     clone.id = "k_" + Date.now() + "_" + i;
+    if(!clone.sound)clone.sound=(profile&&profile.defaultSound)||"click";
     // Preserve relative position from bounding box origin
     clone.col = col + ((k.col != null ? k.col : 0) - minCol);
     clone.row = row + ((k.row != null ? k.row : 0) - minRow);
@@ -157,7 +160,7 @@ function _pasteFromClipboard(col, row) {
     page.keys.push(clone);
     pasted.push(clone);
   });
-  dirty = true;
+  _setDirty();
   rr(); rpr();
   t("Pasted " + pasted.length + " key" + (pasted.length > 1 ? "s" : ""));
   return pasted;
@@ -165,4 +168,3 @@ function _pasteFromClipboard(col, row) {
 
 // Update panel on init
 setTimeout(_updateClipboardPanel, 500);
-// ── Props ──

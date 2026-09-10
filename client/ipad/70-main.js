@@ -29,6 +29,7 @@ async function switchToProfile(fn){
     var r=await fetch("/api/profiles/"+fn);
     if(!r.ok){
       var clean=fn.replace(/\.json$/i,"");
+      // Try matching in existing profiles list (by filename or profileName)
       try{
         var listR=await fetch("/api/profiles");
         var list=await listR.json();
@@ -40,6 +41,7 @@ async function switchToProfile(fn){
         });
         if(match){fn=match.filename;r=await fetch("/api/profiles/"+fn)}
       }catch(_e){}
+      // Try bundled profiles
       if(!r||!r.ok){
         try{
           var bundledR=await fetch("/api/bundled-profiles");
@@ -73,4 +75,9 @@ async function load(){
   conn();
 }
 
+document.addEventListener("fullscreenchange",function(){setTimeout(render,300)});
+// Re-render when the layout viewport resizes (iPhone Safari URL bar
+// expand/collapse changes innerHeight; iPad fullscreenchange already covered).
+let _lastVW=0,_lastVH=0,_rT=null;
+window.addEventListener("resize",function(){var _w=window.innerWidth,_h=window.innerHeight;if(_w===_lastVW&&_h===_lastVH)return;_lastVW=_w;_lastVH=_h;if(_rT)clearTimeout(_rT);_rT=setTimeout(render,150)});
 load();
