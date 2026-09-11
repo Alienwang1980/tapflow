@@ -142,6 +142,7 @@ section { padding-block: var(--section-pad); }
   max-width: 960px;
   margin-inline: 0; /* 覆盖 .container 的居中,文案贴左,画面中心留给 3D 主体 */
   padding-block: 40px 0;
+  padding-inline: clamp(32px, 4vw, 64px); /* 左侧留呼吸边距,不贴死 */
   text-align: left;
   pointer-events: none; /* 让 3D 场景可点击;交互元素单独恢复 */
 }
@@ -164,12 +165,6 @@ section { padding-block: var(--section-pad); }
 }
 .hero-player mockup-player { display: block; width: 100%; height: 100%; }
 
-.hero-brand { display: flex; align-items: center; justify-content: flex-start; gap: 14px; margin-bottom: 14px; }
-.brand-logo { width: 44px; height: 44px; border-radius: 12px; box-shadow: 0 0 26px var(--accent-glow); flex: none; }
-.brand-text { display: flex; flex-direction: column; gap: 3px; text-align: left; }
-.brand-name { font-family: var(--font-display); font-size: 23px; line-height: 1; color: var(--text); }
-.brand-name .brand-zh { font-family: var(--font-sans); font-size: 15px; font-weight: 600; color: var(--accent); margin-left: 8px; letter-spacing: .05em; }
-.brand-tagline { font-size: 13px; color: var(--text-dim); }
 .tag {
   display: flex; align-items: center; justify-content: flex-start; gap: 10px;
   font-family: var(--font-pixel); font-size: 10px; color: var(--accent);
@@ -375,7 +370,6 @@ details p { color: var(--text-dim); padding-bottom: 16px; font-size: 15px; }
 }
 @media (orientation: landscape) and (max-height: 500px) {
   .hero-copy { padding-block: 24px 8px; }
-  .hero-brand { margin-bottom: 12px; }
   .hero-stage { min-height: 220px; }
   .hero h1 { font-size: 1.7rem; }
   .hero .sub { margin-top: 12px; }
