@@ -69,7 +69,7 @@ section { padding-block: var(--section-pad); }
   transition: background .3s, border-color .3s;
 }
 .nav.scrolled {
-  background: rgba(18, 18, 31, .85);
+  background: rgba(10, 10, 18, .78);
   -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
   border-bottom-color: var(--border);
 }
@@ -114,54 +114,66 @@ section { padding-block: var(--section-pad); }
 .btn-lg { padding: 16px 40px; font-size: 17px; }
 
 /* ── S1 Hero ── */
+/* 3D mockup 即头部:player 撑满整个 hero(4:3 居中,高度吃满),文案浮于场景上方空黑区,背景纯黑 */
 .hero {
   position: relative; overflow: hidden;
-  padding-block: 96px 110px;
-  background:
-    radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px) 0 0 / 28px 28px,
-    radial-gradient(ellipse 900px 480px at 72% -10%, var(--accent-glow), transparent 65%);
+  min-height: calc(100vh - 64px); /* nav 高 64px,hero 底边正好落在首屏 */
+  min-height: calc(100svh - 64px);
+  padding-block: 0; /* 抵消 section 通用段距,hero 由 min-height 控制 */
+  background: #000;
 }
-.hero-video { position: absolute; inset: 0; overflow: hidden; }
-.hero-video video {
-  width: 100%; height: 100%; object-fit: cover; opacity: .55;
-  mask-image: linear-gradient(to bottom, #000 72%, transparent);
-  -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent);
+/* 顶部黑渐变 scrim:场景构图随鼠标视差变化,渐变保证文案在任何相位都可读 */
+.hero::before {
+  content: ""; position: absolute; z-index: 1;
+  inset: 0 0 auto 0; height: 66%;
+  background: linear-gradient(to bottom, rgba(0,0,0,.8), rgba(0,0,0,.42) 55%, rgba(0,0,0,0));
+  pointer-events: none;
 }
-.hero-inner {
+.hero-copy {
+  position: relative; z-index: 2;
+  max-width: 960px;
+  padding-block: 40px 0;
+  text-align: center;
+  pointer-events: none; /* 让 3D 场景可点击;交互元素单独恢复 */
+}
+.hero-copy a, .hero-copy button { pointer-events: auto; }
+.hero-stage {
+  position: absolute; inset: 0; z-index: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.hero-fallback {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover;
+}
+/* 4:3 画框:高度吃满 stage,宽度按比例;超宽时被 max-width 钳住并保持比例 */
+.hero-player {
   position: relative; z-index: 1;
-  display: grid; grid-template-columns: 1.05fr .95fr; gap: 56px; align-items: center;
+  height: 100%; aspect-ratio: 4 / 3; max-width: 100%;
 }
-.hero-brand { display: flex; align-items: center; gap: 14px; margin-bottom: 30px; }
-.brand-logo { width: 52px; height: 52px; border-radius: 12px; box-shadow: 0 0 26px var(--accent-glow); flex: none; }
-.brand-text { display: flex; flex-direction: column; gap: 4px; }
-.brand-name { font-family: var(--font-display); font-size: 27px; line-height: 1; color: var(--text); }
-.brand-name .brand-zh { font-family: var(--font-sans); font-size: 16px; font-weight: 600; color: var(--accent); margin-left: 8px; letter-spacing: .05em; }
-.brand-tagline { font-size: 14px; color: var(--text-dim); }
+.hero-player mockup-player { display: block; width: 100%; height: 100%; }
+
+.hero-brand { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 14px; }
+.brand-logo { width: 44px; height: 44px; border-radius: 12px; box-shadow: 0 0 26px var(--accent-glow); flex: none; }
+.brand-text { display: flex; flex-direction: column; gap: 3px; text-align: left; }
+.brand-name { font-family: var(--font-display); font-size: 23px; line-height: 1; color: var(--text); }
+.brand-name .brand-zh { font-family: var(--font-sans); font-size: 15px; font-weight: 600; color: var(--accent); margin-left: 8px; letter-spacing: .05em; }
+.brand-tagline { font-size: 13px; color: var(--text-dim); }
 .tag {
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
   font-family: var(--font-pixel); font-size: 10px; color: var(--accent);
-  letter-spacing: .06em; margin-bottom: 22px;
+  letter-spacing: .06em; margin-bottom: 12px;
 }
 .tag-dot { color: var(--text-mute); }
-.hero h1 { font-size: clamp(2rem, 4.6vw, 3.6rem); line-height: 1.22; font-weight: 700; letter-spacing: .005em; }
+.hero h1 { font-size: clamp(1.8rem, 2.6vw, 2.4rem); line-height: 1.22; font-weight: 700; letter-spacing: .005em; }
 .hero h1 .hl { color: var(--accent); }
-.hero .sub { margin-top: 22px; font-size: 18px; color: var(--text-dim); max-width: 56ch; }
-.cta-row { display: flex; gap: 14px; margin-top: 34px; flex-wrap: wrap; }
+.hero .sub { margin: 14px auto 0; font-size: 16px; color: var(--text-dim); max-width: 62ch; }
+.cta-row { display: flex; gap: 14px; margin-top: 22px; flex-wrap: wrap; justify-content: center; }
 .facts {
-  display: flex; gap: 20px; flex-wrap: wrap; list-style: none; margin-top: 30px;
+  display: flex; gap: 16px; flex-wrap: wrap; list-style: none; margin-top: 16px;
+  justify-content: center;
 }
 .facts li { font-size: 14px; color: var(--text-mute); display: flex; align-items: center; gap: 8px; }
 .facts li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: none; }
-
-.hero-visual { display: flex; justify-content: center; }
-.hero-hand { position: relative; width: min(100%, 620px); }
-.hero-hand img {
-  width: 100%; height: auto;
-  filter: drop-shadow(0 24px 60px rgba(0,0,0,.55)) drop-shadow(0 0 46px rgba(74,222,128,.12));
-}
-/* mckp.live 3D mockup:盖在静态占位图上方,canvas 就绪后由 main.js 隐藏占位图 */
-.hero-player { position: absolute; inset: 0; }
-.hero-player mockup-player { display: block; width: 100%; aspect-ratio: 4 / 3; height: auto; }
 
 /* ── S2 Problem ── */
 .problem { background: var(--bg-deep); }
@@ -317,9 +329,13 @@ details p { color: var(--text-dim); padding-bottom: 16px; font-size: 15px; }
 /* ── Responsive ── */
 @media (max-width: 1024px) {
   :root { --section-pad: 84px; }
-  .hero-inner { grid-template-columns: 1fr; gap: 44px; }
-  .hero-visual { order: 2; }
-  .hero { padding-block: 64px 80px; }
+  /* 窄屏:文案与 3D 改为上下排布(文案在正常流内,stage 占剩余高度),避免互相遮挡 */
+  .hero { display: flex; flex-direction: column; }
+  .hero::before { display: none; } /* 上下排布无叠加,不需要 scrim */
+  .hero-copy { padding-block: 40px 8px; }
+  .hero-stage { position: relative; inset: auto; flex: 1; min-height: 320px; }
+  /* 窄屏按宽度定尺寸:百分比高度在 flex 链上不可靠,宽→高由 aspect-ratio 推出 */
+  .hero-player { height: auto; width: 100%; }
   .bento { grid-template-columns: repeat(2, 1fr); }
   .b-big { grid-column: span 2; }
   .b-wide { grid-column: span 2; }
@@ -344,7 +360,9 @@ details p { color: var(--text-dim); padding-bottom: 16px; font-size: 15px; }
   .flow-node { font-size: 18px; padding: 6px 12px; }
 }
 @media (orientation: landscape) and (max-height: 500px) {
-  .hero { padding-block: 32px 40px; }
+  .hero-copy { padding-block: 24px 8px; }
+  .hero-brand { margin-bottom: 12px; }
+  .hero-stage { min-height: 220px; }
   .hero h1 { font-size: 1.7rem; }
   .hero .sub { margin-top: 12px; }
   .cta-row { margin-top: 18px; }
