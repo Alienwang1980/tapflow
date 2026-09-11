@@ -15,7 +15,6 @@
     "nav.setup": "Setup",
     "nav.faq": "FAQ",
 
-    "hero.tag2": "MIT open source",
     "hero.sub": "Tapflow — Your Personal Control Layer. It isn't a keyboard replacement — it works alongside keyboard and mouse: high-frequency actions become visible buttons, reducing what you have to memorize.",
     "hero.tagline": "Your Personal Control Layer",
     "hero.dl": "Download Tapflow",

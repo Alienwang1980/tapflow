@@ -165,12 +165,6 @@ section { padding-block: var(--section-pad); }
 }
 .hero-player mockup-player { display: block; width: 100%; height: 100%; }
 
-.tag {
-  display: flex; align-items: center; justify-content: flex-start; gap: 10px;
-  font-family: var(--font-pixel); font-size: 10px; color: var(--accent);
-  letter-spacing: .06em; margin-bottom: 12px;
-}
-.tag-dot { color: var(--text-mute); }
 .hero h1 { font-size: clamp(2.2rem, 3.4vw, 3rem); line-height: 1.18; font-weight: 700; letter-spacing: .005em; }
 .hero h1 .hl { color: var(--accent); }
 .hero .sub { margin: 14px 0 0; font-size: 16px; color: var(--text-dim); max-width: 62ch; }
