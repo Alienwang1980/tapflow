@@ -25,6 +25,7 @@ cd promo-site && python3 -m http.server 8090
 
 - `assets/img/*.jpg`、`*.gif` ← `docs/images/`(更新图片时从此目录复制,**不要**直接用 `../docs/images/` 相对引用,保证目录可独立部署)
 - `assets/img/logo.png` ← `icons/Tapflow_icon_1024.png`
+- `assets/img/hero-hand.webp` ← `Psds/Promo_pics/Hand_012.png`(ls.graphics 手持 iPad mockup,Photopea 导出;Psds/ 已 gitignore,源文件本地保留)
 - `assets/img/thumbs/*.png` ← `client/thumbnails/`
 - `assets/fonts/*.woff2` ← `client/fonts/`
 - `assets/icons.js` ← `client/icons.js`(Solar 图标库)

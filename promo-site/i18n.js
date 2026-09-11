@@ -19,6 +19,7 @@
     "hero.title1": "The keyboard you're using was designed before the light bulb.",
     "hero.title2": "It's time for a control surface built around you.",
     "hero.sub": "Tapflow — Your Personal Control Layer. It isn't a keyboard replacement — it works alongside keyboard and mouse: high-frequency actions become visible buttons, reducing what you have to memorize.",
+    "hero.tagline": "Your Personal Control Layer",
     "hero.dl": "Download Tapflow",
     "hero.gh": "View on GitHub",
     "hero.f2": "iPad · zero install",
