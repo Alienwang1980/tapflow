@@ -67,6 +67,12 @@
     gifImgs.forEach(function (img) { gio.observe(img); });
   }
 
+  // 5.5 Respect prefers-reduced-motion for the hero background video
+  var heroVideo = document.querySelector("[data-hero-video]");
+  if (heroVideo && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    heroVideo.pause();
+  }
+
   // 6. Copy-link buttons (Baidu share link)
   var copyBtns = document.querySelectorAll("[data-copy]");
   for (var k = 0; k < copyBtns.length; k++) {

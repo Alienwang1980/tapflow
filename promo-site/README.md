@@ -36,3 +36,8 @@ cd promo-site && python3 -m http.server 8090
 - 全站不写具体版本号(README badge 1.0.4 与 setup.py 1.0.9 不一致),统一 `v1 · early access` 措辞;下载链接指向 `/releases` 不写死文件名。
 - 延迟表述用「毫秒级」「延迟低到你感觉不到」,不公开内部实测数字。
 - 修改文案只动 `index.html`(中文)与 `i18n.js`(英文)。
+
+## Hero 背景视频
+
+- 路径:`assets/video/bg-loop.mp4`(可加 `.webm` 双格式);hero 已预置 `<video autoplay muted loop playsinline>` 占位,文件缺失时自动降级为 CSS 点阵背景
+- 生成提示词与处理流程见 `VIDEO-PROMPT.md`(Lovart 生成 → ffmpeg 截循环段 + 首尾交叉淡化 → 压缩 ≤800KB)
