@@ -130,11 +130,19 @@ section { padding-block: var(--section-pad); }
   background: linear-gradient(to bottom, rgba(0,0,0,.8), rgba(0,0,0,.42) 55%, rgba(0,0,0,0));
   pointer-events: none;
 }
+/* 左侧水平 scrim:文案左对齐后保护左侧,画面中心保持通透 */
+.hero::after {
+  content: ""; position: absolute; z-index: 1;
+  inset: 0 auto 0 0; width: 46%;
+  background: linear-gradient(to right, rgba(0,0,0,.72), rgba(0,0,0,.35) 55%, rgba(0,0,0,0));
+  pointer-events: none;
+}
 .hero-copy {
   position: relative; z-index: 2;
   max-width: 960px;
+  margin-inline: 0; /* 覆盖 .container 的居中,文案贴左,画面中心留给 3D 主体 */
   padding-block: 40px 0;
-  text-align: center;
+  text-align: left;
   pointer-events: none; /* 让 3D 场景可点击;交互元素单独恢复 */
 }
 .hero-copy a, .hero-copy button { pointer-events: auto; }
@@ -146,32 +154,35 @@ section { padding-block: var(--section-pad); }
   position: absolute; inset: 0;
   width: 100%; height: 100%; object-fit: cover;
 }
-/* 16:9 画框:高度吃满 stage,宽度按比例;超宽时被 max-width 钳住并保持比例 */
+/* 16:9 画布 cover:wrapper 放大到至少铺满 hero(mckp 在其内按 16:9 contain,恰好填满),溢出由 .hero 裁掉 → 无黑边 */
 .hero-player {
-  position: relative; z-index: 1;
-  height: 100%; aspect-ratio: 16 / 9; max-width: 100%;
+  position: absolute; left: 50%; top: 50%; z-index: 1;
+  width: max(100%, calc((100vh - 64px) * 16 / 9));
+  width: max(100%, calc((100svh - 64px) * 16 / 9));
+  height: max(100%, calc(100vw * 9 / 16));
+  transform: translate(-50%, -50%);
 }
 .hero-player mockup-player { display: block; width: 100%; height: 100%; }
 
-.hero-brand { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 14px; }
+.hero-brand { display: flex; align-items: center; justify-content: flex-start; gap: 14px; margin-bottom: 14px; }
 .brand-logo { width: 44px; height: 44px; border-radius: 12px; box-shadow: 0 0 26px var(--accent-glow); flex: none; }
 .brand-text { display: flex; flex-direction: column; gap: 3px; text-align: left; }
 .brand-name { font-family: var(--font-display); font-size: 23px; line-height: 1; color: var(--text); }
 .brand-name .brand-zh { font-family: var(--font-sans); font-size: 15px; font-weight: 600; color: var(--accent); margin-left: 8px; letter-spacing: .05em; }
 .brand-tagline { font-size: 13px; color: var(--text-dim); }
 .tag {
-  display: flex; align-items: center; justify-content: center; gap: 10px;
+  display: flex; align-items: center; justify-content: flex-start; gap: 10px;
   font-family: var(--font-pixel); font-size: 10px; color: var(--accent);
   letter-spacing: .06em; margin-bottom: 12px;
 }
 .tag-dot { color: var(--text-mute); }
 .hero h1 { font-size: clamp(2.2rem, 3.4vw, 3rem); line-height: 1.18; font-weight: 700; letter-spacing: .005em; }
 .hero h1 .hl { color: var(--accent); }
-.hero .sub { margin: 14px auto 0; font-size: 16px; color: var(--text-dim); max-width: 62ch; }
-.cta-row { display: flex; gap: 14px; margin-top: 22px; flex-wrap: wrap; justify-content: center; }
+.hero .sub { margin: 14px 0 0; font-size: 16px; color: var(--text-dim); max-width: 62ch; }
+.cta-row { display: flex; gap: 14px; margin-top: 22px; flex-wrap: wrap; justify-content: flex-start; }
 .facts {
   display: flex; gap: 16px; flex-wrap: wrap; list-style: none; margin-top: 16px;
-  justify-content: center;
+  justify-content: flex-start;
 }
 .facts li { font-size: 14px; color: var(--text-mute); display: flex; align-items: center; gap: 8px; }
 .facts li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: none; }
@@ -332,11 +343,12 @@ details p { color: var(--text-dim); padding-bottom: 16px; font-size: 15px; }
   :root { --section-pad: 84px; }
   /* 窄屏:文案与 3D 改为上下排布(文案在正常流内,stage 占剩余高度),避免互相遮挡 */
   .hero { display: flex; flex-direction: column; }
-  .hero::before { display: none; } /* 上下排布无叠加,不需要 scrim */
+  .hero::before, .hero::after { display: none; } /* 上下排布无叠加,不需要 scrim */
   .hero-copy { padding-block: 40px 8px; }
   .hero-stage { position: relative; inset: auto; flex: 1; min-height: 320px; }
-  /* 窄屏按宽度定尺寸:百分比高度在 flex 链上不可靠,宽→高由 aspect-ratio 推出 */
-  .hero-player { height: auto; width: 100%; }
+  /* 窄屏按宽度定尺寸:百分比高度在 flex 链上不可靠,宽→高由 aspect-ratio 推出;cover 不适用,回到完整 16:9 */
+  .hero-player { position: static; inset: auto; display: block; height: auto; width: 100%; transform: none; }
+  .hero-player mockup-player { width: 100%; height: auto; }
   .hero h1 { font-size: clamp(1.6rem, 6.5vw, 2.2rem); } /* 移动端按视口缩放,保证 Slogan 单行 */
   .bento { grid-template-columns: repeat(2, 1fr); }
   .b-big { grid-column: span 2; }
