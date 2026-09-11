@@ -61,6 +61,7 @@ section { padding-block: var(--section-pad); }
   margin-bottom: 16px;
 }
 .sec-head h2 { font-size: clamp(1.7rem, 3.4vw, 2.6rem); font-weight: 700; letter-spacing: .01em; }
+.sec-head .lead { margin: 14px auto 0; font-size: 16px; color: var(--text-dim); max-width: 62ch; }
 
 /* ── Nav ── */
 .nav {
@@ -164,7 +165,7 @@ section { padding-block: var(--section-pad); }
   letter-spacing: .06em; margin-bottom: 12px;
 }
 .tag-dot { color: var(--text-mute); }
-.hero h1 { font-size: clamp(1.8rem, 2.6vw, 2.4rem); line-height: 1.22; font-weight: 700; letter-spacing: .005em; }
+.hero h1 { font-size: clamp(2.2rem, 3.4vw, 3rem); line-height: 1.18; font-weight: 700; letter-spacing: .005em; }
 .hero h1 .hl { color: var(--accent); }
 .hero .sub { margin: 14px auto 0; font-size: 16px; color: var(--text-dim); max-width: 62ch; }
 .cta-row { display: flex; gap: 14px; margin-top: 22px; flex-wrap: wrap; justify-content: center; }
@@ -336,6 +337,7 @@ details p { color: var(--text-dim); padding-bottom: 16px; font-size: 15px; }
   .hero-stage { position: relative; inset: auto; flex: 1; min-height: 320px; }
   /* 窄屏按宽度定尺寸:百分比高度在 flex 链上不可靠,宽→高由 aspect-ratio 推出 */
   .hero-player { height: auto; width: 100%; }
+  .hero h1 { font-size: clamp(1.6rem, 6.5vw, 2.2rem); } /* 移动端按视口缩放,保证 Slogan 单行 */
   .bento { grid-template-columns: repeat(2, 1fr); }
   .b-big { grid-column: span 2; }
   .b-wide { grid-column: span 2; }

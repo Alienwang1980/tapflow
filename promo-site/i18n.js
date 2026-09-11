@@ -16,8 +16,8 @@
     "nav.faq": "FAQ",
 
     "hero.tag2": "MIT open source",
-    "hero.title1": "The keyboard you're using was designed before the light bulb.",
-    "hero.title2": "It's time for a control surface built around you.",
+    "hero.slogan1": "See it. Tap it.",
+    "hero.slogan2": "Reimagine your Mac.",
     "hero.sub": "Tapflow — Your Personal Control Layer. It isn't a keyboard replacement — it works alongside keyboard and mouse: high-frequency actions become visible buttons, reducing what you have to memorize.",
     "hero.tagline": "Your Personal Control Layer",
     "hero.dl": "Download Tapflow",
@@ -28,6 +28,7 @@
 
     "p.kicker": "The Problem",
     "p.title": "Your Keyboard Belongs to the 19th Century",
+    "p.lead": "The keyboard you're using was designed before the light bulb. 150 years later, you're still controlling your computer with the same interaction logic.",
     "p1.title": "Memory overload",
     "p1.body": "Shortcut count easily outgrows memory. What does ⌘⌥⇧K do? Recall the function, recall the position, hunt with your fingers — once you have enough shortcuts, this process interrupts your flow.",
     "p2.title": "A waste of resources",
