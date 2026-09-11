@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tapflow / 点流 —— 你的个性化控制层</title>
+<meta name="description" content="把 iPad 变成 Mac 的触控输入面板:14 种组件、所见即所得编辑器、零安装、毫秒级延迟。开源免费,MIT。">
+<meta name="theme-color" content="#1a1a2e">
+<meta property="og:title" content="Tapflow / 点流 —— 你的个性化控制层">
+<meta property="og:description" content="把 iPad 变成 Mac 的触控输入面板。物理键盘诞生于 1870 年代,是时候换一种方式控制你的电脑了。">
+<meta property="og:image" content="assets/img/tapflow-10.jpg">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/png" href="assets/img/logo.png">
+<script>
+/* Anti-FOUC: set language before first paint; class hides body until i18n applies */
+(function(){
+  var l = null;
+  try { l = new URLSearchParams(location.search).get('lang'); } catch(e) {}
+  try { if (!l) l = localStorage.getItem('tapflow-lang'); } catch(e) {}
+  if (l !== 'zh' && l !== 'en') { l = (navigator.language || '').toLowerCase().indexOf('zh') === 0 ? 'zh' : 'en'; }
+  document.documentElement.setAttribute('data-lang', l);
+  document.documentElement.lang = l === 'zh' ? 'zh-CN' : 'en';
+  if (l !== 'zh') document.documentElement.classList.add('pre-lang');
+})();
+</script>
+<link rel="stylesheet" href="styles.css?v=2">
+<script defer src="assets/icons.js"></script>
+<script defer src="i18n.js"></script>
+<script defer src="main.js"></script>
+</head>
+<body>
+
+<header class="nav" id="top">
+  <div class="container nav-inner">
+    <a class="brand" href="#top">
+      <img src="assets/img/logo.png" alt="Tapflow logo" width="32" height="32">
+      <span class="brand-name">Tapflow</span>
+    </a>
+    <nav class="links">
+      <a href="#features" data-i18n="nav.features">功能</a>
+      <a href="#scenarios" data-i18n="nav.scenarios">场景</a>
+      <a href="#setup" data-i18n="nav.setup">上手</a>
+      <a href="#faq" data-i18n="nav.faq">FAQ</a>
+    </nav>
+    <div class="nav-actions">
+      <div class="lang-switch" role="group" aria-label="Language">
+        <button type="button" data-lang-btn="zh" data-i18n="lang.zh">中文</button>
+        <button type="button" data-lang-btn="en" data-i18n="lang.en">EN</button>
+      </div>
+      <a class="btn-gh" href="https://github.com/Alienwang1980/tapflow" target="_blank" rel="noopener">
+        <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+        <span data-i18n="nav.github">GitHub</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- S1 Hero -->
+<section class="hero">
+  <div class="container hero-inner">
+    <div class="hero-copy">
+      <p class="tag"><span data-i18n="hero.tag1">v1 · EARLY ACCESS</span><span class="tag-dot">·</span><span data-i18n="hero.tag2">MIT 开源</span></p>
+      <h1><span data-i18n="hero.title1">物理键盘诞生于 1870 年代。</span><br><span class="hl" data-i18n="hero.title2">150 多年了,你还在用那套交互逻辑控制你的电脑。</span></h1>
+      <p class="sub" data-i18n="hero.sub">Tapflow:点流 —— 你的个性化控制层。不是要替代键盘,而是与键盘鼠标配合:把高频操作做成看得见的按钮,减少记忆负担。</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://github.com/Alienwang1980/tapflow/releases" target="_blank" rel="noopener"><span data-i18n="hero.dl">下载 Tapflow</span></a>
+        <a class="btn btn-ghost" href="https://github.com/Alienwang1980/tapflow" target="_blank" rel="noopener"><span data-i18n="hero.gh">看 GitHub</span></a>
+      </div>
+      <ul class="facts">
+        <li><span data-i18n="hero.f1">macOS 15+ · arm64</span></li>
+        <li><span data-i18n="hero.f2">iPad 零安装</span></li>
+        <li><span data-i18n="hero.f3">毫秒级延迟</span></li>
+        <li><span data-i18n="hero.f4">MIT 免费</span></li>
+      </ul>
+    </div>
+    <div class="hero-visual">
+      <div class="device-card">
+        <img src="assets/img/tapflow-10.jpg" alt="iPad 上的 Tapflow 面板" fetchpriority="high" decoding="async">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S2 问题区 -->
+<section class="problem">
+  <div class="container">
+    <div class="sec-head reveal">
+      <p class="kicker" data-i18n="p.kicker">问题</p>
+      <h2 data-i18n="p.title">你的键盘,来自上个世纪</h2>
+    </div>
+    <div class="cards-3">
+      <article class="card reveal">
+        <img src="assets/img/tapflow-02.jpg" alt="键盘" loading="lazy" decoding="async">
+        <h3 data-i18n="p1.title">记忆负担</h3>
+        <p data-i18n="p1.body">快捷键的数量很容易超出记忆负担。⌘⌥⇧K 是什么?先回忆功能,再回忆键位,再让手指找过去——快捷键多到一定程度,这个过程就会打断思路。</p>
+      </article>
+      <article class="card reveal">
+        <img src="assets/img/tapflow-03.jpg" alt="Mac 快捷键图表" loading="lazy" decoding="async">
+        <h3 data-i18n="p2.title">资源的浪费</h3>
+        <p data-i18n="p2.body">手机能认得你的脸,电脑能认得你的指纹,但你还在背快捷键来操作电脑。你的大脑——地球上最强的运算能力——用来背快捷键,简直是资源的浪费。</p>
+      </article>
+      <article class="card reveal">
+        <img src="assets/img/tapflow-08.jpg" alt="Elgato Stream Deck" loading="lazy" decoding="async">
+        <h3 data-i18n="p3.title">实体设备的局限</h3>
+        <p data-i18n="p3.body">实体宏键盘:按键可以自定义,样子和大小却不会变,自定义多了,记住每个键的用途依然是负担。Stream Deck 体验不错,价格从千元级起步。</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- S3 转折 + 揭示 -->
+<section class="reveal-s">
+  <div class="container rv">
+    <div class="rv-copy reveal">
+      <p class="kicker" data-i18n="r.kicker">然而,情况也有变化</p>
+      <p class="rv-body" data-i18n="r.body">AI 时代,Vibe Coding 对键盘的需求反而降低了,对输入方式提出了新需求。</p>
+      <h2 class="big" data-i18n="r.title">于是有了 Tapflow。</h2>
+      <p class="rv-body" data-i18n="r.body2">一个可以完全定制的、用于操作电脑的输入界面。Mac 上跑一个服务端,平板用浏览器连入,仅此而已。</p>
+      <div class="flow" aria-hidden="true">
+        <span class="flow-node" data-i18n="r.flow1">触摸</span><span class="flow-arrow">→</span>
+        <span class="flow-node" data-i18n="r.flow2">WebSocket</span><span class="flow-arrow">→</span>
+        <span class="flow-node" data-i18n="r.flow3">CGEvent</span><span class="flow-arrow">→</span>
+        <span class="flow-node hl" data-i18n="r.flow4">macOS</span>
+      </div>
+      <p class="rv-note" data-i18n="r.note">延迟低到你感觉不到。</p>
+    </div>
+    <div class="rv-img reveal">
+      <img src="assets/img/tapflow-11.jpg" alt="Tapflow 面板" loading="lazy" decoding="async">
+    </div>
+  </div>
+</section>
+
+<!-- S4 Bento 功能 -->
+<section class="features" id="features">
+  <div class="container">
+    <div class="sec-head reveal">
+      <p class="kicker" data-i18n="b.kicker">功能</p>
+      <h2 data-i18n="b.title">14 种组件,只放你需要的</h2>
+    </div>
+    <div class="bento">
+      <div class="b-cell b-big reveal">
+        <div class="thumbs-wall">
+          <figure><img src="assets/img/thumbs/key.png" alt="Key" loading="lazy" decoding="async"><figcaption>Key</figcaption></figure>
+          <figure><img src="assets/img/thumbs/keyboard.png" alt="Macro" loading="lazy" decoding="async"><figcaption>Macro</figcaption></figure>
+          <figure><img src="assets/img/thumbs/textmacro.png" alt="Text Macro" loading="lazy" decoding="async"><figcaption>Text Macro</figcaption></figure>
+          <figure><img src="assets/img/thumbs/touchpad.png" alt="Touch Pad" loading="lazy" decoding="async"><figcaption>Touch Pad</figcaption></figure>
+          <figure><img src="assets/img/thumbs/volume.png" alt="Volume" loading="lazy" decoding="async"><figcaption>Volume</figcaption></figure>
+          <figure><img src="assets/img/thumbs/micmute.png" alt="Mic Mute" loading="lazy" decoding="async"><figcaption>Mic Mute</figcaption></figure>
+          <figure><img src="assets/img/thumbs/audioout.png" alt="Audio Out" loading="lazy" decoding="async"><figcaption>Audio Out</figcaption></figure>
+          <figure><img src="assets/img/thumbs/audioin.png" alt="Audio In" loading="lazy" decoding="async"><figcaption>Audio In</figcaption></figure>
+          <figure><img src="assets/img/thumbs/winshortcuts.png" alt="Window Click" loading="lazy" decoding="async"><figcaption>Window Click</figcaption></figure>
+          <figure><img src="assets/img/thumbs/wingesture.png" alt="Window Swipe" loading="lazy" decoding="async"><figcaption>Window Swipe</figcaption></figure>
+          <figure><img src="assets/img/thumbs/activeapp.png" alt="Window Switcher" loading="lazy" decoding="async"><figcaption>Window Switcher</figcaption></figure>
+          <figure><img src="assets/img/thumbs/fullscreen.png" alt="Fullscreen" loading="lazy" decoding="async"><figcaption>Fullscreen</figcaption></figure>
+          <figure><img src="assets/img/thumbs/dock.png" alt="Dock" loading="lazy" decoding="async"><figcaption>Dock</figcaption></figure>
+          <figure><img src="assets/img/thumbs/switchprofile.png" alt="Switch Profile" loading="lazy" decoding="async"><figcaption>Switch Profile</figcaption></figure>
+          <figure><img src="assets/img/thumbs/balance.png" alt="Balance" loading="lazy" decoding="async"><figcaption>Balance</figcaption></figure>
+        </div>
+        <h3 data-i18n="b1.title">输入 · 音频 · 窗口 · 系统</h3>
+        <p data-i18n="b1.body">按键、宏、触控板、音量、麦克风、窗口管理、Dock、Profile……拖出来就能用。</p>
+      </div>
+      <div class="b-cell b-wide reveal">
+        <h3 data-i18n="b2.title">编辑器:拖就完了</h3>
+        <p data-i18n="b2.body">拖拽布局、颜色尺寸字体圆角音效图标、框选成组、无限撤销、设备预设、滚轮缩放。所见即所得。</p>
+        <img src="assets/img/tapflow-12.jpg" alt="Tapflow 网页编辑器" loading="lazy" decoding="async">
+      </div>
+      <div class="b-cell reveal">
+        <span class="b-icon" data-icon="bolt" aria-hidden="true"></span>
+        <h3 data-i18n="b3.title">毫秒级延迟</h3>
+        <p data-i18n="b3.body">每一次触摸 → WebSocket → CGEvent 注入 macOS。低到你感觉不到。</p>
+      </div>
+      <div class="b-cell reveal">
+        <span class="b-icon" data-icon="layers" aria-hidden="true"></span>
+        <h3 data-i18n="b4.title">Profile 自动切换</h3>
+        <p data-i18n="b4.body">换一个应用,面板自动换布局。一键切换 Profile。</p>
+      </div>
+      <div class="b-cell reveal">
+        <span class="b-icon" data-icon="tablet" aria-hidden="true"></span>
+        <h3 data-i18n="b5.title">平板零安装</h3>
+        <p data-i18n="b5.body">不用装任何 App。浏览器打开网页即用,支持 PWA 加到主屏幕。</p>
+      </div>
+      <div class="b-cell reveal">
+        <span class="b-icon" data-icon="monitor" aria-hidden="true"></span>
+        <h3 data-i18n="b6.title">原生 macOS 集成</h3>
+        <p data-i18n="b6.body">窗口管理、音频设备、Dock、麦克风电平——系统级能力,直接调用。</p>
+      </div>
+      <div class="b-cell reveal">
+        <span class="b-icon" data-icon="code" aria-hidden="true"></span>
+        <h3 data-i18n="b7.title">开源 · MIT</h3>
+        <p data-i18n="b7.body">v1 早鸟验证阶段,免费,代码完全开放。</p>
+      </div>
+      <div class="b-cell reveal">
+        <span class="b-icon" data-icon="clock" aria-hidden="true"></span>
+        <h3 data-i18n="b8.title">5 分钟上手</h3>
+        <p data-i18n="b8.body">两个预设 Profile 开箱即用,拖拖拽拽就成型。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S5 六大场景 -->
+<section class="scenarios" id="scenarios">
+  <div class="container">
+    <div class="sec-head reveal">
+      <p class="kicker" data-i18n="s.kicker">场景</p>
+      <h2 data-i18n="s.title">几个使用场景,感受一下</h2>
+    </div>
+
+    <div class="scene reveal">
+      <div class="scene-media">
+        <img src="assets/img/tapflow-13.jpg" alt="语音按钮" loading="lazy" decoding="async">
+      </div>
+      <div class="scene-copy">
+        <h3 data-i18n="s1.title">🎤 Vibe Coding 语音激活</h3>
+        <p data-i18n="s1.a">你在用 Claude Code / Cursor 做 vibe coding,AI 在写代码,你要说下一段 prompt。键盘上:找到语音输入快捷键(是哪个来着?)→ 按下去 → 说话 → 再按一下结束。</p>
+        <p data-i18n="s1.b">Tapflow 上:平板旁边有一个按钮,上面写着「🎤 说话」。点一下,开始说。说完了,再点一下。</p>
+        <p class="scene-q" data-i18n="s1.q">不是「少按了几个键」的问题,是你不用打断思路去想那个快捷键是什么的问题。</p>
+      </div>
+    </div>
+
+    <div class="scene rev reveal">
+      <div class="scene-media">
+        <img src="assets/img/tapflow-14.jpg" alt="Window Swipe 摇杆" loading="lazy" decoding="async" data-gif="assets/img/tapflow-window-swiper.gif">
+      </div>
+      <div class="scene-copy">
+        <h3 data-i18n="s2.title">🕹️ 窗口排列 = 游戏手柄摇杆</h3>
+        <p data-i18n="s2.a">macOS 的窗口贴靠功能很强——全屏、左半、右半、上半、下半。但触发方式呢?要么背快捷键,要么用鼠标拖到屏幕边缘。</p>
+        <p data-i18n="s2.b">Window Swipe 组件把它做成了一个摇杆:手指往上滑 → 窗口全屏。往左滑 → 贴左半。往右下滑 → 贴右下角。点一下最大化,长按全屏。</p>
+        <p class="scene-q" data-i18n="s2.q">跟打游戏一样——排列窗口,根本不应该用快捷键。</p>
+      </div>
+    </div>
+
+    <div class="scene reveal">
+      <div class="scene-media">
+        <img src="assets/img/tapflow-15.jpg" alt="Window Switcher 窗口缩略图" loading="lazy" decoding="async">
+      </div>
+      <div class="scene-copy">
+        <h3 data-i18n="s3.title">🖼️ 窗口缩略图,一眼切换</h3>
+        <p data-i18n="s3.a">⌘Tab 切窗口是盲猜——你只能看到 App 图标,看不到窗口内容。开了三个 VS Code 窗口?猜吧,看哪个是你想要的。</p>
+        <p data-i18n="s3.b">Window Switcher 把所有窗口的实时缩略图排出来,按应用分组,横向滑动。哪个窗口里有什么,看得一清二楚。点一下,切过去。</p>
+        <p class="scene-q" data-i18n="s3.q">看见,再切换。</p>
+      </div>
+    </div>
+
+    <div class="scene rev reveal">
+      <div class="scene-media">
+        <img src="assets/img/tapflow-16.jpg" alt="Dock Panel 在 iPad 上" loading="lazy" decoding="async">
+      </div>
+      <div class="scene-copy">
+        <h3 data-i18n="s4.title">📱 Dock 上平板,屏幕更干净</h3>
+        <p data-i18n="s4.a">macOS 的 Dock 常年占着屏幕底下一排,隐藏了又不方便召唤。</p>
+        <p data-i18n="s4.b">把 Dock Panel 放到 iPad 上:从平板启动 App、退出 App。Mac 屏幕上的 Dock 可以隐藏起来——屏幕全部留给工作。</p>
+        <p class="scene-q" data-i18n="s4.q">把屏幕还给工作。</p>
+      </div>
+    </div>
+
+    <div class="scene reveal">
+      <div class="scene-media">
+        <img src="assets/img/tapflow-17.jpg" alt="Audio Out 音频设备切换" loading="lazy" decoding="async">
+      </div>
+      <div class="scene-copy">
+        <h3 data-i18n="s5.title">🔊 切音频设备?一眼就够了</h3>
+        <p data-i18n="s5.a">会议室里要切 AirPods。工作室里要切外放。打游戏切耳机。通常的做法:系统设置 → 声音 → 输出 → 找到设备 → 点一下。每次都这样。</p>
+        <p data-i18n="s5.b">Audio Out 组件:平板上一个按钮,点一下弹出所有设备列表,选一个。长按直接轮换。</p>
+        <p class="scene-q" data-i18n="s5.q">一秒。</p>
+      </div>
+    </div>
+
+    <div class="scene rev reveal">
+      <div class="scene-media">
+        <img src="assets/img/tapflow-18.jpg" alt="完整定制面板" loading="lazy" decoding="async">
+        <img class="media-sub" src="assets/img/tapflow-19.jpg" alt="DeepSeek 余额组件" loading="lazy" decoding="async">
+      </div>
+      <div class="scene-copy">
+        <h3 data-i18n="s6.title">⌨️ 把 iPad 变成一整个键盘</h3>
+        <p data-i18n="s6.a">平板屏幕足够大。在上面铺满按键、触控板、手势区、窗口摇杆——iPad 变成一块完全按你的习惯定制的输入面板。</p>
+        <p data-i18n="s6.b">甚至,你可以在面板上看 DeepSeek 的余额。按钮可以实时变化,就不只是输入指令,还能输出信息。</p>
+        <p class="scene-q" data-i18n="s6.q">这不是给键盘加按键。这是从头重新设计输入。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S6 5 分钟上手 -->
+<section class="setup" id="setup">
+  <div class="container">
+    <div class="sec-head reveal">
+      <p class="kicker" data-i18n="st.kicker">上手</p>
+      <h2 data-i18n="st.title">5 分钟,拥有你自己的面板</h2>
+    </div>
+    <div class="steps-wrap reveal">
+      <ol class="steps">
+        <li class="step">
+          <span class="step-num">1</span>
+          <div><h4 data-i18n="st1.title">下载 DMG,拖入 /Applications</h4><p data-i18n="st1.body">从 GitHub Releases 下载最新版。</p></div>
+        </li>
+        <li class="step">
+          <span class="step-num">2</span>
+          <div><h4 data-i18n="st2.title">首次打开:解除 Gatekeeper 拦截</h4><p data-i18n="st2.body">双击会弹「无法验证开发者」→ 系统设置 → 隐私与安全性 → 仍要打开。只需设置一次。</p></div>
+        </li>
+        <li class="step">
+          <span class="step-num">3</span>
+          <div><h4 data-i18n="st3.title">按提示授予权限</h4><p data-i18n="st3.body">辅助功能 ✅ 注入键盘事件 · 屏幕录制 ✅ 窗口缩略图 · 麦克风 ❌ 可选,音频电平。</p></div>
+        </li>
+        <li class="step">
+          <span class="step-num">4</span>
+          <div><h4 data-i18n="st4.title">(可选)开启开机自启</h4><p data-i18n="st4.body">launchd 守护:开机启动,崩溃自动拉起。</p></div>
+        </li>
+        <li class="step">
+          <span class="step-num">5</span>
+          <div><h4 data-i18n="st5.title">平板同一 WiFi,打开网页</h4><p data-i18n="st5.body">浏览器打开 http://&lt;Mac-IP&gt;:8082。不用装任何 App。</p></div>
+        </li>
+        <li class="step">
+          <span class="step-num">6</span>
+          <div><h4 data-i18n="st6.title">拖几个按钮,保存</h4><p data-i18n="st6.body">Mac 上打开 http://localhost:8082/editor,所见即所得。</p></div>
+        </li>
+      </ol>
+    </div>
+    <div class="gate reveal">
+      <p class="gate-title" data-i18n="st.gate.title">关于「无法验证开发者」</p>
+      <p data-i18n="st.gate.body">v1 为 ad-hoc 签名(未公证),Gatekeeper 会软拦截一次。这是未公证应用的标准流程,不是安全风险;设置一次之后永远正常打开。我们在 FAQ 里写了每一步。</p>
+    </div>
+  </div>
+</section>
+
+<!-- S7 下载 -->
+<section class="download" id="download">
+  <div class="container dl">
+    <div class="dl-inner reveal">
+      <h2 data-i18n="dl.title">现在就试试</h2>
+      <p class="dl-sub" data-i18n="dl.sub">免费 · 开源 · MIT。你的 iPad 可能已经是块最顺手的控制面板。</p>
+      <div class="dl-btns">
+        <a class="btn btn-primary btn-lg" href="https://github.com/Alienwang1980/tapflow/releases" target="_blank" rel="noopener"><span data-i18n="dl.gh">从 GitHub 下载</span></a>
+        <a class="btn btn-ghost" href="https://github.com/Alienwang1980/tapflow" target="_blank" rel="noopener"><span data-i18n="dl.src">查看源码</span></a>
+      </div>
+      <div class="baidu" data-lang-show="zh">
+        <p data-i18n="dl.baidu.t">国内下载:百度网盘</p>
+        <button type="button" class="copy-btn" data-copy="https://pan.baidu.com/s/1nMrRw4-q3FYKJQfGRo9nAA?pwd=qw3m"><span data-i18n="dl.baidu.copy">复制链接</span></button>
+        <span class="code" data-i18n="dl.baidu.code">提取码 qw3m</span>
+      </div>
+      <p class="dl-note"><span data-i18n="dl.note1">DMG 内含 2 个预设 Profile,导入编辑器即可试用。</span><br><span class="muted">macOS 15+ · Apple Silicon · MIT</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- S8 FAQ -->
+<section class="faq" id="faq">
+  <div class="container">
+    <div class="sec-head reveal">
+      <p class="kicker" data-i18n="f.kicker">FAQ</p>
+      <h2 data-i18n="f.title">常见问题</h2>
+    </div>
+    <div class="faq-list reveal">
+      <details>
+        <summary data-i18n="f.q1">打开时提示「无法验证开发者」?</summary>
+        <p data-i18n="f.a1">当前版本为 ad-hoc 签名(未公证),Gatekeeper 会软拦截一次。系统设置 → 隐私与安全性 → 点「仍要打开」即可,只需设置一次,以后正常打开。</p>
+      </details>
+      <details>
+        <summary data-i18n="f.q2">平板连不上?</summary>
+        <p data-i18n="f.a2">确认同一 WiFi。菜单栏图标下拉显示 Mac IP。检查防火墙放行 8082。</p>
+      </details>
+      <details>
+        <summary data-i18n="f.q3">按键没反应?</summary>
+        <p data-i18n="f.a3">系统设置 → 隐私与安全性 → 辅助功能 → 确保 Tapflow 已勾选。</p>
+      </details>
+      <details>
+        <summary data-i18n="f.q4">窗口缩略图不显示?</summary>
+        <p data-i18n="f.a4">系统设置 → 隐私与安全性 → 屏幕录制 → 确保 Tapflow 已勾选。</p>
+      </details>
+      <details>
+        <summary data-i18n="f.q5">平板要装 App 吗?</summary>
+        <p data-i18n="f.a5">不。浏览器打开网页即可。支持 PWA 添加到主屏幕。</p>
+      </details>
+      <details>
+        <summary data-i18n="f.q6">支持 Windows / Linux?</summary>
+        <p data-i18n="f.a6">目前仅 macOS(核心依赖 CGEvent + PyObjC)。</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="container foot-inner">
+    <div class="foot-brand">
+      <img src="assets/img/logo.png" alt="Tapflow logo" width="40" height="40">
+      <div>
+        <p class="foot-name">Tapflow <span class="muted">/ 点流</span></p>
+        <p class="foot-tagline" data-i18n="foot.tagline">你的大脑不该用来记快捷键。把它放在屏幕上。</p>
+      </div>
+    </div>
+    <div class="foot-links">
+      <a href="https://github.com/Alienwang1980/tapflow/releases" target="_blank" rel="noopener" data-i18n="foot.releases">Releases</a>
+      <a href="https://github.com/Alienwang1980/tapflow" target="_blank" rel="noopener" data-i18n="foot.gh">GitHub</a>
+      <a href="https://github.com/Alienwang1980/tapflow/issues" target="_blank" rel="noopener" data-i18n="foot.issue">反馈 / Issues</a>
+      <span class="muted" data-i18n="foot.license">MIT License</span>
+    </div>
+    <p class="foot-bottom"><span data-i18n="foot.rights">© 2026 Tapflow</span> · <span class="muted" data-i18n="foot.decl">Made for macOS · Not a keyboard replacement</span></p>
+  </div>
+</footer>
+
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+</body>
+</html>
