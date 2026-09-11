@@ -5,10 +5,10 @@
 
 /* ── Design tokens ── */
 :root {
-  --bg: #1a1a2e;
-  --bg-deep: #12121f;
-  --panel: #22223a;
-  --panel-2: #2a2a45;
+  --bg: #000;
+  --bg-deep: #000;
+  --panel: #17171f;
+  --panel-2: #1f1f2a;
   --accent: #4ade80;
   --accent-dim: #22a35a;
   --accent-glow: rgba(74, 222, 128, .15);
@@ -70,7 +70,7 @@ section { padding-block: var(--section-pad); }
   transition: background .3s, border-color .3s;
 }
 .nav.scrolled {
-  background: rgba(10, 10, 18, .78);
+  background: rgba(0, 0, 0, .72);
   -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
   border-bottom-color: var(--border);
 }
