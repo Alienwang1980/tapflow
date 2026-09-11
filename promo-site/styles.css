@@ -154,11 +154,14 @@ section { padding-block: var(--section-pad); }
 .facts li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: none; }
 
 .hero-visual { display: flex; justify-content: center; }
-.hero-hand { position: relative; }
+.hero-hand { position: relative; width: min(100%, 620px); }
 .hero-hand img {
-  width: min(100%, 620px); height: auto;
+  width: 100%; height: auto;
   filter: drop-shadow(0 24px 60px rgba(0,0,0,.55)) drop-shadow(0 0 46px rgba(74,222,128,.12));
 }
+/* mckp.live 3D mockup:盖在静态占位图上方,canvas 就绪后由 main.js 隐藏占位图 */
+.hero-player { position: absolute; inset: 0; }
+.hero-player mockup-player { display: block; width: 100%; aspect-ratio: 4 / 3; height: auto; }
 
 /* ── S2 Problem ── */
 .problem { background: var(--bg-deep); }

@@ -21,6 +21,25 @@
     }
   }
 
+  // 2b. Hero 3D mockup (mckp.live):canvas 就绪后隐藏静态占位图;加载失败则静态图常驻
+  (function () {
+    var box = document.querySelector(".hero-player");
+    var poster = document.querySelector(".hero-hand > img");
+    var player = box && box.querySelector("mockup-player");
+    if (!box || !poster) return;
+    // player 的 canvas 在 shadow DOM 里,普通 observer 看不见 → 轮询 mountPoint 引用
+    var tries = 0;
+    var t = setInterval(function () {
+      var mp = player && player.mountPoint;
+      if (mp && mp.querySelector("canvas")) {
+        poster.style.visibility = "hidden";
+        clearInterval(t);
+      } else if (++tries > 120) { // ~2 分钟仍未渲染,停止探测,静态图常驻
+        clearInterval(t);
+      }
+    }, 1000);
+  })();
+
   // 3. Scroll-reveal (once per element)
   var revealEls = document.querySelectorAll(".reveal");
   if ("IntersectionObserver" in window) {
