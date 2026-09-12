@@ -14,12 +14,13 @@
 # 1. 准备干净的部署目录(排除 gitignore 的素材源文件)
 rm -rf /tmp/tapflow-pages && mkdir -p /tmp/tapflow-pages
 cp index.html styles.css main.js i18n.js /tmp/tapflow-pages/
-rsync -a --exclude 'mckp/' assets/ /tmp/tapflow-pages/assets/
+rsync -a assets/ /tmp/tapflow-pages/assets/
 
 # 2. 上传(需 CLOUDFLARE_API_TOKEN,见 ~/.wrangler/.env)
 source ~/.wrangler/.env && npx wrangler pages deploy /tmp/tapflow-pages --project-name=tapflow
 ```
 
+> ⚠️ `assets/mckp/` 虽在 .gitignore 里,但是**运行时必需**(`index.html` 引用的 mockup 查看器 embed)——部署必须带上,不能像本地 git 那样排除。
 > 首次部署记录(2026-09-12):Pages 项目经 API 创建;挂载 `tapflow.work` 前需先从 R2 bucket 解绑根域自定义域(R2 生成的 CNAME 受保护,不能直接改 DNS);解绑后 Pages 仍不自动写 DNS,需手动建两条 CNAME(`tapflow.work`/`www` → `tapflow-10c.pages.dev`,proxied),随后域名验证通过。
 
 ## 本地预览
