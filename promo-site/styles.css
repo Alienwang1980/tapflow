@@ -42,7 +42,7 @@ body {
   line-height: 1.7;
   -webkit-font-smoothing: antialiased;
 }
-img { max-width: 100%; height: auto; display: block; }
+img, video { max-width: 100%; height: auto; display: block; }
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 .muted { color: var(--text-mute); }
@@ -231,7 +231,7 @@ section { padding-block: var(--section-pad); }
 .scene:last-child { border-bottom: 0; }
 .scene.rev .scene-media { order: 2; }
 .scene-media { display: flex; flex-direction: column; gap: 16px; align-items: center; }
-.scene-media img {
+.scene-media img, .scene-media video {
   border-radius: var(--radius-lg); border: 1px solid var(--border);
   box-shadow: 0 18px 48px rgba(0,0,0,.35);
 }
