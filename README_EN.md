@@ -188,7 +188,7 @@ Open `http://localhost:8082/editor` on your Mac:
 **On your Mac** (one-time install):
 
 1. Download `Tapflow.dmg` from [Releases](https://github.com/Alienwang1980/tapflow/releases) → drag to `/Applications`
-2. On first open you'll see "cannot be verified" (v1 ships ad-hoc signed, not notarized) → System Settings → Privacy & Security → "Open Anyway" → "Open". Once only
+2. On first open you'll see a "cannot be verified" prompt (v1 ships signed with a Developer ID, not notarized) → System Settings → Privacy & Security → "Open Anyway" → "Open". Once only
 3. Launch Tapflow and grant the permissions via the onboarding panel:
 
 | Permission | Why | Required? |
@@ -216,7 +216,7 @@ This is v1, built to test whether the idea is useful — or whether my own itch 
 
 <details>
 <summary><b>"Cannot be verified" on first open?</b></summary>
-The current release is ad-hoc signed (not notarized), so Gatekeeper soft-blocks it once. System Settings → Privacy & Security → "Open Anyway" — once only, then it opens normally.
+The current release is signed with a Developer ID (not notarized), so Gatekeeper soft-blocks it once. System Settings → Privacy & Security → "Open Anyway" — once only, then it opens normally.
 </details>
 
 <details>

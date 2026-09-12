@@ -184,7 +184,7 @@ Mac 上打开 `http://localhost:8082/editor`：
 **Mac 端（需要安装）：**
 
 1. 从 [Releases](https://github.com/Alienwang1980/tapflow/releases) 下载 DMG → 拖入 `/Applications`
-2. 首次打开：双击会弹「无法验证开发者」（当前版本为 ad-hoc 签名、未公证）→ 系统设置 → 隐私与安全性 → 点「仍要打开」→ 再点「打开」。只需一次，以后正常打开
+2. 首次打开：双击会弹「无法验证」提示（当前版本为 Developer ID 签名、未公证）→ 系统设置 → 隐私与安全性 → 点「仍要打开」→ 再点「打开」。只需一次，以后正常打开
 3. 启动 Tapflow，按弹出的授权面板提示授予权限：
 
 | 权限 | 用途 | 必须？ |
@@ -212,7 +212,7 @@ Mac 上打开 `http://localhost:8082/editor`：
 
 <details>
 <summary><b>打开时提示「无法验证开发者」？</b></summary>
-当前版本为 ad-hoc 签名（未公证），Gatekeeper 会软拦截一次。系统设置 → 隐私与安全性 → 点「仍要打开」即可，只需设置一次，以后正常打开。
+当前版本为 Developer ID 签名（未公证），Gatekeeper 会软拦截一次。系统设置 → 隐私与安全性 → 点「仍要打开」即可，只需设置一次，以后正常打开。
 </details>
 
 <details>
@@ -428,7 +428,7 @@ Open `http://localhost:8082/editor` on your Mac:
 **On your Mac** (one-time install):
 
 1. Download `Tapflow.dmg` from [Releases](https://github.com/Alienwang1980/tapflow/releases) → drag to `/Applications`
-2. On first open you'll see "cannot be verified" (v1 ships ad-hoc signed, not notarized) → System Settings → Privacy & Security → "Open Anyway" → "Open". Once only
+2. On first open you'll see a "cannot be verified" prompt (v1 ships signed with a Developer ID, not notarized) → System Settings → Privacy & Security → "Open Anyway" → "Open". Once only
 3. Launch Tapflow and grant the permissions via the onboarding panel:
 
 | Permission | Why | Required? |
@@ -456,7 +456,7 @@ This is v1, built to test whether the idea is useful — or whether my own itch 
 
 <details>
 <summary><b>"Cannot be verified" on first open?</b></summary>
-The current release is ad-hoc signed (not notarized), so Gatekeeper soft-blocks it once. System Settings → Privacy & Security → "Open Anyway" — once only, then it opens normally.
+The current release is signed with a Developer ID (not notarized), so Gatekeeper soft-blocks it once. System Settings → Privacy & Security → "Open Anyway" — once only, then it opens normally.
 </details>
 
 <details>

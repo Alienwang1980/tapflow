@@ -93,7 +93,7 @@
     "st1.title": "Download the DMG, drag to /Applications",
     "st1.body": "Get the latest build from GitHub Releases.",
     "st2.title": "First open: pass Gatekeeper",
-    "st2.body": "You'll see \"cannot be verified\" (v1 ships ad-hoc signed, not notarized) → System Settings → Privacy & Security → \"Open Anyway\". Once only.",
+    "st2.body": "You'll see a \"cannot be verified\" prompt (v1 ships signed with a Developer ID, not notarized) → System Settings → Privacy & Security → \"Open Anyway\". Once only.",
     "st3.title": "Grant the permissions",
     "st3.body": "Accessibility ✅ keyboard event injection · Screen Recording ✅ window thumbnails · Microphone ❌ optional, audio levels.",
     "st4.title": "(Optional) Enable auto-start",
@@ -103,7 +103,7 @@
     "st6.title": "Drag a few buttons, save",
     "st6.body": "Open http://localhost:8082/editor on your Mac. WYSIWYG.",
     "st.gate.title": "About the \"cannot be verified\" warning",
-    "st.gate.body": "v1 is ad-hoc signed (not notarized), so Gatekeeper soft-blocks it once. This is the standard process for unnotarized apps — not a security risk. Set it once and it opens normally forever. Every step is in the FAQ.",
+    "st.gate.body": "v1 is signed with a Developer ID but not notarized, so Gatekeeper soft-blocks it once. This is the standard process for unnotarized apps — not a security risk. Set it once and it opens normally forever. Every step is in the FAQ.",
 
     "dl.title": "Try it now",
     "dl.sub": "Free · open source · MIT. Your iPad might already be the best control panel you own.",
@@ -115,7 +115,7 @@
     "dl.note1": "The DMG ships with 2 preset profiles — import them in the editor to try it out.",
 
     "f.q1": "\"Cannot be verified\" on first open?",
-    "f.a1": "The current release is ad-hoc signed (not notarized), so Gatekeeper soft-blocks it once. System Settings → Privacy & Security → \"Open Anyway\" — once only, then it opens normally.",
+    "f.a1": "The current release is signed with a Developer ID (not notarized), so Gatekeeper soft-blocks it once. System Settings → Privacy & Security → \"Open Anyway\" — once only, then it opens normally.",
     "f.q2": "Tablet can't connect?",
     "f.a2": "Same WiFi. Check the Mac's IP in the menu bar dropdown. Firewall must allow port 8082.",
     "f.q3": "Keys not working?",
