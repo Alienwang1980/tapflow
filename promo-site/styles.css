@@ -47,6 +47,10 @@ a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 .muted { color: var(--text-mute); }
 
+/* 文本换行平衡:消除中文段落末行孤字(1-2 字单独成行),短段各行长度自动接近。
+   浏览器不支持时静默退化为普通换行;仅对少数行文本生效,长段落不受影响。 */
+h1, h2, h3, h4, p, li { text-wrap: balance; }
+
 .container { max-width: var(--maxw); margin-inline: auto; padding-inline: 24px; }
 section[id] { scroll-margin-top: 72px; } /* 锚点跳转时给 sticky nav 留位 */
 section { padding-block: var(--section-pad); }
