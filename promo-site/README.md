@@ -37,7 +37,8 @@ source ~/.wrangler/.env && npx wrangler pages deploy /tmp/tapflow-pages --projec
 - **屏幕截图降采样(2026-09-13)**:3 张场景截图原为 2866×2002/2002×2866 近 3K 超采样(设备屏幕在页面上只占几百像素),cwebp `-resize 1440 0` 降到 1440px——GPU 纹理内存 23MB→5MB/张,加速首帧;原尺寸 webp 备份在 `/tmp/mckp-webp-orig/`。
 - PBR 贴图 webp q70 重压,省约 5%。
 - 加载指示:`main.js` 的 `wire()` 向 player.mountPoint 注入 CSS,把 mckp 自带「Loading scene」进度条从角落居中到画面中心(closed shadow DOM,只能经 mountPoint 挂 `<style>`)。
-- **poster 永不隐藏(2026-09-13 根治黑屏/闪烁)**:mckp 的 WebGL canvas 是 `alpha:true`——首帧前透明 → poster 透出,首帧画上后场景背景不透明自然盖住(实测 poster 显隐对画面零影响)。早期方案以「canvas 创建/进度条卸载」为信号隐藏 poster,与真实首帧间有长空窗 → loading 完黑屏 + 闪烁,已弃;渲染失败时 poster 垫底还能兜底显示静态图。
+- **poster 永不隐藏(2026-09-13 根治黑屏/闪烁)**:mckp 的 WebGL canvas 是 `alpha:true`——首帧前透明 → poster 透出,首帧画上后场景背景不透明自然盖住。早期方案以「canvas 创建/进度条卸载」为信号隐藏 poster,与真实首帧间有长空窗 → loading 完黑屏 + 闪烁,已弃;渲染失败时 poster 垫底还能兜底显示静态图。
+- **黑底 shade 防穿帮(2026-09-13)**:hero 场景背景透明(只有设备),首帧后 poster 会从设备周围透出成「背景」穿帮(duo 场景背景不透明,无此问题)→ `wire()` 在 poster 与 canvas 之间插黑底,首帧检测后渐显盖住 poster。首帧检测:hook `gl.drawElements/drawArrays`,绘制后 readPixels 采样 7 点 alpha 非 0 即首帧;hook 装晚时派发 resize 触发重绘补偿;进度条卸载后 8s 强制渐显兜底。实测:hero poster 显隐画面差异 5.19% → 0.00%,duo 画面不受影响。
 
 ## 本地预览
 
