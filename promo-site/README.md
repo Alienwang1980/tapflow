@@ -34,8 +34,10 @@ source ~/.wrangler/.env && npx wrangler pages deploy /tmp/tapflow-pages --projec
 ## 3D 素材体积优化(2026-09-12)
 
 - 场景截图(mckp `sceneAssets`)jpg → webp q70,并同步改 `assets/mckp/backend/mockups/client/*` 场景 JSON 里的 `filename_disk` 引用:总 1.8MB → 308KB。**若从 mckp.live 重新抓取场景,需重做此转换。**
+- **屏幕截图降采样(2026-09-13)**:3 张场景截图原为 2866×2002/2002×2866 近 3K 超采样(设备屏幕在页面上只占几百像素),cwebp `-resize 1440 0` 降到 1440px——GPU 纹理内存 23MB→5MB/张,加速首帧;原尺寸 webp 备份在 `/tmp/mckp-webp-orig/`。
 - PBR 贴图 webp q70 重压,省约 5%。
-- 加载指示:`main.js` 的 `wire()` 向 player.mountPoint 注入 CSS,把 mckp 自带「Loading scene」进度条从角落居中到画面中心(closed shadow DOM,只能经 mountPoint 挂 `<style>`);静态占位图 poster 的隐藏信号 = canvas 已建 && 进度条已卸载 + 2s shader 编译宽限。曾以「canvas 创建」为信号,导致 loading 消失后黑屏空窗(场景/贴图仍在加载),已修;也试过自绘转圈,被 mckp 自带进度条在左上角的问题取代。
+- 加载指示:`main.js` 的 `wire()` 向 player.mountPoint 注入 CSS,把 mckp 自带「Loading scene」进度条从角落居中到画面中心(closed shadow DOM,只能经 mountPoint 挂 `<style>`)。
+- **poster 永不隐藏(2026-09-13 根治黑屏/闪烁)**:mckp 的 WebGL canvas 是 `alpha:true`——首帧前透明 → poster 透出,首帧画上后场景背景不透明自然盖住(实测 poster 显隐对画面零影响)。早期方案以「canvas 创建/进度条卸载」为信号隐藏 poster,与真实首帧间有长空窗 → loading 完黑屏 + 闪烁,已弃;渲染失败时 poster 垫底还能兜底显示静态图。
 
 ## 本地预览
 
