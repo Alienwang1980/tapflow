@@ -108,36 +108,4 @@
     window.addEventListener("keydown", tryPlay, { once: true, passive: true });
   })();
 
-  // 6. Copy-link buttons (Baidu share link)
-  var copyBtns = document.querySelectorAll("[data-copy]");
-  for (var k = 0; k < copyBtns.length; k++) {
-    copyBtns[k].addEventListener("click", function () {
-      var text = this.getAttribute("data-copy");
-      var btn = this;
-      function done() {
-        btn.classList.add("copied");
-        var old = btn.firstChild.textContent;
-        btn.firstChild.textContent = old === "复制链接" ? "已复制" : "Copied";
-        setTimeout(function () {
-          btn.classList.remove("copied");
-          btn.firstChild.textContent = old;
-        }, 2000);
-      }
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(done, function () { fallback(); });
-      } else {
-        fallback();
-      }
-      function fallback() {
-        var ta = document.createElement("textarea");
-        ta.value = text;
-        ta.style.position = "fixed";
-        ta.style.opacity = "0";
-        document.body.appendChild(ta);
-        ta.select();
-        try { document.execCommand("copy"); done(); } catch (e) {}
-        document.body.removeChild(ta);
-      }
-    });
-  }
 })();

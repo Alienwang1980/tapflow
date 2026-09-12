@@ -107,10 +107,12 @@
 
     "dl.title": "Try it now",
     "dl.sub": "Free · open source · MIT. Your iPad might already be the best control panel you own.",
+    "dl.gh.d": "Official direct link · newest builds land here first",
     "dl.gh": "Download from GitHub",
     "dl.src": "View source",
-    "dl.baidu.t": "China mirror: Baidu Netdisk",
-    "dl.baidu.copy": "Copy link",
+    "dl.baidu.t": "Baidu Netdisk",
+    "dl.baidu.d": "GitHub slow in your region? Use this China mirror.",
+    "dl.baidu.go": "Download from Baidu Netdisk",
     "dl.baidu.code": "Access code: qw3m",
     "dl.note1": "The DMG ships with 2 preset profiles — import them in the editor to try it out.",
 

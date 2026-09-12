@@ -23,10 +23,10 @@
   if (l !== 'zh') document.documentElement.classList.add('pre-lang');
 })();
 </script>
-<link rel="stylesheet" href="styles.css?v=12">
+<link rel="stylesheet" href="styles.css?v=13">
 <script defer src="assets/icons.js"></script>
-<script defer src="i18n.js?v=7"></script>
-<script defer src="main.js?v=5"></script>
+<script defer src="i18n.js?v=8"></script>
+<script defer src="main.js?v=6"></script>
 <script src="assets/mckp/embed-old.js?v=3" async></script>
 </head>
 <body>
@@ -335,14 +335,19 @@
     <div class="dl-inner reveal">
       <h2 data-i18n="dl.title">现在就试试</h2>
       <p class="dl-sub" data-i18n="dl.sub">免费 · 开源 · MIT。你的 iPad 可能已经是块最顺手的控制面板。</p>
-      <div class="dl-btns">
-        <a class="btn btn-primary btn-lg" href="https://github.com/Alienwang1980/tapflow/releases" target="_blank" rel="noopener"><span data-i18n="dl.gh">从 GitHub 下载</span></a>
-        <a class="btn btn-ghost" href="https://github.com/Alienwang1980/tapflow" target="_blank" rel="noopener"><span data-i18n="dl.src">查看源码</span></a>
-      </div>
-      <div class="baidu">
-        <p data-i18n="dl.baidu.t">国内下载:百度网盘</p>
-        <button type="button" class="copy-btn" data-copy="https://pan.baidu.com/s/1nMrRw4-q3FYKJQfGRo9nAA?pwd=qw3m"><span data-i18n="dl.baidu.copy">复制链接</span></button>
-        <span class="code" data-i18n="dl.baidu.code">提取码 qw3m</span>
+      <div class="dl-cards">
+        <div class="dl-card">
+          <h3>GitHub Releases</h3>
+          <p data-i18n="dl.gh.d">官方直链 · 新版本第一时间发布</p>
+          <a class="btn btn-primary btn-lg" href="https://github.com/Alienwang1980/tapflow/releases" target="_blank" rel="noopener"><span data-i18n="dl.gh">从 GitHub 下载</span></a>
+          <a class="dl-link" href="https://github.com/Alienwang1980/tapflow" target="_blank" rel="noopener"><span data-i18n="dl.src">查看源码</span> →</a>
+        </div>
+        <div class="dl-card">
+          <h3 data-i18n="dl.baidu.t">百度网盘</h3>
+          <p data-i18n="dl.baidu.d">GitHub 访问慢?国内镜像同样快</p>
+          <a class="btn btn-baidu btn-lg" href="https://pan.baidu.com/s/1nMrRw4-q3FYKJQfGRo9nAA?pwd=qw3m" target="_blank" rel="noopener"><span data-i18n="dl.baidu.go">从百度网盘下载</span></a>
+          <span class="dl-code" data-i18n="dl.baidu.code">提取码 qw3m</span>
+        </div>
       </div>
       <p class="dl-note"><span data-i18n="dl.note1">DMG 内含 2 个预设 Profile,导入编辑器即可试用。</span><br><span class="muted">macOS 15+ · Apple Silicon · MIT</span></p>
     </div>

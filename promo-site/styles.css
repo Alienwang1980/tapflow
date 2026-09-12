@@ -273,19 +273,28 @@ section { padding-block: var(--section-pad); }
 .dl { text-align: center; }
 .dl h2 { font-size: clamp(1.9rem, 3.6vw, 2.8rem); }
 .dl-sub { color: var(--text-dim); margin-top: 12px; font-size: 17px; }
-.dl-btns { display: flex; gap: 16px; justify-content: center; margin-top: 34px; flex-wrap: wrap; }
-.baidu {
-  display: inline-flex; align-items: center; gap: 14px;
-  border: 1px dashed var(--border); border-radius: var(--radius);
-  padding: 12px 20px; margin-top: 26px; font-size: 14px; color: var(--text-dim);
+/* 两张下载卡片:GitHub 直链 + 百度网盘镜像,并列同重 */
+.dl-cards {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px;
+  max-width: 760px; margin: 36px auto 0;
 }
-.baidu .code { color: var(--text-mute); font-family: var(--font-retro); font-size: 18px; }
-.copy-btn {
-  background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
-  border-radius: 8px; padding: 5px 14px; font-size: 13px; cursor: pointer;
+.dl-card {
+  background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 30px 26px; display: flex; flex-direction: column; align-items: center;
+  gap: 10px; text-align: center;
 }
-.copy-btn:hover { border-color: var(--border-hi); }
-.copy-btn.copied { color: var(--accent); border-color: var(--border-hi); }
+.dl-card h3 { font-size: 1.2rem; letter-spacing: .01em; }
+.dl-card p { color: var(--text-dim); font-size: 14px; margin: 0; }
+.dl-card .btn { margin-top: 8px; width: 100%; }
+.dl-link { margin-top: 4px; color: var(--text-dim); font-size: 13px; }
+.dl-link:hover { color: var(--accent); }
+.btn-baidu { background: #06a7ff; color: #04121f; box-shadow: 0 0 32px rgba(6, 167, 255, .18); }
+.btn-baidu:hover { background: #3db8ff; }
+.dl-code {
+  margin-top: 2px; color: var(--warn);
+  font-family: var(--font-retro); font-size: 17px; letter-spacing: .05em;
+  border: 1px dashed var(--border); border-radius: 8px; padding: 6px 16px;
+}
 .dl-note { margin-top: 22px; color: var(--text-dim); font-size: 14px; line-height: 1.9; }
 
 /* ── S8 FAQ ── */
@@ -348,6 +357,7 @@ details p { color: var(--text-dim); padding-bottom: 16px; font-size: 15px; }
   .bento { grid-template-columns: 1fr; }
   .b-wide, .b-cell:nth-last-child(-n+2) { grid-column: span 1; }
   .steps { grid-template-columns: 1fr; }
+  .dl-cards { grid-template-columns: 1fr; }
   .nav-actions .btn-gh span { display: none; }
   .nav-actions .btn-gh { padding: 6px 9px; }
   .brand-name { font-size: 16px; }
