@@ -90,6 +90,24 @@
     gifImgs.forEach(function (img) { gio.observe(img); });
   }
 
+  // 5b. Editor demo video: autoplay 被浏览器策略拦截时回退(滚动到可视区/首次交互后重试)
+  (function () {
+    var demo = document.querySelector("video.editor-demo");
+    if (!demo) return;
+    function tryPlay() {
+      if (demo.paused) demo.play().catch(function () {});
+    }
+    tryPlay();
+    if ("IntersectionObserver" in window) {
+      var vio = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) { if (e.isIntersecting) tryPlay(); });
+      }, { threshold: 0.05 });
+      vio.observe(demo);
+    }
+    window.addEventListener("pointerdown", tryPlay, { once: true, passive: true });
+    window.addEventListener("keydown", tryPlay, { once: true, passive: true });
+  })();
+
   // 6. Copy-link buttons (Baidu share link)
   var copyBtns = document.querySelectorAll("[data-copy]");
   for (var k = 0; k < copyBtns.length; k++) {

@@ -214,21 +214,13 @@ section { padding-block: var(--section-pad); }
 .b-cell:hover { border-color: var(--border-hi); transform: translateY(-2px); }
 .b-cell h3 { font-size: 18px; }
 .b-cell p { color: var(--text-dim); font-size: 14.5px; }
-.b-big { grid-column: span 2; grid-row: span 2; }
-.b-wide { grid-column: span 2; }
-.b-wide img { border-radius: var(--radius); margin-top: auto; }
+.b-wide { grid-column: span 4; }
+.b-wide img, .b-wide video { border-radius: var(--radius); margin-top: auto; }
+.b-wide video { width: 100%; height: auto; display: block; }
 .b-icon { color: var(--accent); display: inline-flex; }
 .b-icon svg { width: 26px; height: 26px; }
-
-.thumbs-wall {
-  display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 8px;
-}
-.thumbs-wall figure { text-align: center; }
-.thumbs-wall img {
-  border-radius: 10px; background: var(--bg-deep); width: 100%;
-  border: 1px solid var(--border);
-}
-.thumbs-wall figcaption { font-size: 10.5px; color: var(--text-mute); margin-top: 4px; }
+/* 桌面 4 列下最后两个小格各占半行,避免 4+2 缺角 */
+.b-cell:nth-last-child(-n+2) { grid-column: span 2; }
 
 /* ── S5 Scenarios ── */
 .scenarios { background: var(--bg-deep); }
@@ -341,8 +333,8 @@ details p { color: var(--text-dim); padding-bottom: 16px; font-size: 15px; }
   .hero-player mockup-player { width: 100%; height: auto; }
   .hero h1 { font-size: clamp(1.6rem, 6.5vw, 2.2rem); } /* 移动端按视口缩放,保证 Slogan 单行 */
   .bento { grid-template-columns: repeat(2, 1fr); }
-  .b-big { grid-column: span 2; }
   .b-wide { grid-column: span 2; }
+  .b-cell:nth-last-child(-n+2) { grid-column: span 1; }
   .scene { grid-template-columns: 1fr; gap: 28px; padding-block: 44px; }
   .scene.rev .scene-media { order: 0; }
   .scene-media { align-items: center; }
@@ -354,8 +346,7 @@ details p { color: var(--text-dim); padding-bottom: 16px; font-size: 15px; }
   :root { --section-pad: 64px; }
   .cards-3 { grid-template-columns: 1fr; }
   .bento { grid-template-columns: 1fr; }
-  .b-big, .b-wide { grid-column: span 1; }
-  .thumbs-wall { grid-template-columns: repeat(4, 1fr); }
+  .b-wide, .b-cell:nth-last-child(-n+2) { grid-column: span 1; }
   .steps { grid-template-columns: 1fr; }
   .nav-actions .btn-gh span { display: none; }
   .nav-actions .btn-gh { padding: 6px 9px; }

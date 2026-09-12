@@ -42,8 +42,6 @@
 
     "b.kicker": "Features",
     "b.title": "14 Widgets. Take What You Need.",
-    "b1.title": "Input · Audio · Windows · System",
-    "b1.body": "Keys, macros, touchpad, volume, mic, window management, dock, profiles… drag them out and they just work.",
     "b2.title": "Editor: Drag. Drop. Done.",
     "b2.body": "Drag-and-drop canvas, full customization (color, size, font, sound, icon, label), multi-select & group, infinite undo, device presets, scroll to zoom. WYSIWYG.",
     "b3.title": "Millisecond latency",
