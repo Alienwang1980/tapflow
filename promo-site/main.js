@@ -110,4 +110,18 @@
     }
   })();
 
+  // 6. 锚点跳转后清掉 URL 里的 hash:否则点过一次「下载」,之后每次刷新都会
+  //    滚回该锚点(如 #download)。replaceState 只改地址栏,不触发滚动/跳转。
+  (function () {
+    function cleanHash() {
+      if (location.hash) {
+        try {
+          history.replaceState(null, "", location.pathname + location.search);
+        } catch (e) {}
+      }
+    }
+    window.addEventListener("hashchange", cleanHash);
+    cleanHash();
+  })();
+
 })();

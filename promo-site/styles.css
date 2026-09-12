@@ -59,7 +59,7 @@ section { padding-block: var(--section-pad); }
 .sec-head { text-align: center; margin-bottom: 56px; }
 .kicker {
   font-family: var(--font-pixel);
-  font-size: 14px; /* 全局最小字号标准:14px,原 11px 过小 */
+  font-size: 16px; /* 像素字体 8px 网格的整数倍,最清晰;14px 仍偏小且半网格模糊 */
   letter-spacing: .08em;
   color: var(--accent);
   text-transform: uppercase;
@@ -258,7 +258,7 @@ section { padding-block: var(--section-pad); }
   padding: 22px;
 }
 .step-num {
-  font-family: var(--font-pixel); font-size: 14px; color: var(--accent);
+  font-family: var(--font-pixel); font-size: 16px; color: var(--accent);
   border: 1px solid var(--border-hi); border-radius: 10px;
   width: 40px; height: 40px; flex: none;
   display: flex; align-items: center; justify-content: center;
