@@ -83,8 +83,12 @@
     "s5.q": "One second.",
     "s6.title": "⌨️ iPad as Your Entire Keyboard",
     "s6.a": "A tablet screen is big enough. Fill it with keys, a touchpad, gesture pads, window joysticks — your iPad becomes an input surface designed entirely around your habits.",
-    "s6.b": "You can even watch your DeepSeek API balance right on the panel. Buttons that update in real time aren't just inputs — they're outputs too.",
+    "s6.b": "Every key follows your habits: size, color, icon, sound — all up to you.",
     "s6.q": "This isn't adding buttons to a keyboard. This is redesigning input from the ground up, for yourself.",
+    "s7.title": "🤖 The Widgets Vibe Coding Needs",
+    "s7.a": "Voice activation, Plus Code quick commands — take the highest-frequency actions in your vibe coding workflow and turn each into its own shortcut button.",
+    "s7.b": "These buttons aren't just inputs — they're outputs too. Watch your DeepSeek balance right on the button. An input panel, and an information panel. Support for more AI tools will roll out over time.",
+    "s7.q": "A button that talks back.",
 
     "st.kicker": "Setup",
     "st.title": "Five Minutes to Your Own Panel",
