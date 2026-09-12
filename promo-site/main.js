@@ -40,6 +40,24 @@
     }, 1000);
   })();
 
+  // 2c. 双 iPad 3D(下载区上方):同样轮询 canvas,就绪后隐藏静态占位图
+  (function () {
+    var box = document.querySelector(".duo-player");
+    var poster = document.querySelector(".duo-fallback");
+    var player = box && box.querySelector("mockup-player");
+    if (!box || !poster) return;
+    var tries = 0;
+    var t = setInterval(function () {
+      var mp = player && player.mountPoint;
+      if (mp && mp.querySelector("canvas")) {
+        poster.style.visibility = "hidden";
+        clearInterval(t);
+      } else if (++tries > 120) {
+        clearInterval(t);
+      }
+    }, 1000);
+  })();
+
   // 3. Scroll-reveal (once per element)
   var revealEls = document.querySelectorAll(".reveal");
   if ("IntersectionObserver" in window) {

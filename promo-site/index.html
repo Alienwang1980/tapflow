@@ -23,10 +23,10 @@
   if (l !== 'zh') document.documentElement.classList.add('pre-lang');
 })();
 </script>
-<link rel="stylesheet" href="styles.css?v=13">
+<link rel="stylesheet" href="styles.css?v=14">
 <script defer src="assets/icons.js"></script>
 <script defer src="i18n.js?v=8"></script>
-<script defer src="main.js?v=6"></script>
+<script defer src="main.js?v=7"></script>
 <script src="assets/mckp/embed-old.js?v=3" async></script>
 </head>
 <body>
@@ -325,6 +325,26 @@
     <div class="gate reveal">
       <p class="gate-title" data-i18n="st.gate.title">关于「无法验证开发者」</p>
       <p data-i18n="st.gate.body">v1 为 Developer ID 签名(未公证),Gatekeeper 会软拦截一次。这是未公证应用的标准流程,不是安全风险;设置一次之后永远正常打开。我们在 FAQ 里写了每一步。</p>
+    </div>
+  </div>
+</section>
+
+<!-- S7.5 双 iPad 3D 场景(下载区上方,鼠标跟随/点击交互) -->
+<section class="duo" id="duo">
+  <div class="container">
+    <div class="duo-stage">
+      <img class="duo-fallback" src="assets/img/tapflow-18.jpg" width="1080" height="810" alt="把 iPad 变成一整个键盘" loading="lazy" decoding="async">
+      <div class="duo-player" aria-hidden="true">
+        <mockup-player
+          mockup-id="a9bdfc25-0352-4544-b04e-6ca26e954609"
+          width="100%"
+          aspect-ratio="4 / 3"
+          cursor-range="22-53-21-58"
+          click-range="22-40-21-5"
+          camera-zoom="28"
+          background-color="#000000"
+        ></mockup-player>
+      </div>
     </div>
   </div>
 </section>
