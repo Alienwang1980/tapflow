@@ -287,47 +287,6 @@
 </section>
 
 <!-- S6 5 分钟上手 -->
-<section class="setup" id="setup">
-  <div class="container">
-    <div class="sec-head reveal">
-      <p class="kicker" data-i18n="st.kicker">上手</p>
-      <h2 data-i18n="st.title">5 分钟,拥有你自己的面板</h2>
-    </div>
-    <div class="steps-wrap reveal">
-      <ol class="steps">
-        <li class="step">
-          <span class="step-num">1</span>
-          <div><h4 data-i18n="st1.title">下载 DMG,拖入 /Applications</h4><p data-i18n="st1.body">从 GitHub Releases 下载最新版。</p></div>
-        </li>
-        <li class="step">
-          <span class="step-num">2</span>
-          <div><h4 data-i18n="st2.title">首次打开:解除 Gatekeeper 拦截</h4><p data-i18n="st2.body">双击会弹「无法验证开发者」→ 系统设置 → 隐私与安全性 → 仍要打开。只需设置一次。</p></div>
-        </li>
-        <li class="step">
-          <span class="step-num">3</span>
-          <div><h4 data-i18n="st3.title">按提示授予权限</h4><p data-i18n="st3.body">辅助功能 ✅ 注入键盘事件 · 屏幕录制 ✅ 窗口缩略图 · 麦克风 ❌ 可选,音频电平。</p></div>
-        </li>
-        <li class="step">
-          <span class="step-num">4</span>
-          <div><h4 data-i18n="st4.title">(可选)开启开机自启</h4><p data-i18n="st4.body">launchd 守护:开机启动,崩溃自动拉起。</p></div>
-        </li>
-        <li class="step">
-          <span class="step-num">5</span>
-          <div><h4 data-i18n="st5.title">平板同一 WiFi,打开网页</h4><p data-i18n="st5.body">浏览器打开 http://&lt;Mac-IP&gt;:8082。不用装任何 App。</p></div>
-        </li>
-        <li class="step">
-          <span class="step-num">6</span>
-          <div><h4 data-i18n="st6.title">拖几个按钮,保存</h4><p data-i18n="st6.body">Mac 上打开 http://localhost:8082/editor,所见即所得。</p></div>
-        </li>
-      </ol>
-    </div>
-    <div class="gate reveal">
-      <p class="gate-title" data-i18n="st.gate.title">关于「无法验证开发者」</p>
-      <p data-i18n="st.gate.body">v1 为 Developer ID 签名(未公证),Gatekeeper 会软拦截一次。这是未公证应用的标准流程,不是安全风险;设置一次之后永远正常打开。我们在 FAQ 里写了每一步。</p>
-    </div>
-  </div>
-</section>
-
 <!-- S7.5 双 iPad 3D 场景(下载区上方,鼠标跟随/点击交互) -->
 <section class="duo" id="duo">
   <div class="container">
@@ -369,6 +328,48 @@
         </div>
       </div>
       <p class="dl-note"><span data-i18n="dl.note1">DMG 内含 2 个预设 Profile,导入编辑器即可试用。</span><br><span class="muted" data-i18n="dl.req">系统要求:macOS 26+ · Apple Silicon(M1 及更新)</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- S6 5 分钟上手(2026-09-12 用户要求与下载区交换位置,挪到下载区之后) -->
+<section class="setup" id="setup">
+  <div class="container">
+    <div class="sec-head reveal">
+      <p class="kicker" data-i18n="st.kicker">上手</p>
+      <h2 data-i18n="st.title">5 分钟,拥有你自己的面板</h2>
+    </div>
+    <div class="steps-wrap reveal">
+      <ol class="steps">
+        <li class="step">
+          <span class="step-num">1</span>
+          <div><h4 data-i18n="st1.title">下载 DMG,拖入 /Applications</h4><p data-i18n="st1.body">从 GitHub Releases 下载最新版。</p></div>
+        </li>
+        <li class="step">
+          <span class="step-num">2</span>
+          <div><h4 data-i18n="st2.title">首次打开:解除 Gatekeeper 拦截</h4><p data-i18n="st2.body">双击会弹「无法验证开发者」→ 系统设置 → 隐私与安全性 → 仍要打开。只需设置一次。</p></div>
+        </li>
+        <li class="step">
+          <span class="step-num">3</span>
+          <div><h4 data-i18n="st3.title">按提示授予权限</h4><p data-i18n="st3.body">辅助功能 ✅ 注入键盘事件 · 屏幕录制 ✅ 窗口缩略图 · 麦克风 ❌ 可选,音频电平。</p></div>
+        </li>
+        <li class="step">
+          <span class="step-num">4</span>
+          <div><h4 data-i18n="st4.title">(可选)开启开机自启</h4><p data-i18n="st4.body">launchd 守护:开机启动,崩溃自动拉起。</p></div>
+        </li>
+        <li class="step">
+          <span class="step-num">5</span>
+          <div><h4 data-i18n="st5.title">平板同一 WiFi,打开网页</h4><p data-i18n="st5.body">浏览器打开 http://&lt;Mac-IP&gt;:8082。不用装任何 App。</p></div>
+        </li>
+        <li class="step">
+          <span class="step-num">6</span>
+          <div><h4 data-i18n="st6.title">拖几个按钮,保存</h4><p data-i18n="st6.body">Mac 上打开 http://localhost:8082/editor,所见即所得。</p></div>
+        </li>
+      </ol>
+    </div>
+    <div class="gate reveal">
+      <p class="gate-title" data-i18n="st.gate.title">关于「无法验证开发者」</p>
+      <p data-i18n="st.gate.body">v1 为 Developer ID 签名(未公证),Gatekeeper 会软拦截一次。这是未公证应用的标准流程,不是安全风险;设置一次之后永远正常打开。我们在 FAQ 里写了每一步。</p>
     </div>
   </div>
 </section>
@@ -425,6 +426,7 @@
       <a href="https://github.com/Alienwang1980/tapflow" target="_blank" rel="noopener" data-i18n="foot.gh">GitHub</a>
       <a href="https://github.com/Alienwang1980/tapflow/issues" target="_blank" rel="noopener" data-i18n="foot.issue">反馈 / Issues</a>
       <span class="muted" data-i18n="foot.license">MIT License</span>
+      <a class="btn btn-ghost btn-contact" href="mailto:alienwang@gmail.com" rel="noopener">Contact Me</a>
     </div>
     <p class="foot-bottom"><span data-i18n="foot.rights">© 2026 Tapflow</span> · <span class="muted" data-i18n="foot.decl">Made for macOS · Not a keyboard replacement</span></p>
   </div>
