@@ -41,5 +41,5 @@
 - [ ] 发 zfrontier
 - [ ] 投少数派
 - [ ] 剪 B站/小红书视频
-- [ ] GitHub topics + README 动图 + PH badge
+- [x] GitHub topics + README 首屏图 + PH badge(2026-09-13,提交 01c3e82:首屏 hero-hand.webp 主视觉、演示视频链接、topics +macos/trackpad/productivity/automation)
 - [ ] HN / Reddit 发布
