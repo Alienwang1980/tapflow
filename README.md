@@ -10,6 +10,7 @@
   <img src="https://img.shields.io/badge/tablet%20install-zero-brightgreen" alt="tablet: zero install">
   <img src="https://img.shields.io/badge/version-1.0.4-orange" alt="version">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="license">
+  <img src="https://img.shields.io/badge/website-tapflow.work-blueviolet" alt="website">
 </p>
 
 ---

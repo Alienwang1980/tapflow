@@ -2,6 +2,26 @@
 
 单页滚动宣传站:纯静态 HTML/CSS/JS,零框架零构建,中英双语切换,深色主题(与产品一致)。
 
+## 线上地址
+
+- 🌐 **https://tapflow.work**(主域,`www.tapflow.work` 亦可用)
+- 托管:Cloudflare Pages(项目名 `tapflow`,pages.dev 域名 `tapflow-10c.pages.dev`)
+- 图床仍走 `img.tapflow.work`(R2),与站点互不影响
+
+## 重新部署
+
+```bash
+# 1. 准备干净的部署目录(排除 gitignore 的素材源文件)
+rm -rf /tmp/tapflow-pages && mkdir -p /tmp/tapflow-pages
+cp index.html styles.css main.js i18n.js /tmp/tapflow-pages/
+rsync -a --exclude 'mckp/' assets/ /tmp/tapflow-pages/assets/
+
+# 2. 上传(需 CLOUDFLARE_API_TOKEN,见 ~/.wrangler/.env)
+source ~/.wrangler/.env && npx wrangler pages deploy /tmp/tapflow-pages --project-name=tapflow
+```
+
+> 首次部署记录(2026-09-12):Pages 项目经 API 创建;挂载 `tapflow.work` 前需先从 R2 bucket 解绑根域自定义域(R2 生成的 CNAME 受保护,不能直接改 DNS);解绑后 Pages 仍不自动写 DNS,需手动建两条 CNAME(`tapflow.work`/`www` → `tapflow-10c.pages.dev`,proxied),随后域名验证通过。
+
 ## 本地预览
 
 ```bash
