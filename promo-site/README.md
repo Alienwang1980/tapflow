@@ -11,17 +11,31 @@
 ## 重新部署
 
 ```bash
-# 1. 准备干净的部署目录(排除 gitignore 的素材源文件)
+# 1. 准备干净的部署目录(排除 gitignore 的素材源文件 + mckp 死文件)
 rm -rf /tmp/tapflow-pages && mkdir -p /tmp/tapflow-pages
 cp index.html styles.css main.js i18n.js /tmp/tapflow-pages/
-rsync -a assets/ /tmp/tapflow-pages/assets/
+rsync -a assets/ /tmp/tapflow-pages/assets/ \
+  --exclude 'mckp/cdn/90d00c1d-*.glb' --exclude 'mckp/cdn/35470b74-*.png' --exclude 'mckp/cdn/10c2e94d-*.jpg' \
+  --exclude 'mckp/cdn/bf799c47-*.webp' --exclude 'mckp/cdn/2b3dab0b-*.jpg' --exclude 'mckp/cdn/f6abb00f-*.jpg' \
+  --exclude 'mckp/cdn/4b8f28f0-*.webp' --exclude 'mckp/cdn/314f997c-*.webp' \
+  --exclude 'mckp/cdn/267b6dd7-*.jpg' --exclude 'mckp/cdn/32d13334-*.jpg' --exclude 'mckp/cdn/7e98c8fa-*.jpg' \
+  --exclude 'mckp/cdn/c1aa5706-*.jpg' --exclude 'mckp/cdn/514054fe-*.jpg' --exclude 'mckp/cdn/494e6278-*.jpg' \
+  --exclude 'mckp/cdn/f6dd5d6c-*.jpg' \
+  --exclude 'mckp/embed.js' --exclude 'mckp/embed.CUFsinC6.js' --exclude 'mckp/embed.CUFsinC6.js.orig' \
+  --exclude 'mckp/backend/mockups/client/df09709b-*'
 
 # 2. 上传(需 CLOUDFLARE_API_TOKEN,见 ~/.wrangler/.env)
 source ~/.wrangler/.env && npx wrangler pages deploy /tmp/tapflow-pages --project-name=tapflow
 ```
 
-> ⚠️ `assets/mckp/` 虽在 .gitignore 里,但是**运行时必需**(`index.html` 引用的 mockup 查看器 embed)——部署必须带上,不能像本地 git 那样排除。
+> ⚠️ `assets/mckp/` 虽在 .gitignore 里,但是**运行时必需**(`index.html` 引用的 mockup 查看器 embed)——部署必须带上,不能像本地 git 那样排除。排除清单里的文件是 2026-09-12 用网络面板实测从未被拉取的死文件(旧 glb、未挂载场景、未接线的 CUFsinC6 新 bundle)。
 > 首次部署记录(2026-09-12):Pages 项目经 API 创建;挂载 `tapflow.work` 前需先从 R2 bucket 解绑根域自定义域(R2 生成的 CNAME 受保护,不能直接改 DNS);解绑后 Pages 仍不自动写 DNS,需手动建两条 CNAME(`tapflow.work`/`www` → `tapflow-10c.pages.dev`,proxied),随后域名验证通过。
+
+## 3D 素材体积优化(2026-09-12)
+
+- 场景截图(mckp `sceneAssets`)jpg → webp q70,并同步改 `assets/mckp/backend/mockups/client/*` 场景 JSON 里的 `filename_disk` 引用:总 1.8MB → 308KB。**若从 mckp.live 重新抓取场景,需重做此转换。**
+- PBR 贴图 webp q70 重压,省约 5%。
+- 加载指示:`main.js` 的 `wire()` 对进入视口的 3D 区加 `is-loading` 类,canvas 就绪或 2 分钟超时后移除(hero 转圈挂在 `.hero` 上,避免 cover 溢出被裁)。
 
 ## 本地预览
 

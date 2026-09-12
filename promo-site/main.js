@@ -21,41 +21,49 @@
     }
   }
 
-  // 2b. Hero 3D mockup (mckp.live):canvas 就绪后隐藏静态占位图;加载失败则静态图常驻
+  // 2b. 3D mockup (mckp.live):进入视口后显示加载转圈;canvas 就绪后隐藏静态占位图
+  //     与转圈;加载失败/超时则静态图常驻。canvas 在 shadow DOM 里,普通 observer
+  //     看不见 → 轮询 mountPoint 引用。hero 首屏立即观察,duo 滚动进入视口才开始
+  //     (mckp 对离屏 player 是懒加载的,提前轮询只会空转到超时)。
   (function () {
-    var box = document.querySelector(".hero-player");
-    var poster = document.querySelector(".hero-fallback");
-    var player = box && box.querySelector("mockup-player");
-    if (!box || !poster) return;
-    // player 的 canvas 在 shadow DOM 里,普通 observer 看不见 → 轮询 mountPoint 引用
-    var tries = 0;
-    var t = setInterval(function () {
-      var mp = player && player.mountPoint;
-      if (mp && mp.querySelector("canvas")) {
-        poster.style.visibility = "hidden";
-        clearInterval(t);
-      } else if (++tries > 120) { // ~2 分钟仍未渲染,停止探测,静态图常驻
-        clearInterval(t);
+    // spinnerSel: 转圈挂载点;hero 用 .hero(播放器 cover 溢出会被裁),duo 用 .duo-player
+    function wire(boxSel, posterSel, spinnerSel) {
+      var box = document.querySelector(boxSel);
+      var poster = document.querySelector(posterSel);
+      var spinner = spinnerSel ? document.querySelector(spinnerSel) : box;
+      var player = box && box.querySelector("mockup-player");
+      if (!box || !poster || !player) return;
+      var started = false, tries = 0, t = null;
+      function poll() {
+        var mp = player.mountPoint;
+        if (mp && mp.querySelector("canvas")) {
+          poster.style.visibility = "hidden";
+          spinner.classList.remove("is-loading");
+          clearInterval(t); t = null;
+        } else if (++tries > 120) { // ~2 分钟仍未渲染,停止探测,静态图常驻
+          spinner.classList.remove("is-loading");
+          clearInterval(t); t = null;
+        }
       }
-    }, 1000);
-  })();
-
-  // 2c. 双 iPad 3D(下载区上方):同样轮询 canvas,就绪后隐藏静态占位图
-  (function () {
-    var box = document.querySelector(".duo-player");
-    var poster = document.querySelector(".duo-fallback");
-    var player = box && box.querySelector("mockup-player");
-    if (!box || !poster) return;
-    var tries = 0;
-    var t = setInterval(function () {
-      var mp = player && player.mountPoint;
-      if (mp && mp.querySelector("canvas")) {
-        poster.style.visibility = "hidden";
-        clearInterval(t);
-      } else if (++tries > 120) {
-        clearInterval(t);
+      function start() {
+        if (started) return;
+        started = true;
+        spinner.classList.add("is-loading");
+        t = setInterval(poll, 1000);
       }
-    }, 1000);
+      if ("IntersectionObserver" in window) {
+        var o = new IntersectionObserver(function (entries) {
+          for (var i = 0; i < entries.length; i++) {
+            if (entries[i].isIntersecting) { start(); o.disconnect(); break; }
+          }
+        }, { threshold: 0.05 });
+        o.observe(box);
+      } else {
+        start();
+      }
+    }
+    wire(".hero-player", ".hero-fallback", ".hero");
+    wire(".duo-player", ".duo-fallback");
   })();
 
   // 3. Scroll-reveal (once per element)

@@ -170,6 +170,23 @@ section { padding-block: var(--section-pad); }
 }
 .hero-player mockup-player { display: block; width: 100%; height: 100%; }
 
+/* 3D 加载指示:canvas 就绪前右上角小转圈,避免静态占位图被误认为"卡死"。
+   hero 挂 .hero(cover 放大时 .hero-player 右缘会溢出 hero 被裁掉,转圈会看不见),
+   duo 挂 .duo-player(其尺寸=容器,无溢出问题)。 */
+.hero::after, .duo-player::after {
+  content: "";
+  position: absolute; top: 16px; right: 16px; z-index: 2;
+  width: 22px; height: 22px;
+  border: 2px solid rgba(255, 255, 255, .18);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: tf-spin .9s linear infinite;
+  opacity: 0; transition: opacity .3s;
+  pointer-events: none;
+}
+.hero.is-loading::after, .duo-player.is-loading::after { opacity: 1; }
+@keyframes tf-spin { to { transform: rotate(360deg); } }
+
 .hero h1 { font-size: clamp(2.2rem, 3.4vw, 3rem); line-height: 1.18; font-weight: 700; letter-spacing: .005em; }
 .hero h1 .hl { color: var(--accent); }
 .hero .sub { margin: 14px 0 0; font-size: 16px; color: var(--text-dim); max-width: 62ch; }
