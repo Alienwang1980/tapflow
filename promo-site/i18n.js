@@ -15,8 +15,9 @@
     "nav.setup": "Setup",
     "nav.faq": "FAQ",
 
-    "hero.sub": "Tapflow — Your Personal Control Layer. It isn't a keyboard replacement — it works alongside keyboard and mouse: high-frequency actions become visible buttons, reducing what you have to memorize.",
-    "hero.tagline": "Your Personal Control Layer",
+    "hero.sub": "It isn't a keyboard replacement — it works alongside keyboard and mouse: high-frequency actions become visible buttons, reducing what you have to memorize.",
+    "hero.brand": "Tapflow",
+    "hero.tagline": "A New Way to Control Your Computer in the AI Era",
     "hero.dl": "Download Tapflow",
     "hero.gh": "View on GitHub",
     "hero.f2": "iPad · zero install",

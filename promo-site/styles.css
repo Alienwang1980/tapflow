@@ -348,7 +348,7 @@ details p { color: var(--text-dim); padding-bottom: 16px; font-size: 15px; }
   /* 窄屏按宽度定尺寸:百分比高度在 flex 链上不可靠,宽→高由 aspect-ratio 推出;cover 不适用,回到完整 16:9 */
   .hero-player { position: static; inset: auto; display: block; height: auto; width: 100%; transform: none; }
   .hero-player mockup-player { width: 100%; height: auto; }
-  .hero h1 { font-size: clamp(1.6rem, 6.5vw, 2.2rem); } /* 移动端按视口缩放,保证 Slogan 单行 */
+  .hero h1 { font-size: clamp(1.25rem, 5.6vw, 2.2rem); } /* 移动端按视口缩放,保证 Slogan 单行(新文案 14 字) */
   .bento { grid-template-columns: repeat(2, 1fr); }
   .b-wide { grid-column: span 2; }
   .b-cell:nth-last-child(-n+2) { grid-column: span 1; }
