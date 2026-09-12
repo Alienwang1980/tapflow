@@ -41,6 +41,11 @@ source ~/.wrangler/.env && npx wrangler pages deploy /tmp/tapflow-pages --projec
 - **黑底 shade 防穿帮(2026-09-13)**:hero 场景背景透明(只有设备),首帧后 poster 会从设备周围透出成「背景」穿帮(duo 场景背景不透明,无此问题)→ `wire()` 在 poster 与 canvas 之间插黑底,首帧检测后渐显盖住 poster。首帧检测:hook `gl.drawElements/drawArrays`,绘制后 readPixels 采样 7 点 alpha 非 0 即首帧;hook 装晚时派发 resize 触发重绘补偿;进度条卸载后 8s 强制渐显兜底。实测:hero poster 显隐画面差异 5.19% → 0.00%,duo 画面不受影响。
 - **duo 预激活(2026-09-13)**:mckp 默认懒激活(IntersectionObserver threshold:0,滚到才拉 ~2.5MB 素材 → 到底部干等)。`activate()` 公开且幂等(mounted 短路),`main.js` 在「duo 距视口 1500px」或「load 后 8s」提前调用,后台预载,滚动到底即出画面(离屏不渲染,不抢 GPU)。实测冷加载:duo 素材 9.3s 开始下载、~11s 全部就绪,滚动瞬间 canvas+首帧+黑底全就绪。注意:hero 素材 ~5s 内完成,duo 9.3s 才开始 → 错峰不抢带宽。duo 的 glb(a2886c96)已是 KHR_draco 压缩(1.38MB,含 2 动画),无需再压;hero PBR(be9179c3/6daf45b4 2048²)在 4K canvas 下不能降采样(曾降到 1024 又回滚)。
 
+## 布局调整(2026-09-13)
+
+- Contact Me 按钮从 `.foot-links` 移到 `.foot-bottom` 右侧(`flex space-between`):与版权声明同一行、贴 footer 右缘。
+- 「Vibe Coding 所需组件」板块与下方 duo 3D 区拉近:`.scenarios { padding-bottom: 100px }` + `.duo { padding-top: 0 }`(原 section 与 duo 的 padding 叠加,视觉间隙 240px+)。reveal 动画触发后实测视觉间隙 = 100px(reveal 前少 22px,translateY 所致)。
+
 ## 本地预览
 
 ```bash
