@@ -118,6 +118,27 @@
     wire(".duo-player", ".duo-fallback");
   })();
 
+  // 2c. duo 提前激活:mckp 默认懒激活(IntersectionObserver threshold:0,
+  //     滚到才拉 ~3MB 素材 → 到底部干等)。activate() 公开且幂等(重复调用
+  //     直接短路),提前在「距视口 1500px」或「load 后 8s」调用,后台预载,
+  //     滚动到位即出画面(离屏时 mckp 不渲染,不抢 GPU)。
+  (function () {
+    var duo = document.querySelector(".duo-player mockup-player");
+    if (!duo) return;
+    function prewarm() {
+      try { duo.activate(); } catch (e) {}
+    }
+    if ("IntersectionObserver" in window) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) { prewarm(); io.disconnect(); }
+        });
+      }, { rootMargin: "1500px 0px" });
+      io.observe(duo);
+    }
+    setTimeout(prewarm, 8000); // 用户停在首屏时也后台预载
+  })();
+
   // 3. Scroll-reveal (once per element)
   var revealEls = document.querySelectorAll(".reveal");
   if ("IntersectionObserver" in window) {
