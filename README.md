@@ -8,14 +8,19 @@
   <img src="https://img.shields.io/badge/platform-macOS%2015%2B%20ARM64-silver?logo=apple" alt="platform">
   <img src="https://img.shields.io/badge/tablet-iPad%20%7C%20Android%20%7C%20any%20browser-blue" alt="device">
   <img src="https://img.shields.io/badge/tablet%20install-zero-brightgreen" alt="tablet: zero install">
-  <img src="https://img.shields.io/badge/version-1.0.4-orange" alt="version">
+  <img src="https://img.shields.io/badge/version-v1%20%C2%B7%20early%20access-orange" alt="version">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="license">
-  <img src="https://img.shields.io/badge/website-tapflow.work-blueviolet" alt="website">
+  <a href="https://tapflow.work"><img src="https://img.shields.io/badge/website-tapflow.work-blueviolet" alt="website"></a>
+  <a href="https://www.producthunt.com/products/tapflow-3"><img src="https://img.shields.io/badge/Product_Hunt-Tapflow-DA552F.svg?logo=producthunt" alt="Product Hunt"></a>
 </p>
 
 ---
 
 # 中文
+
+<p align="center">
+  <a href="https://tapflow.work"><img src="promo-site/assets/img/hero-hand.webp" alt="Tapflow — iPad 触控面板" width="800"></a>
+</p>
 
 ## 你的键盘，来自上个世纪
 
@@ -180,6 +185,12 @@ Mac 上打开 `http://localhost:8082/editor`：
 - **设备预设** — iPad / Android 比例一键适配
 - **滚轮缩放** — 放大细节，缩小全局
 
+## 在线演示
+
+- 🌐 宣传站(3D 场景 + 演示视频):https://tapflow.work
+- 📺 [Window Swipe 摇杆演示](promo-site/assets/img/window-joystick.mp4)
+- 🎬 [编辑器拖拽演示](promo-site/assets/img/editor-demo.mp4)
+
 ## 5 分钟上手
 
 **Mac 端（需要安装）：**
@@ -250,6 +261,10 @@ MIT
 ---
 
 # English {#english}
+
+<p align="center">
+  <a href="https://tapflow.work"><img src="promo-site/assets/img/hero-hand.webp" alt="Tapflow — your personal control layer" width="800"></a>
+</p>
 
 > **The keyboard you're using was designed before the light bulb. It's time for a control surface built around *you*.**
 
@@ -423,6 +438,12 @@ Open `http://localhost:8082/editor` on your Mac:
 - **Infinite undo** — experiment fearlessly
 - **Device presets** — iPad / Android aspect ratios, one click
 - **Scroll to zoom** — zoom the viewport without changing content size
+
+## Watch It Work
+
+- 🌐 Website with 3D scenes & demo videos: https://tapflow.work
+- 📺 [Window Swipe joystick demo](promo-site/assets/img/window-joystick.mp4)
+- 🎬 [Editor drag-and-drop demo](promo-site/assets/img/editor-demo.mp4)
 
 ## Five Minutes to Your Own Panel
 
