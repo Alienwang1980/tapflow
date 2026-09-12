@@ -25,7 +25,7 @@
 </script>
 <link rel="stylesheet" href="styles.css?v=18">
 <script defer src="assets/icons.js"></script>
-<script defer src="i18n.js?v=9"></script>
+<script defer src="i18n.js?v=10"></script>
 <script defer src="main.js?v=8"></script>
 <script src="assets/mckp/embed-old.js?v=3" async></script>
 </head>
@@ -61,17 +61,16 @@
 <!-- S1 Hero:3D mockup 即头部,文案浮于场景上方(场景上部为空黑区),背景纯黑 -->
 <section class="hero">
   <div class="container hero-copy">
-    <h1><span class="hl" data-i18n="hero.brand">点流</span> <span data-i18n="hero.tagline">AI 时代控制电脑的新方式</span></h1>
-    <p class="sub" data-i18n="hero.sub">不是要替代键盘,而是与键盘鼠标配合:把高频操作做成看得见的按钮,减少记忆负担。</p>
+    <h1><span class="hl" data-i18n="hero.brand">点流</span> <span data-i18n="hero.tagline">AI 时代输入的新方式</span></h1>
+    <p class="sub" data-i18n="hero.sub">不是要替代键盘,而是与键盘鼠标配合:把快捷键操作做成独立的按钮,减少记忆负担。</p>
     <div class="cta-row">
       <a class="btn btn-primary" href="#download"><span data-i18n="hero.dl">下载 Tapflow</span></a>
       <a class="btn btn-ghost" href="https://github.com/Alienwang1980/tapflow" target="_blank" rel="noopener"><span data-i18n="hero.gh">看 GitHub</span></a>
     </div>
     <ul class="facts">
-      <li><span data-i18n="hero.f1">macOS 15+ · arm64</span></li>
+      <li><span data-i18n="hero.f1">macOS 26+ · arm64</span></li>
       <li><span data-i18n="hero.f2">iPad 零安装</span></li>
       <li><span data-i18n="hero.f3">毫秒级延迟</span></li>
-      <li><span data-i18n="hero.f4">MIT 免费</span></li>
     </ul>
   </div>
   <div class="hero-stage">
@@ -101,7 +100,7 @@
   <div class="container">
     <div class="sec-head reveal">
       <p class="kicker" data-i18n="p.kicker">问题</p>
-      <h2 data-i18n="p.title">你的键盘,来自上个世纪</h2>
+      <h2 data-i18n="p.title">你的大脑,是地球上最精密的智慧,不应用来记快捷键</h2>
       <p class="lead" data-i18n="p.lead">物理键盘诞生于 1870 年代。150 多年了,你还在用那套交互逻辑控制你的电脑。</p>
     </div>
     <div class="cards-3">
@@ -130,7 +129,7 @@
     <div class="rv-copy reveal">
       <p class="kicker" data-i18n="r.kicker">然而,情况也有变化</p>
       <p class="rv-body" data-i18n="r.body">AI 时代,Vibe Coding 对键盘的需求反而降低了,对输入方式提出了新需求。</p>
-      <h2 class="big" data-i18n="r.title">于是有了 Tapflow。</h2>
+      <h2 class="big" data-i18n="r.title">Tapflow 为了输入的简单和快捷而生</h2>
       <p class="rv-body" data-i18n="r.body2">一个可以完全定制的、用于操作电脑的输入界面。Mac 上跑一个服务端,平板用浏览器连入,仅此而已。</p>
       <div class="flow" aria-hidden="true">
         <span class="flow-node" data-i18n="r.flow1">触摸</span><span class="flow-arrow">→</span>
@@ -172,7 +171,7 @@
       <div class="b-cell reveal">
         <span class="b-icon" data-icon="tablet" aria-hidden="true"></span>
         <h3 data-i18n="b5.title">平板零安装</h3>
-        <p data-i18n="b5.body">不用装任何 App。浏览器打开网页即用,支持 PWA 加到主屏幕。</p>
+        <p data-i18n="b5.body">浏览器打开网页即用,不限设备,包括手机</p>
       </div>
       <div class="b-cell reveal">
         <span class="b-icon" data-icon="monitor" aria-hidden="true"></span>
@@ -207,7 +206,7 @@
       </div>
       <div class="scene-copy">
         <h3 data-i18n="s1.title">🎤 Vibe Coding 语音激活</h3>
-        <p data-i18n="s1.a">你在用 Claude Code / Cursor 做 vibe coding,AI 在写代码,你要说下一段 prompt。键盘上:找到语音输入快捷键(是哪个来着?)→ 按下去 → 说话 → 再按一下结束。</p>
+        <p data-i18n="s1.a">你在做 vibe coding,AI 在写代码,你要用语音说下一段 prompt。键盘上:找到语音输入快捷键(取决于语音识别软件,是哪个来着?)→ 按下去 → 说话 → 再按一下结束。</p>
         <p data-i18n="s1.b">Tapflow 上:平板旁边有一个按钮,上面写着「🎤 说话」。点一下,开始说。说完了,再点一下。</p>
         <p class="scene-q" data-i18n="s1.q">不是「少按了几个键」的问题,是你不用打断思路去想那个快捷键是什么的问题。</p>
       </div>
@@ -219,7 +218,7 @@
       </div>
       <div class="scene-copy">
         <h3 data-i18n="s2.title">🕹️ 窗口排列 = 游戏手柄摇杆</h3>
-        <p data-i18n="s2.a">macOS 的窗口贴靠功能很强——全屏、左半、右半、上半、下半。但触发方式呢?要么背快捷键,要么用鼠标拖到屏幕边缘。</p>
+        <p data-i18n="s2.a">macOS 的窗口贴靠功能很强,但触发方式呢?要么背快捷键,要么每次都用鼠标点击。</p>
         <p data-i18n="s2.b">Window Swipe 组件把它做成了一个摇杆:手指往上滑 → 窗口全屏。往左滑 → 贴左半。往右下滑 → 贴右下角。点一下最大化,长按全屏。</p>
         <p class="scene-q" data-i18n="s2.q">跟打游戏一样——排列窗口,根本不应该用快捷键。</p>
       </div>
@@ -255,7 +254,7 @@
       </div>
       <div class="scene-copy">
         <h3 data-i18n="s5.title">🔊 切音频设备?一眼就够了</h3>
-        <p data-i18n="s5.a">会议室里要切 AirPods。工作室里要切外放。打游戏切耳机。通常的做法:系统设置 → 声音 → 输出 → 找到设备 → 点一下。每次都这样。</p>
+        <p data-i18n="s5.a">会议室里要切 AirPods。工作室里要切外放。打游戏切耳机。通常的做法:系统设置 → 声音 → 输出 → 找到设备 → 点一下。每次都这样。不直观又麻烦。</p>
         <p data-i18n="s5.b">Audio Out 组件:平板上一个按钮,点一下弹出所有设备列表,选一个。长按直接轮换。</p>
         <p class="scene-q" data-i18n="s5.q">一秒。</p>
       </div>
@@ -269,7 +268,7 @@
         <h3 data-i18n="s6.title">⌨️ 把 iPad 变成一整个键盘</h3>
         <p data-i18n="s6.a">平板屏幕足够大。在上面铺满按键、触控板、手势区、窗口摇杆——iPad 变成一块完全按你的习惯定制的输入面板。</p>
         <p data-i18n="s6.b">每个键都按你的习惯来:大小、颜色、图标、声音,全都由你决定。</p>
-        <p class="scene-q" data-i18n="s6.q">这不是给键盘加按键。这是从头重新设计输入。</p>
+        <p class="scene-q" data-i18n="s6.q">这不是为了替代键盘,而是如果你需要的时候,它有能力随时转换</p>
       </div>
     </div>
 
@@ -279,7 +278,7 @@
       </div>
       <div class="scene-copy">
         <h3 data-i18n="s7.title">🤖 Vibe Coding 所需的组件</h3>
-        <p data-i18n="s7.a">语音激活、Plus Code 快捷命令——Vibe Coding 里最高频的操作,单独拎出来,做成一个个快捷键按钮。</p>
+        <p data-i18n="s7.a">Vibe Coding 里最高频的操作,单独拎出来,做成一个个快捷键按钮。放在任何设备上都可以。</p>
         <p data-i18n="s7.b">这些按钮不仅能输入,还能输出:你可以在按钮上直接看到 DeepSeek 的余额——输入面板,同时是信息面板。其他 AI 工具的支持,会逐步加入。</p>
         <p class="scene-q" data-i18n="s7.q">按钮,不只用来按。</p>
       </div>
@@ -354,7 +353,7 @@
   <div class="container dl">
     <div class="dl-inner reveal">
       <h2 data-i18n="dl.title">现在就试试</h2>
-      <p class="dl-sub" data-i18n="dl.sub">免费 · 开源 · MIT。你的 iPad 可能已经是块最顺手的控制面板。</p>
+      <p class="dl-sub" data-i18n="dl.sub">Tapflow 只在局域网内的设备互相访问,不获取不上传任何信息到外网</p>
       <div class="dl-cards">
         <div class="dl-card">
           <h3>GitHub Releases</h3>
@@ -369,7 +368,7 @@
           <span class="dl-code" data-i18n="dl.baidu.code">提取码 qw3m</span>
         </div>
       </div>
-      <p class="dl-note"><span data-i18n="dl.note1">DMG 内含 2 个预设 Profile,导入编辑器即可试用。</span><br><span class="muted">macOS 15+ · Apple Silicon · MIT</span></p>
+      <p class="dl-note"><span data-i18n="dl.note1">DMG 内含 2 个预设 Profile,导入编辑器即可试用。</span><br><span class="muted" data-i18n="dl.req">系统要求:macOS 26+ · Apple Silicon(M1 及更新)</span></p>
     </div>
   </div>
 </section>
@@ -417,8 +416,8 @@
     <div class="foot-brand">
       <img src="assets/img/logo.png" alt="Tapflow logo" width="40" height="40">
       <div>
-        <p class="foot-name">Tapflow <span class="muted">/ 点流</span></p>
-        <p class="foot-tagline" data-i18n="foot.tagline">你的大脑不该用来记快捷键。把它放在屏幕上。</p>
+        <p class="foot-name">Tapflow <span class="muted" data-i18n="foot.name.cn">/ 点流</span></p>
+        <p class="foot-tagline" data-i18n="foot.tagline">AI 时代输入的新方式,极简快捷与个性化</p>
       </div>
     </div>
     <div class="foot-links">
