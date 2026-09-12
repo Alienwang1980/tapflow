@@ -24,11 +24,12 @@
   // 2b. 3D mockup (mckp.live):
   //     - mckp 自带「Loading scene」进度条(closed shadow DOM 内),默认偏在角落 →
   //       注入样式把它居中(mountPoint 是公开属性,可挂 <style>)
-  //     - 就绪信号:canvas 已建 && 进度条已卸载(素材加载完成)→ 再等 2s
-  //       (shader 编译/首帧)才隐藏静态占位图。旧逻辑以「canvas 创建」为信号
-  //       太早:canvas 建好后场景/贴图仍在加载,出现"loading 没了却黑屏"的空窗。
-  //       用轮询而非 MutationObserver:极快加载时进度条有 350ms 挂载延迟可能
-  //       根本不出现,观察"卸载"会永远等不到
+  //     - 静态占位图 poster 永不隐藏:mckp 的 WebGL canvas 是 alpha:true,
+  //       首帧渲染前 canvas 透明 → poster 透出;首帧画上后场景背景不透明,
+  //       自然盖住 poster(2026-09-13 实测:poster 显隐对画面零影响)。
+  //       旧方案以「canvas 创建/进度条卸载」为信号隐藏 poster,与真实首帧
+  //       之间有长空窗 → loading 完黑屏半天 + 切换闪烁;且渲染失败时
+  //       poster 垫底还能兜底显示静态图。
   (function () {
     var CENTER_CSS = [
       // 进度条本体 + 其父 overlay 全屏 flex 居中(:has 兜底类名 hash 变化)
@@ -39,18 +40,11 @@
       "[role='progressbar'] { position: absolute !important; inset: auto !important; width: min(50%, 320px) !important; }"
     ].join("\n");
 
-    function wire(boxSel, posterSel) {
+    function wire(boxSel) {
       var box = document.querySelector(boxSel);
-      var poster = document.querySelector(posterSel);
       var player = box && box.querySelector("mockup-player");
-      if (!box || !poster || !player) return;
-      var done = false, ticks = 0;
-      var grace = 2000; // 素材加载完 → shader 编译/首帧的宽限
-      function onLoaded() {
-        if (done) return;
-        done = true;
-        setTimeout(function () { poster.style.visibility = "hidden"; }, grace);
-      }
+      if (!box || !player) return;
+      var ticks = 0;
       var t = setInterval(function () {
         var mp = player.mountPoint;
         if (!mp) return;
@@ -60,18 +54,12 @@
           st.textContent = CENTER_CSS;
           mp.appendChild(st);
         }
-        var hasBar = !!mp.querySelector("[role='progressbar']");
-        var hasCanvas = !!mp.querySelector("canvas");
-        if (hasCanvas && !hasBar) {
-          onLoaded();
-          clearInterval(t);
-        } else if (hasCanvas && ++ticks > 120) { // canvas 建好后 2 分钟仍未就绪才放弃;
-          clearInterval(t);                     // 未激活(无 canvas)不消耗预算(duo 懒加载)
-        }
+        // canvas 建好即停止轮询(样式已注入,余下交给 canvas 透明垫底机制)
+        if (mp.querySelector("canvas") || ++ticks > 120) clearInterval(t);
       }, 1000);
     }
-    wire(".hero-player", ".hero-fallback");
-    wire(".duo-player", ".duo-fallback");
+    wire(".hero-player");
+    wire(".duo-player");
   })();
 
   // 3. Scroll-reveal (once per element)
