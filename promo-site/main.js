@@ -24,12 +24,14 @@
   // 2b. 3D mockup (mckp.live):
   //     - mckp 自带「Loading scene」进度条(closed shadow DOM 内),默认偏在角落 →
   //       注入样式把它居中(mountPoint 是公开属性,可挂 <style>)
-  //     - 静态占位图 poster 永不隐藏:mckp 的 WebGL canvas 是 alpha:true,
-  //       首帧渲染前 canvas 透明 → poster 透出;首帧画上后场景背景不透明,
-  //       自然盖住 poster(2026-09-13 实测:poster 显隐对画面零影响)。
-  //       旧方案以「canvas 创建/进度条卸载」为信号隐藏 poster,与真实首帧
-  //       之间有长空窗 → loading 完黑屏半天 + 切换闪烁;且渲染失败时
-  //       poster 垫底还能兜底显示静态图。
+  //     - poster 静态占位图垫底:首帧前 canvas(alpha:true)透明 → poster 透出;
+  //       但 hero 场景背景透明(只有设备,无背景),首帧后 poster 会从设备周围
+  //       透出成「背景」穿帮(duo 场景背景不透明,无此问题)→ 在 poster 与
+  //       canvas 之间放一张黑底,3D 首帧画上后渐显盖住 poster。
+  //     - 首帧检测:hook gl.drawElements/drawArrays,每次绘制后 readPixels 采样
+  //       7 点 alpha,首次非 0 即首帧已画 → 渐显黑底。hook 装晚时(静态场景
+  //       首帧后不再 draw)派发 resize 触发 mckp 重绘一帧补偿;仍检测不到则
+  //       进度条卸载后 8s 强制渐显(加载中 = 黑底 + 居中进度条,不穿帮)。
   (function () {
     var CENTER_CSS = [
       // 进度条本体 + 其父 overlay 全屏 flex 居中(:has 兜底类名 hash 变化)
@@ -40,11 +42,25 @@
       "[role='progressbar'] { position: absolute !important; inset: auto !important; width: min(50%, 320px) !important; }"
     ].join("\n");
 
-    function wire(boxSel) {
+    function wire(boxSel, posterSel) {
       var box = document.querySelector(boxSel);
+      var poster = document.querySelector(posterSel);
       var player = box && box.querySelector("mockup-player");
-      if (!box || !player) return;
-      var ticks = 0;
+      if (!box || !poster || !player) return;
+
+      // 黑底:插在 poster 之后、canvas 容器之前(DOM 顺序:poster → shade → player)
+      var shade = document.createElement("div");
+      shade.style.cssText = "position:absolute;inset:0;z-index:1;background:#000;" +
+        "opacity:0;transition:opacity .25s ease;pointer-events:none;";
+      poster.parentNode.insertBefore(shade, poster.nextSibling);
+      var done = false;
+      function showShade() {
+        if (done) return;
+        done = true;
+        shade.style.opacity = "1";
+      }
+
+      var ticks = 0, barGoneAt = 0;
       var t = setInterval(function () {
         var mp = player.mountPoint;
         if (!mp) return;
@@ -54,12 +70,52 @@
           st.textContent = CENTER_CSS;
           mp.appendChild(st);
         }
-        // canvas 建好即停止轮询(样式已注入,余下交给 canvas 透明垫底机制)
-        if (mp.querySelector("canvas") || ++ticks > 120) clearInterval(t);
+        var canvas = mp.querySelector("canvas");
+        var bar = mp.querySelector("[role='progressbar']");
+        if (canvas && !canvas.__tfGl) {
+          canvas.__tfGl = true;
+          var gl = null;
+          try { gl = canvas.getContext("webgl2") || canvas.getContext("webgl"); } catch (e) {}
+          if (gl) {
+            var buf = new Uint8Array(4);
+            function hasContent() {
+              try {
+                var W = gl.drawingBufferWidth, H = gl.drawingBufferHeight;
+                for (var i = 0; i < 7; i++) {
+                  gl.readPixels(Math.floor(W * (0.15 + 0.116 * i)),
+                    Math.floor(H * (0.3 + 0.05 * (i % 4))), 1, 1,
+                    gl.RGBA, gl.UNSIGNED_BYTE, buf);
+                  if (buf[3] > 0) return true;
+                }
+              } catch (e) {}
+              return false;
+            }
+            function wrap(fn) {
+              return function () {
+                var r = fn.apply(this, arguments);
+                if (!done && hasContent()) showShade();
+                return r;
+              };
+            }
+            gl.drawElements = wrap(gl.drawElements);
+            gl.drawArrays = wrap(gl.drawArrays);
+            // 补偿:场景若已在 hook 前渲染完(静态场景不再 draw),
+            // 派发 resize 触发 mckp 重绘一帧
+            setTimeout(function () { if (!done) window.dispatchEvent(new Event("resize")); }, 150);
+          }
+        }
+        if (canvas) {
+          if (!bar) { // 进度条卸载后 8s 仍未检测到首帧 → 强制渐显(兜底)
+            if (!barGoneAt) barGoneAt = ticks;
+            else if (ticks - barGoneAt > 8) showShade();
+          }
+          if (++ticks > 300) clearInterval(t); // 5 分钟硬上限
+        }
+        if (done) clearInterval(t);
       }, 1000);
     }
-    wire(".hero-player");
-    wire(".duo-player");
+    wire(".hero-player", ".hero-fallback");
+    wire(".duo-player", ".duo-fallback");
   })();
 
   // 3. Scroll-reveal (once per element)
