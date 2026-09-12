@@ -80,6 +80,10 @@
         var img = e.target;
         img.src = img.getAttribute("data-gif");
         img.removeAttribute("data-gif");
+        // 静态图与 GIF 比例不同(1080x678 vs 640x480):换源后清掉 width/height 属性,
+        // 让 GIF 按自然比例渲染,避免被属性比例拉伸
+        img.removeAttribute("width");
+        img.removeAttribute("height");
         gio.unobserve(img);
       });
     }, { threshold: 0.2 });
