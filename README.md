@@ -22,6 +22,10 @@
   <a href="https://tapflow.work"><img src="promo-site/assets/img/hero-hand.webp" alt="Tapflow — iPad 触控面板" width="800"></a>
 </p>
 
+<p align="center">
+  <a href="https://tapflow.work"><img src="https://img.shields.io/badge/Visit_our_website-tapflow.work-blueviolet.svg?style=for-the-badge" alt="Visit our website"></a>
+</p>
+
 ## 你的键盘，来自上个世纪
 
 键盘是上个世纪创造出来用于打字的通用工具，大多数情况下它做得很好。但电脑的操作在演变，键盘需要承担一些新的角色：大量高频动作——切换窗口、调音频、启动应用——逐步演变成了快捷键，而且大多是组合键。而快捷键或鼠标多级菜单，并不总是最直观的。
@@ -264,6 +268,10 @@ MIT
 
 <p align="center">
   <a href="https://tapflow.work"><img src="promo-site/assets/img/hero-hand.webp" alt="Tapflow — your personal control layer" width="800"></a>
+</p>
+
+<p align="center">
+  <a href="https://tapflow.work"><img src="https://img.shields.io/badge/Visit_our_website-tapflow.work-blueviolet.svg?style=for-the-badge" alt="Visit our website"></a>
 </p>
 
 > **The keyboard you're using was designed before the light bulb. It's time for a control surface built around *you*.**
