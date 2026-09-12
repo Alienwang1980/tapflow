@@ -43,3 +43,9 @@
 - [ ] 剪 B站/小红书视频
 - [x] GitHub topics + README 首屏图 + PH badge(2026-09-13,提交 01c3e82:首屏 hero-hand.webp 主视觉、演示视频链接、topics +macos/trackpad/productivity/automation)
 - [ ] HN / Reddit 发布
+- [x] awesome 列表 PR(2026-09-13,用户确认「三个全投」,Alienwang1980 账号 fork 代发):
+  - serhii-londar/open-source-mac-os-apps(50K★)PR #1368,改 applications.json,分类 productivity+utilities
+  - jaywcjlove/awesome-mac(114K★)PR #2857,Productivity 分类(BetterTouchTool 旁)
+  - iCHAIT/awesome-macOS(19K★)PR #1108,Productivity 分类
+  - 踩坑:本网络 github.com HTTPS clone 被断(Empty reply),SSH clone 正常 → fork 后的仓库一律 SSH 操作
+  - 待维护者合入;合入后即获列表流量
