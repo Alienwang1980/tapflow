@@ -21,48 +21,56 @@
     }
   }
 
-  // 2b. 3D mockup (mckp.live):进入视口后显示加载转圈;canvas 就绪后隐藏静态占位图
-  //     与转圈;加载失败/超时则静态图常驻。canvas 在 shadow DOM 里,普通 observer
-  //     看不见 → 轮询 mountPoint 引用。hero 首屏立即观察,duo 滚动进入视口才开始
-  //     (mckp 对离屏 player 是懒加载的,提前轮询只会空转到超时)。
+  // 2b. 3D mockup (mckp.live):
+  //     - mckp 自带「Loading scene」进度条(closed shadow DOM 内),默认偏在角落 →
+  //       注入样式把它居中(mountPoint 是公开属性,可挂 <style>)
+  //     - 就绪信号:canvas 已建 && 进度条已卸载(素材加载完成)→ 再等 2s
+  //       (shader 编译/首帧)才隐藏静态占位图。旧逻辑以「canvas 创建」为信号
+  //       太早:canvas 建好后场景/贴图仍在加载,出现"loading 没了却黑屏"的空窗。
+  //       用轮询而非 MutationObserver:极快加载时进度条有 350ms 挂载延迟可能
+  //       根本不出现,观察"卸载"会永远等不到
   (function () {
-    // spinnerSel: 转圈挂载点;hero 用 .hero(播放器 cover 溢出会被裁),duo 用 .duo-player
-    function wire(boxSel, posterSel, spinnerSel) {
+    var CENTER_CSS = [
+      // 进度条本体 + 其父 overlay 全屏 flex 居中(:has 兜底类名 hash 变化)
+      "[role='progressbar'], ._overlay_5nsm1_3, *:has(> [role='progressbar']) {",
+      "  position: absolute !important; inset: 0 !important; margin: 0 !important;",
+      "  display: flex !important; align-items: center !important; justify-content: center !important;",
+      "}",
+      "[role='progressbar'] { position: absolute !important; inset: auto !important; width: min(50%, 320px) !important; }"
+    ].join("\n");
+
+    function wire(boxSel, posterSel) {
       var box = document.querySelector(boxSel);
       var poster = document.querySelector(posterSel);
-      var spinner = spinnerSel ? document.querySelector(spinnerSel) : box;
       var player = box && box.querySelector("mockup-player");
       if (!box || !poster || !player) return;
-      var started = false, tries = 0, t = null;
-      function poll() {
+      var done = false, ticks = 0;
+      var grace = 2000; // 素材加载完 → shader 编译/首帧的宽限
+      function onLoaded() {
+        if (done) return;
+        done = true;
+        setTimeout(function () { poster.style.visibility = "hidden"; }, grace);
+      }
+      var t = setInterval(function () {
         var mp = player.mountPoint;
-        if (mp && mp.querySelector("canvas")) {
-          poster.style.visibility = "hidden";
-          spinner.classList.remove("is-loading");
-          clearInterval(t); t = null;
-        } else if (++tries > 120) { // ~2 分钟仍未渲染,停止探测,静态图常驻
-          spinner.classList.remove("is-loading");
-          clearInterval(t); t = null;
+        if (!mp) return;
+        if (!mp.__tfStyle) { // 注入一次居中样式
+          mp.__tfStyle = true;
+          var st = document.createElement("style");
+          st.textContent = CENTER_CSS;
+          mp.appendChild(st);
         }
-      }
-      function start() {
-        if (started) return;
-        started = true;
-        spinner.classList.add("is-loading");
-        t = setInterval(poll, 1000);
-      }
-      if ("IntersectionObserver" in window) {
-        var o = new IntersectionObserver(function (entries) {
-          for (var i = 0; i < entries.length; i++) {
-            if (entries[i].isIntersecting) { start(); o.disconnect(); break; }
-          }
-        }, { threshold: 0.05 });
-        o.observe(box);
-      } else {
-        start();
-      }
+        var hasBar = !!mp.querySelector("[role='progressbar']");
+        var hasCanvas = !!mp.querySelector("canvas");
+        if (hasCanvas && !hasBar) {
+          onLoaded();
+          clearInterval(t);
+        } else if (hasCanvas && ++ticks > 120) { // canvas 建好后 2 分钟仍未就绪才放弃;
+          clearInterval(t);                     // 未激活(无 canvas)不消耗预算(duo 懒加载)
+        }
+      }, 1000);
     }
-    wire(".hero-player", ".hero-fallback", ".hero");
+    wire(".hero-player", ".hero-fallback");
     wire(".duo-player", ".duo-fallback");
   })();
 
