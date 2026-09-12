@@ -35,7 +35,7 @@ source ~/.wrangler/.env && npx wrangler pages deploy /tmp/tapflow-pages --projec
 
 - 场景截图(mckp `sceneAssets`)jpg → webp q70,并同步改 `assets/mckp/backend/mockups/client/*` 场景 JSON 里的 `filename_disk` 引用:总 1.8MB → 308KB。**若从 mckp.live 重新抓取场景,需重做此转换。**
 - PBR 贴图 webp q70 重压,省约 5%。
-- 加载指示:`main.js` 的 `wire()` 对进入视口的 3D 区加 `is-loading` 类,canvas 就绪或 2 分钟超时后移除(hero 转圈挂在 `.hero` 上,避免 cover 溢出被裁)。
+- 加载指示:`main.js` 的 `wire()` 向 player.mountPoint 注入 CSS,把 mckp 自带「Loading scene」进度条从角落居中到画面中心(closed shadow DOM,只能经 mountPoint 挂 `<style>`);静态占位图 poster 的隐藏信号 = canvas 已建 && 进度条已卸载 + 2s shader 编译宽限。曾以「canvas 创建」为信号,导致 loading 消失后黑屏空窗(场景/贴图仍在加载),已修;也试过自绘转圈,被 mckp 自带进度条在左上角的问题取代。
 
 ## 本地预览
 
