@@ -298,7 +298,8 @@ section { padding-block: var(--section-pad); }
 .dl-note { margin-top: 22px; color: var(--text-dim); font-size: 14px; line-height: 1.9; }
 
 /* ── S7.5 双 iPad 3D(下载区上方)── */
-.duo { background: #000; }
+.duo { background: #000; padding-bottom: 0; }
+.download { padding-top: 28px; } /* 紧贴上方 3D 场景 */
 .duo-stage { position: relative; max-width: 900px; margin-inline: auto; }
 .duo-fallback { display: block; width: 100%; height: auto; border-radius: var(--radius-lg); }
 .duo-player { position: absolute; inset: 0; z-index: 1; }
